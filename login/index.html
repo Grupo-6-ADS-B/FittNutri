@@ -7,7 +7,27 @@
     <link rel="stylesheet" href="style.css">
     <title>Login e cadastro | FittNUtri</title>
 </head>
-<body>
+<body class="login-mode">
+
+    <header class="main-header">
+        <div class="logo">
+            <img src="logo.jpg" alt="FittNutri Logo">
+            <span>FittNutri</span>
+            <p>Software para nutricionistas</p>
+        </div>
+        <nav class="main-nav">
+            <ul>
+                <li><a href="#">Funcionalidades</a></li>
+                <li><a href="#">Sobre</a></li>
+                <li><a href="#">Fale conosco</a></li>
+            </ul>
+        </nav>
+        <div class="header-buttons">
+            <button class="btn-login">Entrar</button>
+            <button class="btn-register">Cadastrar</button>
+        </div>
+    </header>
+
     <div class="wrapper">
         <div class="form-header">
             <div class="titles">
@@ -25,7 +45,7 @@
             <div class="input-box">
                 <input type="password" class="input-field" id="log-pass" required>
                 <label for="log-pass" class="label">Senha</label>
-                <i class='bx bx-lock-alt icon' ></i>
+                <i class='bx bx-lock-alt icon'></i>
             </div>
             <div class="form-cols">
                 <div class="col-1"></div>
@@ -34,7 +54,7 @@
                 </div>
             </div>
             <div class="input-box">
-                <button class="btn-submit" id="SignInBtn">Acessar <i class='bx bx-log-in' ></i></button>
+                <button class="btn-submit" id="SignInBtn">Acessar <i class='bx bx-log-in'></i></button>
             </div>
             <div class="social-login">
                 <div class="social-text">Faça login com:</div>
@@ -54,32 +74,40 @@
             <div class="input-box">
                 <input type="text" class="input-field" id="reg-name" required>
                 <label for="reg-name" class="label">Nome</label>
-                <i class='bx bx-user icon' ></i>
+                <i class='bx bx-user icon'></i>
             </div>
             <div class="input-box">
                 <input type="text" class="input-field" id="reg-email" required>
                 <label for="reg-email" class="label">Email</label>
                 <i class='bx bx-envelope icon'></i>
             </div>
+            <!-- <div class="input-box">
+                <input type="text" class="input-field" id="reg-phone" required>
+                <label for="reg-phone" class="label">Telefone</label>
+                <i class='bx bx-phone icon'></i>
+            </div> -->
+            <div class="input-box">
+                <input type="text" class="input-field" id="reg-cpf" required>
+                <label for="reg-cpf" class="label">CPF</label>
+                <i class='bx bx-id-card icon'></i>
+            </div>
+            <div class="input-box">
+                <input type="text" class="input-field" id="reg-crn" required>
+                <label for="reg-crn" class="label">CRN</label>
+                <i class='bx bx-food-menu icon'></i>
+            </div>
             <div class="input-box">
                 <input type="password" class="input-field" id="reg-pass" required>
                 <label for="reg-pass" class="label">Senha</label>
-                <i class='bx bx-lock-alt icon' ></i>
+                <i class='bx bx-lock-alt icon'></i>
             </div>
             <div class="input-box">
                 <input type="password" class="input-field" id="reg-confirm-pass" required>
                 <label for="reg-confirm-pass" class="label">Confirmar Senha</label>
-                <i class='bx bx-lock-alt icon' ></i>
-            </div>
-            <div class="form-cols">
-                <div class="col-1">
-                    <input type="checkbox" id="agree">
-                    <label for="agree"> Aceito os termos e condições</label>
-                </div>
-                <div class="col-2"></div>
+                <i class='bx bx-lock-alt icon'></i>
             </div>
             <div class="input-box">
-                <button class="btn-submit" id="SignUpBtn">Cadastre-se <i class='bx bx-user-plus' ></i></button>
+                <button class="btn-submit" id="SignUpBtn">Cadastre-se <i class='bx bx-user-plus'></i></button>
             </div>
             <div class="switch-form">
                 <span>Já tem uma conta? <a href="#" onclick="loginFunction()">Faça login</a></span>
@@ -87,12 +115,15 @@
         </form>
 
         <div id="notification-popup" class="notification-popup">
-        <div class="message-container">
-            <span class="message-icon"></span>
-            <p class="message-text"></p>
+            <div class="message-container">
+                <span class="message-icon"></span>
+                <p class="message-text"></p>
+            </div>
+            <div class="progress-bar"></div>
         </div>
-        <div class="progress-bar"></div>
     </div>
+
+    <footer class="main-footer"></footer>
 
     <script src="script.js"></script>
 </body>

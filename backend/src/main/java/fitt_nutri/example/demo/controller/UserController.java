@@ -1,6 +1,5 @@
 package fitt_nutri.example.demo.controller;
 
-
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.UserRepository;
 import fitt_nutri.example.demo.service.UserService;
@@ -9,17 +8,17 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @AllArgsConstructor
 @RestController
 @RequestMapping("/users")
+@CrossOrigin(origins = "http://localhost:5500")
 public class UserController {
 
     private final UserService userService;
     private final UserRepository userRepository;
-
+    private final AuthService authService;
 
     @PostMapping
     public ResponseEntity<UserModel> createUser(@Valid @RequestBody UserModel userModel) {
