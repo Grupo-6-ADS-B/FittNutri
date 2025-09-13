@@ -98,25 +98,6 @@ public class UserController {
 
     }
 
-    @Operation(summary = "Atualiza o nome de um usuário por id")
-    @ApiResponse(responseCode = "200", description = "Nome do usuário atualizado com sucesso")
-    @ApiResponse(responseCode = "400", description = "O nome não pode estar em branco")
-    @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    @PatchMapping("/{id}")
-    public ResponseEntity<UserModel> updateUserName(@PathVariable Integer id,
-                                                    @Valid @RequestBody UserModel request) {
-
-        if (!userRepository.existsById(id)) {
-            return ResponseEntity.status(404).build();
-        }
-
-        UserModel existingUser = userRepository.findById(id).get();
-        existingUser.setNome(request.getNome());
-
-        userRepository.save(existingUser);
-
-        return ResponseEntity.status(200).body(existingUser);
-    }
 
 
     @Operation(summary = "Exclui um usuário por id")
