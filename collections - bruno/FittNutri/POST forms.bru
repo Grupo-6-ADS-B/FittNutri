@@ -1,0 +1,22 @@
+meta {
+  name: POST forms
+  type: http
+  seq: 8
+}
+
+post {
+  url: http://localhost:8080/forms
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nome": "João da Silva",
+    "mensagem": "Olá, gostaria de saber mais sobre o plano de nutrição."
+  }
+}
+
+settings {
+  encodeUrl: true
+}

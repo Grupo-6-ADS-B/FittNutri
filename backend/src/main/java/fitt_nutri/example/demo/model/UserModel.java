@@ -8,14 +8,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.br.CPF;
 
-import java.time.LocalDate;
-
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "USERS")
+@Table(name = "users")
 public class UserModel {
 
     @Id
@@ -26,24 +24,23 @@ public class UserModel {
     @Column(nullable = false)
     private String nome;
 
-    @NotBlank(message = "CPF não pode estar vazio")
-    @Column(nullable = false, unique = true)
-    private String cpf;
-
-    @Pattern(regexp = "^\\d{1,6}/[A-Z]{2}$", message = "CRN deve estar no formato 12345/UF")
-    @Column(nullable = false)
-    private String crn;
-
-    @PastOrPresent(message = "A data de nascimento não pode estar no futuro")
-    @Column(nullable = false)
-    private LocalDate dtNascimento;
-
     @NotBlank(message = "Email não pode estar vazio")
     @Email(message = "Email inválido")
     @Column(nullable = false, unique = true)
     private String email;
 
+    @CPF
+    @NotBlank(message = "CPF não pode estar vazio")
+    @Column(nullable = false, unique = true)
+    private String cpf;
+
+    @NotBlank(message = "CRN não pode estar vazio")
+    @Pattern(regexp = "^\\d{1,6}/[A-Z]{2}$", message = "CRN deve estar no formato 12345/UF")
     @Column(nullable = false)
+    private String crn;
+
+    @Column(nullable = false)
+    @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
     private String senha;
 }
 

@@ -1,0 +1,22 @@
+meta {
+  name: PUT forms by id
+  type: http
+  seq: 11
+}
+
+put {
+  url: http://localhost:8080/forms/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nome": "João da Silva",
+    "mensagem": "Olá, gostaria de saber mais sobre"
+  }
+}
+
+settings {
+  encodeUrl: true
+}
