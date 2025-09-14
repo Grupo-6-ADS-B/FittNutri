@@ -1,0 +1,26 @@
+meta {
+  name: GET form by id
+  type: http
+  seq: 10
+}
+
+get {
+  url: http://localhost:8080/forms/1
+  body: none
+  auth: inherit
+}
+
+body:json {
+  {
+    "nome": "Carlos Silva",
+    "email": "carlos.silva@example.com",
+    "cpf": "987.654.321-00",
+    "crn": "54321/RJ",
+    "senha": "MinhaSenha1!"
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+}
