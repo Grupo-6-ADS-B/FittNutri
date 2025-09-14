@@ -1,0 +1,26 @@
+meta {
+  name: DELETE users by id
+  type: http
+  seq: 7
+}
+
+delete {
+  url: http://localhost:8080/users/1
+  body: json
+  auth: inherit
+}
+
+body:json {
+  {
+    "nome": "Lucas Silva",
+    "email": "carlos.silva@example.com",
+    "cpf": "987.654.321-00",
+    "crn": "54321/RJ",
+    "senha": "MinhaSenha1!"
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+}
