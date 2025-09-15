@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.swing.*;
 import java.util.List;
 
 @RestController
@@ -33,8 +32,8 @@ public class UserController {
     public ResponseEntity<UserModel> postUsers (@Valid @RequestBody UserModel userModel){
 
         if(userService.emailExists(userModel.getEmail()) ||
-        userService.cpfExits(userModel.getCpf()) ||
-        userService.crnExits(userModel.getCrn())){
+                userService.cpfExits(userModel.getCpf()) ||
+                userService.crnExits(userModel.getCrn())){
             return ResponseEntity.status(409).build();
         }
         else {
