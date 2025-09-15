@@ -75,11 +75,13 @@
                 <input type="text" class="input-field" id="reg-name" required>
                 <label for="reg-name" class="label">Nome</label>
                 <i class='bx bx-user icon'></i>
+                <span class="error-label" id="name-error"></span>
             </div>
             <div class="input-box">
                 <input type="text" class="input-field" id="reg-email" required>
                 <label for="reg-email" class="label">Email</label>
                 <i class='bx bx-envelope icon'></i>
+                <span class="error-label" id="email-error"></span>
             </div>
             <!-- <div class="input-box">
                 <input type="text" class="input-field" id="reg-phone" required>
@@ -87,24 +89,28 @@
                 <i class='bx bx-phone icon'></i>
             </div> -->
             <div class="input-box">
-                <input type="text" class="input-field" id="reg-cpf" required>
+                <input type="text" class="input-field" id="reg-cpf" required maxlength="14">
                 <label for="reg-cpf" class="label">CPF</label>
                 <i class='bx bx-id-card icon'></i>
+                <span class="error-label" id="cpf-error"></span>
             </div>
             <div class="input-box">
-                <input type="text" class="input-field" id="reg-crn" required>
+                <input type="text" class="input-field" id="reg-crn" required maxlength="9">
                 <label for="reg-crn" class="label">CRN</label>
                 <i class='bx bx-food-menu icon'></i>
+                <span class="error-label" id="crn-error"></span>
             </div>
             <div class="input-box">
                 <input type="password" class="input-field" id="reg-pass" required>
                 <label for="reg-pass" class="label">Senha</label>
                 <i class='bx bx-lock-alt icon'></i>
+                <span class="error-label" id="pass-error"></span>
             </div>
             <div class="input-box">
                 <input type="password" class="input-field" id="reg-confirm-pass" required>
                 <label for="reg-confirm-pass" class="label">Confirmar Senha</label>
                 <i class='bx bx-lock-alt icon'></i>
+                <span class="error-label" id="confirm-pass-error"></span>
             </div>
             <div class="input-box">
                 <button class="btn-submit" id="SignUpBtn">Cadastre-se <i class='bx bx-user-plus'></i></button>

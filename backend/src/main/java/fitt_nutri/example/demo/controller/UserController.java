@@ -1,3 +1,26 @@
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody UserModel loginData) {
+        // Busca usuário pelo email
+        UserModel user = userRepository.findAll().stream()
+                .filter(u -> u.getEmail().equals(loginData.getEmail()))
+                .findFirst()
+                .orElse(null);
+        if (user == null) {
+            return ResponseEntity.status(401).body("Usuário não encontrado");
+        }
+        if (!user.getSenha().equals(loginData.getSenha())) {
+            return ResponseEntity.status(401).body("Senha incorreta");
+        }
+        // Retorna dados do usuário (exceto senha)
+        UserModel safeUser = new UserModel();
+        safeUser.setId(user.getId());
+        safeUser.setNome(user.getNome());
+        safeUser.setEmail(user.getEmail());
+        safeUser.setCpf(user.getCpf());
+        safeUser.setCrn(user.getCrn());
+        // Não retorna senha
+        return ResponseEntity.ok(safeUser);
+    }
 package fitt_nutri.example.demo.controller;
 
 import fitt_nutri.example.demo.model.UserModel;
