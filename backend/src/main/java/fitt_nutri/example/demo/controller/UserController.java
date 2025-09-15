@@ -10,23 +10,11 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-<<<<<<< HEAD
-=======
 
-import javax.swing.*;
->>>>>>> 0ff61b41b2c635f40dd617aebfc57f341fb55170
 import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-<<<<<<< HEAD
-@CrossOrigin(origins = "http://localhost:5500")
-public class UserController {
-
-    private final UserService userService;
-    private final UserRepository userRepository;
-    private final AuthService authService;
-=======
 @Tag(name = "Usuários", description = "CRUD de usuários")
 public class UserController {
 
@@ -35,7 +23,6 @@ public class UserController {
 
     @Autowired
     private UserService userService;
->>>>>>> 0ff61b41b2c635f40dd617aebfc57f341fb55170
 
     @Operation(summary = "Cria um usuário")
     @ApiResponse(responseCode = "201", description = "Usuário criado com suceso")
@@ -45,8 +32,8 @@ public class UserController {
     public ResponseEntity<UserModel> postUsers (@Valid @RequestBody UserModel userModel){
 
         if(userService.emailExists(userModel.getEmail()) ||
-        userService.cpfExits(userModel.getCpf()) ||
-        userService.crnExits(userModel.getCrn())){
+                userService.cpfExits(userModel.getCpf()) ||
+                userService.crnExits(userModel.getCrn())){
             return ResponseEntity.status(409).build();
         }
         else {
