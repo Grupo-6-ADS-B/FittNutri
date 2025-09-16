@@ -165,7 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(user => {
             showNotification(`Login realizado com sucesso! Bem-vindo(a), ${user.nome}!`, 'success');
-            // Aqui você pode redirecionar ou salvar dados do usuário logado
+            setTimeout(() => {
+                window.location.href = '../contato/index.html';
+            }, 1200); // Aguarda a notificação aparecer
         })
         .catch(error => {
             showNotification(error.message || 'Ocorreu um erro ao fazer login. Tente novamente.', 'error');
