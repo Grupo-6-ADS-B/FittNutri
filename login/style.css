@@ -437,13 +437,18 @@ body.login-mode .header-buttons .btn-register {
 .google-btn i {
     color: #4285F4;
 }
+
 .instagram-btn {
-    color: var(--white-color) !important;
-    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important;
+    background-color: #084A1C !important;
+    color: #fff !important;
     border: none !important;
 }
+.instagram-btn i {
+    color: #fff !important;
+}
 .instagram-btn:hover {
-    background: linear-gradient(45deg, #e6683c, #dc2743, #cc2366, #bc1888, #f09433) !important;
+    background-color: #27ae60 !important;
+    color: #fff !important;
 }
 @media only screen and (max-width: 564px) {
     .wrapper {
