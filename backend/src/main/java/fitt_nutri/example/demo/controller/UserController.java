@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,13 +23,6 @@ public class UserController {
 
     private final UserService userService;
     private final UserRepository userRepository;
-    private final AuthService authService;
-
-    public UserController(UserService userService, UserRepository userRepository, AuthService authService) {
-        this.userService = userService;
-        this.userRepository = userRepository;
-        this.authService = authService;
-    }
 
     @Tag(name = "Usuários", description = "CRUD de usuários")
 
