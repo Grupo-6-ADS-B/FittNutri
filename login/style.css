@@ -1,3 +1,7 @@
+.register-mode .header-buttons .btn-login {
+    color: #084A1C;
+    border: 1px solid #084A1C;
+}
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
 
 :root {
@@ -140,10 +144,20 @@ body::after {
     color: var(--white-color);
     border: 1px solid var(--white-color);
 }
+
+body.login-mode .header-buttons .btn-login {
+    color: #000;
+    border: 1px solid #000;
+}
 .header-buttons .btn-register {
     background-color: var(--white-color);
     color: #084A1C;
     margin-left: 10px;
+}
+
+body.login-mode .header-buttons .btn-register {
+    border: 1px solid #000;
+    color: #ff9100;
 }
 .register-mode .header-buttons .btn-register {
     color: #ff9100;
@@ -423,13 +437,18 @@ body::after {
 .google-btn i {
     color: #4285F4;
 }
+
 .instagram-btn {
-    color: var(--white-color) !important;
-    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888) !important;
+    background-color: #084A1C !important;
+    color: #fff !important;
     border: none !important;
 }
+.instagram-btn i {
+    color: #fff !important;
+}
 .instagram-btn:hover {
-    background: linear-gradient(45deg, #e6683c, #dc2743, #cc2366, #bc1888, #f09433) !important;
+    background-color: #27ae60 !important;
+    color: #fff !important;
 }
 @media only screen and (max-width: 564px) {
     .wrapper {
