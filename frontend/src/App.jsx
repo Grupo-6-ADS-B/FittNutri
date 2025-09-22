@@ -1,14 +1,18 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
-
-import Login from "./Login";
+import React from 'react';
+import Header from './components/Header';
+import AuthPage from './components/AuthPage';
+import Footer from './components/Footer';
+import './App.css'; 
+import './index.css'; 
 
 function App() {
-
-  return <Login />;
-
+  return (
+    <div className="main-container">
+      <Header />
+      <AuthPage />
+      <Footer />
+    </div>
+  );
 }
 
 export default App;
