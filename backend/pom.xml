@@ -36,7 +36,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
-
 		<!-- Banco em memória H2 -->
 		<dependency>
 			<groupId>com.h2database</groupId>

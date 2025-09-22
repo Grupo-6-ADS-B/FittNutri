@@ -31,6 +31,7 @@ public class UserController {
     @ApiResponse(responseCode = "400", description = "Faltou algum parâmetro na requisição ou foi escrito de forma errônea")
     @ApiResponse(responseCode = "409", description = "Email, cpf ou crn em conflito com registro do banco")
     @PostMapping
+  
     public ResponseEntity<UserModel> postUsers(@Valid @RequestBody UserModel userModel) {
         if (userService.emailExists(userModel.getEmail()) ||
                 userService.cpfExits(userModel.getCpf()) ||
