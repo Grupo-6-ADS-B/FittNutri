@@ -175,7 +175,7 @@ function RegisterForm({ onSwitchToLogin }) {
               )}
             />
           </Grid>
-          <Grid item xs={12} sm={6} sx={{ pl: 1 }}>
+          <Grid item xs={12} sm={6} sx={{ pl: 1, pr: 2 }}>
             <Controller
               name="crn"
               control={control}

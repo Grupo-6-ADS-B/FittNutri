@@ -10,15 +10,11 @@ import {
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 
-function AuthPage() {
-  const [isLoginMode, setIsLoginMode] = useState(true);
-
-  const handleToggleMode = () => {
-    setIsLoginMode(!isLoginMode);
-  };
-
+function AuthPage({ isLoginMode, onToggleMode }) {
   const handleTabChange = (event, newValue) => {
-    setIsLoginMode(newValue === 0);
+    if ((newValue === 0 && !isLoginMode) || (newValue === 1 && isLoginMode)) {
+      onToggleMode();
+    }
   };
 
   return (
@@ -81,9 +77,9 @@ function AuthPage() {
         </Typography>
         
         {isLoginMode ? (
-          <LoginForm onSwitchToRegister={handleToggleMode} />
+          <LoginForm onSwitchToRegister={onToggleMode} />
         ) : (
-          <RegisterForm onSwitchToLogin={handleToggleMode} />
+          <RegisterForm onSwitchToLogin={onToggleMode} />
         )}
       </Paper>
     </Container>

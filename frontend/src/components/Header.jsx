@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import logo from '/logo.jpg'; 
 
-function Header() {
+function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome }) {
   return (
     <AppBar 
       position="static" 
@@ -36,9 +36,14 @@ function Header() {
             <Typography 
               variant="h5" 
               component="div" 
+              onClick={onBackToHome}
               sx={{ 
                 fontWeight: 'bold',
-                color: 'primary.main'
+                color: 'primary.main',
+                cursor: onBackToHome ? 'pointer' : 'default',
+                '&:hover': onBackToHome ? {
+                  color: 'primary.dark'
+                } : {}
               }}
             >
               FittNutri
@@ -55,7 +60,6 @@ function Header() {
           </Box>
         </Box>
 
-        {/* Navigation */}
         <Stack direction="row" spacing={3} sx={{ display: { xs: 'none', md: 'flex' } }}>
           <Button 
             sx={{ 
@@ -92,11 +96,11 @@ function Header() {
           </Button>
         </Stack>
 
-        {/* Action Buttons */}
         <Stack direction="row" spacing={1}>
           <Button 
             variant="outlined" 
             color="primary"
+            onClick={onSwitchToLogin}
             sx={{
               '&:hover': {
                 backgroundColor: 'rgba(46, 125, 50, 0.08)'
@@ -108,6 +112,7 @@ function Header() {
           <Button 
             variant="contained" 
             color="primary"
+            onClick={onSwitchToRegister}
             sx={{
               '&:hover': {
                 backgroundColor: 'primary.dark'

@@ -13,18 +13,15 @@ export default function LoginCard() {
   return (
     <div className="login-bg">
       <div className="card-container">
-        {/* Login Card */}
         <div className={`card login-card ${isLogin ? 'active' : ''}`}>
           <h2 className="card-title">Login</h2>
           <LoginForm setIsLogin={setIsLogin} showModal={showModal} />
         </div>
-        {/* Register Card */}
         <div className={`card register-card ${!isLogin ? 'active' : ''}`}>
           <h2 className="card-title">Cadastro</h2>
           <RegisterForm setIsLogin={setIsLogin} showModal={showModal} />
         </div>
       </div>
-      {/* Modal */}
       {modal.show && (
         <div className={`modal-msg ${modal.type}`}>
           {modal.type === 'success' ? <CheckCircle size={20} /> : <XCircle size={20} />}
