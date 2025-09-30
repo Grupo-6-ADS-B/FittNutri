@@ -65,7 +65,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      <Box sx={{ display: 'flex', backgroundColor: '#f5f5f5', flexDirection: 'column', minHeight: '100vh' }}>
         {currentPage === 'home' ? (
           renderCurrentPage()
         ) : (
