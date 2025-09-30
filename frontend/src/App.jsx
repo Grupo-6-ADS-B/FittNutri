@@ -65,17 +65,16 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-          <Header 
-              onSwitchToLogin={handleSwitchToLogin}
-              onSwitchToRegister={handleSwitchToRegister}
-              onBackToHome={handleBackToHome}
-            />
       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         {currentPage === 'home' ? (
           renderCurrentPage()
         ) : (
           <>
-        
+            <Header 
+              onSwitchToLogin={handleSwitchToLogin}
+              onSwitchToRegister={handleSwitchToRegister}
+              onBackToHome={handleBackToHome}
+            />
             <Box sx={{ flex: 1 }}>
               {renderCurrentPage()}
             </Box>

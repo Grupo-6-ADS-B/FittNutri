@@ -1,29 +1,26 @@
-import React from 'react';
-import { Box, Container, Typography, Button, Stack } from '@mui/material';
+import { Box, Container, Typography } from '@mui/material';
 import Header from "./Header";
 
-function Main() {
+function Main({ onSwitchToLogin, onSwitchToRegister }) {
   return (
     <>
-      <Header  />
-      <Container>
-        <Typography variant="h1">Bem-vindo ao FittNutri!</Typography>
-        <Typography variant="h5">Software para nutricionistas</Typography>
-        <Button>Começar agora</Button>
-        
-        {/* Seção de funcionalidades */}
+      <Header 
+        onSwitchToLogin={onSwitchToLogin}
+        onSwitchToRegister={onSwitchToRegister}
+      />
+      <Container maxWidth="lg" sx={{ py: 8 }}>      
         <Box sx={{ py: 8 }}>
-          <Typography variant="h3">Funcionalidades</Typography>
-          {/* Cards, imagens, textos, etc. */}
+          <Typography variant="h3" align="center" sx={{ mb: 4 }}>
+            Funcionalidades
+          </Typography>
         </Box>
         
-        {/* Seção sobre */}
         <Box sx={{ py: 8 }}>
-          <Typography variant="h3">Sobre nós</Typography>
-          {/* Mais conteúdo estático */}
+          <Typography variant="h3" align="center" sx={{ mb: 4 }}>
+            Sobre nós
+          </Typography>
         </Box>
       </Container>
-      <Footer />
     </>
   );
 }
