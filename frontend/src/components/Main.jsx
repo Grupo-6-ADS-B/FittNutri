@@ -1,14 +1,13 @@
 import { Box, Container, Typography, Grid } from  '@mui/material';
 import Header from "./Header";
-
 function Main({ onSwitchToLogin, onSwitchToRegister }) {
   return (
     <>
       <Header 
         onSwitchToLogin={onSwitchToLogin}
         onSwitchToRegister={onSwitchToRegister}
-      />
-      <Container sx={{ maxWidth: '100%', mt: 20}}>  
+      /> 
+      <Container sx={{ width: '100%', mt: 20, height: '100vh'}}>  
         <Grid container spacing={4} direction="row" alignItems="center">
           <Grid item xs={12} md={8}>
             <Typography variant="h3" align="left" sx={{ mb: 4 }}>
