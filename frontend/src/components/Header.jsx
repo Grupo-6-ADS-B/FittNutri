@@ -127,4 +127,4 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome }) {
   );
 }
 
-export default Header;
+export { Header };

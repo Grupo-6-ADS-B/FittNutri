@@ -186,4 +186,4 @@ function LoginForm({ onSwitchToRegister }) {
   );
 }
 
-export default LoginForm;
+export { LoginForm };
