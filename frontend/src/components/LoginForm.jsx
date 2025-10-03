@@ -1,34 +1,46 @@
-import React, { useState } from 'react';
-
+import { useState } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { 
+  Box, 
+  TextField, 
+  Button, 
+  Typography, 
+  Alert, 
+  Link,
+  Divider,
+  Stack
+} from '@mui/material';
+import { 
+  Email as EmailIcon, 
+  Lock as LockIcon, 
+  Login as LoginIcon,
+  Google as GoogleIcon 
+} from '@mui/icons-material';
+import InstagramIcon from '@mui/icons-material/Instagram';
 function LoginForm({ onSwitchToRegister }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const {
+    control,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    defaultValues: {
+      email: '',
+      password: ''
+    }
+  });
 
+  const onSubmit = async (data) => {
     setError('');
     setSuccess('');
-
-    if (!email.includes('@')) {
-      setError('O e-mail deve conter um "@".');
-      return;
-    }
-
-    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{6,})/;
-    if (!passwordRegex.test(password)) {
-      setError('A senha deve ter no mínimo 6 caracteres, um número e um caractere especial.');
-      return;
-    }
 
     try {
       const response = await fetch('http://localhost:8080/users/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, senha: password }),
+        body: JSON.stringify({ email: data.email, senha: data.password }),
       });
 
       if (response.status === 401) {
@@ -48,61 +60,130 @@ function LoginForm({ onSwitchToRegister }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="login-form" autoComplete="off">
-      <div className="input-box">
-        <input 
-          type="text" 
-          className="input-field" 
-          id="log-email" 
-          required 
-          value={email}
-          onChange={(e) => setEmail(e.target.value)} 
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
+      <Stack spacing={3}>
+        <Controller
+          name="email"
+          control={control}
+          rules={{
+            required: 'E-mail é obrigatório',
+            pattern: {
+              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+              message: 'E-mail inválido'
+            }
+          }}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              fullWidth
+              type="email"
+              label="Email"
+              error={!!errors.email}
+              helperText={errors.email?.message}
+              InputProps={{
+                startAdornment: <EmailIcon sx={{ color: 'action.active', mr: 1 }} />,
+              }}
+              variant="outlined"
+            />
+          )}
         />
-        <label htmlFor="log-email" className="label">Email</label>
-        <i className='bx bx-envelope icon'></i>
-      </div>
-      <div className="input-box">
-        <input 
-          type="password" 
-          className="input-field" 
-          id="log-pass" 
-          required 
-          value={password}
-          onChange={(e) => setPassword(e.target.value)} 
+        
+        <Controller
+          name="password"
+          control={control}
+          rules={{
+            required: 'Senha é obrigatória',
+            minLength: { value: 6, message: 'Senha deve ter pelo menos 6 caracteres' },
+            pattern: {
+              value: /^(?=.*[0-9])(?=.*[!@#$%^&*])(?=.{6,})/,
+              message: 'Senha deve ter pelo menos 6 caracteres, um número e um caractere especial'
+            }
+          }}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              fullWidth
+              type="password"
+              label="Senha"
+              error={!!errors.password}
+              helperText={errors.password?.message}
+              InputProps={{
+                startAdornment: <LockIcon sx={{ color: 'action.active', mr: 1 }} />,
+              }}
+              variant="outlined"
+            />
+          )}
         />
-        <label htmlFor="log-pass" className="label">Senha</label>
-        <i className='bx bx-lock-alt icon'></i>
-      </div>
-      <div className="form-cols">
-        <div className="col-1"></div>
-        <div className="col-2">
-          <a href="#">Esqueceu a senha?</a>
-        </div>
-      </div>
-      <div className="input-box">
-        <button type="submit" className="btn-submit" id="SignInBtn">
-          Acessar <i className='bx bx-log-in'></i>
-        </button>
-      </div>
-      
-      {}
-      {error && <p className="message-text error-text">{error}</p>}
-      {success && <p className="message-text success-text">{success}</p>}
-
-      <div className="social-login">
-        <div className="social-text">Faça login com:</div>
-        <button type="button" className="google-btn">
-          <i className='bx bxl-google'></i> Google
-        </button>
-        <button type="button" className="btn-submit instagram-btn">
-          <i className='bx bxl-instagram'></i> Instagram
-        </button>
-      </div>
-      <div className="switch-form">
-        <span>Ainda não tem uma conta? <a href="#" onClick={onSwitchToRegister}>Cadastre-se</a></span>
-      </div>
-    </form>
+        
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <Link href="#" variant="body2">
+            Esqueceu a senha?
+          </Link>
+        </Box>
+        
+        <Button
+          type="submit"
+          fullWidth
+          variant="contained"
+          size="large"
+          endIcon={<LoginIcon />}
+          sx={{ py: 1.5 }}
+        >
+          Acessar
+        </Button>
+        
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {success && (
+          <Alert severity="success" sx={{ mt: 2 }}>
+            {success}
+          </Alert>
+        )}
+        
+        <Divider sx={{ my: 2 }}>
+          <Typography variant="body2" color="text.secondary">
+            Faça login com:
+          </Typography>
+        </Divider>
+        
+        <Stack direction="row" spacing={2}>
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<GoogleIcon />}
+            sx={{ py: 1.5 }}
+          >
+            Google
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            startIcon={<InstagramIcon />}
+            sx={{ py: 1.5, borderColor: '#E1306C', color: '#E1306C' }}
+          >
+            Instagram
+          </Button>
+        </Stack>
+        
+        <Box sx={{ textAlign: 'center', mt: 2 }}>
+          <Typography variant="body2">
+            Ainda não tem uma conta?{' '}
+            <Link 
+              href="#" 
+              onClick={onSwitchToRegister}
+              sx={{ cursor: 'pointer' }}
+            >
+              Cadastre-se
+            </Link>
+          </Typography>
+        </Box>
+      </Stack>
+    </Box>
   );
 }
 
-export default LoginForm;
+export { LoginForm };

@@ -86,7 +86,3 @@ Este projeto está sob a licença MIT.
 **✉️ Contato**
 
 Se você tiver alguma dúvida, entre em contato com **FittNutri** em [Fitnutri@gmail.com].
-
----
-
-> Você pode adaptar as seções de "Tecnologias Utilizadas", "Como Rodar o Projeto" e "Contribuição" com as informações técnicas específicas do seu projeto.
