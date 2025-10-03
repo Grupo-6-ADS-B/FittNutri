@@ -1,27 +1,11 @@
 import React, { useState } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
-import Header from './components/Header';
-import AuthPage from './components/AuthPage';
-import Main from './components/Main';
-import Footer from './components/Footer';
-
-const theme = createTheme({
-  palette: {
-    primary: {
-      main: '#2e7d32', 
-    },
-    secondary: {
-      main: '#ff6f00', 
-    },
-    background: {
-      default: '#f5f5f5',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-  },
-});
+import { Header} from './components/Header';
+import { AuthPage } from './components/AuthPage';
+import { Main } from './components/Main';
+import { Footer } from './components/Footer';
+import { theme } from './theme';
 
 function App() {
   const [currentPage, setCurrentPage] = useState('home'); 
@@ -86,4 +70,4 @@ function App() {
   );
 }
 
-export default App;
+export { App };

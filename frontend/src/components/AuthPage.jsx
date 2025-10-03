@@ -7,8 +7,8 @@ import {
   Container,
   Typography
 } from '@mui/material';
-import LoginForm from './LoginForm';
-import RegisterForm from './RegisterForm';
+import { LoginForm } from './LoginForm';
+import { RegisterForm } from './RegisterForm';
 
 function AuthPage({ isLoginMode, onToggleMode }) {
   const handleTabChange = (event, newValue) => {
@@ -86,4 +86,4 @@ function AuthPage({ isLoginMode, onToggleMode }) {
   );
 }
 
-export default AuthPage;
+export { AuthPage };

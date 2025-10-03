@@ -293,4 +293,4 @@ function RegisterForm({ onSwitchToLogin }) {
   );
 }
 
-export default RegisterForm;
+export { RegisterForm };
