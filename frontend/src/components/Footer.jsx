@@ -8,9 +8,9 @@ function Footer() {
     <Box 
       component="footer" 
       sx={{
-        backgroundColor: 'primary.main',
+        background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%)',
         color: 'white',
-        py: 3,
+        py: 4,
         mt: 'auto'
       }}
     >
@@ -19,7 +19,8 @@ function Footer() {
           variant="body1" 
           align="center"
           sx={{
-            fontWeight: 500
+            fontWeight: 500,
+            color: 'primary.contrastText'
           }}
         >
           FittNutri, software para nutricionistas &copy; {currentYear}
