@@ -8,7 +8,16 @@ function Main({ onSwitchToLogin, onSwitchToRegister }) {
         onSwitchToLogin={onSwitchToLogin}
         onSwitchToRegister={onSwitchToRegister}
       /> 
-      <Container sx={{ width: '100%', mt: 20, height: '100vh'}}>  
+      <Container 
+        maxWidth="xl" 
+        sx={{ 
+          width: '100%', 
+          mt: { xs: 8, md: 12 }, 
+          minHeight: '80vh',
+          display: 'flex',
+          alignItems: 'center'
+        }}
+      >  
         <Hero />
       </Container>
     </>

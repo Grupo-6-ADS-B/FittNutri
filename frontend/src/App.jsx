@@ -49,7 +49,12 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ display: 'flex', backgroundColor: '#f5f5f5', flexDirection: 'column', minHeight: '100vh' }}>
+      <Box sx={{ 
+        display: 'flex', 
+        background: 'linear-gradient(180deg, #ffffff 0%, #C0F4BB 100%)', 
+        flexDirection: 'column', 
+        minHeight: '100vh'
+      }}>
         {currentPage === 'home' ? (
           renderCurrentPage()
         ) : (

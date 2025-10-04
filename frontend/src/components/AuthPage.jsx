@@ -18,13 +18,16 @@ function AuthPage({ isLoginMode, onToggleMode }) {
   };
 
   return (
-    <Container maxWidth="sm" sx={{ py: 4 }}>
+    <Container maxWidth="sm" sx={{ py: 6 }}>
       <Paper 
-        elevation={8} 
+        elevation={0}
         sx={{ 
-          p: 4, 
-          borderRadius: 2,
-          background: 'linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%)'
+          p: 5, 
+          borderRadius: 4,
+          background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%)',
+          backdropFilter: 'blur(10px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)'
         }}
       >
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
