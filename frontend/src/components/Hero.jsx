@@ -1,9 +1,14 @@
-import { Box, Typography, Grid, Button } from  '@mui/material';
+import { Box, Typography, Grid, Button, Container } from  '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
+import { Section } from './Section';
 
 function Hero(){
     return (
-        <Grid container spacing={6} direction="row" alignItems="center" sx={{ py: { xs: 4, md: 8 } }}>
+        <Section 
+          background="linear-gradient(135deg, #C0F4BB 0%, #ffffff 100%)"
+        >
+          <Container maxWidth="xl">
+            <Grid container spacing={6} direction="row" alignItems="center">
           <Grid item xs={12} md={8}>
             <Box sx={{ mb: 3 }}>
               <Typography 
@@ -146,6 +151,8 @@ function Hero(){
             </Box>          
           </Grid>
         </Grid>
+          </Container>
+        </Section>
     )
 }
 

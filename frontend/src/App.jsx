@@ -51,7 +51,7 @@ function App() {
       <CssBaseline />
       <Box sx={{ 
         display: 'flex', 
-        background: 'linear-gradient(180deg, #ffffff 0%, #C0F4BB 100%)', 
+        backgroundColor: '#f8fafc', 
         flexDirection: 'column', 
         minHeight: '100vh'
       }}>
