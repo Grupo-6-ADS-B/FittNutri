@@ -94,7 +94,7 @@ function RegisterForm({ onSwitchToLogin }) {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
+    <Box id="register-form" component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
       <Stack spacing={3}>
         <Controller
           name="name"

@@ -17,7 +17,7 @@ function Section({
         marginLeft: '-50vw',
         marginRight: '-50vw',
         py,
-        minHeight: '80vh',
+        minHeight: '90vh',
         display: 'flex',
         alignItems: 'center',
         ...props.sx

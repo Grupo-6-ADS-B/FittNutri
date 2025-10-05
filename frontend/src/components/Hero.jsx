@@ -2,7 +2,7 @@ import { Box, Typography, Grid, Button, Container } from  '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Section } from './Section';
 
-function Hero(){
+function Hero({ onScrollToCarousel, onSwitchToRegister }){
     return (
         <Section 
           background="linear-gradient(135deg, #C0F4BB 0%, #ffffff 100%)"
@@ -11,23 +11,6 @@ function Hero(){
             <Grid container spacing={6} direction="row" alignItems="center">
           <Grid item xs={12} md={8}>
             <Box sx={{ mb: 3 }}>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  color: 'primary.main',
-                  fontWeight: 600,
-                  textTransform: 'uppercase',
-                  letterSpacing: '0.1em',
-                  mb: 2,
-                  backgroundColor: 'rgba(46, 125, 50, 0.1)',
-                  px: 2,
-                  py: 1,
-                  borderRadius: '50px',
-                  display: 'inline-block'
-                }}
-              >
-                Plataforma completa para nutricionistas
-              </Typography>
               <Typography 
                 variant="h2" 
                 align="left" 
@@ -64,6 +47,7 @@ function Hero(){
                 color="primary"
                 endIcon={<ArrowForwardIcon />}
                 size="large"
+                onClick={onSwitchToRegister}
                 sx={{
                   py: 2,
                   px: 5,
@@ -94,6 +78,7 @@ function Hero(){
                 variant="outlined"
                 color="primary"
                 size="large"
+                onClick={onScrollToCarousel}
                 sx={{
                   py: 2,
                   px: 4,
