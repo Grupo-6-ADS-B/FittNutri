@@ -18,6 +18,7 @@ function Main({ onSwitchToLogin, onSwitchToRegister }) {
       <Header 
         onSwitchToLogin={onSwitchToLogin}
         onSwitchToRegister={onSwitchToRegister}
+        scrollToCarousel={scrollToCarousel}
       /> 
       <Hero 
         onScrollToCarousel={scrollToCarousel}

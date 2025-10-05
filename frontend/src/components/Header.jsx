@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import logo from '/logo.jpg'; 
 
-function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome }) {
+function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCarousel }) {
   return (
     <AppBar 
       position="static" 
@@ -64,6 +64,7 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome }) {
 
         <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
           <Button 
+            onClick={scrollToCarousel}
             sx={{ 
               fontWeight: 500,
               color: 'text.primary',
