@@ -15,9 +15,9 @@ import {
 
 const funcionalidades = [
   { id: 1, title: "Dietas Personalizadas", description: "Crie planos alimentares únicos baseados nas necessidades específicas de cada paciente com banco de alimentos completo e cálculos nutricionais automáticos.", icon: DietIcon, image: "/fundo.jpg", color: 'primary' },
-  { id: 2, title: "Acompanhamento da Evolução", description: "Monitore o progresso dos seus pacientes com gráficos detalhados, métricas de evolução em tempo real e relatórios de adesão à dieta.", icon: ProgressIcon, image: "/fundo.jpg", color: 'secondary' },
+  { id: 2, title: "Acompanhamento da Evolução", description: "Monitore o progresso dos seus pacientes com gráficos detalhados, métricas de evolução em tempo real.", icon: ProgressIcon, image: "/fundo.jpg", color: 'secondary' },
   { id: 3, title: "Relatórios Avançados", description: "Gere relatórios profissionais com análises nutricionais completas, recomendações personalizadas e exportação em PDF.", icon: ReportsIcon, image: "/fundo.jpg", color: 'primary' },
-  { id: 4, title: "Agendamento Inteligente", description: "Organize sua agenda com lembretes automáticos, integração com calendário e sistema de confirmação de consultas.", icon: PlanningIcon, image: "/fundo.jpg", color: 'secondary' },
+  { id: 4, title: "Agendamento Pessoal", description: "Cadastre e organize sua agenda de consultas de forma simples e prática, com controle total dos seus horários e disponibilidade.", icon: PlanningIcon, image: "/fundo.jpg", color: 'secondary' },
   { id: 5, title: "Gestão de Pacientes", description: "Centralize todas as informações dos pacientes com histórico completo, fichas nutricionais e acesso rápido aos dados importantes.", icon: PatientsIcon, image: "/fundo.jpg", color: 'primary' },
   { id: 6, title: "Tabela TACO Integrada", description: "Acesso completo à Tabela Brasileira de Composição de Alimentos com dados nutricionais precisos de mais de 600 alimentos nacionais.", icon: TacoIcon, image: "/fundo.jpg", color: 'secondary' }
 ];
