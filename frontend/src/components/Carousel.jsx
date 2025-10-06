@@ -14,12 +14,12 @@ import {
 } from '@mui/icons-material';
 
 const funcionalidades = [
-  { id: 1, title: "Dietas Personalizadas", description: "Crie planos alimentares únicos baseados nas necessidades específicas de cada paciente com banco de alimentos completo e cálculos nutricionais automáticos.", icon: DietIcon, image: "/fundo.jpg", color: 'primary' },
-  { id: 2, title: "Acompanhamento da Evolução", description: "Monitore o progresso dos seus pacientes com gráficos detalhados, métricas de evolução em tempo real.", icon: ProgressIcon, image: "/fundo.jpg", color: 'secondary' },
-  { id: 3, title: "Relatórios Avançados", description: "Gere relatórios profissionais com análises nutricionais completas, recomendações personalizadas e exportação em PDF.", icon: ReportsIcon, image: "/fundo.jpg", color: 'primary' },
-  { id: 4, title: "Agendamento Pessoal", description: "Cadastre e organize sua agenda de consultas de forma simples e prática, com controle total dos seus horários e disponibilidade.", icon: PlanningIcon, image: "/fundo.jpg", color: 'secondary' },
-  { id: 5, title: "Gestão de Pacientes", description: "Centralize todas as informações dos pacientes com histórico completo, fichas nutricionais e acesso rápido aos dados importantes.", icon: PatientsIcon, image: "/fundo.jpg", color: 'primary' },
-  { id: 6, title: "Tabela TACO Integrada", description: "Acesso completo à Tabela Brasileira de Composição de Alimentos com dados nutricionais precisos de mais de 600 alimentos nacionais.", icon: TacoIcon, image: "/fundo.jpg", color: 'secondary' }
+  { id: 1, title: "Dietas Personalizadas", description: "Crie planos alimentares únicos baseados nas necessidades específicas de cada paciente com banco de alimentos completo e cálculos nutricionais automáticos.", icon: DietIcon, image: "/dieta.jpg", color: 'primary' },
+  { id: 2, title: "Acompanhamento da Evolução", description: "Monitore o progresso dos seus pacientes com gráficos detalhados, métricas de evolução em tempo real.", icon: ProgressIcon, image: "/nutri-paciente.jpg", color: 'secondary' },
+  { id: 3, title: "Relatórios Avançados", description: "Gere relatórios profissionais com análises nutricionais completas, recomendações personalizadas e exportação em PDF.", icon: ReportsIcon, image: "/relatorios.png", color: 'primary' },
+  { id: 4, title: "Agendamento Pessoal", description: "Cadastre e organize sua agenda de consultas de forma simples e prática, com controle total dos seus horários e disponibilidade.", icon: PlanningIcon, image: "/agendamento.jpg", color: 'secondary' },
+  { id: 5, title: "Gestão de Pacientes", description: "Centralize todas as informações dos pacientes com histórico completo, fichas nutricionais e acesso rápido aos dados importantes.", icon: PatientsIcon, image: "/nutri-paciente2.jpg", color: 'primary' },
+  { id: 6, title: "Tabela TACO Integrada", description: "Acesso completo à Tabela Brasileira de Composição de Alimentos com dados nutricionais precisos de mais de 600 alimentos nacionais.", icon: TacoIcon, image: "/piramide.jpg", color: 'secondary' }
 ];
 
 function Carousel() {
@@ -56,11 +56,11 @@ function Carousel() {
   };
 
   return (
-    <Section background="linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%)" py={{ xs: 8, md: 12 }} data-section="carousel">
+    <Section background="linear-gradient(135deg, #f8f9fa 0%, #ffffffeb 100%)" py={{ xs: 8, md: 12 }} data-section="carousel">
       <Container maxWidth="xl">
         <Box sx={{ textAlign: 'center', mb: 8 }}>
           <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: '#1a202c', fontSize: { xs: '2rem', md: '2.5rem' } }}>
-            Tudo que você precisa em um só lugar
+            Tudo que você precisa <Typography component="span" variant="h3" sx={{ color: 'primary.main' }}>em um só lugar</Typography>
           </Typography>
           <Typography variant="h6" sx={{ color: '#4a5568', maxWidth: '900px', mx: 'auto', lineHeight: 1.6, fontWeight: 400 }}>
             Desde a criação de dietas personalizadas até o acompanhamento detalhado da evolução dos pacientes, oferecemos as melhores ferramentas para otimizar a sua performance no consultório

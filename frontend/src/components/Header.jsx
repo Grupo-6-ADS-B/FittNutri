@@ -22,14 +22,14 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCar
       }}
     >
       <Toolbar sx={{ justifyContent: 'space-between', py: 2, px: { xs: 2, md: 4 } }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box
             component="img"
             src={logo}
             alt="FittNutri Logo"
             sx={{
-              height: 70,
-              width: 70,
+              height: 50,
+              width: 90,
               borderRadius: '50%',
               objectFit: 'cover'
             }}
@@ -53,7 +53,7 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCar
             <Typography 
               variant="caption" 
               sx={{ 
-                color: 'text.secondary',
+                color: 'text.primary',
                 fontSize: '0.75rem'
               }}
             >
