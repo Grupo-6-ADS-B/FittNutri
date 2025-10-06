@@ -13,7 +13,7 @@ import org.hibernate.validator.constraints.br.CPF;
 @Getter
 @Setter
 @Entity
-@Table(name = "users")
+@Table(name = "nutricionists")
 public class UserNutritionistModel {
 
     @Id

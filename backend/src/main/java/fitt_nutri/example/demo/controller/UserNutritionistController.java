@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/nutritionists")
 @CrossOrigin(origins = "http://localhost:5500")
 @RequiredArgsConstructor
 @Tag(name = "Usuários", description = "CRUD de nutricionistas")
@@ -74,8 +74,9 @@ public class UserNutritionistController {
     @ApiResponse(responseCode = "200", description = "Login realizado com sucesso")
     @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<UserNutritionistResponse> login(@RequestBody LoginRequest loginRequest) {
         UserNutritionistResponse response = service.login(loginRequest);
         return ResponseEntity.ok(response);
     }
+
 }

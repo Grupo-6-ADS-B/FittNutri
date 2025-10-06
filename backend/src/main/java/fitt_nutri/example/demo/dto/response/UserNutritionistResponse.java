@@ -12,4 +12,5 @@ public class UserNutritionistResponse {
     private String email;
     private String cpf;
     private String crn;
+    private String token;
 }
