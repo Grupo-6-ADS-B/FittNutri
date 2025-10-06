@@ -28,6 +28,8 @@ public class DadosAntropometricosService {
             throw new UsuarioNaoEncontrado("id " + id);
         }
 
+
+
         repository.deleteById(id);
     }
 
