@@ -1,7 +1,7 @@
-import { Container } from  '@mui/material';
 import { Header } from "./Header";
 import { Hero } from "./Hero";
 import { Carousel } from './Carousel';
+import { Values } from './Values';
 function Main({ onSwitchToLogin, onSwitchToRegister }) {
   const scrollToCarousel = () => {
     const carouselSection = document.querySelector('[data-section="carousel"]');
@@ -25,6 +25,7 @@ function Main({ onSwitchToLogin, onSwitchToRegister }) {
         onSwitchToRegister={onSwitchToRegister}
       />
       <Carousel />
+      <Values />
     </>
   );
 }
