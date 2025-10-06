@@ -70,13 +70,13 @@ public class UserNutritionistController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Login de nutricionista")
+ /*   @Operation(summary = "Login de nutricionista")
     @ApiResponse(responseCode = "200", description = "Login realizado com sucesso")
     @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
     @PostMapping("/login")
     public ResponseEntity<UserNutritionistResponse> login(@RequestBody LoginRequest loginRequest) {
         UserNutritionistResponse response = service.login(loginRequest);
         return ResponseEntity.ok(response);
-    }
+    }*/
 
 }

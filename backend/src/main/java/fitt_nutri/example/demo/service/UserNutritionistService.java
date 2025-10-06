@@ -35,7 +35,6 @@ public class UserNutritionistService {
         if (repository.existsByCrn(request.getCrn()))
             throw new IllegalArgumentException("CRN já cadastrado");
 
-        // Criptografa a senha
         request.setSenha(passwordEncoder.encode(request.getSenha()));
 
         UserNutritionistModel model = UserNutritionistAdapter.toModel(request);

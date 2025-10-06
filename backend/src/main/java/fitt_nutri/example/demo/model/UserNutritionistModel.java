@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.br.CPF;
 
+import java.util.List;
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -42,6 +44,9 @@ public class UserNutritionistModel {
     @Column(nullable = false)
     @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
     private String senha;
+
+    @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserPatientModel> pacientes;
 }
 
 

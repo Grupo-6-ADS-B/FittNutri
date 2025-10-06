@@ -57,4 +57,8 @@ public class UserPatientModel {
     @Column(nullable = false)
     private Integer frequenciaAtividadeFisica;
 
+    @ManyToOne
+    @JoinColumn(name = "nutricionista_id", nullable = false)
+    private UserNutritionistModel nutricionista;
+
 }

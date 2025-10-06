@@ -20,10 +20,6 @@ public class UserPatientService {
 
     public UserPatientResponse cadastrar(UserPatientRequest request) {
 
-        // Regra de negócio:
-        // if (repository.existsByCpf(request.getCpf())) {
-        //     throw new ConflictException("Paciente com CPF " + request.getCpf() + " já cadastrado.");
-        // }
 
         UserPatientModel model = UserPatientAdapter.toModel(request);
         UserPatientModel saved = repository.save(model);
