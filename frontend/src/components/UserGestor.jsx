@@ -1,30 +1,30 @@
-  import React, { useState } from "react";
-  import { useNavigate } from "react-router-dom";
-  import { Header } from "./Header";
-  import { Footer } from "./Footer";
-  import {
-    CssBaseline,
-    Box,
-    Grid,
-    Card,
-    CardContent,
-    Typography,
-    Avatar,
-    IconButton,
-    Drawer,
-    Button,
-    CardMedia,
-  } from "@mui/material";
-  import AddIcon from "@mui/icons-material/Add";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Header } from "./Header";
+import { Footer } from "./Footer";
+import {
+  CssBaseline,
+  Box,
+  Grid,
+  Card,
+  CardContent,
+  Typography,
+  Avatar,
+  IconButton,
+  Drawer,
+  Button,
+  CardMedia,
+} from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
 
-  const mockUsers = [
-    { id: 1, name: "André Goulart", avatar: "https://i.pravatar.cc/150?img=1" },
-    { id: 2, name: "Carlos Lima", avatar: "https://i.pravatar.cc/150?img=2" },
-    { id: 3, name: "Pedro Henrique", avatar: "https://i.pravatar.cc/150?img=3" },
-    { id: 4, name: "Julia Carvalho", avatar: "https://i.pravatar.cc/150?img=5" },
-    { id: 5, name: "Lucas Oliveira", avatar: "https://i.pravatar.cc/150?img=4" },
-    { id: 6, name: null, avatar: null },
-  ];
+const mockUsers = [
+  { id: 1, name: "André Goulart", avatar: "https://i.pravatar.cc/150?img=1" },
+  { id: 2, name: "Carlos Lima", avatar: "https://i.pravatar.cc/150?img=2" },
+  { id: 3, name: "Pedro Henrique", avatar: "https://i.pravatar.cc/150?img=3" },
+  { id: 4, name: "Julia Carvalho", avatar: "https://i.pravatar.cc/150?img=5" },
+  { id: 5, name: "Lucas Oliveira", avatar: "https://i.pravatar.cc/150?img=4" },
+  { id: 6, name: null, avatar: null },
+];
 
 export default function UserGestor(props) {
   const [selectedUser, setSelectedUser] = useState(null);
@@ -49,7 +49,9 @@ export default function UserGestor(props) {
           display: "flex",
           flexDirection: "column",
           minHeight: "100vh",
-          backgroundColor: "#e0e0e0",
+          backgroundImage: 'url(/login.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
         }}
       >
         <Header />

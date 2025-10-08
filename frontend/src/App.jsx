@@ -9,6 +9,7 @@ import { theme } from './theme';
 import UserGestor from "./components/UserGestor";
 import UserRegister from "./components/UserRegister"; // novo componente
 import QuestionarioStepper from "./components/QuestionarioStepper";
+import ResumoCircunferencia from "./components/ResumoCircunferencia";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -84,6 +85,7 @@ function App() {
             <Route path="/" element={<UserGestor />} />
             <Route path="/register" element={<UserRegister />} />
             <Route path="/questionario" element={<QuestionarioStepper />} />
+            <Route path="/resumo-circunferencia" element={<ResumoCircunferencia />} />
           </Routes>
         </Box>
       </Router>

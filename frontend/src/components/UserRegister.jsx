@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import {
   Box,
@@ -7,6 +6,8 @@ import {
   Typography,
   Paper,
   CssBaseline,
+  Snackbar,
+  Alert
 } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "../theme";
@@ -21,7 +22,7 @@ export default function UserRegister(props) {
     cpf: "",
     phone: "",
   });
-
+  const [notification, setNotification] = useState({ open: false, message: "" });
 
   const handleChange = (e) => {
     setFormData((prev) => ({
@@ -33,8 +34,8 @@ export default function UserRegister(props) {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Usuário cadastrado:", formData);
-    alert("Usuário cadastrado com sucesso!");
-    navigate("/questionario");
+    setNotification({ open: true, message: `Sucesso! Novo usuário ${formData.name} registrado` });
+    setTimeout(() => navigate("/questionario"), 3000);
   };
 
   const navigate = useNavigate();
@@ -43,48 +44,27 @@ export default function UserRegister(props) {
       <CssBaseline />
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "column",
           minHeight: "100vh",
-          backgroundImage: 'url(/fundo.jpg)',
+          backgroundImage: 'url(/aveia.jpg)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
+          display: 'flex',
+          flexDirection: 'column',
         }}
       >
         <Header />
-
-        {/* Conteúdo principal */}
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            p: 2,
-          }}
-        >
-          <Paper
-            elevation={4}
-            sx={{
-              p: 4,
-              maxWidth: 400,
-              width: "100%",
-              borderRadius: "16px",
-            }}
-          >
-            <Typography variant="h5" gutterBottom align="center">
+        <Box sx={{ flex: 1, display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <Paper elevation={4} sx={{ p: 4, maxWidth: 400, width: "100%" }}>
+            <Typography variant="h5" gutterBottom>
               Cadastro de Usuário
             </Typography>
-            <form onSubmit={handleSubmit}>
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               <TextField
                 label="Nome"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 fullWidth
-                margin="normal"
-                required
-                size="small"
               />
               <TextField
                 label="Email"
@@ -92,10 +72,6 @@ export default function UserRegister(props) {
                 value={formData.email}
                 onChange={handleChange}
                 fullWidth
-                margin="normal"
-                type="email"
-                required
-                size="small"
               />
               <TextField
                 label="CPF"
@@ -103,9 +79,6 @@ export default function UserRegister(props) {
                 value={formData.cpf}
                 onChange={handleChange}
                 fullWidth
-                margin="normal"
-                required
-                size="small"
               />
               <TextField
                 label="Telefone"
@@ -113,33 +86,25 @@ export default function UserRegister(props) {
                 value={formData.phone}
                 onChange={handleChange}
                 fullWidth
-                margin="normal"
-                required
-                size="small"
               />
-
-              <Button
-                type="submit"
-                variant="contained"
-                color="success"
-                fullWidth
-                sx={{ mt: 2 }}
-              >
+              <Button type="submit" variant="contained" color="primary">
                 Cadastrar
               </Button>
-              <Button
-                variant="outlined"
-                fullWidth
-                sx={{ mt: 2 }}
-                onClick={() => navigate("/")}
-              >
-                Voltar
-              </Button>
-            </form>
+            </Box>
           </Paper>
         </Box>
-
         <Footer />
+        <Snackbar
+          open={notification.open}
+          autoHideDuration={3000}
+          onClose={() => setNotification({ open: false, message: "" })}
+          anchorOrigin={{ vertical: "top", horizontal: "center" }}
+          sx={{ mt: 8 }}
+        >
+          <Alert onClose={() => setNotification({ open: false, message: "" })} severity="success" sx={{ width: "100%" }}>
+            {notification.message}
+          </Alert>
+        </Snackbar>
       </Box>
     </ThemeProvider>
   );

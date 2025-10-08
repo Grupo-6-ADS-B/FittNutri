@@ -12,6 +12,7 @@ import {
   IconButton,
   Tooltip
 } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "../theme";
 import { Header } from "./Header";
@@ -23,6 +24,17 @@ const steps = ["Dados Antropométricos", "Circunferências"];
 export default function QuestionarioStepper() {
   const [activeStep, setActiveStep] = useState(0);
   const [openModal, setOpenModal] = useState(false);
+  const [circData, setCircData] = useState({
+    "Circunferência Abdominal (cm)": "",
+    "Circunferência Cintura (cm)": "",
+    "Circunferência Quadril (cm)": "",
+    "Circunferência Pulso (cm)": "",
+    "Circunferência Panturrilha (cm)": "",
+    "Circunferência Braço (cm)": "",
+    "Circunferência Coxa (cm)": "",
+    "Peso Ideal (kg)": ""
+  });
+  const navigate = useNavigate();
 
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
@@ -108,17 +120,22 @@ export default function QuestionarioStepper() {
                   </Tooltip>
                 </Box>
                 <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <TextField label="Circunferência Abdominal (cm)" fullWidth />
-                  <TextField label="Circunferência Cintura (cm)" fullWidth />
-                  <TextField label="Circunferência Quadril (cm)" fullWidth />
-                  <TextField label="Circunferência Pulso (cm)" fullWidth />
-                  <TextField label="Circunferência Panturrilha (cm)" fullWidth />
-                  <TextField label="Circunferência Braço (cm)" fullWidth />
-                  <TextField label="Circunferência Coxa (cm)" fullWidth />
-                  <TextField label="Peso Ideal (kg)" fullWidth />
-                  <Button variant="contained" color="primary" sx={{ mt: 2 }} onClick={handleBack}>
-                    Voltar
-                  </Button>
+                  <TextField label="Circunferência Abdominal (cm)" fullWidth value={circData["Circunferência Abdominal (cm)"]} onChange={e => setCircData(d => ({ ...d, "Circunferência Abdominal (cm)": e.target.value }))} />
+                  <TextField label="Circunferência Cintura (cm)" fullWidth value={circData["Circunferência Cintura (cm)"]} onChange={e => setCircData(d => ({ ...d, "Circunferência Cintura (cm)": e.target.value }))} />
+                  <TextField label="Circunferência Quadril (cm)" fullWidth value={circData["Circunferência Quadril (cm)"]} onChange={e => setCircData(d => ({ ...d, "Circunferência Quadril (cm)": e.target.value }))} />
+                  <TextField label="Circunferência Pulso (cm)" fullWidth value={circData["Circunferência Pulso (cm)"]} onChange={e => setCircData(d => ({ ...d, "Circunferência Pulso (cm)": e.target.value }))} />
+                  <TextField label="Circunferência Panturrilha (cm)" fullWidth value={circData["Circunferência Panturrilha (cm)"]} onChange={e => setCircData(d => ({ ...d, "Circunferência Panturrilha (cm)": e.target.value }))} />
+                  <TextField label="Circunferência Braço (cm)" fullWidth value={circData["Circunferência Braço (cm)"]} onChange={e => setCircData(d => ({ ...d, "Circunferência Braço (cm)": e.target.value }))} />
+                  <TextField label="Circunferência Coxa (cm)" fullWidth value={circData["Circunferência Coxa (cm)"]} onChange={e => setCircData(d => ({ ...d, "Circunferência Coxa (cm)": e.target.value }))} />
+                  <TextField label="Peso Ideal (kg)" fullWidth value={circData["Peso Ideal (kg)"]} onChange={e => setCircData(d => ({ ...d, "Peso Ideal (kg)": e.target.value }))} />
+                  <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
+                    <Button variant="contained" color="primary" onClick={handleBack}>
+                      Voltar
+                    </Button>
+                    <Button variant="outlined" color="secondary" onClick={() => navigate('/resumo-circunferencia', { state: { dados: circData } })}>
+                      Resumo
+                    </Button>
+                  </Box>
                 </Box>
               </Paper>
               {/* Modal à direita */}
