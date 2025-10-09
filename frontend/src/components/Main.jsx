@@ -13,12 +13,23 @@ function Main({ onSwitchToLogin, onSwitchToRegister }) {
     }
   };
 
+    const scrollToValues = () => {
+    const valuesSection = document.querySelector('[data-section="values"]');
+    if (valuesSection) {
+      valuesSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  };
+
   return (
     <>
       <Header 
         onSwitchToLogin={onSwitchToLogin}
         onSwitchToRegister={onSwitchToRegister}
         scrollToCarousel={scrollToCarousel}
+        onScrollToValues={scrollToValues}
       /> 
       <Hero 
         onScrollToCarousel={scrollToCarousel}

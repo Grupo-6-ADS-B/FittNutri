@@ -9,7 +9,7 @@ import {
 } from '@mui/material';
 import logo from '/logo.jpg'; 
 
-function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCarousel }) {
+function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCarousel, onScrollToValues }) {
   return (
     <AppBar 
       position="static" 
@@ -80,6 +80,7 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCar
             Funcionalidades
           </Button>
           <Button 
+            onClick={onScrollToValues}
             sx={{ 
               fontWeight: 500,
               color: 'text.primary',

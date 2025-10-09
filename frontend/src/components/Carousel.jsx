@@ -60,14 +60,14 @@ function Carousel() {
       <Container maxWidth="xl">
         <Box sx={{ textAlign: 'center', mb: 8 }}>
           <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: '#1a202c', fontSize: { xs: '2rem', md: '2.5rem' } }}>
-            Tudo que você precisa <Typography component="span" variant="h3" sx={{ color: 'primary.main' }}>em um só lugar</Typography>
+            Tudo que você precisa <Typography component="span" variant="h3" sx={{ color: 'primary.main', fontSize: { xs: '2rem', md: '2.5rem' } }}>em um só lugar</Typography>
           </Typography>
           <Typography variant="h6" sx={{ color: '#4a5568', maxWidth: '900px', mx: 'auto', lineHeight: 1.6, fontWeight: 400 }}>
             Desde a criação de dietas personalizadas até o acompanhamento detalhado da evolução dos pacientes, oferecemos as melhores ferramentas para otimizar a sua performance no consultório
           </Typography>
         </Box>
 
-        <Box sx={{ position: 'relative', overflow: 'hidden' }}>
+        <Box sx={{ position: 'relative', overflow: 'hidden', pt: '20px' }}>
           <Box sx={{ display: 'flex', transition: 'transform 0.5s ease-in-out', transform: `translateX(-${currentIndex * (100 / cardsToShow)}%)`, gap: 3 }}>
             {funcionalidades.map(func => (
               <Box key={func.id} sx={{ flex: `0 0 calc(${100 / cardsToShow}% - 16px)`, display: 'flex', justifyContent: 'center' }}>

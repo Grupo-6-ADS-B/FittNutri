@@ -1,4 +1,4 @@
-import { Container, Typography, Box } from '@mui/material';
+import { Container, Typography, Box, Grid } from '@mui/material';
 import { Section } from "./Section";
 import { CardValues as Card } from './CardValues';
 
@@ -26,24 +26,55 @@ const valores = [
     icon: null,
     image: null,
     color: "#f8f9fa"
+  },
+  {
+    id: 4,
+    title: "Eficiência",
+    description: "Otimizar processos para que o nutricionista possa focar no que realmente importa: o bem-estar do paciente.",
+    icon: null,
+    image: null,
+    color: "#f8f9fa"
   }
 ];
 
 function Values() {
 return(
-     <Section background="linear-gradient(135deg, #f8f9fa 0%, #ffffffeb 100%)" py={{ xs: 8, md: 12 }} data-section="values">
+     <Section backgroundImage="/fundo-frutas.jpg"  py={{ xs: 8, md: 12 }} data-section="values">
       <Container maxWidth="xl">
         <Box sx={{ textAlign: 'center', mb: 8 }}>
           <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: '#1a202c', fontSize: { xs: '2rem', md: '2.5rem' } }}>
-            Conheça a nossa missão <Typography component="span" variant="h3" sx={{ color: 'primary.main' }}>e valores</Typography>
+            Conheça a nossa missão e valores
           </Typography>
           <Typography variant="h6" sx={{ color: '#4a5568', maxWidth: '900px', mx: 'auto', lineHeight: 1.6, fontWeight: 400 }}>
           Nossa missão é uma plataforma completa e intuitiva que facilite o trabalho de nutricionistas, promovendo mais eficiência no atendimento e saúde de qualidade para todos.
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', gap: 4, justifyContent: 'center', flexWrap: 'wrap' }}>
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+            gap: 4,
+            maxWidth: '1000px',
+            mx: 'auto',
+            '&:hover .card-item:not(:hover)': {
+              transform: 'scale(0.95)',
+              opacity: 0.7
+            }
+          }}
+        >
           {valores.map(valor => (
-            <Box key={valor.id} sx={{ flex: '1 1 300px', maxWidth: '400px' }}>
+            <Box
+              key={valor.id}
+              className="card-item"
+              sx={{
+                transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
+                transformOrigin: 'center',
+                '&:hover': {
+                  transform: 'scale(1.05)',
+                  zIndex: 10
+                }
+              }}
+            >
               <Card {...valor} />
             </Box>
           ))}
