@@ -2,6 +2,7 @@ import { Header } from "./Header";
 import { Hero } from "./Hero";
 import { Carousel } from './Carousel';
 import { Values } from './Values';
+import { Avaliation } from "./Avaliation";
 function Main({ onSwitchToLogin, onSwitchToRegister }) {
   const scrollToCarousel = () => {
     const carouselSection = document.querySelector('[data-section="carousel"]');
@@ -37,6 +38,7 @@ function Main({ onSwitchToLogin, onSwitchToRegister }) {
       />
       <Carousel />
       <Values />
+      <Avaliation />
     </>
   );
 }
