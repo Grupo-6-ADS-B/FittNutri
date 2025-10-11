@@ -12,7 +12,7 @@ import logo from '/logo.jpg';
 function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCarousel, onScrollToValues }) {
   return (
     <AppBar 
-      position="static" 
+      position="sticky" 
       elevation={0}
       sx={{
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -36,7 +36,7 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCar
           />
           <Box>
             <Typography 
-              variant="h5" 
+              variant="h4" 
               component="div" 
               onClick={onBackToHome}
               sx={{ 

@@ -114,18 +114,16 @@ function Card({ title, description, icon: Icon, image, color = 'primary' }) {
             fontWeight: 700,
             color: 'text.primary',
             lineHeight: 1.3,
-            fontSize: '1.25rem',
           }}
         >
           {title}
         </Typography>
 
         <Typography
-          variant="body2"
+          variant="body1"
           sx={{
             color: 'text.secondary',
             lineHeight: 1.6,
-            fontSize: '0.95rem',
             flexGrow: 1,
           }}
         >
