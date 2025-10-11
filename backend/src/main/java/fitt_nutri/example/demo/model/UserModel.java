@@ -35,13 +35,16 @@ public class UserModel {
     private String cpf;
 
     @NotBlank(message = "CRN não pode estar vazio")
-    @Pattern(regexp = "^\\d{1,6}/[A-Z]{2}$", message = "CRN deve estar no formato 12345/UF")
     @Column(nullable = false)
     private String crn;
 
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            message = "A senha deve ter no mínimo 8 caracteres e incluir letras maiúsculas, minúsculas, números e caracteres especiais"
+    )
     @Column(nullable = false)
-    @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
     private String senha;
+
 }
 
 
