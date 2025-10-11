@@ -1,5 +1,5 @@
 import { Section } from "./Section";
-import { Card } from "./CardCarousel";
+import { Card } from "./Card";
 import { Container, Typography, Box, IconButton } from '@mui/material';
 import { useState, useEffect } from 'react';
 import {

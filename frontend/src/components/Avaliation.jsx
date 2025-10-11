@@ -3,33 +3,33 @@ import { Section } from './Section';
 import { CardAvaliation } from './CardAvaliation';
 
 const avaliacoes = [
-	{
-		id: 1,
-		title: 'Transformou minha rotina clínica',
-		description:
-			'A plataforma agilizou meu atendimento e a criação de dietas personalizadas. Os gráficos de evolução e o histórico do paciente tornaram as decisões muito mais rápidas e precisas — recomendo para qualquer nutricionista que queira ganhar tempo e qualidade no atendimento.',
-		name: 'Ana Silva',
-		date: 'Janeiro 2024',
-		avatar: '/avatar1.jpg',
-	},
-	{
-		id: 2,
-		title: 'Ferramenta essencial para o consultório',
-		description:
-			'Organiza prontuários, facilita o planejamento de consultas e gera relatórios profissionais em poucos cliques. Interface intuitiva e suporte ágil — tornou-se parte fundamental do meu fluxo de trabalho.',
-		name: 'João Souza',
-		date: 'Fevereiro 2024',
-		avatar: '/avatar2.jpg',
-	},
-	{
-		id: 3,
-		title: 'Aumentou o engajamento dos pacientes',
-		description:
-			'Com os recursos de acompanhamento e materiais educativos, meus pacientes aderiram melhor às recomendações. A visualização clara do progresso ajuda nas consultas de retorno e melhora os resultados.',
-		name: 'Maria Oliveira',
-		date: 'Março 2024',
-		avatar: '/avatar3.jpg',
-	},
+  {
+    id: 1,
+    title: 'Transformou minha rotina clínica',
+    description:
+      'A plataforma agilizou meus atendimentos e a criação de dietas. Os gráficos e históricos tornaram as decisões mais rápidas e precisas. Recomendo a qualquer nutricionista.',
+    name: 'Ana Silva',
+    date: 'Janeiro 2024',
+    avatar: '/avatar1.jpg',
+  },
+  {
+    id: 2,
+    title: 'Ferramenta essencial!',
+    description:
+      'Organiza prontuários, facilita consultas e gera relatórios em poucos cliques. Interface intuitiva e suporte ágil — virou parte do meu dia a dia.',
+    name: 'João Souza',
+    date: 'Fevereiro 2024',
+    avatar: '/avatar2.jpg',
+  },
+  {
+    id: 3,
+    title: 'Aumentou o engajamento',
+    description:
+      'Os recursos de acompanhamento e materiais educativos melhoraram a adesão dos pacientes e os resultados nas consultas de retorno.',
+    name: 'Maria Oliveira',
+    date: 'Março 2024',
+    avatar: '/avatar3.jpg',
+  },
 ];
 
 function Avaliation() {

@@ -54,7 +54,7 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCar
               variant="caption" 
               sx={{ 
                 color: 'text.primary',
-                fontSize: '0.75rem'
+                fontSize: '0.85rem'
               }}
             >
               Software para nutricionistas
@@ -77,7 +77,9 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCar
               }
             }}
           >
-            Funcionalidades
+            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+              Funcionalidades
+            </Typography>
           </Button>
           <Button 
             onClick={onScrollToValues}
@@ -93,7 +95,9 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCar
               }
             }}
           >
-            Sobre
+            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+              Sobre nós
+            </Typography>
           </Button>
           <Button 
             sx={{ 
@@ -108,7 +112,26 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome, scrollToCar
               }
             }}
           >
-            Fale conosco
+            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+              Avaliações
+          </Typography>
+          </Button>
+          <Button 
+            sx={{ 
+              fontWeight: 500,
+              color: 'text.primary',
+              px: 3,
+              py: 1.5,
+              borderRadius: 3,
+              '&:hover': {
+                backgroundColor: 'rgba(46, 125, 50, 0.08)',
+                transform: 'translateY(-1px)',
+              }
+            }}
+          >
+            <Typography variant="body1" sx={{ fontWeight: 500 }}>
+              Fale conosco
+            </Typography>
           </Button>
         </Stack>
 

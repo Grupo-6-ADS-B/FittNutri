@@ -13,8 +13,8 @@ function CardAvaliation({ title, description, name, date, avatar }) {
             <StarIcon sx={{ color: '#FFD54F', fontSize: 20, filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.95))' }} />
             </Box>
         <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'left', ml: 2, mr: 2}}>
-            <Typography variant="h6" fontWeight={600} mb={1}>{title}</Typography>
-            <Typography variant="body2">{description}</Typography>
+            <Typography variant="h6" color="text.primary" fontWeight={600} mb={1}>{title}</Typography>
+            <Typography variant="body1">{description}</Typography>
         </Box>
 
     

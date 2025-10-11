@@ -1,73 +1,68 @@
-import { Box, Typography, Paper } from '@mui/material';
+import React from 'react';
+import { Paper, Box, Typography } from '@mui/material';
+import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects'; // fallback icon
 
-function CardValues({ title, description, icon: Icon, image, color }) {
-return (
-    <Paper 
+function CardValues({ title, description, color, icon: Icon = EmojiObjectsIcon }) {
+  return (
+    <Paper
+      className="card-root"
       elevation={0}
-      sx={{ 
-        backgroundColor: color, 
-        borderRadius: 3, 
-        p: 4, 
-        height: 280,
-        display: 'flex', 
-        flexDirection: 'column', 
-        justifyContent: 'center',
-        border: '1px solid rgba(0, 0, 0, 0.08)',
-        cursor: 'pointer',
+      sx={{
+         border: '1px solid rgba(0, 0, 0, 0.06)',
         position: 'relative',
+        borderRadius: 3,
         overflow: 'hidden',
-        transition: 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)',
-        '&:hover': {
-          backgroundColor: '#ffffff',
-          borderColor: 'primary.main',
-          boxShadow: '0 25px 50px rgba(0, 0, 0, 0.15)',
-          '& .card-title': {
-            color: 'primary.main'
-          }
-        },
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '4px',
-          background: 'linear-gradient(90deg, transparent 0%, primary.main 50%, transparent 100%)',
-          opacity: 0,
-          transition: 'opacity 0.3s ease'
-        },
-        '&:hover::before': {
-          opacity: 1
-        }
+        transition: 'transform 0.28s cubic-bezier(.25,.8,.25,1), box-shadow 0.28s',
+        backgroundColor: 'background.paper',
+        minHeight: { xs: 160, md: 200 },
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
-      {Icon && <Icon sx={{ fontSize: '2.5rem', mb: 2, color: 'primary.main' }} />}
-      <Typography 
-        className="card-title"
-        variant="h4" 
-        sx={{ 
-          mb: 2, 
-          fontWeight: 700, 
-          color: '#1a202c',
-          transition: 'color 0.3s ease',
-          textAlign: 'center'
+
+      {Icon && ( 
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 40,
+          left: 16,
+          width: 44,
+          height: 44,
+          borderRadius: '50%',
+          backgroundColor: 'rgba(255,255,255,0.95)',
+          display: 'flex',
+          border: `1px solid ${color}`,
+          alignItems: 'center',
+          justifyContent: 'center',
+          boxShadow: '0 6px 18px rgba(14,30,37,0.06)',
+          color: color,
+          zIndex: 5,
         }}
       >
-        {title}
-      </Typography>
-      <Typography 
-        variant="h5" 
-        sx={{ 
-          color: 'text.secondary', 
-          lineHeight: 1.6,
-          textAlign: 'justify',
-        }}
-      >
-        {description}
-      </Typography>
-      {image && <img src={image} alt={title} style={{ marginTop: '1rem', maxWidth: '100%' }} />}
+        <Icon sx={{ fontSize: 20 }} />
+      </Box>)}
+
+      <Box sx={{ p: { xs: 3, md: 3.5 }, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <Box sx={{ pt: 1 }}>
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, pl: '64px'}}>
+            {title}
+          </Typography>
+          <Typography variant="body1" sx={{ color: '#4a5568', lineHeight: 1.6, pl: '64px' }}>
+            {description}
+          </Typography>
+        </Box>
+      </Box>
+
+      <style>{`
+        @media (hover: hover) and (pointer: fine) {
+          .card-root:hover {
+            box-shadow: 0 14px 30px rgba(14,30,37,0.08);
+            transform: scale(1.04);
+          }
+        }
+      `}</style>
     </Paper>
-)
+  );
 }
 
-export { CardValues };  
+export { CardValues };
