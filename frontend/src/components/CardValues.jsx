@@ -1,6 +1,5 @@
-import React from 'react';
 import { Paper, Box, Typography } from '@mui/material';
-import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects'; // fallback icon
+import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects'; 
 
 function CardValues({ title, description, color, icon: Icon = EmojiObjectsIcon }) {
   return (

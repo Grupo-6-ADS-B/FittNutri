@@ -5,7 +5,7 @@ import { Section } from './Section';
 function Hero({ onScrollToCarousel, onSwitchToRegister }){
     return (
         <Section 
-          backgroundImage="/fundo-nutri.png" overlay='rgba(0, 0, 0, 0.7)'
+          backgroundImage="/fundo-nutri.png" overlay='rgba(0, 0, 0, 0.7)' overlayOpacity={0.9}
         >
           <Container maxWidth="xl">
             <Grid container  direction="row" alignItems="center" sx={{padding: '20px'}}>

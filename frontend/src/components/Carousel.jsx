@@ -56,7 +56,7 @@ function Carousel() {
   };
 
   return (
-    <Section background="linear-gradient(135deg, #f8f9fa 0%, #ffffffeb 100%)" py={{ xs: 8, md: 12 }} data-section="carousel">
+    <Section background="linear-gradient(135deg, #f8f9fa 0%, #ffffffeb 100%)" py={{ xs: 8, md: 12 }} data-section="carousel" id="carousel">
       <Container maxWidth="xl">
         <Box sx={{ textAlign: 'center', mb: 8 }}>
           <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: '#1a202c', fontSize: { xs: '2rem', md: '2.5rem' } }}>

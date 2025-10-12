@@ -46,9 +46,9 @@ function Values() {
   return (
     <Section
       backgroundImage="/fundo-frutas.jpg"
-      overlay="rgba(255,255,255,0.92)"
       py={{ xs: 6, md: 10 }}
       data-section="values"
+      id="values"
     >
       <Container maxWidth="xl">
         <Box sx={{ textAlign: 'center', mb: 8 }}>

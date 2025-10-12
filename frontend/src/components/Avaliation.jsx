@@ -37,7 +37,7 @@ function Avaliation() {
 		<Section
 			background="linear-gradient(135deg, #C0F4BB 0%, #ffffffeb 100%)"
 			py={{ xs: 8, md: 12 }}
-			data-section="carousel"
+			id="reviews"
 		>
 			<Container maxWidth="xl">
 				<Box sx={{ textAlign: 'center', mb: 8 }}>
