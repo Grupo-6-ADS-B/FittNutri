@@ -11,7 +11,7 @@ export default function ResumoCircunferencia() {
   const dados = location.state?.dados;
 
   return (
-  <Box sx={{ minHeight: "100vh", backgroundImage: 'url(/tropicais.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', display: "flex", flexDirection: "column" }}>
+  <Box sx={{ minHeight: "100vh", backgroundImage: 'url(/verdes.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', display: "flex", flexDirection: "column" }}>
       <Header />
       <Paper elevation={4} sx={{ maxWidth: 1200, mx: "auto", mt: 6, p: 4, display: "flex", gap: 4, alignItems: 'flex-start' }}>
         {/* Coluna esquerda: dados e gráfico */}
