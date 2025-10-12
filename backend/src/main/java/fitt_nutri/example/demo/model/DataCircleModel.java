@@ -1,6 +1,7 @@
     package fitt_nutri.example.demo.model;
 
     import jakarta.persistence.*;
+    import jakarta.validation.constraints.Max;
     import jakarta.validation.constraints.NotBlank;
     import jakarta.validation.constraints.NotNull;
     import lombok.AllArgsConstructor;
@@ -18,6 +19,10 @@
         @Id
         @GeneratedValue(strategy = GenerationType.IDENTITY)
         private Integer idDadosCircunferencia;
+
+        @NotBlank(message = "O rótulo da medição não pode estar vazio")
+        @Column(nullable = false, unique = true) // Garante que este valor seja único no banco de dados
+        private String rotulo;
 
         @NotNull(message = "Abdominal não pode estar vazio")
         @Column(nullable = false)
@@ -50,6 +55,7 @@
 
         @NotNull(message = "Peso ideal não pode estar vazio")
         @Column(nullable = false)
+        @Max(150)
         private Double pesoIdeal;
 
 

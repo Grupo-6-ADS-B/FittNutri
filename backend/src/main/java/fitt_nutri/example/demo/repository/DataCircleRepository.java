@@ -4,4 +4,6 @@ import fitt_nutri.example.demo.model.DataCircleModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DataCircleRepository extends JpaRepository<DataCircleModel, Integer> {
+    // No DataCircleRepository.java
+    boolean existsByRotulo(String rotulo);
 }
