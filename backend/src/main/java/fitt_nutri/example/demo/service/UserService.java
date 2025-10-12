@@ -5,7 +5,7 @@ import fitt_nutri.example.demo.dto.request.LoginRequestDTO;
 import fitt_nutri.example.demo.dto.request.UserRequestDTO;
 import fitt_nutri.example.demo.dto.response.UserResponseDTO;
 import fitt_nutri.example.demo.exceptions.ConflictException;
-import fitt_nutri.example.demo.exceptions.UserNotFoundException;
+import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -38,24 +38,24 @@ public class UserService {
 
     public UserResponseDTO getUserById(Integer id) {
         return mapToResponse(userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado")));
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado")));
     }
 
     public UserResponseDTO getUserByEmail(String email) {
         UserModel user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
         return mapToResponse(user);
     }
 
     public UserResponseDTO getUserByCpf(String cpf) {
         UserModel user = userRepository.findByCpf(cpf)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
         return mapToResponse(user);
     }
 
     public UserResponseDTO updateUser(Integer id, UserRequestDTO dto) {
         UserModel user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
         validateUniqueFields(dto, id);
         user.setNome(dto.nome());
         user.setEmail(dto.email());
@@ -67,7 +67,7 @@ public class UserService {
 
     public UserResponseDTO patchUser(Integer id, Map<String, Object> updates) {
         UserModel user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
 
         updates.forEach((key, value) -> {
             switch (key) {
@@ -96,13 +96,13 @@ public class UserService {
 
     public void deleteUser(Integer id) {
         if (!userRepository.existsById(id))
-            throw new UserNotFoundException("Usuário não encontrado");
+            throw new NotFoundException("Usuário não encontrado");
         userRepository.deleteById(id);
     }
 
     public UserResponseDTO login(LoginRequestDTO dto) {
         UserModel user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
 
         if (!user.getSenha().equals(dto.getSenha()))
             throw new ConflictException("Senha incorreta");
