@@ -22,7 +22,7 @@
 
         @NotBlank(message = "O rótulo da medição não pode estar vazio")
         @Column(nullable = false, unique = true) // Garante que este valor seja único no banco de dados
-        private String rotulo;1
+        private String rotulo;
 
         @NotNull(message = "Abdominal não pode estar vazio")
         @Column(nullable = false)
