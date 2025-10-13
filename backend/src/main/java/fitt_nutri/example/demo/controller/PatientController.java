@@ -18,7 +18,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/patients")
 @RequiredArgsConstructor
-@Tag(name = "Patients", description = "Endpoints para gerenciamento de pacientes")
+@Tag(name = "Patients", description = "CRUD de pacientes")
 public class PatientController {
 
     private final PatientAdapter adapter;
