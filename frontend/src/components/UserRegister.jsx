@@ -85,6 +85,7 @@ export default function UserRegister(props) {
           <Button
             variant="contained"
             startIcon={<ArrowBackIcon />}
+            color="secondary"
             onClick={() => navigate("/")}
           >
             Voltar

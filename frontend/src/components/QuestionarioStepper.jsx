@@ -26,7 +26,7 @@ const calculateIMC = (weight, heightCm) => {
   const heightM = heightCm / 100;
   if (weight > 0 && heightM > 0) {
     const imc = weight / (heightM * heightM);
-    return imc.toFixed(2);
+    return imc.toFixed(2).replace('.', ',');
   }
   return "";
 };
@@ -156,150 +156,7 @@ export default function QuestionarioStepper() {
           </Stepper>
 
           {activeStep === 0 && (
-            <Box sx={{ display: "flex", gap: 4, width: '100%', maxWidth: 1200 }}>
-              <Modal open={openModal} onClose={handleToggleModal}>
-                <Box sx={{ position: 'absolute', left: 40, top: '50%', transform: 'translateY(-50%)', width: 300, bgcolor: 'background.paper', boxShadow: 24, p: 3, borderRadius: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Box component="img" src="/senior.jpg" alt="Antropometria" sx={{ width: 200, mb: 2, borderRadius: 2 }} />
-                  <Typography variant="body1" sx={{ textAlign: 'center' }}>
-                    Este questionário coleta dados antropométricos como peso, altura e idade. Preencha os campos ao lado para continuar.
-                  </Typography>
-                </Box>
-              </Modal>
-              <Paper elevation={4} sx={{ flex: 1, p: 4, borderRadius: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>Dados Antropométricos</Typography>
-                  <Tooltip title="Ajuda sobre dados antropométricos">
-                    <IconButton onClick={handleToggleModal} sx={{ ml: 1, backgroundColor: '#e0e0e0', color: '#555', width: 32, height: 32 }}>
-                      <HelpOutlineIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-                <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {antropoFields.map((item) => (
-                    <TextField 
-                      key={item.field}
-                      label={item.label} 
-                      fullWidth
-                      value={item.isCalculated ? imc : antropoData[item.field]}
-                      disabled={item.isCalculated}
-                      onChange={!item.isCalculated ? handleAntropoChange(item.field) : undefined}
-                      type="text" 
-                      inputProps={{
-                        pattern: "[0-9]*[.,]?[0-9]*" 
-                      }}
-                    />
-                  ))}
-                  <Grid container spacing={2} sx={{ mt: 2 }}>
-                    <Grid item xs={6}>
-                      <Button 
-                        variant="outlined" 
-                        color="primary" 
-                        fullWidth
-                        onClick={() => navigate('/')}
-                      >
-                        Voltar
-                      </Button>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Button 
-                        variant="contained" 
-                        color="primary" 
-                        fullWidth
-                        onClick={() => { setCompleted((p) => ({ ...p, antropo: true })); handleNext(); }}
-                      >
-                        Próximo
-                      </Button>
-                    </Grid>
-                  </Grid>
-                </Box>
-              </Paper>
-                <Paper elevation={3} sx={{ width: 320, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Box component="img" src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #2e7d32' }} />
-                    <Box>
-                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name}</Typography>
-                      <Typography variant="body2" color="text.secondary">{selectedUser.email}</Typography>
-                      <Typography variant="body2" color="text.secondary">{selectedUser.phone}</Typography>
-                    </Box>
-                  </Box>
-                  <Typography variant="subtitle2" sx={{ mb: 1 }}>Informações preenchidas</Typography>
-                  <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1 }}>
-                    {!!antropoData.peso && <Typography variant="body2">Peso: {antropoData.peso} kg</Typography>}
-                    {!!antropoData.altura && <Typography variant="body2">Altura: {antropoData.altura} cm</Typography>}
-                    {!!antropoData.idade && <Typography variant="body2">Idade: {antropoData.idade}</Typography>}
-                    {!!imc && <Typography variant="body2">IMC: {imc}</Typography>}
-                    {!!antropoData.porcentagemGordura && <Typography variant="body2">Gordura: {antropoData.porcentagemGordura} %</Typography>}
-                    {!!antropoData.massaMuscular && <Typography variant="body2">Massa Muscular: {antropoData.massaMuscular} kg</Typography>}
-                    {!!antropoData.gorduraVisceral && <Typography variant="body2">Gordura Visceral: {antropoData.gorduraVisceral} %</Typography>}
-                    {!!antropoData.taxaMetabolicaBasal && <Typography variant="body2">TMB: {antropoData.taxaMetabolicaBasal} kcal</Typography>}
-                    {Object.entries(circData).map(([k,v]) => (
-                      v ? <Typography key={k} variant="body2">{k}: {v}</Typography> : null
-                    ))}
-                  </Box>
-                  <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
-                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: completed.antropo ? 'green' : 'grey.400' }} />
-                      <Typography variant="body2">Dados Antropométricos</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
-                      <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: completed.circ ? 'green' : 'grey.400' }} />
-                      <Typography variant="body2">Dados de Circunferência</Typography>
-                    </Box>
-                  </Box>
-                </Paper>
-            </Box>
-          )}
-
-          {activeStep === 1 && (
-            <Box sx={{ display: "flex", gap: 4, width: '100%', maxWidth: 1200 }}>
-              <Paper elevation={4} sx={{ flex: 1, p: 4, borderRadius: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>Dados de Circunferência</Typography>
-                  <Tooltip title="Ajuda sobre dados de circunferência">
-                    <IconButton onClick={handleToggleModal} sx={{ ml: 1, backgroundColor: '#e0e0e0', color: '#555', width: 32, height: 32 }}>
-                      <HelpOutlineIcon />
-                    </IconButton>
-                  </Tooltip>
-                </Box>
-                <Box component="form" sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  {circFields.map((label) => (
-                    <TextField 
-                      key={label}
-                      label={label} 
-                      fullWidth 
-                      value={circData[label]} 
-                      onChange={handleCircChange(label)}
-                      type="text" 
-                      inputProps={{
-                        pattern: "[0-9]*[.,]?[0-9]*"
-                      }}
-                    />
-                  ))}
-                  <Grid container spacing={2} sx={{ mt: 2 }}>
-                    <Grid item xs={6}>
-                      <Button 
-                        variant="contained" 
-                        color="primary" 
-                        fullWidth
-                        onClick={handleBack}
-                      >
-                        Voltar
-                      </Button>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Button 
-                        variant="outlined" 
-                        color="secondary" 
-                        fullWidth
-                        onClick={handleResumoClick}
-                      >
-                        Resumo
-                      </Button>
-                    </Grid>
-                  </Grid>
-                  
-                </Box>
-              </Paper>
+            <Box sx={{ display: "flex", gap: 4, marginRight: '350px', width: '100%', maxWidth: 1200, justifyContent: 'center' }}>
               <Paper elevation={3} sx={{ width: 320, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                   <Box component="img" src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #2e7d32' }} />
@@ -334,14 +191,141 @@ export default function QuestionarioStepper() {
                   </Box>
                 </Box>
               </Paper>
-              <Modal open={openModal} onClose={handleToggleModal}>
-                <Box sx={{ position: 'absolute', right: 40, top: '50%', transform: 'translateY(-50%)', width: 300, bgcolor: 'background.paper', boxShadow: 24, p: 3, borderRadius: 3, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <Box component="img" src="/medida.jpg" alt="Circunferência" sx={{ width: 200, mb: 2, borderRadius: 2 }} />
-                  <Typography variant="body1" sx={{ textAlign: 'center' }}>
-                    Este questionário coleta dados de circunferências corporais. Preencha os campos ao lado para continuar.
-                  </Typography>
+              <Paper elevation={4} sx={{ flex: 1, p: 4, borderRadius: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>Dados Antropométricos</Typography>
+                  <Tooltip title="Ajuda sobre dados antropométricos">
+                    <IconButton onClick={handleToggleModal} sx={{ ml: 1, backgroundColor: '#e0e0e0', color: '#555', width: 32, height: 32 }}>
+                      <HelpOutlineIcon />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
-              </Modal>
+                <Box component="form" sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+                  {antropoFields.map((item) => (
+                    <TextField 
+                      key={item.field}
+                      label={item.label} 
+                      fullWidth
+                      value={item.isCalculated ? imc : antropoData[item.field]}
+                      disabled={item.isCalculated}
+                      onChange={!item.isCalculated ? handleAntropoChange(item.field) : undefined}
+                      type="text" 
+                      inputProps={{
+                        pattern: "[0-9]*[.,]?[0-9]*" 
+                      }}
+                    />
+                  ))}
+                  <Grid container spacing={2} sx={{ ml: 23, justifyContent: 'center' }}>
+                    <Grid item xs={6}>
+                      <Button 
+                        variant="outlined" 
+                        color="secondary" 
+                        fullWidth
+                        onClick={() => navigate('/')}
+                      >
+                        Voltar
+                      </Button>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Button 
+                        variant="contained" 
+                        color="primary" 
+                        fullWidth
+                        onClick={() => { setCompleted((p) => ({ ...p, antropo: true })); handleNext(); }}
+                      >
+                        Próximo
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Box>
+              </Paper>
+            </Box>
+          )}
+
+          {activeStep === 1 && (
+            <Box sx={{ display: "flex", gap: 4, marginRight: '350px', width: '100%', maxWidth: 1200, justifyContent: 'center' }}>
+              <Paper elevation={3} sx={{ width: 320, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                  <Box component="img" src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #2e7d32' }} />
+                  <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name}</Typography>
+                    <Typography variant="body2" color="text.secondary">{selectedUser.email}</Typography>
+                    <Typography variant="body2" color="text.secondary">{selectedUser.phone}</Typography>
+                  </Box>
+                </Box>
+                <Typography variant="subtitle2" sx={{ mb: 1 }}>Informações preenchidas</Typography>
+                <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1 }}>
+                  {!!antropoData.peso && <Typography variant="body2">Peso: {antropoData.peso} kg</Typography>}
+                  {!!antropoData.altura && <Typography variant="body2">Altura: {antropoData.altura} cm</Typography>}
+                  {!!antropoData.idade && <Typography variant="body2">Idade: {antropoData.idade}</Typography>}
+                  {!!imc && <Typography variant="body2">IMC: {imc}</Typography>}
+                  {!!antropoData.porcentagemGordura && <Typography variant="body2">Gordura: {antropoData.porcentagemGordura} %</Typography>}
+                  {!!antropoData.massaMuscular && <Typography variant="body2">Massa Muscular: {antropoData.massaMuscular} kg</Typography>}
+                  {!!antropoData.gorduraVisceral && <Typography variant="body2">Gordura Visceral: {antropoData.gorduraVisceral} %</Typography>}
+                  {!!antropoData.taxaMetabolicaBasal && <Typography variant="body2">TMB: {antropoData.taxaMetabolicaBasal} kcal</Typography>}
+                  {Object.entries(circData).map(([k,v]) => (
+                    v ? <Typography key={k} variant="body2">{k}: {v}</Typography> : null
+                  ))}
+                </Box>
+                <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: completed.antropo ? 'green' : 'grey.400' }} />
+                    <Typography variant="body2">Dados Antropométricos</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                    <Box sx={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: completed.circ ? 'green' : 'grey.400' }} />
+                    <Typography variant="body2">Dados de Circunferência</Typography>
+                  </Box>
+                </Box>
+              </Paper>
+              <Paper elevation={4} sx={{ flex: 1, p: 4, borderRadius: 3 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                  <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>Dados de Circunferência</Typography>
+                  <Tooltip title="Ajuda sobre dados de circunferência">
+                    <IconButton onClick={handleToggleModal} sx={{ ml: 1, backgroundColor: '#e0e0e0', color: '#555', width: 32, height: 32 }}>
+                      <HelpOutlineIcon />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <Box component="form" sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
+                  {circFields.map((label) => (
+                    <TextField 
+                      key={label}
+                      label={label} 
+                      fullWidth 
+                      value={circData[label]} 
+                      onChange={handleCircChange(label)}
+                      type="text" 
+                      inputProps={{
+                        pattern: "[0-9]*[.,]?[0-9]*"
+                      }}
+                    />
+                  ))}
+                  <Grid container spacing={2} sx={{ ml: 23, justifyContent: 'center' }}>
+                    <Grid item xs={6}>
+                      <Button 
+                        variant="outlined" 
+                        color="secondary" 
+                        fullWidth
+                        onClick={handleBack}
+                      >
+                        Voltar
+                      </Button>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <Button 
+                        variant="contained" 
+                        color="primary" 
+                        fullWidth
+                        onClick={handleResumoClick}
+                      >
+                        Ver resultado
+                      </Button>
+                    </Grid>
+                  </Grid>
+                  
+                </Box>
+              </Paper>
             </Box>
           )}
         </Box>
