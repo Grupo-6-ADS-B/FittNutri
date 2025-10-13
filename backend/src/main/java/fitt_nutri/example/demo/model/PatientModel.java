@@ -1,20 +1,15 @@
 package fitt_nutri.example.demo.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.br.CPF;
-
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -34,12 +29,12 @@ public class PatientModel {
 
     @Email
     @NotBlank(message = "Email não pode estar vazio")
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String email;
 
     @CPF
     @NotBlank(message = "CPF não pode estar vazio")
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String cpf;
 
     @NotNull(message = "A data de nascimento não pode estar vazia")
@@ -73,4 +68,7 @@ public class PatientModel {
     @Max(value = 7, message = "Frequência máxima: 7")
     @Column(nullable = false)
     private Integer frequenciaAtividadeFisica;
+
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL)
+    private List<SchedulingModel> agendamentos = new ArrayList<>();
 }

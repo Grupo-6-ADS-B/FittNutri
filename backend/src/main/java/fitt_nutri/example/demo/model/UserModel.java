@@ -7,13 +7,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.br.CPF;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "Usuário")
+@Table(name = "Usuario")
 public class UserModel {
 
     @Id
@@ -45,11 +47,6 @@ public class UserModel {
     @Column(nullable = false)
     private String senha;
 
+    @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL)
+    private List<SchedulingModel> agendamentos = new ArrayList<>();
 }
-
-
-
-
-
-
-

@@ -1,9 +1,9 @@
 package fitt_nutri.example.demo.controller;
 
+import fitt_nutri.example.demo.adapter.UserAdapter;
 import fitt_nutri.example.demo.dto.request.LoginRequestDTO;
 import fitt_nutri.example.demo.dto.request.UserRequestDTO;
 import fitt_nutri.example.demo.dto.response.UserResponseDTO;
-import fitt_nutri.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -23,7 +23,7 @@ import java.util.Map;
 @Tag(name = "Usuários", description = "CRUD de usuários")
 public class UserController {
 
-    private final UserService userService;
+    private final UserAdapter adapter;
 
     @PostMapping
     @Operation(summary = "Cria um usuário")
@@ -33,7 +33,7 @@ public class UserController {
             @ApiResponse(responseCode = "409", description = "Email, CPF ou CRN já cadastrado")
     })
     public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO dto) {
-        return ResponseEntity.status(201).body(userService.createUser(dto));
+        return ResponseEntity.status(201).body(adapter.createUser(dto));
     }
 
     @GetMapping
@@ -43,7 +43,7 @@ public class UserController {
             @ApiResponse(responseCode = "204", description = "Nenhum usuário encontrado")
     })
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        List<UserResponseDTO> users = userService.getAllUsers();
+        List<UserResponseDTO> users = adapter.getAllUsers();
         return users.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(users);
     }
 
@@ -54,7 +54,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Integer id) {
-        return ResponseEntity.ok(userService.getUserById(id));
+        return ResponseEntity.ok(adapter.getUserById(id));
     }
 
     @GetMapping("/email/{email}")
@@ -64,7 +64,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable String email) {
-        return ResponseEntity.ok(userService.getUserByEmail(email));
+        return ResponseEntity.ok(adapter.getUserByEmail(email));
     }
 
     @GetMapping("/cpf/{cpf}")
@@ -74,7 +74,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> getUserByCpf(@PathVariable String cpf) {
-        return ResponseEntity.ok(userService.getUserByCpf(cpf));
+        return ResponseEntity.ok(adapter.getUserByCpf(cpf));
     }
 
     @PutMapping("/{id}")
@@ -85,7 +85,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Integer id, @Valid @RequestBody UserRequestDTO dto) {
-        return ResponseEntity.ok(userService.updateUser(id, dto));
+        return ResponseEntity.ok(adapter.updateUser(id, dto));
     }
 
     @PatchMapping("/{id}")
@@ -96,7 +96,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> patchUser(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
-        return ResponseEntity.ok(userService.patchUser(id, updates));
+        return ResponseEntity.ok(adapter.patchUser(id, updates));
     }
 
     @DeleteMapping("/{id}")
@@ -106,7 +106,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
-        userService.deleteUser(id);
+        adapter.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -117,6 +117,6 @@ public class UserController {
             @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
     })
     public ResponseEntity<UserResponseDTO> login(@RequestBody LoginRequestDTO dto) {
-        return ResponseEntity.ok(userService.login(dto));
+        return ResponseEntity.ok(adapter.login(dto));
     }
 }
