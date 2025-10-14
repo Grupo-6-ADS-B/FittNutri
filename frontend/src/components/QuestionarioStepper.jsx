@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import {
   Box,
   Button,
@@ -8,8 +8,15 @@ import {
   Step,
   StepLabel,
   TextField,
-  Grid
+  Grid,
+  Avatar,
+  IconButton,
+  Tooltip
 } from "@mui/material";
+import EditIcon from '@mui/icons-material/Edit';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "../theme";
@@ -47,6 +54,14 @@ export default function QuestionarioStepper() {
     { id: 2, name: "Carlos Lima", email: "carlos.lima@example.com", phone: "(21) 91234-5678", avatar: "https://i.pravatar.cc/150?img=2" },
   ];
   const selectedUser = location.state?.user || mockUsers[0];
+  const [userInfo, setUserInfo] = useState(selectedUser);
+  const [isEditingUser, setIsEditingUser] = useState(false);
+  const [userDraft, setUserDraft] = useState({
+    name: selectedUser?.name || '',
+    email: selectedUser?.email || '',
+    phone: selectedUser?.phone || selectedUser?.telefone || '',
+    avatar: selectedUser?.avatar || ''
+  });
   const [antropoData, setAntropoData] = useState(() => ({
     peso: location.state?.antropoData?.peso ?? "",
     altura: location.state?.antropoData?.altura ?? "",
@@ -66,6 +81,25 @@ export default function QuestionarioStepper() {
     "Circunferência Coxa (cm)": location.state?.dados?.["Circunferência Coxa (cm)"] ?? "",
     "Peso Ideal (kg)": location.state?.dados?.["Peso Ideal (kg)"] ?? ""
   }));
+  
+  useEffect(() => {
+    if (!selectedUser?.id) return;
+    const stored = localStorage.getItem(`questionario_${selectedUser.id}`);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        if (parsed.antropoData) setAntropoData(prev => ({ ...prev, ...parsed.antropoData }));
+        if (parsed.circData) setCircData(prev => ({ ...prev, ...parsed.circData }));
+        if (parsed.completed) setCompleted(parsed.completed);
+      } catch {}
+    }
+  }, [selectedUser?.id]);
+
+  useEffect(() => {
+    if (!selectedUser?.id) return;
+    const payload = { antropoData, circData, completed };
+    localStorage.setItem(`questionario_${selectedUser.id}`, JSON.stringify(payload));
+  }, [selectedUser?.id, antropoData, circData, completed]);
   const navigate = useNavigate();
 
   const imc = useMemo(() => {
@@ -73,6 +107,56 @@ export default function QuestionarioStepper() {
     const altura = parseFloat(antropoData.altura.replace(',', '.'));
     return calculateIMC(peso, altura);
   }, [antropoData.peso, antropoData.altura]);
+
+  const startEditUser = () => setIsEditingUser(true);
+  const cancelEditUser = () => {
+    setIsEditingUser(false);
+    setUserDraft({
+      name: userInfo?.name || '',
+      email: userInfo?.email || '',
+      phone: userInfo?.phone || userInfo?.telefone || '',
+      avatar: userInfo?.avatar || ''
+    });
+  };
+  const saveEditUser = () => {
+    const updated = {
+      ...userInfo,
+      name: userDraft.name,
+      email: userDraft.email,
+      phone: userDraft.phone,
+      telefone: userDraft.phone,
+      avatar: userDraft.avatar || null,
+    };
+    setUserInfo(updated);
+    setIsEditingUser(false);
+    try {
+      const stored = localStorage.getItem('users');
+      const arr = stored ? JSON.parse(stored) : [];
+      if (Array.isArray(arr)) {
+        const idx = arr.findIndex(u => u.id === updated.id);
+        if (idx >= 0) {
+          arr[idx] = { ...arr[idx], ...updated };
+        } else if (updated?.id) {
+          arr.push(updated);
+        }
+        localStorage.setItem('users', JSON.stringify(arr));
+      }
+    } catch {}
+  };
+  const onChangeDraft = (field) => (e) => {
+    setUserDraft(prev => ({ ...prev, [field]: e.target.value }));
+  };
+  const fileInputRef = React.useRef(null);
+  const handlePickImage = () => fileInputRef.current?.click();
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setUserDraft(prev => ({ ...prev, avatar: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleAntropoChange = (field) => (event) => {
     const inputValue = event.target.value;
@@ -156,11 +240,46 @@ export default function QuestionarioStepper() {
             <Box sx={{ display: "flex", gap: 4, marginRight: '340px', width: '100%', maxWidth: 1200, justifyContent: 'center' }}>
               <Paper elevation={3} sx={{ width: 320, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Box component="img" src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #2e7d32' }} />
+                  <Avatar src={userInfo?.avatar || undefined} sx={{ width: 56, height: 56, border: '2px solid #2e7d32' }}>
+                    {(!userInfo?.avatar && userInfo?.name) ? userInfo.name.charAt(0) : null}
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    {!isEditingUser ? (
+                      <>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{userInfo?.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">{userInfo?.email}</Typography>
+                        <Typography variant="body2" color="text.secondary">{userInfo?.phone || userInfo?.telefone}</Typography>
+                      </>
+                    ) : (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <TextField size="small" label="Nome" value={userDraft.name} onChange={onChangeDraft('name')} />
+                        <TextField size="small" label="Email" value={userDraft.email} onChange={onChangeDraft('email')} />
+                        <TextField size="small" label="Telefone" value={userDraft.phone} onChange={onChangeDraft('phone')} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <TextField size="small" label="URL da imagem" value={userDraft.avatar} onChange={onChangeDraft('avatar')} fullWidth />
+                          <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
+                          <Tooltip title="Enviar foto">
+                            <IconButton size="small" onClick={handlePickImage}><PhotoCamera fontSize="small" /></IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
                   <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">{selectedUser.email}</Typography>
-                    <Typography variant="body2" color="text.secondary">{selectedUser.phone}</Typography>
+                    {!isEditingUser ? (
+                      <Tooltip title="Editar usuário">
+                        <IconButton size="small" onClick={startEditUser}><EditIcon fontSize="small" /></IconButton>
+                      </Tooltip>
+                    ) : (
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Tooltip title="Salvar">
+                          <IconButton size="small" color="success" onClick={saveEditUser}><CheckIcon fontSize="small" /></IconButton>
+                        </Tooltip>
+                        <Tooltip title="Cancelar">
+                          <IconButton size="small" color="error" onClick={cancelEditUser}><CloseIcon fontSize="small" /></IconButton>
+                        </Tooltip>
+                      </Box>
+                    )}
                   </Box>
                 </Box>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>Informações preenchidas</Typography>
@@ -246,11 +365,46 @@ export default function QuestionarioStepper() {
             <Box sx={{ display: "flex", gap: 4, marginRight: '340px', width: '100%', maxWidth: 1200, justifyContent: 'center' }}>
               <Paper elevation={3} sx={{ width: 320, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                  <Box component="img" src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid #2e7d32' }} />
+                  <Avatar src={userInfo?.avatar || undefined} sx={{ width: 56, height: 56, border: '2px solid #2e7d32' }}>
+                    {(!userInfo?.avatar && userInfo?.name) ? userInfo.name.charAt(0) : null}
+                  </Avatar>
+                  <Box sx={{ flex: 1 }}>
+                    {!isEditingUser ? (
+                      <>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{userInfo?.name}</Typography>
+                        <Typography variant="body2" color="text.secondary">{userInfo?.email}</Typography>
+                        <Typography variant="body2" color="text.secondary">{userInfo?.phone || userInfo?.telefone}</Typography>
+                      </>
+                    ) : (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <TextField size="small" label="Nome" value={userDraft.name} onChange={onChangeDraft('name')} />
+                        <TextField size="small" label="Email" value={userDraft.email} onChange={onChangeDraft('email')} />
+                        <TextField size="small" label="Telefone" value={userDraft.phone} onChange={onChangeDraft('phone')} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <TextField size="small" label="URL da imagem" value={userDraft.avatar} onChange={onChangeDraft('avatar')} fullWidth />
+                          <input type="file" accept="image/*" ref={fileInputRef} style={{ display: 'none' }} onChange={handleFileChange} />
+                          <Tooltip title="Enviar foto">
+                            <IconButton size="small" onClick={handlePickImage}><PhotoCamera fontSize="small" /></IconButton>
+                          </Tooltip>
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
                   <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name}</Typography>
-                    <Typography variant="body2" color="text.secondary">{selectedUser.email}</Typography>
-                    <Typography variant="body2" color="text.secondary">{selectedUser.phone}</Typography>
+                    {!isEditingUser ? (
+                      <Tooltip title="Editar usuário">
+                        <IconButton size="small" onClick={startEditUser}><EditIcon fontSize="small" /></IconButton>
+                      </Tooltip>
+                    ) : (
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Tooltip title="Salvar">
+                          <IconButton size="small" color="success" onClick={saveEditUser}><CheckIcon fontSize="small" /></IconButton>
+                        </Tooltip>
+                        <Tooltip title="Cancelar">
+                          <IconButton size="small" color="error" onClick={cancelEditUser}><CloseIcon fontSize="small" /></IconButton>
+                        </Tooltip>
+                      </Box>
+                    )}
                   </Box>
                 </Box>
                 <Typography variant="subtitle2" sx={{ mb: 1 }}>Informações preenchidas</Typography>
@@ -318,7 +472,7 @@ export default function QuestionarioStepper() {
                       </Button>
                     </Grid>
                   </Grid>
-                  
+     
                 </Box>
               </Paper>
               {openModal && (
