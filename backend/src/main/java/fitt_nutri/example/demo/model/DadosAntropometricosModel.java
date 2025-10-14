@@ -42,21 +42,17 @@ public class DadosAntropometricosModel {
     @Column(nullable = false)
     private Double massaMuscular;
 
-    @NotBlank(message = "Taxa Metabolica não pode estar vazia")
+    @NotNull(message = "Taxa Metabolica não pode estar vazia")
     @Column(nullable = false)
     private Integer tmb;
 
-    @NotBlank(message = "IdadeMetabolica não pode estar vazia")
+    @NotNull(message = "IdadeMetabolica não pode estar vazia")
     @Column(nullable = false)
     private Integer idadeMetabolica;
 
-    @NotBlank(message = "Gordura Visceral não pode estar vazia")
+    @NotNull(message = "Gordura Visceral não pode estar vazia")
     @Column(nullable = false)
     private Integer gorduraVisceral;
-
-    @Column(nullable = false)
-    @ManyToOne
-    private Integer idUsuario;
 
 
 }
