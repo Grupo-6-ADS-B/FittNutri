@@ -1,12 +1,16 @@
 package fitt_nutri.example.demo.controller;
 
 import fitt_nutri.example.demo.adapter.UserAdapter;
-import fitt_nutri.example.demo.dto.request.LoginRequestDTO;
+import fitt_nutri.example.demo.dto.login.*;
 import fitt_nutri.example.demo.dto.request.UserRequestDTO;
 import fitt_nutri.example.demo.dto.response.UserResponseDTO;
+import fitt_nutri.example.demo.model.UserModel;
+import fitt_nutri.example.demo.service.LoginService;
+import fitt_nutri.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,27 +28,32 @@ import java.util.Map;
 public class UserController {
 
     private final UserAdapter adapter;
+    private final LoginService service;
 
     @PostMapping
-    @Operation(summary = "Cria um usuário")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Usuário criado com sucesso"),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
-            @ApiResponse(responseCode = "409", description = "Email, CPF ou CRN já cadastrado")
-    })
-    public ResponseEntity<UserResponseDTO> createUser(@Valid @RequestBody UserRequestDTO dto) {
-        return ResponseEntity.status(201).body(adapter.createUser(dto));
+    @SecurityRequirement(name = "Bearer")
+    public ResponseEntity<Void> createUser(@Valid @RequestBody LoginCreateDTO dto) {
+        final UserModel user = LoginMapperDTO.of(dto);
+        service.criar(user);
+        return ResponseEntity.status(201).build();
+
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginTokenDTO> loginUser(@RequestBody LoginRequestDTO dto) {
+        final UserModel user = LoginMapperDTO.of(dto);
+        LoginTokenDTO loginTokenDTO = service.autenticar(user);
+        return ResponseEntity.ok(loginTokenDTO);
     }
 
     @GetMapping
-    @Operation(summary = "Lista todos os usuários")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lista de usuários retornada"),
-            @ApiResponse(responseCode = "204", description = "Nenhum usuário encontrado")
-    })
-    public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
-        List<UserResponseDTO> users = adapter.getAllUsers();
-        return users.isEmpty() ? ResponseEntity.noContent().build() : ResponseEntity.ok(users);
+    @SecurityRequirement(name = "Bearer")
+    public ResponseEntity<List<LoginListDTO>> getAllUsers() {
+        List<LoginListDTO> users = service.listarUsuarios();
+        if(users.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/{id}")
