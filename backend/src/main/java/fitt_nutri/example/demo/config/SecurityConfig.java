@@ -4,16 +4,12 @@ import fitt_nutri.example.demo.service.AutenticacaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.CsrfConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,9 +17,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -32,90 +27,73 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-
     private final AutenticacaoService autenticacaoService;
-    private final AutenticacaoEntryPoint autenticacaoJwtEntryPoint;
+    private final GerenciadorTokenJwt jwtTokenManager;
 
-    private static final String[] URLS_PERMITIDAS = {
+    private static final String[] URLS_PUBLICAS = {
+            "/users/login",
+            "/users",
             "/swagger-ui/**",
             "/swagger-ui.html",
-            "/swagger-resources/**",
-            "/configuration/ui",
-            "/configuration/security",
-            "/api/public/**",
-            "/api/public/authenticate",
-            "/webjars/**",
             "/v3/api-docs/**",
-            "/actuator/**",
-            "/usuarios/login/**",
-            "/h2-console/**",
-            "/error/**"
+            "/swagger-resources/**",
+            "/webjars/**",
+            "/h2-console/**"
     };
 
     @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AutenticacaoFilter jwtAuthFilter() {
+        return new AutenticacaoFilter(autenticacaoService, jwtTokenManager);
+    }
+
+    @Bean
+    public DaoAuthenticationProvider authenticationProvider() {
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+        authProvider.setUserDetailsService(autenticacaoService);
+        authProvider.setPasswordEncoder(passwordEncoder());
+        return authProvider;
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        return http.getSharedObject(AuthenticationManagerBuilder.class)
+                .authenticationProvider(authenticationProvider())
+                .build();
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+
         http
-                .headers(headers -> headers
-                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
-                .cors(Customizer.withDefaults())
-                .csrf(CsrfConfigurer<HttpSecurity>::disable)
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/auth/**").permitAll()
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(URLS_PUBLICAS).permitAll()
                         .anyRequest().authenticated()
                 )
-                .exceptionHandling(handling -> handling
-                        .authenticationEntryPoint(autenticacaoJwtEntryPoint))
-                .sessionManagement(management -> management
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http.addFilterBefore(jwtAuthenticationFilterBean(), UsernamePasswordAuthenticationFilter.class);
+                .authenticationProvider(authenticationProvider())
+                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationManager authManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.authenticationProvider(new AutenticacaoProvider(autenticacaoService, passwordEncoder()));
-        return authenticationManagerBuilder.build();
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:5500"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
-
-    @Bean
-    public AutenticacaoEntryPoint jwtAuthenticationEntrypointBean() {
-        return new AutenticacaoEntryPoint();
-    }
-
-    @Bean
-    public AutenticacaoFilter jwtAuthenticationFilterBean(){
-        return new  AutenticacaoFilter(autenticacaoService, jwtAuthenticationUtilBean());
-    }
-
-    @Bean
-    public GerenciadorTokenJwt jwtAuthenticationUtilBean(){
-        return  new GerenciadorTokenJwt();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
-    }
-
-   @Bean
-   public CorsConfigurationSource corsConfigurationSource(){
-       CorsConfiguration configuration = new CorsConfiguration();
-       configuration.applyPermitDefaultValues();
-       configuration.setAllowedMethods(Arrays.asList(HttpMethod.GET.name(),
-               HttpMethod.POST.name(),
-               HttpMethod.PUT.name(),
-               HttpMethod.DELETE.name(),
-               HttpMethod.OPTIONS.name(),
-               HttpMethod.PATCH.name(),
-               HttpMethod.HEAD.name(),
-                HttpMethod.TRACE.name()));
-
-       configuration.setExposedHeaders(List.of(HttpHeaders.CONTENT_DISPOSITION));
-       UrlBasedCorsConfigurationSource origem = new UrlBasedCorsConfigurationSource();
-       origem.registerCorsConfiguration("/**",configuration);
-       return (CorsConfigurationSource) origem;
-   }
 }
