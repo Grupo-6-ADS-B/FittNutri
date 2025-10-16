@@ -1,88 +1,89 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.model.FormModel;
-import fitt_nutri.example.demo.repository.FormRepository;
+import fitt_nutri.example.demo.adapter.FormAdapter;
+import fitt_nutri.example.demo.dto.request.FormRequestDTO;
+import fitt_nutri.example.demo.dto.response.FormResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/forms")
 @Tag(name = "Formulários", description = "CRUD de formulários")
+@RequiredArgsConstructor
 public class FormController {
 
-    @Autowired
-    private FormRepository formRepository;
+    private final FormAdapter formAdapter;
 
-    @Operation(summary = "Cria um formulario")
-    @ApiResponse(responseCode = "201", description = "Formulário criado com suceso")
-    @ApiResponse(responseCode = "400", description = "Faltou algum parâmetro na requisição ou foi escrito de forma errônea")
+    @Operation(summary = "Cria um formulário")
+    @ApiResponse(responseCode = "201", description = "Formulário criado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos")
     @PostMapping
-    public ResponseEntity<FormModel> postForm(@Valid @RequestBody FormModel formModel) {
-        FormModel newModel = formRepository.save(formModel);
-        return ResponseEntity.status(201).body(newModel);
+    public ResponseEntity<FormResponseDTO> createForm(@Valid @RequestBody FormRequestDTO dto) {
+        FormResponseDTO created = formAdapter.create(dto);
+        return ResponseEntity.status(201).body(created);
     }
 
-    @Operation(summary = "Busca todos os formulários")
-    @ApiResponse(responseCode = "200", description = "Todos os formulários encontrados com suceso")
-    @ApiResponse(responseCode = "204", description = "Não existe nenhum registro de formulários")
+    @Operation(summary = "Lista todos os formulários")
+    @ApiResponse(responseCode = "200", description = "Formulários retornados com sucesso")
+    @ApiResponse(responseCode = "204", description = "Nenhum formulário encontrado")
     @GetMapping
-    public ResponseEntity<List<FormModel>> getForms() {
-        List<FormModel> forms = formRepository.findAll();
+    public ResponseEntity<List<FormResponseDTO>> getAllForms() {
+        List<FormResponseDTO> forms = formAdapter.getAll();
         if (forms.isEmpty()) {
-            return ResponseEntity.status(204).build();
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.status(200).body(forms);
+        return ResponseEntity.ok(forms);
     }
 
     @Operation(summary = "Busca um formulário por id")
-    @ApiResponse(responseCode = "200", description = "Formulário encontrado com suceso")
+    @ApiResponse(responseCode = "200", description = "Formulário encontrado com sucesso")
     @ApiResponse(responseCode = "404", description = "Formulário não encontrado")
     @GetMapping("/{id}")
-    public ResponseEntity<FormModel> getFormById(@PathVariable Integer id) {
-        Optional<FormModel> formOptional = formRepository.findById(id);
-        if (formOptional.isPresent()) {
-            return ResponseEntity.ok(formOptional.get());
-        } else {
+    public ResponseEntity<FormResponseDTO> getFormById(@PathVariable Integer id) {
+        try {
+            FormResponseDTO form = formAdapter.getById(id);
+            return ResponseEntity.ok(form);
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @Operation(summary = "Atualiza um formulário por id")
-    @ApiResponse(responseCode = "200", description = "Formulário atualizado com suceso")
+    @ApiResponse(responseCode = "200", description = "Formulário atualizado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos")
     @ApiResponse(responseCode = "404", description = "Formulário não encontrado")
     @PutMapping("/{id}")
-    public ResponseEntity<FormModel> updateFormById(@PathVariable Integer id, @Valid @RequestBody FormModel formModel) {
-        if (formRepository.existsById(id)) {
-            formModel.setId(id);
-            FormModel updatedForm = formRepository.save(formModel);
-            return ResponseEntity.ok(updatedForm);
-        } else {
-            return ResponseEntity.notFound().build();
+    public ResponseEntity<FormResponseDTO> updateForm(@PathVariable Integer id,
+                                                      @Valid @RequestBody FormRequestDTO dto) {
+        try {
+            FormResponseDTO updated = formAdapter.update(id, dto);
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("não encontrado")) {
+                return ResponseEntity.notFound().build();
+            } else {
+                return ResponseEntity.badRequest().build();
+            }
         }
     }
-
-
 
     @Operation(summary = "Deleta um formulário por id")
-    @ApiResponse(responseCode = "204", description = "Formulário deletado com suceso")
+    @ApiResponse(responseCode = "204", description = "Formulário deletado com sucesso")
     @ApiResponse(responseCode = "404", description = "Formulário não encontrado")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteFormById(@PathVariable Integer id) {
-        if (formRepository.existsById(id)) {
-            formRepository.deleteById(id);
+    public ResponseEntity<Void> deleteForm(@PathVariable Integer id) {
+        try {
+            formAdapter.delete(id);
             return ResponseEntity.noContent().build();
-        } else {
+        } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
     }
-
-
 }

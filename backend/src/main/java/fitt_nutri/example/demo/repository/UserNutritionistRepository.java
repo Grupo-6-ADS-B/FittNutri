@@ -1,22 +1,21 @@
 package fitt_nutri.example.demo.repository;
 
-import fitt_nutri.example.demo.model.UserNutritionistModel;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import fitt_nutri.example.demo.model.UserModel;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
+public interface UserRepository extends JpaRepository<UserModel, Integer> {
 
-public interface UserNutritionistRepository extends JpaRepository<UserNutritionistModel, Integer> {
-
-
-    boolean existsByEmail(@NotBlank(message = "Email não pode estar vazio") @Email(message = "Email inválido") String email);
+    boolean existsByEmail(String email);
 
     boolean existsByCpf(String cpf);
 
     boolean existsByCrn(String crn);
 
+    Optional<UserModel> findByEmail(String email);
 
-    Optional<UserNutritionistModel> findByEmail(String email);
+    Optional<UserModel> findByCpf(String cpf);
+
+    Optional<UserModel> findByCrn(String crn);
 }
