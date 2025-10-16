@@ -17,7 +17,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/data-circle")
 @RequiredArgsConstructor
-@Tag(name ="Dados Circunferência" , description = "Endpoints para gerenciar os dados de circunferência")
+@Tag(name ="Dados Circunferência" , description = "CRUD para gerenciar os dados de circunferência")
 public class DataCircleController {
 
 
