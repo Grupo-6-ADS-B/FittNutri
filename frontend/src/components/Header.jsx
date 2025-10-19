@@ -1,15 +1,18 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
   Toolbar, 
   Typography, 
   Box, 
   Button,
-  Stack
+  Stack,
+  Avatar
 } from '@mui/material';
 import logo from '/logo.jpg'; 
 
 function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome }) {
+  const navigate = useNavigate();
   return (
     <AppBar 
       position="static" 
@@ -96,32 +99,25 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome }) {
           </Button>
         </Stack>
 
-        <Stack direction="row" spacing={1}>
-          <Button 
-            variant="outlined" 
-            color="primary"
-            onClick={onSwitchToLogin}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Avatar 
+            src="/profile.jpg" 
+            alt="Perfil" 
+            sx={{ width: 40, height: 40 }}
+          />
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => navigate('/')}
             sx={{
               '&:hover': {
-                backgroundColor: 'rgba(46, 125, 50, 0.08)'
+                backgroundColor: 'error.dark'
               }
             }}
           >
-            Entrar
+            Sair
           </Button>
-          <Button 
-            variant="contained" 
-            color="primary"
-            onClick={onSwitchToRegister}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'primary.dark'
-              }
-            }}
-          >
-            Cadastrar
-          </Button>
-        </Stack>
+        </Box>
       </Toolbar>
     </AppBar>
   );
