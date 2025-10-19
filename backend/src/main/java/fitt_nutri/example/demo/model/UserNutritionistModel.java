@@ -1,21 +1,27 @@
 package fitt_nutri.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.validator.constraints.br.CPF;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @NoArgsConstructor
 @AllArgsConstructor
-@Getter
-@Setter
+@Getter @Setter
 @Entity
-@Table(name = "nutricionists")
+@Table(
+        name = "nutricionists",
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_nutricionista_email", columnNames = "email"),
+                @UniqueConstraint(name = "uk_nutricionista_cpf", columnNames = "cpf")
+        }
+)
 public class UserNutritionistModel {
 
     @Id
@@ -26,32 +32,43 @@ public class UserNutritionistModel {
     @Column(nullable = false)
     private String nome;
 
-    @NotBlank(message = "Email não pode estar vazio")
-    @Email(message = "Email inválido")
+    @NotBlank @Email
     @Column(nullable = false, unique = true)
     private String email;
 
-    @CPF
-    @NotBlank(message = "CPF não pode estar vazio")
+    @CPF @NotBlank
     @Column(nullable = false, unique = true)
     private String cpf;
 
-    @NotBlank(message = "CRN não pode estar vazio")
+    @NotBlank
     @Pattern(regexp = "^\\d{1,6}/[A-Z]{2}$", message = "CRN deve estar no formato 12345/UF")
     @Column(nullable = false)
     private String crn;
 
-    @Column(nullable = false)
     @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
+    @Column(nullable = false)
+    @JsonIgnore // não retornar senha na API
     private String senha;
 
-    @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserPatientModel> pacientes;
+    @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<UserPatientModel> pacientes = new ArrayList<>();
+
+    // Helpers p/ manter a relação bi-direcional consistente
+    public void addPaciente(UserPatientModel p) {
+        pacientes.add(p);
+        p.setNutricionista(this);
+    }
+    public void removePaciente(UserPatientModel p) {
+        pacientes.remove(p);
+        p.setNutricionista(null);
+    }
+
+    // equals/hashCode por ID para JPA
+    @Override public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserNutritionistModel that)) return false;
+        return id != null && Objects.equals(id, that.id);
+    }
+    @Override public int hashCode() { return 31; }
 }
-
-
-
-
-
-
-
