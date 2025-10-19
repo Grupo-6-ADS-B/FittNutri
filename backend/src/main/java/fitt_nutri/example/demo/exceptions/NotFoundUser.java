@@ -1,4 +1,4 @@
-package fitt_nutri.example.demo.exception;
+package fitt_nutri.example.demo.exceptions;
 
 public class NotFoundUser extends RuntimeException {
     public NotFoundUser(String message) {

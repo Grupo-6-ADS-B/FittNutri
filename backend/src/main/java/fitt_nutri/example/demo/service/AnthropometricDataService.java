@@ -1,8 +1,8 @@
 package fitt_nutri.example.demo.service;
 
-import fitt_nutri.example.demo.exception.AlreadyExistingData;
-import fitt_nutri.example.demo.exception.NotFoundData;
-import fitt_nutri.example.demo.exception.NotFoundUser;
+import fitt_nutri.example.demo.exceptions.AlreadyExistingData;
+import fitt_nutri.example.demo.exceptions.NotFoundData;
+import fitt_nutri.example.demo.exceptions.NotFoundUser;
 import fitt_nutri.example.demo.model.AnthropometricDataModel;
 import fitt_nutri.example.demo.repository.AnthropometricDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;

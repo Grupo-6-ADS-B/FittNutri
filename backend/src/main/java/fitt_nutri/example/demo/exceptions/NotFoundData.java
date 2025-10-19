@@ -1,7 +1,7 @@
-package fitt_nutri.example.demo.exception;
+package fitt_nutri.example.demo.exceptions;
 
-public class DadoNaoEncontrado extends RuntimeException {
-    public DadoNaoEncontrado(String message) {
+public class NotFoundData extends RuntimeException {
+    public NotFoundData(String message) {
         super(message);
     }
 

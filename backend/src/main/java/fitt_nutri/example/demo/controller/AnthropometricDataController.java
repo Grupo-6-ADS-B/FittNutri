@@ -1,16 +1,15 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.exception.AlreadyExistingData;
-import fitt_nutri.example.demo.exception.NotFoundData;
-import fitt_nutri.example.demo.exception.InvalidRequest;
-import fitt_nutri.example.demo.exception.NotFoundUser;
+import fitt_nutri.example.demo.exceptions.AlreadyExistingData;
+import fitt_nutri.example.demo.exceptions.NotFoundData;
+import fitt_nutri.example.demo.exceptions.InvalidRequest;
+import fitt_nutri.example.demo.exceptions.NotFoundUser;
 import fitt_nutri.example.demo.model.AnthropometricDataModel;
 import fitt_nutri.example.demo.service.AnthropometricDataService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
