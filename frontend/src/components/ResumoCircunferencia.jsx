@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Box, Typography, Paper, Card, CardMedia, IconButton, Tooltip, Button } from "@mui/material";
+import { Box, Typography, Paper, Card, CardMedia, IconButton, Tooltip, Button, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import EditIcon from '@mui/icons-material/Edit';
 import { Header } from "./Header";
@@ -22,9 +22,61 @@ export default function ResumoCircunferencia() {
     { id: 1, name: "André Goulart", email: "andre.goulart@example.com", phone: "(11) 98765-4321", avatar: "https://i.pravatar.cc/150?img=1" },
     { id: 2, name: "Carlos Lima", email: "carlos.lima@example.com", phone: "(21) 91234-5678", avatar: "https://i.pravatar.cc/150?img=2" },
   ];
-  const selectedUser = location.state?.user || mockUsers[0];
+  // Restaura usuário selecionado: prioriza state; senão usa lastUserId em localStorage; fallback para primeiro mock
+  const initialSelectedUser = (() => {
+    if (location.state?.user) return location.state.user;
+    try {
+      const lastId = localStorage.getItem('lastUserId');
+      const usersStr = localStorage.getItem('users');
+      const users = usersStr ? JSON.parse(usersStr) : [];
+      if (lastId && Array.isArray(users)) {
+        const u = users.find(x => String(x.id) === String(lastId));
+        if (u) return u;
+      }
+    } catch {}
+    return mockUsers[0];
+  })();
+  const [selectedUser, setSelectedUser] = React.useState(initialSelectedUser);
+  const [usersList, setUsersList] = React.useState(() => {
+    try { const s = localStorage.getItem('users'); return s ? JSON.parse(s) : mockUsers; } catch { return mockUsers; }
+  });
 
-  const antropo = location.state?.antropoData || {};
+  React.useEffect(() => {
+    try {
+      const s = localStorage.getItem('users');
+      if (s) setUsersList(JSON.parse(s));
+    } catch {}
+  }, []);
+
+  // Carrega dados salvos por usuário quando não vierem por state
+  const [antropo, setAntropo] = React.useState(location.state?.antropoData || {});
+  const [dadosCirc, setDadosCirc] = React.useState(location.state?.dados || {});
+
+  React.useEffect(() => {
+    if (location.state?.antropoData || location.state?.dados) return; // já vieram via navegação
+    try {
+      const uid = selectedUser?.id;
+      if (!uid) return;
+      const stored = localStorage.getItem(`questionario_${uid}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed?.antropoData) setAntropo(parsed.antropoData);
+        if (parsed?.circData) setDadosCirc(parsed.circData);
+      } else {
+        setAntropo({});
+        setDadosCirc({});
+      }
+    } catch { setAntropo({}); setDadosCirc({}); }
+  }, [selectedUser?.id, location.state?.antropoData, location.state?.dados]);
+
+  const handleChangeUser = (e) => {
+    const uid = e.target.value;
+    const found = (usersList || []).find(u => String(u.id) === String(uid));
+    if (found) {
+      setSelectedUser(found);
+      try { localStorage.setItem('lastUserId', String(found.id)); } catch {}
+    }
+  };
   const calcularIMC = (peso, alturaM) => {
     if (!peso || !alturaM) return null;
     const v = peso / (alturaM * alturaM);
@@ -85,9 +137,9 @@ export default function ResumoCircunferencia() {
   }, [antropo.peso]);
 
   const pesoMeta = useMemo(() => {
-    const dadosCirc = location.state?.dados || {};
+    const circ = location.state?.dados || dadosCirc;
     let metaValor = null;
-    for (const [k, v] of Object.entries(dadosCirc)) {
+    for (const [k, v] of Object.entries(circ)) {
       if (typeof k === 'string' && k.toLowerCase().includes('peso ideal')) {
         metaValor = v;
         break;
@@ -96,12 +148,12 @@ export default function ResumoCircunferencia() {
     if (metaValor == null) return null;
     const metaNum = parseFloat(String(metaValor).replace(',', '.').replace(/[^\d.]/g, ''));
     return Number.isFinite(metaNum) && metaNum > 0 ? parseFloat(metaNum.toFixed(1)) : null;
-  }, [location.state]);
+  }, [location.state, dadosCirc]);
 
   const servicos = [
     { titulo: "Consulta Nutricional", descricao: "Avaliação completa e plano alimentar personalizado.", imagem: "/tempo.jpg" },
     { titulo: "Acompanhamento Online", descricao: "Suporte remoto para dúvidas e ajustes no plano.", imagem: "/tempo2.jpg" },
-    { titulo: "Educação Alimentar", descricao: "Workshops e materiais educativos sobre nutrição.", imagem: "/apontando.jpg" },
+    { titulo: "Educação Alimentar", descricao: "Workshops e materiais educativos sobre nutrição.", imagem: "/vendo.jpg" },
   ];
 
   return (
@@ -118,22 +170,35 @@ export default function ResumoCircunferencia() {
               <Typography variant="body2" color="text.secondary">{selectedUser.phone}</Typography>
             </Box>
           </Box>
+          <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+            <InputLabel id="select-user-label">Trocar usuário</InputLabel>
+            <Select
+              labelId="select-user-label"
+              value={selectedUser?.id ?? ''}
+              label="Trocar usuário"
+              onChange={handleChangeUser}
+            >
+              {(usersList || []).map(u => (
+                <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
             <Typography variant="subtitle2">Informações preenchidas</Typography>
             <Tooltip title="Editar dados">
               <IconButton
                 size="small"
-                onClick={() => navigate('/questionario', { state: { user: selectedUser, antropoData: location.state?.antropoData || {}, dados: location.state?.dados || {} } })}
+                onClick={() => navigate('/questionario', { state: { user: selectedUser, antropoData: antropo || {}, dados: dadosCirc || {} } })}
               >
                 <EditIcon fontSize="small" />
               </IconButton>
             </Tooltip>
           </Box>
           <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1 }}>
-            {location.state?.antropoData && Object.entries(location.state.antropoData).map(([key, value]) => (
+            {antropo && Object.entries(antropo).map(([key, value]) => (
               value ? <Typography key={`antropo-${key}`} variant="body2">{key}: {value}</Typography> : null
             ))}
-            {location.state?.dados && Object.entries(location.state.dados).map(([key, value]) => (
+            {dadosCirc && Object.entries(dadosCirc).map(([key, value]) => (
               value ? <Typography key={`circ-${key}`} variant="body2">{key}: {value}</Typography> : null
             ))}
           </Box>

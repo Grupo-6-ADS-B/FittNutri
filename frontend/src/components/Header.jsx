@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
   Toolbar, 
@@ -11,6 +12,7 @@ import {
 import logo from '/logo.jpg'; 
 
 function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome }) {
+  const navigate = useNavigate();
   return (
     <AppBar 
       position="static" 
@@ -106,7 +108,7 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome }) {
           <Button
             variant="contained"
             color="error"
-            onClick={() => alert('Sair')}
+            onClick={() => navigate('/')}
             sx={{
               '&:hover': {
                 backgroundColor: 'error.dark'

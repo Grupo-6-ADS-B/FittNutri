@@ -199,7 +199,31 @@ export default function UserGestor(props) {
                         <ListItemText primary={user.telefone || user.phone} sx={{ width: '150px', flexShrink: 0, mx: 2 }} />
                         <ListItemText primary={user.cidade} sx={{ width: '150px', flexShrink: 0, mx: 2 }} />
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
-                          <Button variant="contained" size="small" onClick={() => navigate('/questionario', { state: { user } })}>Ver Dados</Button>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => {
+                              try { localStorage.setItem('lastUserId', String(user.id)); } catch {}
+                              let target = '/questionario';
+                              let state = { user };
+                              try {
+                                const raw = localStorage.getItem(`questionario_${user.id}`);
+                                if (raw) {
+                                  const parsed = JSON.parse(raw);
+                                  const done = parsed?.completed?.antropo && parsed?.completed?.circ;
+                                  if (done) {
+                                    target = '/resumo-circunferencia';
+                                    state = { user, antropoData: parsed.antropoData || {}, dados: parsed.circData || {} };
+                                  } else {
+                                    state = { user, antropoData: parsed.antropoData || {}, dados: parsed.circData || {} };
+                                  }
+                                }
+                              } catch {}
+                              navigate(target, { state });
+                            }}
+                          >
+                            Ver Dados
+                          </Button>
                           <IconButton
                             color="secondary"
                             onClick={() => requestDeleteUser(user)}

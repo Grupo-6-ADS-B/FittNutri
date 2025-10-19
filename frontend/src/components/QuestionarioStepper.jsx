@@ -11,7 +11,9 @@ import {
   Grid,
   Avatar,
   IconButton,
-  Tooltip
+  Tooltip,
+  Snackbar,
+  Alert
 } from "@mui/material";
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
@@ -48,6 +50,16 @@ export default function QuestionarioStepper() {
   const [activeStep, setActiveStep] = useState(0);
   const [openModal, setOpenModal] = useState(false);
   const [completed, setCompleted] = useState({ antropo: false, circ: false });
+  const [saveToastOpen, setSaveToastOpen] = useState(false);
+  const hydrationRef = React.useRef(false);
+  const debounceRef = React.useRef(null);
+  const persistData = React.useCallback((uid, aData, cData, comp) => {
+    if (!uid) return;
+    try {
+      const payload = { antropoData: aData, circData: cData, completed: comp };
+      localStorage.setItem(`questionario_${uid}`, JSON.stringify(payload));
+    } catch {}
+  }, []);
   const location = useLocation();
   const mockUsers = [
     { id: 1, name: "André Goulart", email: "andre.goulart@example.com", phone: "(11) 98765-4321", avatar: "https://i.pravatar.cc/150?img=1" },
@@ -84,6 +96,7 @@ export default function QuestionarioStepper() {
   
   useEffect(() => {
     if (!selectedUser?.id) return;
+    try { localStorage.setItem('lastUserId', String(selectedUser.id)); } catch {}
     const stored = localStorage.getItem(`questionario_${selectedUser.id}`);
     if (stored) {
       try {
@@ -93,6 +106,10 @@ export default function QuestionarioStepper() {
         if (parsed.completed) setCompleted(parsed.completed);
       } catch {}
     }
+    // Marcar hidratação como concluída após um pequeno delay (evita toast na restauração inicial)
+    hydrationRef.current = false;
+    const t = setTimeout(() => { hydrationRef.current = true; }, 800);
+    return () => clearTimeout(t);
   }, [selectedUser?.id]);
 
   useEffect(() => {
@@ -100,11 +117,26 @@ export default function QuestionarioStepper() {
     const payload = { antropoData, circData, completed };
     localStorage.setItem(`questionario_${selectedUser.id}`, JSON.stringify(payload));
   }, [selectedUser?.id, antropoData, circData, completed]);
+
+  // Exibe toast "Dados salvos" quando os dados mudarem (evita exibir na hidratação inicial)
+  useEffect(() => {
+    if (!hydrationRef.current) return; // não mostrar na primeira carga
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setSaveToastOpen(true);
+    }, 400);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [antropoData, circData]);
   const navigate = useNavigate();
 
   const imc = useMemo(() => {
-    const peso = parseFloat(antropoData.peso.replace(',', '.'));
-    const altura = parseFloat(antropoData.altura.replace(',', '.'));
+    const pStr = (antropoData.peso ?? '').toString();
+    const aStr = (antropoData.altura ?? '').toString();
+    const peso = parseFloat(pStr.replace(',', '.'));
+    const altura = parseFloat(aStr.replace(',', '.'));
+    if (!Number.isFinite(peso) || !Number.isFinite(altura)) return '';
     return calculateIMC(peso, altura);
   }, [antropoData.peso, antropoData.altura]);
 
@@ -164,10 +196,18 @@ export default function QuestionarioStepper() {
     if (numericFields.includes(field)) {
       const sanitizedValue = numericInputHandler(inputValue);
       if (sanitizedValue !== null) {
-        setAntropoData(d => ({ ...d, [field]: sanitizedValue }));
+        setAntropoData(d => {
+          const next = { ...d, [field]: sanitizedValue };
+          persistData(selectedUser?.id, next, circData, completed);
+          return next;
+        });
       }
     } else {
-      setAntropoData(d => ({ ...d, [field]: inputValue }));
+      setAntropoData(d => {
+        const next = { ...d, [field]: inputValue };
+        persistData(selectedUser?.id, next, circData, completed);
+        return next;
+      });
     }
   };
 
@@ -175,7 +215,11 @@ export default function QuestionarioStepper() {
     const inputValue = event.target.value;
     const sanitizedValue = numericInputHandler(inputValue);
     if (sanitizedValue !== null) {
-      setCircData(d => ({ ...d, [field]: sanitizedValue }));
+      setCircData(d => {
+        const next = { ...d, [field]: sanitizedValue };
+        persistData(selectedUser?.id, antropoData, next, completed);
+        return next;
+      });
     }
   };
   const handleNext = () => {
@@ -342,7 +386,12 @@ export default function QuestionarioStepper() {
                         variant="contained" 
                         color="primary" 
                         fullWidth
-                        onClick={() => { setCompleted((p) => ({ ...p, antropo: true })); handleNext(); }}
+                        onClick={() => {
+                          const newCompleted = { ...completed, antropo: true };
+                          setCompleted(newCompleted);
+                          persistData(selectedUser?.id, antropoData, circData, newCompleted);
+                          handleNext();
+                        }}
                       >
                         Próximo
                       </Button>
@@ -466,7 +515,12 @@ export default function QuestionarioStepper() {
                         variant="contained" 
                         color="primary" 
                         fullWidth
-                        onClick={handleResumoClick}
+                        onClick={() => {
+                          const newCompleted = { ...completed, circ: true };
+                          setCompleted(newCompleted);
+                          persistData(selectedUser?.id, antropoData, circData, newCompleted);
+                          handleResumoClick();
+                        }}
                       >
                         Ver resultado
                       </Button>
@@ -487,6 +541,16 @@ export default function QuestionarioStepper() {
           )}
         </Box>
       </Box>
+      <Snackbar
+      open={saveToastOpen}
+      autoHideDuration={1500}
+      onClose={() => setSaveToastOpen(false)}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSaveToastOpen(false)} severity="success" sx={{ width: '100%' }}>
+          Dados salvos
+        </Alert>
+      </Snackbar>
     </ThemeProvider>
   );
 }
