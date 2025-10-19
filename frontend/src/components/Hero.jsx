@@ -1,8 +1,10 @@
 import { Box, Typography, Grid, Button, Container } from  '@mui/material';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Section } from './Section';
+import { useNavigate } from 'react-router-dom';
 
 function Hero({ onScrollToCarousel, onSwitchToRegister }){
+  const navigate = useNavigate();
     return (
         <Section 
           backgroundImage="/fundo-nutri.png" overlay='rgba(0, 0, 0, 0.7)' overlayOpacity={0.9}
@@ -44,7 +46,7 @@ function Hero({ onScrollToCarousel, onSwitchToRegister }){
                 color="primary"
                 endIcon={<ArrowForwardIcon />}
                 size="large"
-                onClick={onSwitchToRegister}
+                onClick={() => navigate('/register')}
                 sx={{
                   py: 2,
                   px: 5,

@@ -1,78 +1,68 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
-import { Header} from './components/Header';
-import { AuthPage } from './components/AuthPage';
-import { Main } from './components/Main';
-import { Footer } from './components/Footer';
 import { theme } from './theme';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Outlet } from "react-router-dom";
 
-function App() {
-  const [currentPage, setCurrentPage] = useState('home'); 
-  const [isLoginMode, setIsLoginMode] = useState(true);
+// pages/components
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { Main } from './components/Main';
+import UserGestor from "./components/UserGestor";
+import UserRegister from "./components/UserRegister";
+import QuestionarioStepper from "./components/QuestionarioStepper";
+import ResumoCircunferencia from "./components/ResumoCircunferencia";
 
-  const handleSwitchToLogin = () => {
-    setIsLoginMode(true);
-    setCurrentPage('auth');
-  };
+function Layout() {
+  const navigate = useNavigate();
 
-  const handleSwitchToRegister = () => {
-    setIsLoginMode(false);
-    setCurrentPage('auth');
-  };
-
-  const handleBackToHome = () => {
-    setCurrentPage('home');
-  };
-
-  const renderCurrentPage = () => {
-    switch (currentPage) {
-      case 'auth':
-        return (
-          <AuthPage 
-            isLoginMode={isLoginMode}
-            onToggleMode={() => setIsLoginMode(!isLoginMode)}
-            onBackToHome={handleBackToHome}
-          />
-        );
-      case 'home':
-      default:
-        return (
-          <Main 
-            onSwitchToLogin={handleSwitchToLogin}
-            onSwitchToRegister={handleSwitchToRegister}
-          />
-        );
+  const navigateAndScroll = (section) => {
+    if (window.location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        const el = document.querySelector(`[data-section="${section}"]`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 250);
+    } else {
+      const el = document.querySelector(`[data-section="${section}"]`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   };
 
   return (
+    <>
+      <Header
+        onSwitchToLogin={() => navigate('/')}
+        onSwitchToRegister={() => navigate('/register')}
+        onBackToHome={() => navigate('/')}
+        onScrollToCarousel={() => navigateAndScroll('carousel')}
+        onScrollToValues={() => navigateAndScroll('values')}
+      />
+      <Outlet />
+      <Footer />
+    </>
+  );
+}
+
+function App() {
+  return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ 
-        display: 'flex', 
-        backgroundColor: '#f8fafc', 
-        flexDirection: 'column', 
-        minHeight: '100vh'
-      }}>
-        {currentPage === 'home' ? (
-          renderCurrentPage()
-        ) : (
-          <>
-            <Header 
-              onSwitchToLogin={handleSwitchToLogin}
-              onSwitchToRegister={handleSwitchToRegister}
-              onBackToHome={handleBackToHome}
-            />
-            <Box sx={{ flex: 1 }}>
-              {renderCurrentPage()}
-            </Box>
-          </>
-        )}
-        <Footer />
-      </Box>
+      <Router>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route path="/" element={<Main />} />
+              <Route path="/register" element={<UserRegister />} />
+              <Route path="/questionario" element={<QuestionarioStepper />} />
+              <Route path="/resumo-circunferencia" element={<ResumoCircunferencia />} />
+              <Route path="/gestor" element={<UserGestor />} />
+            </Route>
+          </Routes>
+        </Box>
+      </Router>
     </ThemeProvider>
   );
 }
 
-export { App };
+export default App;

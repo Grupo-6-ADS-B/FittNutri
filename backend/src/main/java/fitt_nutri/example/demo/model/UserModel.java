@@ -7,13 +7,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.validator.constraints.br.CPF;
+import java.util.ArrayList;
+import java.util.List;
 
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name = "users")
+@Table(name = "Usuario")
 public class UserModel {
 
     @Id
@@ -35,18 +37,16 @@ public class UserModel {
     private String cpf;
 
     @NotBlank(message = "CRN não pode estar vazio")
-    @Pattern(regexp = "^\\d{1,6}/[A-Z]{2}$", message = "CRN deve estar no formato 12345/UF")
     @Column(nullable = false)
     private String crn;
 
+    @Pattern(
+            regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            message = "A senha deve ter no mínimo 8 caracteres e incluir letras maiúsculas, minúsculas, números e caracteres especiais"
+    )
     @Column(nullable = false)
-    @Size(min = 6, message = "A senha deve ter no mínimo 6 caracteres")
     private String senha;
+
+    @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL)
+    private List<SchedulingModel> agendamentos = new ArrayList<>();
 }
-
-
-
-
-
-
-
