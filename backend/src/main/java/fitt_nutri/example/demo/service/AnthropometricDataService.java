@@ -102,30 +102,30 @@ public class AnthropometricDataService {
         return repository.save(existingData);
     }
 
-//    public List<AnthropometricDataModel> findByPacienteId(Integer pacienteId) {
-//        List<AnthropometricDataModel> dados = repository.findByPaciente_Id(pacienteId);
-//        if (dados.isEmpty()) {
-//            throw new NotFoundData("Nenhum dado antropométrico encontrado para o paciente " + pacienteId);
-//        }
-//        return dados;
-//    }
-//
-//    public AnthropometricDataModel partialUpdateByPacienteId(Integer pacienteId, Map<String, Object> fields) {
-//        AnthropometricDataModel existingData = repository.findFirstByPaciente_Id(pacienteId);
-//        if (existingData == null) {
-//            throw new NotFoundData("Nenhum dado antropométrico encontrado para o paciente ID " + pacienteId);
-//        }
-//
-//        fields.forEach((key, value) -> {
-//            try {
-//                Field field = AnthropometricDataModel.class.getDeclaredField(key);
-//                field.setAccessible(true);
-//                field.set(existingData, value);
-//            } catch (NoSuchFieldException | IllegalAccessException e) {
-//                throw new NotFoundData("Campo '" + key + "' inválido para atualização parcial");
-//            }
-//        });
-//
-//        return repository.save(existingData);
-//    }
+    public List<AnthropometricDataModel> findByPaciente_Id(Integer pacienteId) {
+        List<AnthropometricDataModel> dados = repository.findByPaciente_Id(pacienteId);
+        if (dados.isEmpty()) {
+            throw new NotFoundData("Nenhum dado antropométrico encontrado para o paciente " + pacienteId);
+        }
+        return dados;
+    }
+
+    public AnthropometricDataModel partialUpdateByPacienteId(Integer pacienteId, Map<String, Object> fields) {
+        AnthropometricDataModel existingData = repository.findFirstByPaciente_Id(pacienteId);
+        if (existingData == null) {
+            throw new NotFoundData("Nenhum dado antropométrico encontrado para o paciente ID " + pacienteId);
+        }
+
+        fields.forEach((key, value) -> {
+            try {
+                Field field = AnthropometricDataModel.class.getDeclaredField(key);
+                field.setAccessible(true);
+                field.set(existingData, value);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new NotFoundData("Campo '" + key + "' inválido para atualização parcial");
+            }
+        });
+
+        return repository.save(existingData);
+    }
 }

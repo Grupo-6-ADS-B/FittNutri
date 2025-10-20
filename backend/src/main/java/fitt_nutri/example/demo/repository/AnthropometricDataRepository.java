@@ -8,6 +8,6 @@ import java.util.List;
 
 @Repository
 public interface AnthropometricDataRepository extends JpaRepository<AnthropometricDataModel, Integer> {
-//    List<AnthropometricDataModel> findByPaciente_Id(Integer pacienteId);
-//    AnthropometricDataModel findFirstByPaciente_Id(Integer pacienteId);
+    List<AnthropometricDataModel> findByPaciente_Id(Integer pacienteId);
+    AnthropometricDataModel findFirstByPaciente_Id(Integer pacienteId);
 }
