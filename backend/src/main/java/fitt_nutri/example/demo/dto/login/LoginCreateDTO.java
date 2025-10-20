@@ -1,12 +1,15 @@
 package fitt_nutri.example.demo.dto.login;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
@@ -18,6 +21,9 @@ public class LoginCreateDTO {
     @Email(message = "Email inválido")
     @Schema(description = "Email do usuário", example = "johndoe@email.com")
     private String email;
+
+    private String cpf;
+    private String crn;
 
     @Pattern(
             regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",

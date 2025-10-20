@@ -7,7 +7,6 @@ import fitt_nutri.example.demo.dto.login.LoginTokenDTO;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.actuate.endpoint.SecurityContext;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

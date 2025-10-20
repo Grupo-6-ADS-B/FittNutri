@@ -4,14 +4,17 @@ import fitt_nutri.example.demo.model.UserModel;
 
 public class LoginMapperDTO {
 
-    public static UserModel of (LoginCreateDTO loginCreateDTO) {
+    public static UserModel of(LoginCreateDTO loginCreateDTO) {
         UserModel userModel = new UserModel();
 
         userModel.setNome(loginCreateDTO.getNome());
         userModel.setEmail(loginCreateDTO.getEmail());
         userModel.setSenha(loginCreateDTO.getSenha());
+        userModel.setCpf(loginCreateDTO.getCpf());   // 👈 adicionar
+        userModel.setCrn(loginCreateDTO.getCrn());   // 👈 adicionar
         return userModel;
     }
+
 
     public static UserModel of (LoginRequestDTO loginRequestDTO) {
         UserModel userModel = new UserModel();
