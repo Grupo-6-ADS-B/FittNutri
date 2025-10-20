@@ -16,7 +16,9 @@ function Header({
   onSwitchToRegister,
   onBackToHome,
   onScrollToCarousel,
-  onScrollToValues
+  onScrollToValues,
+  onScrollToContact,
+  onScrollToReviews
 }) {
   const navigate = useNavigate();
 
@@ -80,18 +82,18 @@ function Header({
             <Typography variant="body1" sx={{ fontWeight: 500 }}>Sobre nós</Typography>
           </Button>
 
-          <Button onClick={() => { /* safe no-op or navigate to reviews section */ }} sx={{ fontWeight: 500, color: 'text.primary', px: 3, py: 1.5, borderRadius: 3, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', transform: 'translateY(-1px)' } }}>
+          <Button onClick={() => { onScrollToReviews?.() }} sx={{ fontWeight: 500, color: 'text.primary', px: 3, py: 1.5, borderRadius: 3, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', transform: 'translateY(-1px)' } }}>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>Avaliações</Typography>
           </Button>
 
-          <Button onClick={() => { /* safe no-op or navigate to contact */ }} sx={{ fontWeight: 500, color: 'text.primary', px: 3, py: 1.5, borderRadius: 3, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', transform: 'translateY(-1px)' } }}>
+          <Button onClick={() => { onScrollToContact?.() }} sx={{ fontWeight: 500, color: 'text.primary', px: 3, py: 1.5, borderRadius: 3, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', transform: 'translateY(-1px)' } }}>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>Fale conosco</Typography>
           </Button>
         </Stack>
 
         <Stack direction="row" spacing={2}>
           <Button variant="outlined" color="primary" onClick={() => onSwitchToLogin?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }}>
-            Sair
+            Entrar
           </Button>
 
           <Button variant="contained" color="primary" onClick={() => onSwitchToRegister?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, background: 'linear-gradient(135deg, #2e7d32 0%, #388e3c 100%)', '&:hover': { background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', transform: 'translateY(-2px)', boxShadow: '0 8px 25px rgba(46,125,50,0.3)' } }}>

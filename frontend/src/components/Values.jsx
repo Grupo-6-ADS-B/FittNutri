@@ -47,7 +47,6 @@ function Values() {
     <Section
       backgroundImage="/fundo-frutas.jpg"
       py={{ xs: 6, md: 10 }}
-      data-section="values"
       id="values"
     >
       <Container maxWidth="xl">
