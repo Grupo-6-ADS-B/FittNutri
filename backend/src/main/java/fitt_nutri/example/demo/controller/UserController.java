@@ -110,13 +110,4 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping("/login")
-    @Operation(summary = "Login do usuário")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
-            @ApiResponse(responseCode = "401", description = "Credenciais inválidas")
-    })
-    public ResponseEntity<UserResponseDTO> login(@RequestBody LoginRequestDTO dto) {
-        return ResponseEntity.ok(adapter.login(dto));
-    }
 }

@@ -7,6 +7,8 @@ import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,6 +20,9 @@ import java.util.ArrayList;
 public class UserService {
 
     private final UserRepository userRepository;
+
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     public UserModel createUser(UserRequestDTO dto) {
         if (userRepository.existsByEmail(dto.email())) {
@@ -34,6 +39,8 @@ public class UserService {
         user.setCpf(dto.cpf());
         user.setCrn(dto.crn());
         user.setSenha(dto.senha());
+
+        user.setSenha(passwordEncoder.encode(user.getSenha()));
         return userRepository.save(user);
     }
 
