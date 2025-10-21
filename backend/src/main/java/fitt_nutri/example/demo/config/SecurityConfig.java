@@ -28,7 +28,7 @@ import java.util.List;
 public class SecurityConfig {
 
     private final AutenticacaoService autenticacaoService;
-    private final GerenciadorTokenJwt jwtTokenManager;
+    private final AutenticacaoEntryPoint autenticacaoEntryPoint;
 
     private static final String[] URLS_PUBLICAS = {
             "/users/login",
@@ -48,21 +48,26 @@ public class SecurityConfig {
 
     @Bean
     public AutenticacaoFilter jwtAuthFilter() {
-        return new AutenticacaoFilter(autenticacaoService, jwtTokenManager);
+        return new AutenticacaoFilter(autenticacaoService, jwtAuthenticationUtilBean());
     }
 
     @Bean
+    public GerenciadorTokenJwt jwtAuthenticationUtilBean() {
+        return new GerenciadorTokenJwt();
+    }
+
+    /*@Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(autenticacaoService);
         authProvider.setPasswordEncoder(passwordEncoder());
         return authProvider;
-    }
+    }*/
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
         return http.getSharedObject(AuthenticationManagerBuilder.class)
-                .authenticationProvider(authenticationProvider())
+                .authenticationProvider(new AutenticacaoProvider(autenticacaoService, passwordEncoder()))
                 .build();
     }
 
@@ -76,10 +81,17 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(URLS_PUBLICAS).permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest()
+                        .authenticated()
                 )
-                .authenticationProvider(authenticationProvider())
+                .exceptionHandling(handling -> handling
+                        .authenticationEntryPoint(autenticacaoEntryPoint))
+                .sessionManagement(management -> management
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+           //     .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+
+        http.addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

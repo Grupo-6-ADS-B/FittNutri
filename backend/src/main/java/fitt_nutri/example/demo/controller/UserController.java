@@ -39,12 +39,17 @@ public class UserController {
 
     }
 
+    // java
     @PostMapping("/login")
-    public ResponseEntity<LoginTokenDTO> loginUser(@RequestBody LoginRequestDTO dto) {
+    public ResponseEntity<LoginTokenDTO> loginUser(@Valid @RequestBody LoginRequestDTO dto) {
+        if (dto.getSenha() == null || dto.getSenha().isBlank()) {
+            return ResponseEntity.badRequest().build();
+        }
         final UserModel user = LoginMapperDTO.of(dto);
         LoginTokenDTO loginTokenDTO = service.autenticar(user);
         return ResponseEntity.ok(loginTokenDTO);
     }
+
 
     @GetMapping
     @SecurityRequirement(name = "Bearer")
