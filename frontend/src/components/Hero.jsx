@@ -7,7 +7,7 @@ function Hero({ onScrollToCarousel, onSwitchToRegister }){
   const navigate = useNavigate();
     return (
         <Section 
-          backgroundImage="/fundo-nutri.png" overlay='rgba(0, 0, 0, 0.7)' overlayOpacity={0.9}
+          backgroundImage="/fundo-nutri.png" overlay='rgba(0, 0, 0, 0.7)' overlayOpacity={0.6}
         >
           <Container maxWidth="xl">
             <Grid container  direction="row" alignItems="center" sx={{padding: '20px'}}>

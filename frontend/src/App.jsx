@@ -7,7 +7,6 @@ import {LoginForm} from './components/LoginForm';
 import {RegisterForm} from './components/RegisterForm';
 // pages/components
 import { Header } from './components/Header';
-import { Footer } from './components/Footer';
 import { Main } from './components/Main';
 import UserGestor from "./components/UserGestor";
 import UserRegister from "./components/UserRegister";
@@ -43,7 +42,6 @@ function Layout() {
 
       />
       <Outlet />
-      <Footer />
     </>
   );
 }

@@ -3,6 +3,7 @@ import { Carousel } from './Carousel';
 import { Values } from './Values';
 import { Avaliation } from "./Avaliation";
 import { ContactForm } from "./ContactForm";
+import { Footer } from './Footer';
 function Main() {
 
   return (
@@ -12,6 +13,8 @@ function Main() {
       <Values />
       <Avaliation />
       <ContactForm  />
+      <Footer />
+
     </>
   );
 }
