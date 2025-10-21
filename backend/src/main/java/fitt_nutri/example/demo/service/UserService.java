@@ -1,12 +1,14 @@
 package fitt_nutri.example.demo.service;
 
-import fitt_nutri.example.demo.dto.request.LoginRequestDTO;
+import fitt_nutri.example.demo.dto.login.LoginRequestDTO;
 import fitt_nutri.example.demo.dto.request.UserRequestDTO;
 import fitt_nutri.example.demo.exceptions.ConflictException;
 import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

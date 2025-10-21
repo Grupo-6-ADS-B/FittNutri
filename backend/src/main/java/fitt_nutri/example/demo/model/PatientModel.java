@@ -1,5 +1,6 @@
 package fitt_nutri.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -71,4 +72,25 @@ public class PatientModel {
 
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL)
     private List<SchedulingModel> agendamentos = new ArrayList<>();
+
+
+
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<DataCircleModel> circunferencias = new ArrayList<>();
+
+    public void addCirc(DataCircleModel m) {
+        if (m == null) return;
+        if (!circunferencias.contains(m)) {
+            circunferencias.add(m);
+            m.setPaciente(this);
+        }
+    }
+
+    public void removeCirc(DataCircleModel m) {
+        if (m == null) return;
+        if (circunferencias.remove(m)) {
+            m.setPaciente(null);
+        }
+    }
 }
