@@ -40,7 +40,7 @@ public class LoginService {
         UserModel userAuthenticated = userRepository.findByEmail(user.getEmail()).orElseThrow(() -> new ResponseStatusException(404,"Email do usuário não encontrado",null));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        final String token = gerenciadorTokenJwt.generateToken((Authentication) userAuthenticated);
+        final String token = gerenciadorTokenJwt.generateToken(authentication);
 
         return LoginMapperDTO.of(userAuthenticated,token);
     }
