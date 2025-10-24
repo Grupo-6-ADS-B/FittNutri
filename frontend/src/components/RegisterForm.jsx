@@ -117,9 +117,17 @@ function RegisterForm({ onSwitchToLogin }) {
       backgroundRepeat: 'no-repeat',
     }}
   >
-    <Box sx={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.28)', zIndex: 0 }} />
+    <Box
+      sx={{
+        position: 'absolute',
+        inset: 0,
+        background: 'rgba(0,0,0,0.28)',
+        zIndex: 0,
+        backdropFilter: 'blur(4px)',         
+      }}
+    />
 
-    <Container sx={{ position: 'relative', zIndex: 2, maxWidth: '600px !important', backgroundColor: 'rgba(255,255,255,0.96)', p: 3, borderRadius: 1, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+    <Container sx={{ position: 'relative', zIndex: 2, maxWidth: '600px !important', backgroundColor: 'rgba(255,255,255,0.96)', p: 3, borderRadius: 0.5, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
       <Box id="register-form" component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
       <Stack spacing={3}>
         <Controller

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   AppBar, 
   Toolbar, 
@@ -21,6 +21,8 @@ function Header({
   onScrollToReviews
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
+  const showLinks = location?.pathname === '/';
 
   const handleBack = () => {
     if (onBackToHome) return onBackToHome();
@@ -72,7 +74,7 @@ function Header({
             </Typography>
           </Box>
         </Box>
-
+        {showLinks && (     
         <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
           <Button onClick={() => onScrollToCarousel?.()} sx={{ fontWeight: 500, color: 'text.primary', px: 3, py: 1.5, borderRadius: 3, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', transform: 'translateY(-1px)' } }}>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>Funcionalidades</Typography>
@@ -89,7 +91,7 @@ function Header({
           <Button onClick={() => { onScrollToContact?.() }} sx={{ fontWeight: 500, color: 'text.primary', px: 3, py: 1.5, borderRadius: 3, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', transform: 'translateY(-1px)' } }}>
             <Typography variant="body1" sx={{ fontWeight: 500 }}>Fale conosco</Typography>
           </Button>
-        </Stack>
+        </Stack>)}
 
         <Stack direction="row" spacing={2}>
           <Button variant="outlined" color="primary" onClick={() => onSwitchToLogin?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }}>

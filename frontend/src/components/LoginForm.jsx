@@ -83,12 +83,13 @@ function LoginForm() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-      <Box
+    <Box
         sx={{
           position: 'absolute',
           inset: 0,
           background: 'rgba(0,0,0,0.28)',
           zIndex: 0,
+          backdropFilter: 'blur(4px)',         
         }}
       />
 
