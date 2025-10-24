@@ -1,16 +1,20 @@
-import { Container } from  '@mui/material';
-import { Header } from "./Header";
 import { Hero } from "./Hero";
-function Main({ onSwitchToLogin, onSwitchToRegister }) {
+import { Carousel } from './Carousel';
+import { Values } from './Values';
+import { Avaliation } from "./Avaliation";
+import { ContactForm } from "./ContactForm";
+import { Footer } from './Footer';
+function Main() {
+
   return (
     <>
-      <Header 
-        onSwitchToLogin={onSwitchToLogin}
-        onSwitchToRegister={onSwitchToRegister}
-      /> 
-      <Container sx={{ width: '100%', mt: 20, height: '100vh'}}>  
-        <Hero />
-      </Container>
+      <Hero />  
+      <Carousel />
+      <Values />
+      <Avaliation />
+      <ContactForm  />
+      <Footer />
+
     </>
   );
 }

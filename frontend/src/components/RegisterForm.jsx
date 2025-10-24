@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { 
   Box, 
@@ -8,6 +8,7 @@ import {
   Alert, 
   Link,
   Stack,
+  Container,
   Grid
 } from '@mui/material';
 import { 
@@ -18,8 +19,13 @@ import {
   Lock as LockIcon,
   PersonAdd as PersonAddIcon
 } from '@mui/icons-material';
+import { BrowserRouter as Router, Routes, Route, useNavigate, Outlet } from "react-router-dom";
+
 
 function RegisterForm({ onSwitchToLogin }) {
+  const navigate = useNavigate();
+
+
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -94,7 +100,35 @@ function RegisterForm({ onSwitchToLogin }) {
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
+  <Box
+    component="main"
+    sx={{
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: 'calc(100vh - 160px)',
+      py: { xs: 4, md: 8 },
+      px: 2,
+      height: '90vh',
+      backgroundImage: `url('/fundo.jpg')`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+    }}
+  >
+    <Box
+      sx={{
+        position: 'absolute',
+        inset: 0,
+        background: 'rgba(0,0,0,0.28)',
+        zIndex: 0,
+        backdropFilter: 'blur(4px)',         
+      }}
+    />
+
+    <Container sx={{ position: 'relative', zIndex: 2, maxWidth: '600px !important', backgroundColor: 'rgba(255,255,255,0.96)', p: 3, borderRadius: 0.5, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+      <Box id="register-form" component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
       <Stack spacing={3}>
         <Controller
           name="name"
@@ -281,7 +315,7 @@ function RegisterForm({ onSwitchToLogin }) {
             Já tem uma conta?{' '}
             <Link 
               href="#" 
-              onClick={onSwitchToLogin}
+              onClick={() => navigate('/login')}
               sx={{ cursor: 'pointer' }}
             >
               Faça login
@@ -289,6 +323,8 @@ function RegisterForm({ onSwitchToLogin }) {
           </Typography>
         </Box>
       </Stack>
+      </Box>
+      </Container>
     </Box>
   );
 }
