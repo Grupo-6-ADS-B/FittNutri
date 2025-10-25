@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface DataCircleRepository extends JpaRepository<DataCircleModel, Integer> {
@@ -14,4 +15,12 @@ public interface DataCircleRepository extends JpaRepository<DataCircleModel, Int
 
     // listar registros de um paciente
     List<DataCircleModel> findByPaciente_Id(Integer pacienteId);
+
+
+    // buscar um registro específico pelo paciente + rótulo
+    Optional<DataCircleModel> findByPaciente_IdAndRotulo(Integer pacienteId, String rotulo);
+
+    // buscar o último registro do paciente
+    Optional<DataCircleModel> findTopByPaciente_IdOrderByIdDadosCircunferenciaDesc(Integer pacienteId);
+
 }

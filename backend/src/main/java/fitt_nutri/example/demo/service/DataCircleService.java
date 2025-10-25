@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -181,4 +182,61 @@ public class DataCircleService {
     private boolean safeEquals(String a, String b) {
         return (a == null && b == null) || (a != null && a.equals(b));
     }
+
+
+
+
+
+    /** PATCH por paciente (comportamento:
+     *  - se 'rotulo' presente: atualiza esse registro do paciente
+     *  - senão: atualiza o último registro do paciente (mais recente)
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public DataCircleModel atualizarParcialPorPaciente(Integer pacienteId,
+                                                       Map<String, Object> updates,
+                                                       Optional<String> rotuloOpt) {
+        if (pacienteId == null || pacienteId <= 0)
+            throw new InvalidDataException("ID de paciente inválido");
+        if (updates == null || updates.isEmpty())
+            throw new InvalidDataException("Nenhum dado para atualização fornecido.");
+
+        // 1) Seleciona o registro a atualizar
+        DataCircleModel model = rotuloOpt.isPresent()
+                ? repository.findByPaciente_IdAndRotulo(pacienteId, rotuloOpt.get())
+                .orElseThrow(() -> new DateNotFound("Registro não encontrado para este paciente com o rótulo informado"))
+                : repository.findTopByPaciente_IdOrderByIdDadosCircunferenciaDesc(pacienteId)
+                .orElseThrow(() -> new DateNotFound("Paciente não possui registros de circunferência"));
+
+        // 2) Aplica updates (mesma regra do PATCH padrão)
+        updates.forEach((field, value) -> {
+            switch (field) {
+                case "rotulo" -> {
+                    String novo = String.valueOf(value);
+                    // conflito de rótulo por paciente
+                    if (!safeEquals(novo, model.getRotulo())
+                            && repository.existsByRotuloAndPaciente_Id(novo, pacienteId))
+                        throw new ConflictException("O rótulo '" + novo + "' já existe para este paciente.");
+                    model.setRotulo(novo);
+                }
+                case "abdominal"   -> model.setAbdominal(toDoubleSafe(value, "abdominal"));
+                case "cintura"     -> model.setCintura(toDoubleSafe(value, "cintura"));
+                case "quadril"     -> model.setQuadril(toDoubleSafe(value, "quadril"));
+                case "pulso"       -> model.setPulso(toDoubleSafe(value, "pulso"));
+                case "panturrilha" -> model.setPanturrilha(toDoubleSafe(value, "panturrilha"));
+                case "braco"       -> model.setBraco(toDoubleSafe(value, "braco"));
+                case "coxa"        -> model.setCoxa(toDoubleSafe(value, "coxa"));
+                case "pesoIdeal"   -> {
+                    Double d = toDoubleSafe(value, "pesoIdeal");
+                    if (d < 0) throw new InvalidDataException("O peso ideal não pode ser negativo");
+                    model.setPesoIdeal(d);
+                }
+                case "idDadosCircunferencia", "paciente" ->
+                        throw new InvalidDataException("Campo não permitido no PATCH: " + field);
+                default -> { /* ignorar desconhecidos, ou lançar erro se preferir */ }
+            }
+        });
+
+        return repository.save(model);
+    }
+
 }

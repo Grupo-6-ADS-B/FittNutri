@@ -117,4 +117,24 @@ public class DataCircleController {
     public ResponseEntity<List<DataCircleModel>> getByPatient(@PathVariable Integer pacienteId) {
         return ResponseEntity.ok(service.listarPorPaciente(pacienteId));
     }
+
+
+    @PatchMapping("/patient/{pacienteId}")
+    @Operation(summary = "Atualiza parcialmente dados de circunferência por paciente")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Registro atualizado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+            @ApiResponse(responseCode = "404", description = "Registro não encontrado"),
+            @ApiResponse(responseCode = "409", description = "Conflito de rótulo para o paciente")
+    })
+    public ResponseEntity<DataCircleModel> atualizarParcialPorPaciente(
+            @PathVariable Integer pacienteId,
+            @RequestParam(name = "rotulo", required = false) String rotulo,
+            @RequestBody Map<String, Object> updates) {
+
+        DataCircleModel updated = service.atualizarParcialPorPaciente(pacienteId, updates, java.util.Optional.ofNullable(rotulo));
+        return ResponseEntity.ok(updated);
+    }
+
+
 }
