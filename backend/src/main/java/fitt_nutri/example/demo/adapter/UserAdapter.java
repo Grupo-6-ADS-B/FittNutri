@@ -1,6 +1,6 @@
 package fitt_nutri.example.demo.adapter;
 
-import fitt_nutri.example.demo.dto.request.LoginRequestDTO;
+import fitt_nutri.example.demo.dto.login.LoginRequestDTO;
 import fitt_nutri.example.demo.dto.request.UserRequestDTO;
 import fitt_nutri.example.demo.dto.response.UserResponseDTO;
 import fitt_nutri.example.demo.model.UserModel;
