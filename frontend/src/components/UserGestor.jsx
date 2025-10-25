@@ -240,7 +240,7 @@ export default function UserGestor(props) {
               ))}
 
               {/* Linha para adicionar novo usuário */}
-              <ListItem button onClick={handleAddUser} sx={{ my: 1, borderRadius: '15px' }}>
+              <ListItem onClick={handleAddUser} sx={{ my: 1, borderRadius: '15px', cursor: 'pointer' }}>
                 <ListItemAvatar>
                   <Avatar sx={{ width: 50, height: 50, backgroundColor: 'transparent' }}>
                     <IconButton

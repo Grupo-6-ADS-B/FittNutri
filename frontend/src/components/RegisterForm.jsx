@@ -87,13 +87,10 @@ function RegisterForm({ onSwitchToLogin }) {
         throw new Error(msg || 'Erro ao cadastrar usuário.');
       }
 
-      const { token, user } = await response.json();
+      const responseData = response.status !== 204 ? await response.json() : null;
 
-      // Armazenar o token no localStorage
-      localStorage.setItem('jwtToken', token);
-
-      setSuccess('Cadastro realizado com sucesso!');
-      navigate('/gestor'); // Redirecionar para a página do gestor
+      setSuccess(responseData?.message || 'Cadastro realizado com sucesso!');
+      navigate('/login'); 
     } catch (err) {
       setError(err.message || 'Ocorreu um erro ao cadastrar. Tente novamente.');
     }

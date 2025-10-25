@@ -31,10 +31,16 @@ public class UserController {
     private final LoginService service;
 
     @PostMapping
-    public ResponseEntity<Map<String, String>> createUser(@Valid @RequestBody LoginCreateDTO dto) {
+    public ResponseEntity<Map<String, Object>> createUser(@Valid @RequestBody LoginCreateDTO dto) {
         final UserModel user = LoginMapperDTO.of(dto);
         service.criar(user);
-        Map<String, String> response = Map.of("message", "Usuário criado com sucesso!");
+
+        final String token = service.autenticar(user).getToken();
+
+        Map<String, Object> response = Map.of(
+            "message", "Usuário criado com sucesso!",
+            "token", token
+        );
         return ResponseEntity.status(201).body(response);
 
     }
