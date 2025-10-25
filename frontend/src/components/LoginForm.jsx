@@ -49,17 +49,18 @@ function LoginForm() {
         body: JSON.stringify({ email: data.email, senha: data.password }),
       });
 
-      if (response.status === 401) {
-        const msg = await response.text();
-        throw new Error(msg);
-      }
       if (!response.ok) {
-        throw new Error('Erro ao autenticar usuário.');
+        const msg = await response.text();
+        throw new Error(msg || 'Erro ao autenticar usuário.');
       }
-      () => navigate('/gestor');
-      const user = await response.json();
-      setSuccess(`Login realizado com sucesso! Bem-vindo(a), ${user.nome}!`);
 
+      const { token, user } = await response.json();
+
+      // Armazenar o token no localStorage
+      localStorage.setItem('jwtToken', token);
+
+      setSuccess(`Login realizado com sucesso! Bem-vindo(a), ${user.nome}!`);
+      navigate('/gestor'); // Redirecionar para a página do gestor
     } catch (err) {
       setError(err.message || 'Ocorreu um erro ao fazer login. Tente novamente.');
     }

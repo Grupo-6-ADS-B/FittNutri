@@ -82,18 +82,18 @@ function RegisterForm({ onSwitchToLogin }) {
         body: JSON.stringify(newUserData),
       });
 
-      if (response.status === 409) {
-        throw new Error('E-mail, CPF ou CRN já cadastrado.');
-      }
       if (!response.ok) {
-        throw new Error('Erro ao cadastrar usuário.');
+        const msg = await response.text();
+        throw new Error(msg || 'Erro ao cadastrar usuário.');
       }
 
-      const responseData = await response.json();
-      setSuccess('Cadastro realizado com sucesso!');
-   
-      onSwitchToLogin(); 
+      const { token, user } = await response.json();
 
+      // Armazenar o token no localStorage
+      localStorage.setItem('jwtToken', token);
+
+      setSuccess('Cadastro realizado com sucesso!');
+      navigate('/gestor'); // Redirecionar para a página do gestor
     } catch (err) {
       setError(err.message || 'Ocorreu um erro ao cadastrar. Tente novamente.');
     }
