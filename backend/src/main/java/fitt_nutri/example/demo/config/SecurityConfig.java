@@ -80,15 +80,10 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(URLS_PUBLICAS).permitAll()
-                        .anyRequest()
-                        .authenticated()
+                        .requestMatchers(URLS_PUBLICAS).permitAll() // Rotas públicas
+                        .anyRequest().authenticated() // Rotas protegidas
                 )
-                .exceptionHandling(handling -> handling
-                        .authenticationEntryPoint(autenticacaoEntryPoint))
-                .sessionManagement(management -> management
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class); // Filtro JWT aplicado apenas às rotas protegidas
 
         http.addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
