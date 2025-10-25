@@ -76,11 +76,15 @@ function RegisterForm({ onSwitchToLogin }) {
     };
 
     try {
+      console.log('Dados enviados:', newUserData); 
+
       const response = await fetch('http://localhost:8080/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newUserData),
       });
+
+      console.log('Resposta do servidor:', response);
 
       if (!response.ok) {
         const msg = await response.text();
