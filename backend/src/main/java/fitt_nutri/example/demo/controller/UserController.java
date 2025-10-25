@@ -64,7 +64,6 @@ public class UserController {
 
 
     @GetMapping
-    @SecurityRequirement(name = "Bearer")
     public ResponseEntity<List<LoginListDTO>> getAllUsers() {
         List<LoginListDTO> users = service.listarUsuarios();
         if(users.isEmpty()){

@@ -31,14 +31,14 @@ public class SecurityConfig {
     private final AutenticacaoEntryPoint autenticacaoEntryPoint;
 
     private static final String[] URLS_PUBLICAS = {
-            "/users/login",
-            "/users",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/v3/api-docs/**",
-            "/swagger-resources/**",
-            "/webjars/**",
-            "/h2-console/**"
+        "/users",
+        "/users/login",
+        "/swagger-ui/**",
+        "/swagger-ui.html",
+        "/v3/api-docs/**",
+        "/swagger-resources/**",
+        "/webjars/**",
+        "/h2-console/**"
     };
 
     @Bean
@@ -73,18 +73,18 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(URLS_PUBLICAS).permitAll() 
-                        .anyRequest().authenticated() 
-                )
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(URLS_PUBLICAS).permitAll() // Rotas públicas
+                .anyRequest().authenticated() // Rotas protegidas
+            )
+            .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class); // Filtro JWT só nas rotas protegidas
 
-            .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class); 
+        return http.build();
 
         return http.build();
     }
