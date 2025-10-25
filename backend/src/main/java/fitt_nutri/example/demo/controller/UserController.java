@@ -22,7 +22,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
-@CrossOrigin(origins = "http://localhost:5500")
+@CrossOrigin(origins = {"http://localhost:5173", "http://localhost:5500"}) // incluir 5173 ou remover a anotação
 @RequiredArgsConstructor
 @Tag(name = "Usuários", description = "CRUD de usuários")
 public class UserController {

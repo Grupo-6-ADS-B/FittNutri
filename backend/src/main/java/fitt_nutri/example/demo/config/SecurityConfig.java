@@ -18,7 +18,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
+import org.springframework.http.HttpMethod;
+ 
 import java.util.List;
 
 @Configuration
@@ -31,8 +32,9 @@ public class SecurityConfig {
     private final AutenticacaoEntryPoint autenticacaoEntryPoint;
 
     private static final String[] URLS_PUBLICAS = {
-            "/users/login",
             "/users",
+            "/users/**",
+            "/users/login",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
@@ -48,7 +50,7 @@ public class SecurityConfig {
 
     @Bean
     public AutenticacaoFilter jwtAuthFilter() {
-        return new AutenticacaoFilter(autenticacaoService, jwtAuthenticationUtilBean());
+        return new AutenticacaoFilter(autenticacaoService, jwtAuthenticationUtilBean(), URLS_PUBLICAS);
     }
 
     @Bean
@@ -80,6 +82,7 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(URLS_PUBLICAS).permitAll()
                         .anyRequest()
                         .authenticated()
@@ -99,9 +102,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5500"));
+        configuration.setAllowedOriginPatterns(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "Origin", "X-Requested-With"));
+        configuration.setExposedHeaders(List.of("Authorization"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
