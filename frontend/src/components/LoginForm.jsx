@@ -54,13 +54,12 @@ function LoginForm() {
         throw new Error(msg || 'Erro ao autenticar usuário.');
       }
 
-      const { token, user } = await response.json();
+      const { token, nome, email } = await response.json();
 
-      // Armazenar o token no localStorage
       localStorage.setItem('jwtToken', token);
 
-      setSuccess(`Login realizado com sucesso! Bem-vindo(a), ${user.nome}!`);
-      navigate('/gestor'); // Redirecionar para a página do gestor
+      setSuccess(`Login realizado com sucesso! Bem-vindo(a), ${nome}!`);
+      navigate('/userGestor');
     } catch (err) {
       setError(err.message || 'Ocorreu um erro ao fazer login. Tente novamente.');
     }

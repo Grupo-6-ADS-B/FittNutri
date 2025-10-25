@@ -31,11 +31,17 @@ public class UserController {
     private final LoginService service;
 
     @PostMapping
-    @SecurityRequirement(name = "Bearer")
-    public ResponseEntity<Void> createUser(@Valid @RequestBody LoginCreateDTO dto) {
+    public ResponseEntity<Map<String, Object>> createUser(@Valid @RequestBody LoginCreateDTO dto) {
         final UserModel user = LoginMapperDTO.of(dto);
         service.criar(user);
-        return ResponseEntity.status(201).build();
+
+        final String token = service.autenticar(user).getToken();
+
+        Map<String, Object> response = Map.of(
+            "message", "Usuário criado com sucesso!",
+            "token", token
+        );
+        return ResponseEntity.status(201).body(response);
 
     }
 
