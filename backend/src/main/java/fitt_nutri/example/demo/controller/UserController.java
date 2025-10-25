@@ -32,9 +32,11 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> createUser(@Valid @RequestBody LoginCreateDTO dto) {
+        System.out.println("Requisição recebida para criar usuário: " + dto);
         final UserModel user = LoginMapperDTO.of(dto);
         service.criar(user);
 
+        // Gerar token JWT após criar o usuário
         final String token = service.autenticar(user).getToken();
 
         Map<String, Object> response = Map.of(
@@ -45,15 +47,19 @@ public class UserController {
 
     }
 
-    // java
     @PostMapping("/login")
-    public ResponseEntity<LoginTokenDTO> loginUser(@Valid @RequestBody LoginRequestDTO dto) {
-        if (dto.getSenha() == null || dto.getSenha().isBlank()) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<Map<String, Object>> loginUser(@Valid @RequestBody LoginRequestDTO dto) {
+        System.out.println("Requisição recebida para login: " + dto);
         final UserModel user = LoginMapperDTO.of(dto);
-        LoginTokenDTO loginTokenDTO = service.autenticar(user);
-        return ResponseEntity.ok(loginTokenDTO);
+        final LoginTokenDTO loginTokenDTO = service.autenticar(user);
+
+        Map<String, Object> response = Map.of(
+            "message", "Login realizado com sucesso!",
+            "token", loginTokenDTO.getToken(),
+            "nome", loginTokenDTO.getNome(),
+            "email", loginTokenDTO.getEmail()
+        );
+        return ResponseEntity.ok(response);
     }
 
 

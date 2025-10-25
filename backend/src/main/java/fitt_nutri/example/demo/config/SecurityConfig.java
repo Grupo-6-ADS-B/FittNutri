@@ -101,7 +101,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5500",
                 "http://localhost:5173",
-                "http://127.0.0.1:5501"
+                "http://127.0.0.1:5501",
+                "http://localhost:3000" 
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
