@@ -114,37 +114,38 @@ public class AnthropometricDataController {
         }
     }
 
-    @Operation(summary = "Busca dados antropométricos por ID do paciente")
-    @ApiResponse(responseCode = "200", description = "Dados encontrados com sucesso")
-    @ApiResponse(responseCode = "404", description = "Nenhum dado encontrado para o paciente informado")
+    @Operation(summary = "Atualiza parcialmente dados antropométricos de um paciente")
+    @ApiResponse(responseCode = "200", description = "Dados atualizados com sucesso")
+    @ApiResponse(responseCode = "404", description = "Paciente ou dado antropométrico não encontrado")
     @PatchMapping("/paciente/{pacienteId}")
-    public ResponseEntity<?> partialUpdateByPacienteId(
+    public ResponseEntity<?> partialUpdateByPaciente(
             @PathVariable Integer pacienteId,
             @RequestBody Map<String, Object> fields) {
+
         try {
-            AnthropometricDataModel updatedData = service.partialUpdateByPacienteId(pacienteId, fields);
-            return ResponseEntity.ok(updatedData);
-        } catch (NotFoundData e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Erro ao atualizar parcialmente os dados do paciente: " + e.getMessage());
+            AnthropometricDataModel atualizado = service.partialUpdateByPacienteId(pacienteId, fields);
+            return ResponseEntity.ok(atualizado);
+        } catch (NotFoundData ex) {
+            return ResponseEntity.status(404).body(ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(500)
+                    .body("Erro ao atualizar parcialmente dados antropométricos do paciente: " + ex.getMessage());
         }
     }
 
-    @Operation(summary = "Lista todos os dados antropométricos de um paciente")
+    @Operation(summary = "Busca dados antropométricos por ID do paciente")
     @ApiResponse(responseCode = "200", description = "Dados retornados com sucesso")
-    @ApiResponse(responseCode = "404", description = "Nenhum dado encontrado para o paciente")
+    @ApiResponse(responseCode = "404", description = "Nenhum dado encontrado para o paciente informado")
     @GetMapping("/paciente/{pacienteId}")
-    public ResponseEntity<?> listByPacienteId(@PathVariable Integer pacienteId) {
+    public ResponseEntity<?> getByPaciente(@PathVariable Integer pacienteId) {
         try {
             List<AnthropometricDataModel> dados = service.findByPaciente_Id(pacienteId);
             return ResponseEntity.ok(dados);
         } catch (NotFoundData ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+            return ResponseEntity.status(404).body(ex.getMessage());
         } catch (Exception ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Erro ao buscar os dados do paciente: " + ex.getMessage());
+            return ResponseEntity.status(500)
+                    .body("Erro ao buscar dados antropométricos do paciente: " + ex.getMessage());
         }
     }
 }
