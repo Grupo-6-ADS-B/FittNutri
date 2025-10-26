@@ -130,9 +130,7 @@ export default function UserRegister(props) {
       <Box
         sx={{
           minHeight: "100vh",
-          backgroundImage: "url(/aveia.jpg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+          background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
           display: "flex",
           flexDirection: "column",
         }}

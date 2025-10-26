@@ -277,7 +277,7 @@ export default function QuestionarioStepper() {
 
           {activeStep === 0 && (
             <Box sx={{ display: "flex", gap: 4, marginRight: '340px', width: '100%', maxWidth: 1200, justifyContent: 'center' }}>
-              <Paper elevation={3} sx={{ width: 320, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
+              <Paper elevation={3} sx={{ width: 340, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                   <Avatar src={userInfo?.avatar || undefined} sx={{ width: 56, height: 56, border: '2px solid #2e7d32' }}>
                     {(!userInfo?.avatar && userInfo?.name) ? userInfo.name.charAt(0) : null}
@@ -369,7 +369,7 @@ export default function QuestionarioStepper() {
                     <Grid item xs={6}>
                       <Button 
                         variant="outlined" 
-                        color="secondary" 
+                        color="primary" 
                         fullWidth
                         onClick={() => navigate('/register')}
                       >
@@ -407,7 +407,7 @@ export default function QuestionarioStepper() {
 
           {activeStep === 1 && (
             <Box sx={{ display: "flex", gap: 4, marginRight: '340px', width: '100%', maxWidth: 1200, justifyContent: 'center' }}>
-              <Paper elevation={3} sx={{ width: 320, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
+              <Paper elevation={3} sx={{ width: 340, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                   <Avatar src={userInfo?.avatar || undefined} sx={{ width: 56, height: 56, border: '2px solid #2e7d32' }}>
                     {(!userInfo?.avatar && userInfo?.name) ? userInfo.name.charAt(0) : null}
@@ -498,7 +498,7 @@ export default function QuestionarioStepper() {
                     <Grid item xs={6}>
                       <Button 
                         variant="outlined" 
-                        color="secondary" 
+                        color="primary" 
                         fullWidth
                         onClick={handleBack}
                       >
