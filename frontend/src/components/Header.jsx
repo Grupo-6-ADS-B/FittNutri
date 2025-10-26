@@ -23,7 +23,8 @@ function Header({
   const navigate = useNavigate();
   const location = useLocation();
   const showLinks = location?.pathname === '/';
-
+  const showButtons = location?.pathname === '/login' || location?.pathname === '/auth' || location?.pathname === '/';
+  const userName = sessionStorage.getItem('nomeUsuario');
   const handleBack = () => {
     if (onBackToHome) return onBackToHome();
     navigate('/');
@@ -94,16 +95,31 @@ function Header({
         </Stack>)}
 
         <Stack direction="row" spacing={2}>
-          <Button variant="outlined" color="primary" onClick={() => onSwitchToLogin?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }}>
-            Entrar
-          </Button>
+          {showButtons ? (
+            <>
+              <Button variant="outlined" color="primary" onClick={() => onSwitchToLogin?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }}>
+                Entrar
+              </Button>
 
-          <Button variant="contained" color="primary" onClick={() => onSwitchToRegister?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, background: 'linear-gradient(135deg, #2e7d32 0%, #388e3c 100%)', '&:hover': { background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', transform: 'translateY(-2px)', boxShadow: '0 8px 25px rgba(46,125,50,0.3)' } }}>
-            Cadastrar
-          </Button>
-        </Stack>
-      </Toolbar>
-    </AppBar>
+              <Button variant="contained" color="primary" onClick={() => onSwitchToRegister?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, background: 'linear-gradient(135deg, #2e7d32 0%, #388e3c 100%)', '&:hover': { background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', transform: 'translateY(-2px)', boxShadow: '0 8px 25px rgba(46,125,50,0.3)' } }}>
+                Cadastrar
+              </Button>
+            </>
+          ) : <>
+          <Avatar 
+            alt="User Avatar" 
+            src='' // vou colocar futuramente a imagem do usuario!
+            sx={{ width: 40, height: 40, cursor: 'pointer' }} 
+            // onClick={() => navigate('/perfil')} vamos colocar futuramente a pagina de perfil!!
+          />
+          <Typography variant="body1" sx={{ alignSelf: 'center', fontWeight: 500 }}>Bem vindo, {userName}!</Typography>
+          <Button sx={{border: '1px solid rgba(46, 139, 87, 0.3)', borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }} onClick={() => { sessionStorage.removeItem('token'); sessionStorage.removeItem('nomeUsuario'); navigate('/login'); }}>Sair</Button>
+          </>
+        }
+
+      </Stack>
+    </Toolbar>
+  </AppBar>
   );
 }
 

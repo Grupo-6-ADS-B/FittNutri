@@ -22,8 +22,6 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "../theme";
-import { Header } from "./Header";
-import { Footer } from "./Footer";
  
 
 const steps = ["Dados Antropométricos", "Circunferências"];
@@ -265,13 +263,10 @@ export default function QuestionarioStepper() {
           display: "flex",
           flexDirection: "column",
           minHeight: "100vh",
-          backgroundImage: 'url(/verde.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
         }}
       >
-        <Header />
-        <Box sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", p: 2 }}>
+        <Box sx={{mt: 8, flex: 1, display: "flex", flexDirection: "column", alignItems: "center", p: 2 }}>
           <Stepper activeStep={activeStep} sx={{ mb: 4, width: '100%', maxWidth: 600 }}>
             {steps.map((label) => (
               <Step key={label}>
@@ -376,7 +371,7 @@ export default function QuestionarioStepper() {
                         variant="outlined" 
                         color="secondary" 
                         fullWidth
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate('/register')}
                       >
                         Voltar
                       </Button>

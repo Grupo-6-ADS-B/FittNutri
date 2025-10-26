@@ -11,8 +11,6 @@ import {
 } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "../theme";
-import { Header } from "./Header";
-import { Footer } from "./Footer";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
@@ -139,16 +137,7 @@ export default function UserRegister(props) {
           flexDirection: "column",
         }}
       >
-        <Header />
         <Box sx={{ p: 2, alignSelf: "flex-start" }}>
-          <Button
-            variant="contained"
-            startIcon={<ArrowBackIcon />}
-            color="secondary"
-            onClick={() => navigate("/")}
-          >
-            Voltar
-          </Button>
         </Box>
         <Box
           sx={{
@@ -226,10 +215,17 @@ export default function UserRegister(props) {
               <Button type="submit" variant="contained" color="primary">
                 Cadastrar
               </Button>
+                 <Button
+            variant="outlined"
+            startIcon={<ArrowBackIcon />}
+            color="primary"
+            onClick={() => navigate("/gestor")}
+          >
+            Voltar
+          </Button>
             </Box>
           </Paper>
         </Box>
-        <Footer />
         <Snackbar
           open={notification.open}
           autoHideDuration={3000}
