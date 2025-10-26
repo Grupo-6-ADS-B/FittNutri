@@ -49,16 +49,24 @@ function LoginForm() {
         body: JSON.stringify({ email: data.email, senha: data.password }),
       });
 
-      if (response.status === 401) {
-        const msg = await response.text();
+      const text = await response.text();
+      let body = JSON.parse(text);
+    
+      if (!response.ok) {
+        const msg = body?.message || `Erro ao autenticar (status ${response.status})`;
         throw new Error(msg);
       }
-      if (!response.ok) {
-        throw new Error('Erro ao autenticar usuário.');
+
+      const token = body?.token
+      if (token) {
+        sessionStorage.setItem('token', token);
+      } else {
+        console.warn('Token não encontrado na resposta de login.');
       }
-      () => navigate('/gestor');
-      const user = await response.json();
-      setSuccess(`Login realizado com sucesso! Bem-vindo(a), ${user.nome}!`);
+
+      const nome = body?.nome 
+      setSuccess(`Login realizado com sucesso${nome ? `! Bem-vindo(a), ${nome}` : '!'}`);
+      navigate('/gestor');
 
     } catch (err) {
       setError(err.message || 'Ocorreu um erro ao fazer login. Tente novamente.');

@@ -64,38 +64,52 @@ function RegisterForm({ onSwitchToLogin }) {
   };
 
   const onSubmit = async (data) => {
-    setError('');
+      setError('');
     setSuccess('');
 
-    const newUserData = {
+    const payload = {
       nome: data.name,
       email: data.email,
       cpf: data.cpf,
       crn: data.crn,
-      senha: data.password,
+      senha: data.password
     };
 
     try {
-      const response = await fetch('http://localhost:8080/users', {
+      const resp = await fetch('http://localhost:8080/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newUserData),
+        body: JSON.stringify(payload)
       });
 
-      if (response.status === 409) {
-        throw new Error('E-mail, CPF ou CRN já cadastrado.');
-      }
-      if (!response.ok) {
-        throw new Error('Erro ao cadastrar usuário.');
+      let responseBody = null;
+      try {
+        const text = await resp.text();
+       
+      responseBody = JSON.parse(text);
+        
+      } catch (parseErr) {
+        responseBody = null;
       }
 
-      const responseData = await response.json();
-      setSuccess('Cadastro realizado com sucesso!');
-   
-      onSwitchToLogin(); 
+      if (resp.ok) {
+        setSuccess(responseBody?.message ?? 'Cadastro realizado com sucesso.');
+        return;
+      }
 
+      if (resp.status === 400) {
+        setError(responseBody?.message ?? 'Requisição inválida. Verifique os dados.');
+        return;
+      }
+      if (resp.status === 409) {
+        setError(responseBody?.message ?? 'Registro duplicado (CPF/Email já cadastrado).');
+        return;
+      }
+
+      setError(responseBody?.message ?? `Erro ao cadastrar (status ${resp.status}).`);
     } catch (err) {
-      setError(err.message || 'Ocorreu um erro ao cadastrar. Tente novamente.');
+      console.error(err);
+      setError('Erro na comunicação com o servidor.');
     }
   };
 
