@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "./Header";
-import { Footer } from "./Footer";
 import {
   CssBaseline,
   Box,
@@ -115,12 +113,9 @@ export default function UserGestor(props) {
           display: "flex",
           flexDirection: "column",
           minHeight: "100vh",
-          backgroundImage: 'url(/uvas.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)'
         }}
       >
-        <Header />
 
         {/* Conteúdo principal */}
         <Box sx={{ flex: 1, p: 3, display: 'flex', justifyContent: 'center' }}>
@@ -270,7 +265,6 @@ export default function UserGestor(props) {
             </Dialog>
           </Card>
         </Box>
-        <Footer />
       </Box>
     </>
   );

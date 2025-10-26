@@ -3,7 +3,6 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Box, Typography, Paper, Card, CardMedia, IconButton, Tooltip, Button, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import EditIcon from '@mui/icons-material/Edit';
-import { Header } from "./Header";
  
 export default function ResumoCircunferencia() {
   const theme = useTheme();
@@ -157,8 +156,7 @@ export default function ResumoCircunferencia() {
   ];
 
   return (
-  <Box sx={{ minHeight: "100vh", backgroundImage: 'url(/resumo.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', display: "flex", flexDirection: "column" }}>
-      <Header />
+  <Box sx={{ minHeight: "100vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', display: "flex", flexDirection: "column" }}>
   <Paper elevation={4} sx={{ maxWidth: 1200, mx: "auto", mt: 6, p: 4, display: "flex", gap: 4, alignItems: 'flex-start', flexDirection: 'column', bgcolor: 'grey.100' }}>
         <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start', flexDirection: { xs: 'column', md: 'row' } }}>
           <Paper elevation={3} sx={{ width: { xs: '100%', sm: 360, md: 400 }, p: 2, borderRadius: 3, alignSelf: 'flex-start', flexShrink: 0 }}>
