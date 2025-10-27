@@ -52,8 +52,8 @@ public class AnthropometricDataModel {
     @Column(nullable = false)
     private Integer gorduraVisceral;
 
-//    @NotNull(message = "Paciente não pode ser nulo")
-//    @ManyToOne
-//    @JoinColumn(name = "patient_id", nullable = false)
-//    private PatientModel paciente;
+    @NotNull(message = "Paciente não pode ser nulo")
+    @ManyToOne
+    @JoinColumn(name = "patient_id", nullable = false)
+    private PatientModel paciente;
 }
