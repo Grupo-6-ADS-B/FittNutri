@@ -38,7 +38,12 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-resources/**",
             "/webjars/**",
-            "/h2-console/**"
+            "/h2-console/**",
+            "/patients/**",
+            "/forms/**",
+            "/schedullings/**",
+            "/data-circle/**",
+            "anthropometric-data/**"
     };
 
     @Bean
