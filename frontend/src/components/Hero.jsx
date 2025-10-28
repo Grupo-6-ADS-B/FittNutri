@@ -7,12 +7,13 @@ function Hero({ onScrollToCarousel, onSwitchToRegister }){
   const navigate = useNavigate();
     return (
         <Section 
-          backgroundImage="/fundo-nutri.png" overlay='rgba(0, 0, 0, 0.7)' overlayOpacity={0.6}
+          backgroundImage="/fundo-nutri.png"
+           overlay='rgba(0, 0, 0, 0.7)' overlayOpacity={0.6}
         >
           <Container maxWidth="xl">
             <Grid container  direction="row" alignItems="center" sx={{padding: '20px'}}>
           <Grid item xs={12} md={12}>
-            <Box sx={{ mb: 3,  }}>
+            <Box sx={{ mb: 3 }}>
               <Typography 
                 variant="h2" 
                 align="left" 
@@ -46,7 +47,7 @@ function Hero({ onScrollToCarousel, onSwitchToRegister }){
                 color="primary"
                 endIcon={<ArrowForwardIcon />}
                 size="large"
-                onClick={() => navigate('/register')}
+                onClick={() => navigate('/auth')}
                 sx={{
                   py: 2,
                   px: 5,

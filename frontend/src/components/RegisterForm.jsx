@@ -15,7 +15,7 @@ import {
   Person as PersonIcon,
   Email as EmailIcon, 
   CreditCard as CpfIcon,
-  Restaurant as CrnIcon,
+  MedicalInformation as CrnIcon,
   Lock as LockIcon,
   PersonAdd as PersonAddIcon
 } from '@mui/icons-material';
