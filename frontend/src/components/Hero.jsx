@@ -12,7 +12,7 @@ function Hero({ onScrollToCarousel, onSwitchToRegister }){
         >
           <Container maxWidth="xl">
             <Grid container  direction="row" alignItems="center" sx={{padding: '20px'}}>
-          <Grid item xs={12} md={12} sx={{backgroundColor: 'rgba(108, 106, 106, 0.7)'}}>
+          <Grid item xs={12} md={12}>
             <Box sx={{ mb: 3 }}>
               <Typography 
                 variant="h2" 
