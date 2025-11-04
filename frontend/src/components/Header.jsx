@@ -1,25 +1,47 @@
 import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   AppBar, 
   Toolbar, 
   Typography, 
   Box, 
   Button,
-  Stack
+  Stack,
+  Avatar
 } from '@mui/material';
 import logo from '/logo.jpg'; 
 
-function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome }) {
+function Header({
+  onSwitchToLogin,
+  onSwitchToRegister,
+  onBackToHome,
+  onScrollToCarousel,
+  onScrollToValues,
+  onScrollToContact,
+  onScrollToReviews
+}) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const showLinks = location?.pathname === '/';
+  const showButtons = location?.pathname === '/login' || location?.pathname === '/auth' || location?.pathname === '/';
+  const userName = sessionStorage.getItem('nomeUsuario');
+  const handleBack = () => {
+    if (onBackToHome) return onBackToHome();
+    navigate('/');
+  };
+
   return (
     <AppBar 
-      position="static" 
-      elevation={2}
+      position="sticky" 
+      elevation={0}
       sx={{
-        backgroundColor: 'white',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
         color: 'text.primary'
       }}
     >
-      <Toolbar sx={{ justifyContent: 'space-between', py: 1 }}>
+      <Toolbar sx={{ justifyContent: 'space-between', py: 2, px: { xs: 2, md: 4 } }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           <Box
             component="img"
@@ -27,103 +49,77 @@ function Header({ onSwitchToLogin, onSwitchToRegister, onBackToHome }) {
             alt="FittNutri Logo"
             sx={{
               height: 50,
-              width: 50,
+              width: 90,
               borderRadius: '50%',
               objectFit: 'cover'
             }}
+            onClick={handleBack}
+            style={{ cursor: 'pointer' }}
           />
           <Box>
             <Typography 
-              variant="h5" 
+              variant="h4" 
               component="div" 
-              onClick={onBackToHome}
+              onClick={handleBack}
               sx={{ 
                 fontWeight: 'bold',
                 color: 'primary.main',
-                cursor: onBackToHome ? 'pointer' : 'default',
-                '&:hover': onBackToHome ? {
-                  color: 'primary.dark'
-                } : {}
+                cursor: 'pointer',
+                '&:hover': { color: 'primary.dark' }
               }}
             >
               FittNutri
             </Typography>
-            <Typography 
-              variant="caption" 
-              sx={{ 
-                color: 'text.secondary',
-                fontSize: '0.75rem'
-              }}
-            >
+            <Typography variant="caption" sx={{ color: 'text.primary', fontSize: '0.85rem' }}>
               Software para nutricionistas
             </Typography>
           </Box>
         </Box>
+        {showLinks && (     
+        <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
+          <Button onClick={() => onScrollToCarousel?.()} sx={{ fontWeight: 500, color: 'text.primary', px: 3, py: 1.5, borderRadius: 3, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', transform: 'translateY(-1px)' } }}>
+            <Typography variant="body1" sx={{ fontWeight: 500 }}>Funcionalidades</Typography>
+          </Button>
 
-        <Stack direction="row" spacing={3} sx={{ display: { xs: 'none', md: 'flex' } }}>
-          <Button 
-            sx={{ 
-              fontWeight: 500,
-              color: 'text.primary',
-              '&:hover': {
-                backgroundColor: 'rgba(46, 125, 50, 0.08)'
-              }
-            }}
-          >
-            Funcionalidades
+          <Button onClick={() => onScrollToValues?.()} sx={{ fontWeight: 500, color: 'text.primary', px: 3, py: 1.5, borderRadius: 3, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', transform: 'translateY(-1px)' } }}>
+            <Typography variant="body1" sx={{ fontWeight: 500 }}>Sobre nós</Typography>
           </Button>
-          <Button 
-            sx={{ 
-              fontWeight: 500,
-              color: 'text.primary',
-              '&:hover': {
-                backgroundColor: 'rgba(46, 125, 50, 0.08)'
-              }
-            }}
-          >
-            Sobre
-          </Button>
-          <Button 
-            sx={{ 
-              fontWeight: 500,
-              color: 'text.primary',
-              '&:hover': {
-                backgroundColor: 'rgba(46, 125, 50, 0.08)'
-              }
-            }}
-          >
-            Fale conosco
-          </Button>
-        </Stack>
 
-        <Stack direction="row" spacing={1}>
-          <Button 
-            variant="outlined" 
-            color="primary"
-            onClick={onSwitchToLogin}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'rgba(46, 125, 50, 0.08)'
-              }
-            }}
-          >
-            Entrar
+          <Button onClick={() => { onScrollToReviews?.() }} sx={{ fontWeight: 500, color: 'text.primary', px: 3, py: 1.5, borderRadius: 3, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', transform: 'translateY(-1px)' } }}>
+            <Typography variant="body1" sx={{ fontWeight: 500 }}>Avaliações</Typography>
           </Button>
-          <Button 
-            variant="contained" 
-            color="primary"
-            onClick={onSwitchToRegister}
-            sx={{
-              '&:hover': {
-                backgroundColor: 'primary.dark'
-              }
-            }}
-          >
-            Cadastrar
+
+          <Button onClick={() => { onScrollToContact?.() }} sx={{ fontWeight: 500, color: 'text.primary', px: 3, py: 1.5, borderRadius: 3, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', transform: 'translateY(-1px)' } }}>
+            <Typography variant="body1" sx={{ fontWeight: 500 }}>Fale conosco</Typography>
           </Button>
-        </Stack>
-      </Toolbar>
-    </AppBar>
+        </Stack>)}
+
+        <Stack direction="row" spacing={2}>
+          {showButtons ? (
+            <>
+              <Button variant="outlined" color="primary" onClick={() => onSwitchToLogin?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }}>
+                Entrar
+              </Button>
+
+              <Button variant="contained" color="primary" onClick={() => onSwitchToRegister?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, background: 'linear-gradient(135deg, #2e7d32 0%, #388e3c 100%)', '&:hover': { background: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 100%)', transform: 'translateY(-2px)', boxShadow: '0 8px 25px rgba(46,125,50,0.3)' } }}>
+                Cadastrar
+              </Button>
+            </>
+          ) : <>
+          <Avatar 
+            alt="User Avatar" 
+            src='' // vou colocar futuramente a imagem do usuario!
+            sx={{ width: 40, height: 40, cursor: 'pointer' }} 
+            // onClick={() => navigate('/perfil')} vamos colocar futuramente a pagina de perfil!!
+          />
+          <Typography variant="body1" sx={{ alignSelf: 'center', fontWeight: 500 }}>Bem vindo, {userName}!</Typography>
+          <Button sx={{border: '1px solid rgba(46, 139, 87, 0.3)', borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }} onClick={() => { sessionStorage.removeItem('token'); sessionStorage.removeItem('nomeUsuario'); navigate('/login'); }}>Sair</Button>
+          </>
+        }
+
+      </Stack>
+    </Toolbar>
+  </AppBar>
   );
 }
 
