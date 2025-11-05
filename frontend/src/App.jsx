@@ -3,15 +3,14 @@ import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
 import { theme } from './theme';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Outlet } from "react-router-dom";
-import {LoginForm} from './components/LoginForm';
-import {RegisterForm} from './components/RegisterForm';
-// pages/components
+import { LoginForm } from './Pages/LoginForm';
+import { RegisterForm } from './Pages/RegisterForm';
 import { Header } from './components/Header';
-import { Main } from './components/Main';
-import UserGestor from "./components/UserGestor";
-import UserRegister from "./components/UserRegister";
-import QuestionarioStepper from "./components/QuestionarioStepper";
-import ResumoCircunferencia from "./components/ResumoCircunferencia";
+import { Main } from './Pages/Main';
+import UserGestor from "./Pages/UserGestor";
+import UserRegister from "./Pages/UserRegister";
+import QuestionarioStepper from "./Pages/QuestionarioStepper";
+import ResumoCircunferencia from "./Pages/ResumoCircunferencia";
 
 function Layout() {
   const navigate = useNavigate();

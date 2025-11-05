@@ -20,7 +20,6 @@ const servicos = [
 ];
 
 export default function ResumoServicosCarousel() {
-  // Carousel simples (pode ser melhorado com libs como Swiper, mas aqui é estático)
   return (
     <Box sx={{ display: 'flex', gap: 3, overflowX: 'auto', pb: 2 }}>
       {servicos.map((serv, idx) => (

@@ -47,12 +47,11 @@ export default function ResumoCircunferencia() {
     } catch {}
   }, []);
 
-  // Carrega dados salvos por usuário quando não vierem por state
   const [antropo, setAntropo] = React.useState(location.state?.antropoData || {});
   const [dadosCirc, setDadosCirc] = React.useState(location.state?.dados || {});
 
   React.useEffect(() => {
-    if (location.state?.antropoData || location.state?.dados) return; // já vieram via navegação
+    if (location.state?.antropoData || location.state?.dados) return; 
     try {
       const uid = selectedUser?.id;
       if (!uid) return;
@@ -156,12 +155,33 @@ export default function ResumoCircunferencia() {
   ];
 
   return (
-  <Box sx={{ minHeight: "100vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', display: "flex", flexDirection: "column" }}>
+  <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', display: "flex", flexDirection: "column" }}>
   <Paper elevation={4} sx={{ maxWidth: 1200, mx: "auto", mt: 6, p: 4, display: "flex", gap: 4, alignItems: 'flex-start', flexDirection: 'column', bgcolor: 'grey.100' }}>
         <Box sx={{ display: 'flex', gap: 4, alignItems: 'flex-start', flexDirection: { xs: 'column', md: 'row' } }}>
           <Paper elevation={3} sx={{ width: { xs: '100%', sm: 360, md: 400 }, p: 2, borderRadius: 3, alignSelf: 'flex-start', flexShrink: 0 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <Box component="img" src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid', borderColor: 'success.main' }} />
+            {selectedUser.avatar ? (
+              <Box component="img" src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid', borderColor: 'success.main' }} />
+            ) : (
+              <Box
+                sx={{
+                  width: 56,
+                  height: 56,
+                  borderRadius: '50%',
+                  border: '2px solid',
+                  borderColor: 'success.main',
+                  backgroundColor: 'grey.300',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: 28,
+                  fontWeight: 600,
+                  color: 'white',
+                }}
+              >
+                {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : <Box component="img" src="/avatar-default.png" alt="avatar" sx={{ width: 40, height: 40 }} />}
+              </Box>
+            )}
             <Box>
               <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name}</Typography>
               <Typography variant="body2" color="text.secondary">{selectedUser.email}</Typography>
@@ -316,10 +336,10 @@ export default function ResumoCircunferencia() {
                         {y1 != null && (<circle cx={x1} cy={y1} r={4} fill={primary} />)}
                         {y2 != null && (<circle cx={x2} cy={y2} r={4} fill={success} />)}
             {y1 != null && (
-                            <text x={x1} y={y1 - 6} textAnchor="middle" fill={primary} fontWeight="bold" fontSize="10">{pesoAtual} kg</text>
+                            <text x={x1} y={y1 - 6} textAnchor="middle" fill={primary} fontWeight="bold" fontSize="11">{pesoAtual} kg</text>
             )}
             {y2 != null && (
-                            <text x={x2} y={y2 - 6} textAnchor="middle" fill={success} fontWeight="bold" fontSize="10">{pesoMeta} kg</text>
+                            <text x={x2} y={y2 - 6} textAnchor="middle" fill={success} fontWeight="bold" fontSize="11">{pesoMeta} kg</text>
             )}
                         <text x={x1} y={H - 6} textAnchor="middle" fill={textSecondary} fontSize="8">Atual</text>
                         <text x={x2} y={H - 6} textAnchor="middle" fill={textSecondary} fontSize="8">Meta</text>
@@ -331,11 +351,11 @@ export default function ResumoCircunferencia() {
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'primary.main' }} />
-                  <Typography variant="caption" color="text.secondary">Atual{pesoAtual != null ? `: ${pesoAtual} kg` : ': —'}</Typography>
+                  {/* <Typography variant="caption" color="text.secondary">Atual{pesoAtual != null ? `: ${pesoAtual} kg` : ': —'}</Typography> */}
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'success.main' }} />
-                  <Typography variant="caption" color="text.secondary">Meta{pesoMeta != null ? `: ${pesoMeta} kg` : ': —'}</Typography>
+                  {/* <Typography variant="caption" color="text.secondary">Meta{pesoMeta != null ? `: ${pesoMeta} kg` : ': —'}</Typography> */}
                 </Box>
               </Box>
             </Paper>
@@ -343,7 +363,7 @@ export default function ResumoCircunferencia() {
           </Box>
         </Box>
 
-        <Typography variant="h6" gutterBottom sx={{ mt: -4, mb: 1 }}>Serviços de Nutricionismo</Typography>
+        <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: -3 }}>Serviços de Nutricionismo</Typography>
         <Box sx={{
           display: 'grid',
           gap: 2,

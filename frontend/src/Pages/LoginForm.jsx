@@ -19,6 +19,7 @@ import {
 } from '@mui/icons-material';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Outlet } from "react-router-dom";
 import InstagramIcon from '@mui/icons-material/Instagram';
+import api from '../utils/api';
 
 function LoginForm() {
   const navigate = useNavigate();
@@ -43,21 +44,12 @@ function LoginForm() {
     setSuccess('');
 
     try {
-      const response = await fetch('http://localhost:8080/users/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: data.email, senha: data.password }),
+      const { data: body } = await api.post('/users/login', {
+        email: data.email,
+        senha: data.password,
       });
 
-      const text = await response.text();
-      let body = JSON.parse(text);
-    
-      if (!response.ok) {
-        const msg = body?.message || `Erro ao autenticar (status ${response.status})`;
-        throw new Error(msg);
-      }
-
-      const token = body?.token
+      const token = body?.token;
       if (token) {
         sessionStorage.setItem('token', token);
       } else {
@@ -65,12 +57,26 @@ function LoginForm() {
       }
       sessionStorage.setItem('nomeUsuario', body?.nome || '');
 
-      const nome = body?.nome 
+      const nome = body?.nome;
       setSuccess(`Login realizado com sucesso${nome ? `! Bem-vindo(a), ${nome}` : '!'}`);
       navigate('/gestor');
 
     } catch (err) {
-      setError(err.message || 'Ocorreu um erro ao fazer login. Tente novamente.');
+      let msg = err.response?.data?.message || err.message;
+      if (msg.includes('Unexpected end of JSON input')) {
+        msg = 'Tente novamente mais tarde.';
+      } else if (msg.toLowerCase().includes('user not found')) {
+        msg = 'Usuário não encontrado.';
+      } else if (msg.toLowerCase().includes('invalid password')) {
+        msg = 'Senha inválida.';
+      } else if (msg.toLowerCase().includes('network')) {
+        msg = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
+      } else if (msg.toLowerCase().includes('failed to fetch')) {
+        msg = 'Não foi possível conectar ao servidor. Tente novamente.';
+      } else if (err.response?.status === 401) {
+        msg = 'Credenciais inválidas. Verifique seu e-mail e senha.';
+      }
+      setError(msg || 'Ocorreu um erro ao fazer login. Tente novamente.');
     }
   };
 
