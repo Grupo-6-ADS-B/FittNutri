@@ -262,7 +262,7 @@ export default function QuestionarioStepper() {
         sx={{
           display: "flex",
           flexDirection: "column",
-          minHeight: "100vh",
+          minHeight: "88vh",
           background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
         }}
       >

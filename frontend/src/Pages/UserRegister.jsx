@@ -129,7 +129,7 @@ export default function UserRegister(props) {
       <CssBaseline />
       <Box
         sx={{
-          minHeight: "100vh",
+          minHeight: "88vh",
           background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
           display: "flex",
           flexDirection: "column",

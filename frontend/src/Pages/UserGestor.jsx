@@ -112,34 +112,19 @@ export default function UserGestor(props) {
         sx={{
           display: "flex",
           flexDirection: "column",
-          minHeight: "100vh",
+          minHeight: "88vh",
           background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)'
         }}
       >
 
         {/* Conteúdo principal */}
         <Box sx={{ flex: 1, p: 3, display: 'flex', justifyContent: 'center' }}>
-          <Card sx={{ width: '100%', maxWidth: 1200, borderRadius: '20px', p: 3, boxShadow: 3 }}>
+          <Card sx={{ width: '100%', maxWidth: 1200, borderRadius: '20px', p: 2, boxShadow: 3, minHeight: 350, maxHeight: 600, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', overflow: 'hidden' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h5" gutterBottom sx={{ mb: 0 }}>
                 Gerenciamento de Usuários
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField
-                  variant="outlined"
-                  size="small"
-                  placeholder="Pesquisar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                    style: { borderRadius: '15px' }
-                  }}
-                />
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mr: 2 }}>
                 <TextField
                   select
                   variant="outlined"
@@ -161,10 +146,41 @@ export default function UserGestor(props) {
                   <MenuItem value="telefone">Telefone</MenuItem>
                   <MenuItem value="cidade">Endereço</MenuItem>
                 </TextField>
+                <TextField
+                  variant="outlined"
+                  size="small"
+                  placeholder="Pesquisar..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                    style: { borderRadius: '15px' }
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddUser}
+                  sx={{ borderRadius: '15px', height: '40px', minWidth: '40px', backgroundColor: '#2e7d32' }}
+                >
+                  Adicionar Usuário
+                </Button>
               </Box>
             </Box>
 
-            <List>
+            <List
+              sx={{
+                flex: 1,
+                minHeight: 0,
+                overflowY: 'auto',
+                pr: 1,
+                gap: 1
+              }}
+            >
               {displayUsers.map((user, index) => (
                 <React.Fragment key={user?.id || index}>
                   <ListItem
@@ -182,7 +198,10 @@ export default function UserGestor(props) {
                     {user?.name ? (
                       <>
                         <ListItemAvatar>
-                          <Avatar src={user.avatar} sx={{ width: 50, height: 50, border: "2px solid #2e7d32" }}>
+                          <Avatar
+                            src={user.avatar ? user.avatar : '/avatar-default.png'}
+                            sx={{ width: 50, height: 50, border: "2px solid #2e7d32" }}
+                          >
                             {(!user.avatar && user.name) ? user.name.charAt(0) : null}
                           </Avatar>
                         </ListItemAvatar>
@@ -234,23 +253,7 @@ export default function UserGestor(props) {
                 </React.Fragment>
               ))}
 
-              {/* Linha para adicionar novo usuário */}
-              <ListItem button onClick={handleAddUser} sx={{ my: 1, borderRadius: '15px' }}>
-                <ListItemAvatar>
-                  <Avatar sx={{ width: 50, height: 50, backgroundColor: 'transparent' }}>
-                    <IconButton
-                      sx={{
-                        border: "2px dashed #2e7d32",
-                        width: '100%',
-                        height: '100%',
-                      }}
-                    >
-                      <AddIcon sx={{ color: "#2e7d32" }} />
-                    </IconButton>
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary="Adicionar Usuário" />
-              </ListItem>
+              {/* Linha para adicionar novo usuário removida, agora o botão está acima */}
             </List>
             {/* Modal de confirmação de exclusão */}
             <Dialog open={confirmOpen} onClose={cancelDeleteUser} aria-labelledby="confirm-delete-title">
