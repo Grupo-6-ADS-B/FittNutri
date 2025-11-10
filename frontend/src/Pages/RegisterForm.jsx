@@ -25,10 +25,9 @@ import api from '../utils/api';
 
 function RegisterForm({ onSwitchToLogin }) {
   const navigate = useNavigate();
-
-
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [passwordTouched, setPasswordTouched] = useState(false);
 
   const {
     control,
@@ -255,33 +254,30 @@ function RegisterForm({ onSwitchToLogin }) {
                 if (!/[!@#$%^&*(),.?":{}|<>]/.test(field.value)) requisitos.push('um caractere especial');
                 const senhaValida = requisitos.length === 0;
                 return (
-                  <>
-                    <TextField
-                      {...field}
-                      fullWidth
-                      type="password"
-                      label="Senha"
-                      error={!senhaValida}
-                      helperText={!senhaValida ? `A senha precisa de: ${requisitos.join(', ')}` : ''}
-                      InputProps={{
-                        startAdornment: <LockIcon sx={{ color: 'action.active', mr: 1 }} />,
-                      }}
-                      variant="outlined"
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': { borderColor: !senhaValida ? 'error.main' : undefined },
-                        },
-                        '& .MuiFormHelperText-root': {
-                          color: !senhaValida ? 'error.main' : undefined,
-                        }
-                      }}
-                      onClick={() => {
-                        if (!senhaValida) {
-                          // Força mostrar helperText
-                        }
-                      }}
-                    />
-                  </>
+                  <TextField
+                    {...field}
+                    fullWidth
+                    type="password"
+                    label="Senha"
+                    error={passwordTouched && !senhaValida}
+                    helperText={passwordTouched && !senhaValida ? `A senha precisa de: ${requisitos.join(', ')}` : ''}
+                    InputProps={{
+                      startAdornment: <LockIcon sx={{ color: 'action.active', mr: 1 }} />, 
+                    }}
+                    variant="outlined"
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': { borderColor: passwordTouched && !senhaValida ? 'error.main' : undefined },
+                      },
+                      '& .MuiFormHelperText-root': {
+                        color: passwordTouched && !senhaValida ? 'error.main' : undefined,
+                      }
+                    }}
+                    onChange={e => {
+                      field.onChange(e);
+                      if (!passwordTouched) setPasswordTouched(true);
+                    }}
+                  />
                 );
               }}
             />

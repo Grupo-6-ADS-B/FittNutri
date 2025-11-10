@@ -119,35 +119,12 @@ export default function UserGestor(props) {
 
         {/* Conteúdo principal */}
         <Box sx={{ flex: 1, p: 3, display: 'flex', justifyContent: 'center' }}>
-          <Card sx={{ width: '100%', maxWidth: 1200, borderRadius: '20px', p: 2, boxShadow: 3, minHeight: 350, maxHeight: 600, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
+          <Card sx={{ width: '100%', maxWidth: 1200, borderRadius: '20px', p: 2, boxShadow: 3, minHeight: 350, maxHeight: 600, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', overflow: 'hidden' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
               <Typography variant="h5" gutterBottom sx={{ mb: 0 }}>
                 Gerenciamento de Usuários
               </Typography>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleAddUser}
-                  sx={{ borderRadius: '15px', height: '40px', minWidth: '40px', backgroundColor: '#2e7d32' }}
-                >
-                  Adicionar Usuário
-                </Button>
-                <TextField
-                  variant="outlined"
-                  size="small"
-                  placeholder="Pesquisar..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <SearchIcon />
-                      </InputAdornment>
-                    ),
-                    style: { borderRadius: '15px' }
-                  }}
-                />
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mr: 2 }}>
                 <TextField
                   select
                   variant="outlined"
@@ -169,16 +146,40 @@ export default function UserGestor(props) {
                   <MenuItem value="telefone">Telefone</MenuItem>
                   <MenuItem value="cidade">Endereço</MenuItem>
                 </TextField>
+                <TextField
+                  variant="outlined"
+                  size="small"
+                  placeholder="Pesquisar..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                    style: { borderRadius: '15px' }
+                  }}
+                />
+                <Button
+                  variant="contained"
+                  startIcon={<AddIcon />}
+                  onClick={handleAddUser}
+                  sx={{ borderRadius: '15px', height: '40px', minWidth: '40px', backgroundColor: '#2e7d32' }}
+                >
+                  Adicionar Usuário
+                </Button>
               </Box>
             </Box>
 
             <List
-              sx={displayUsers.length > 8 ? {
-                maxHeight: 500,
+              sx={{
+                flex: 1,
+                minHeight: 0,
                 overflowY: 'auto',
                 pr: 1,
                 gap: 1
-              } : { gap: 1 }}
+              }}
             >
               {displayUsers.map((user, index) => (
                 <React.Fragment key={user?.id || index}>
