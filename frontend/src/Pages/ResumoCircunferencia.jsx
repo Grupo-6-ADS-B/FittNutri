@@ -93,10 +93,13 @@ export default function ResumoCircunferencia() {
     if (imc < 39.9) return "Obesidade grau II";
     return "Obesidade grau III";
   };
-  const calcularTMB = (peso, alturaCm, idade, sexo = "feminino", atividade = "sedentário") => {
+
+
+
+  const calcularTMB = (peso, alturaCm, idade, sexoFonte , atividadeFonte) => {
     if (!peso || !alturaCm || !idade) return null;
     let tmbBase;
-    if ((sexo || "").toLowerCase() === "masculino") {
+    if ((sexoFonte || "").toLowerCase() === "masculino") {
       tmbBase = (10 * peso) + (6.25 * alturaCm) - (5 * idade) + 5;
     } else {
       tmbBase = (10 * peso) + (6.25 * alturaCm) - (5 * idade) - 161;
@@ -107,7 +110,7 @@ export default function ResumoCircunferencia() {
       "moderadamente ativo": 1.55,
       "muito ativo": 1.725,
       "extremamente ativo": 1.9,
-    }[atividade] || 1.2;
+    }[atividadeFonte] || 1.2;
     return Math.round(tmbBase * fator);
   };
   const imcValue = useMemo(() => {
@@ -128,9 +131,10 @@ export default function ResumoCircunferencia() {
     const peso = parseFloat(String(antropo.peso || '').replace(',', '.'));
     const alturaCm = parseFloat(String(antropo.altura || '').replace(',', '.'));
     const idade = parseFloat(String(antropo.idade || '').replace(',', '.'));
-    const sexo = (antropo.sexo || 'feminino').toString().toLowerCase();
+        const sexoFonte = selectedUser?.sexo ?? 'feminino';
+    const atividadeFonte = (selectedUser?.atividade ?? 'sedentario');
     if (!peso || !alturaCm || !idade) return null;
-    return calcularTMB(peso, alturaCm, idade, sexo, "sedentário");
+    return calcularTMB(peso, alturaCm, idade, sexoFonte, atividadeFonte);
   }, [antropo.peso, antropo.altura, antropo.idade]);
 
   const pesoAtual = useMemo(() => {
@@ -344,7 +348,7 @@ export default function ResumoCircunferencia() {
               );
             })()}
             <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle1" color={textSecondary}>Taxa Metabólica Basal</Typography>
+              <Typography variant="subtitle1" color={textSecondary}>Gasto energético total</Typography>
               <Typography variant="h5" sx={{ color: primary }}>{tmbValue ? `${tmbValue} kcal` : '-'}</Typography>
               <Typography variant="body2" color={textSecondary}>Estimativa</Typography>
             </Paper>
