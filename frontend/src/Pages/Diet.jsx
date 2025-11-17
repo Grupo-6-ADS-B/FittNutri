@@ -1,11 +1,12 @@
+import React, { useState } from 'react';
 import {
-  Box, Grid, Paper, Typography, TextField, Button, Stack, Avatar
+  Box, Grid, Paper, Typography, TextField, Button, Stack,
+  Divider, Chip, List, ListItem, ListItemText, Avatar, IconButton
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
-import { useState } from 'react';
 import MealModal from '../components/MealModal';
 
 export default function Diet() {
@@ -31,10 +32,12 @@ export default function Diet() {
 
   const handlePrint = () => window.print();
   const [openMeal, setOpenMeal] = useState(false);
+  const [meals, setMeals] = useState([]);
+
   const handleOpenMeal = () => setOpenMeal(true);
   const handleCloseMeal = () => setOpenMeal(false);
   const handleSaveMeal = (meal) => {
-    console.log('meal saved', meal);
+    setMeals(prev => [...prev, { ...meal, id: Date.now() }]);
   };
 
   return (
@@ -62,7 +65,9 @@ export default function Diet() {
               <Button variant="outlined" startIcon={<PrintIcon />} onClick={handlePrint}>
                 Imprimir Plano
               </Button>
-              <Button variant="contained" color="success" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenMeal}>Adicionar Refeição</Button>
+              <Button variant="contained" color="success" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenMeal}>
+                Adicionar Refeição
+              </Button>
             </Stack>
           </Grid>
         </Grid>
@@ -82,13 +87,30 @@ export default function Diet() {
             </Paper>
 
             <Paper sx={{ p: 4, textAlign: 'center', minHeight: 260, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              <Avatar sx={{ bgcolor: '#e8f5e9', width: 88, height: 88, mb: 2 }}>
+              
+                            {meals.length > 0 ? (
+              <Stack spacing={2} sx={{ mt: 2 }}>
+                {meals.map(m => (
+                  <Paper key={m.id} sx={{ p: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      {m.descricao || 'Refeição'} {m.horario ? `— ${m.horario}` : null}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {m.alimentos && m.alimentos.length ? m.alimentos.map(a => `${a.nome} (${a.quantidade} ${a.unidade})`).join(' • ') : 'Nenhum alimento'}
+                    </Typography>
+                    {m.observacao ? <Typography variant="caption" color="text.secondary">Obs: {m.observacao}</Typography> : null}
+                  </Paper>
+                ))}
+              </Stack>
+            ) : (
+                <>
+                <Avatar sx={{ bgcolor: '#e8f5e9', width: 88, height: 88, mb: 2 }}>
                 <AddCircleOutlineIcon color="success" sx={{ fontSize: 40 }} />
               </Avatar>
               <Typography variant="h6" sx={{ mb: 1 }}>Refeições</Typography>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
                 Esse plano alimentar não possui refeições. Comece adicionando a esse paciente uma avaliação ou uma prescrição.
-              </Typography>
+              </Typography></>)}
               <Button variant="contained" color="success" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenMeal}>Adicionar Refeição</Button>
             </Paper>
 
@@ -97,12 +119,14 @@ export default function Diet() {
               <Typography variant="body2" color="text.secondary">Experimente visualizar e carregar um plano alimentar já salvo.</Typography>
               <Button sx={{ mt: 2 }} variant="contained">Ver modelos</Button>
             </Paper>
+
+
+            <MealModal open={openMeal} onClose={handleCloseMeal} onSave={handleSaveMeal} />
           </Stack>
         </Grid>
 
 
       </Grid>
-      <MealModal open={openMeal} onClose={handleCloseMeal} onSave={handleSaveMeal} />
     </Box>
   );
 }
