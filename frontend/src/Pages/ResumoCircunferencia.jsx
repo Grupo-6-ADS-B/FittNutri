@@ -163,20 +163,22 @@ export default function ResumoCircunferencia() {
   ];
 
   
-  const quadril =
-    dadosCirc['Circunferência do Quadril'] ||
-    dadosCirc['circunferenciaQuadril'] ||
-    dadosCirc['circ_quadril'] ||
-    antropo['Circunferência do Quadril'] ||
-    antropo['circunferenciaQuadril'] ||
-    antropo['circ_quadril'] ||
+  const massaMuscular =
+    dadosCirc['Massa Muscular (kg)'] ||
+    dadosCirc['massaMuscular'] ||
+    dadosCirc['massa_muscular'] ||
+    antropo['Massa Muscular (kg)'] ||
+    antropo['massaMuscular'] ||
+    antropo['massa_muscular'] ||
     '-';
 
-  const altura =
-    antropo['Altura'] ||
-    antropo['altura'] ||
-    dadosCirc['Altura'] ||
-    dadosCirc['altura'] ||
+  const gorduraVisceral =
+    antropo['Gordura Visceral (%)'] ||
+    antropo['gorduraVisceral'] ||
+    antropo['gordura_visceral'] ||
+    dadosCirc['Gordura Visceral (%)'] ||
+    dadosCirc['gorduraVisceral'] ||
+    dadosCirc['gordura_visceral'] ||
     '-';
 
   
@@ -394,14 +396,14 @@ export default function ResumoCircunferencia() {
               );
             })()}
             <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle1" color={textSecondary}>Quadril</Typography>
-              <Typography variant="h5" sx={{ color: info }}>{quadril}</Typography>
-              <Typography variant="body2" color={textSecondary}>cm</Typography>
+              <Typography variant="subtitle1" color={textSecondary}>Massa Muscular</Typography>
+              <Typography variant="h5" sx={{ color: info }}>{massaMuscular}</Typography>
+              <Typography variant="body2" color={textSecondary}>kg</Typography>
             </Paper>
             <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle1" color={textSecondary}>Altura</Typography>
-              <Typography variant="h5" sx={{ color: info }}>{altura}</Typography>
-              <Typography variant="body2" color={textSecondary}>cm</Typography>
+              <Typography variant="subtitle1" color={textSecondary}>Gordura Visceral</Typography>
+              <Typography variant="h5" sx={{ color: info }}>{gorduraVisceral}</Typography>
+              <Typography variant="body2" color={textSecondary}>%</Typography>
             </Paper>
           </Box>
           
