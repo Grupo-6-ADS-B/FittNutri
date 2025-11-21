@@ -40,6 +40,18 @@ const handleChange = (key) => (eventOrValue) => {
     { id: 9, nome: 'Batata doce' },
     { id: 10, nome: 'Salada verde' }
   ]), []);
+  
+  const times = useMemo(() => {
+    const out = [];
+    for (let h = 5; h < 24; h++) {
+      for (let m of [0, 30]) {
+        const hh = String(h).padStart(2, '0');
+        const mm = String(m).padStart(2, '0');
+        out.push(`${hh}:${mm}`);
+      }
+    }
+    return out;
+  }, []);
 
 const fetchFoods = async (q) => {
   const term = String(q || '').trim().toLowerCase();
@@ -107,7 +119,18 @@ const fetchFoods = async (q) => {
       <DialogContent dividers>
         <Grid container spacing={2}>
           <Grid item xs={12} md={3}>
-            <TextField label="Horário" value={meal.horario} onChange={handleChange('horario')} fullWidth placeholder="08:00" />
+            <FormControl fullWidth>
+              <InputLabel>Horário</InputLabel>
+              <Select
+                value={meal.horário ?? meal.horario ?? ''}
+                label="Horário"
+                onChange={(e) => setMeal(prev => ({ ...prev, horario: e.target.value }))}
+                displayEmpty
+              >
+                <MenuItem value=""></MenuItem>
+                {times.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+              </Select>
+            </FormControl>
           </Grid>
 
           <Grid item xs={12} md={9}>

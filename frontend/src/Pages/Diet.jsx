@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import {
   Box, Grid, Paper, Typography, TextField, Button, Stack,
-  Divider, Chip, List, ListItem, ListItemText, Avatar, IconButton
+  Divider, Chip, List, ListItem, ListItemText, Avatar, IconButton, Tooltip
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
 import MealModal from '../components/MealModal';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 export default function Diet() {
 
@@ -33,11 +36,32 @@ export default function Diet() {
   const handlePrint = () => window.print();
   const [openMeal, setOpenMeal] = useState(false);
   const [meals, setMeals] = useState([]);
+  const [selectedMeal, setSelectedMeal] = useState(null);
 
-  const handleOpenMeal = () => setOpenMeal(true);
+  const handleOpenMeal = () => { setSelectedMeal(null); setOpenMeal(true); };
   const handleCloseMeal = () => setOpenMeal(false);
   const handleSaveMeal = (meal) => {
-    setMeals(prev => [...prev, { ...meal, id: Date.now() }]);
+    if (selectedMeal && selectedMeal.id) {
+      setMeals(prev => prev.map(m => (m.id === selectedMeal.id ? { ...selectedMeal, ...meal } : m)));
+    } else {
+      setMeals(prev => [...prev, { ...meal, id: Date.now() }]);
+    }
+    setSelectedMeal(null);
+    setOpenMeal(false);
+  };
+
+  const handleCopyMeal = (meal) => {
+    const text = meal.alimentos?.map(a => `${a.nome} (${a.quantidade} ${a.unidade})`).join(' • ') || '';
+    if (navigator.clipboard) navigator.clipboard.writeText(text);
+  };
+
+  const handleEditMeal = (meal) => {
+    setSelectedMeal(meal);
+    setOpenMeal(true);
+  };
+
+  const handleDeleteMeal = (id) => {
+    setMeals(prev => prev.filter(m => m.id !== id));
   };
 
   return (
@@ -89,16 +113,49 @@ export default function Diet() {
             <Paper sx={{ p: 4, textAlign: 'center', minHeight: 260, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               
                             {meals.length > 0 ? (
-              <Stack spacing={2} sx={{ mt: 2 }}>
+              <Stack spacing={2} sx={{ mt: 2, width: '100%', mb: 2 }}>
                 {meals.map(m => (
-                  <Paper key={m.id} sx={{ p: 2 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                      {m.descricao || 'Refeição'} {m.horario ? `— ${m.horario}` : null}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                      {m.alimentos && m.alimentos.length ? m.alimentos.map(a => `${a.nome} (${a.quantidade} ${a.unidade})`).join(' • ') : 'Nenhum alimento'}
-                    </Typography>
-                    {m.observacao ? <Typography variant="caption" color="text.secondary">Obs: {m.observacao}</Typography> : null}
+                  <Paper key={m.id} sx={{ p: 2, borderRadius: 2 }}>
+                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'inline-block' }}>
+                          {m.descricao || 'Refeição'}
+                        </Typography>
+                        {m.horario && (
+                          <Typography variant="body2" component="span" sx={{ color: 'text.secondary', ml: 1 }}>
+                            {m.horario}
+                          </Typography>
+                        ) }
+                      </Box>
+
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <Tooltip title="Copiar alimentos">
+                          <IconButton size="small" onClick={() => handleCopyMeal(m)}><ContentCopyIcon fontSize="small" /></IconButton>
+                        </Tooltip>
+                        <Tooltip title="Editar">
+                          <IconButton size="small" onClick={() => handleEditMeal(m)}><EditIcon fontSize="small" /></IconButton>
+                        </Tooltip>
+                        <Tooltip title="Excluir">
+                          <IconButton size="small" color="error" onClick={() => handleDeleteMeal(m.id)}><DeleteOutlineIcon fontSize="small" /></IconButton>
+                        </Tooltip>
+                      </Stack>
+                    </Stack>
+
+                    <Box sx={{ mt: 2 }}>
+                      <TextField
+                        fullWidth
+                        size="small"
+                        variant="outlined"
+                        value={m.alimentos && m.alimentos.length ? m.alimentos.map(a => `${a.nome} (${a.quantidade} ${a.unidade})`).join('\n') : ''}
+                        multiline
+                        InputProps={{ readOnly: true }}
+                      />
+                      {m.observacao && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                          Obs: {m.observacao}
+                        </Typography>
+                      )}
+                    </Box>
                   </Paper>
                 ))}
               </Stack>
@@ -114,14 +171,14 @@ export default function Diet() {
               <Button variant="contained" color="success" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenMeal}>Adicionar Refeição</Button>
             </Paper>
 
-            <Paper sx={{ p: 3 }}>
+            <Paper sx={{ p: 3, '@media print': { display: 'none' } }}>
               <Typography variant="h6" gutterBottom>Quer agilizar a elaboração da dieta?</Typography>
               <Typography variant="body2" color="text.secondary">Experimente visualizar e carregar um plano alimentar já salvo.</Typography>
               <Button sx={{ mt: 2 }} variant="contained">Ver modelos</Button>
             </Paper>
 
 
-            <MealModal open={openMeal} onClose={handleCloseMeal} onSave={handleSaveMeal} />
+            <MealModal open={openMeal} onClose={handleCloseMeal} onSave={handleSaveMeal} initial={selectedMeal} />
           </Stack>
         </Grid>
 
