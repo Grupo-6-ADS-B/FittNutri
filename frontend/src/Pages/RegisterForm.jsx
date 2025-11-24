@@ -19,11 +19,11 @@ import {
   Lock as LockIcon,
   PersonAdd as PersonAddIcon
 } from '@mui/icons-material';
-import { BrowserRouter as Router, Routes, Route, useNavigate, Outlet } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from '../utils/api';
 
 
-function RegisterForm({ onSwitchToLogin }) {
+function RegisterForm() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -246,7 +246,7 @@ function RegisterForm({ onSwitchToLogin }) {
                   return requisitos.length === 0 || `A senha precisa de: ${requisitos.join(', ')}`;
                 }
               }}
-              render={({ field, fieldState }) => {
+              render={({ field }) => {
                 const requisitos = [];
                 if (!field.value || field.value.length < 8) requisitos.push('mínimo 8 caracteres');
                 if (!/[A-Z]/.test(field.value)) requisitos.push('uma letra maiúscula');

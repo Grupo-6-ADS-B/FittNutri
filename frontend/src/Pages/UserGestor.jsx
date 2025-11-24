@@ -26,6 +26,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import DeleteIcon from "@mui/icons-material/Delete";
 
+  import api from '../utils/api';
 const defaultUsers = [
   { id: 1, name: "André Goulart", email: "andre.goulart@example.com", telefone: "(11) 98765-4321", cidade: "São Paulo", avatar: "https://i.pravatar.cc/150?img=1" },
   { id: 2, name: "Carlos Lima", email: "carlos.lima@example.com", telefone: "(21) 91234-5678", cidade: "Rio de Janeiro", avatar: "https://i.pravatar.cc/150?img=2" },
@@ -34,7 +35,7 @@ const defaultUsers = [
   { id: 5, name: "Lucas Oliveira", email: "lucas.oliveira@example.com", telefone: "(51) 91234-8765", cidade: "Porto Alegre", avatar: "https://i.pravatar.cc/150?img=4" },
 ];
 
-export default function UserGestor(props) {
+export default function UserGestor() {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("name");
@@ -44,19 +45,16 @@ export default function UserGestor(props) {
 
   useEffect(() => {
     const stored = localStorage.getItem('users');
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setUsers(Array.isArray(parsed) ? parsed : defaultUsers);
-      } catch {
-        setUsers(defaultUsers);
+      async function fetchUsers() {
+        try {
+          const response = await api.get('/users');
+          setUsers(Array.isArray(response.data) ? response.data : []);
+        } catch (error) {
+          setUsers([]); // fallback vazio
+        }
       }
-    } else {
-      setUsers(defaultUsers);
-      localStorage.setItem('users', JSON.stringify(defaultUsers));
-    }
-  }, []);
-
+      fetchUsers();
+    }, []);
   const handleAddUser = () => {
     navigate("/register");
   };
@@ -69,31 +67,22 @@ export default function UserGestor(props) {
   const confirmDeleteUser = () => {
     if (!userToDelete) return;
     const uid = userToDelete.id;
-    setUsers((prev) => {
-      const updated = prev.filter(u => u.id !== uid);
-      try { localStorage.setItem('users', JSON.stringify(updated)); } catch {}
-      return updated;
-    });
-    try { localStorage.removeItem(`questionario_${uid}`); } catch {}
-    setConfirmOpen(false);
-    setUserToDelete(null);
+    (async () => {
+      try {
+        await api.delete(`/users/${uid}`);
+        setUsers((prev) => prev.filter(u => u.id !== uid));
+      } catch {
+        // ignore
+      }
+      setConfirmOpen(false);
+      setUserToDelete(null);
+    })();
   };
 
   const cancelDeleteUser = () => {
     setConfirmOpen(false);
     setUserToDelete(null);
   };
-
-  useEffect(() => {
-    const onFocus = () => {
-      const stored = localStorage.getItem('users');
-      if (stored) {
-        try { setUsers(JSON.parse(stored)); } catch {}
-      }
-    };
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, []);
 
   const filteredUsers = users.filter(user => {
     if (!searchTerm) return true;
@@ -217,7 +206,7 @@ export default function UserGestor(props) {
                             variant="contained"
                             size="small"
                             onClick={() => {
-                              try { localStorage.setItem('lastUserId', String(user.id)); } catch {}
+                              try { localStorage.setItem('lastUserId', String(user.id)); } catch { /* ignore */ }
                               let target = '/questionario';
                               let state = { user };
                               try {
@@ -232,7 +221,7 @@ export default function UserGestor(props) {
                                     state = { user, antropoData: parsed.antropoData || {}, dados: parsed.circData || {} };
                                   }
                                 }
-                              } catch {}
+                              } catch { /* ignore parse errors */ }
                               navigate(target, { state });
                             }}
                           >

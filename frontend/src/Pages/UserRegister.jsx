@@ -15,7 +15,7 @@ import { theme } from "../theme";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
-export default function UserRegister(props) {
+export default function UserRegister() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
