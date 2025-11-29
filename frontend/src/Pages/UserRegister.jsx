@@ -8,6 +8,7 @@ import {
   CssBaseline,
   Snackbar,
   Alert,
+  MenuItem
 } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "../theme";
@@ -22,6 +23,9 @@ export default function UserRegister(props) {
     phone: "",
     estado: "",
     cidade: "",
+    sexo: "",
+    etnia: "",
+    atividade: ""
   });
   const [errors, setErrors] = useState({});
   const [notification, setNotification] = useState({
@@ -113,6 +117,9 @@ export default function UserRegister(props) {
       cidade: formData.cidade,
       estado: formData.estado,
       avatar: null,
+      sexo: formData.sexo,
+      etnia: formData.etnia,
+      atividade: formData.atividade
     };
     const updated = Array.isArray(users) && users.length ? [...users, newUser] : [...[] , newUser];
     localStorage.setItem('users', JSON.stringify(updated));
@@ -210,17 +217,62 @@ export default function UserRegister(props) {
                 error={!!errors.cidade}
                 helperText={errors.cidade || ""}
               />
+
+              <TextField
+                select
+                label="Sexo"
+                name="sexo"
+                value={formData.sexo}
+                onChange={handleChange}
+                fullWidth
+              >
+                <MenuItem value="masculino">Masculino</MenuItem>
+                <MenuItem value="feminino">Feminino</MenuItem>
+                <MenuItem value="outro">Outro</MenuItem>
+              </TextField>
+
+              <TextField
+                select
+                label="Etnia"
+                name="etnia"
+                value={formData.etnia}
+                onChange={handleChange}
+                fullWidth
+              >
+                <MenuItem value="branca">Branca</MenuItem>
+                <MenuItem value="negra">Negra</MenuItem>
+                <MenuItem value="parda">Parda</MenuItem>
+                <MenuItem value="indigena">Indígena</MenuItem>
+                <MenuItem value="amarela">Amarela</MenuItem>
+                <MenuItem value="outra">Outra</MenuItem>
+              </TextField>
+
+              <TextField
+                select
+                label="Nível de atividade física"
+                name="atividade"
+                value={formData.atividade}
+                onChange={handleChange}
+                fullWidth
+              >
+                <MenuItem value="sedentario">Sedentário</MenuItem>
+                <MenuItem value="levemente_ativo">Levemente ativo</MenuItem>
+                <MenuItem value="moderadamente_ativo">Moderadamente ativo</MenuItem>
+                <MenuItem value="muito_ativo">Muito ativo</MenuItem>
+                <MenuItem value="extremamente_ativo">Extremamente ativo</MenuItem>
+              </TextField>
+
               <Button type="submit" variant="contained" color="primary">
                 Cadastrar
               </Button>
-                 <Button
-            variant="outlined"
-            startIcon={<ArrowBackIcon />}
-            color="primary"
-            onClick={() => navigate("/gestor")}
-          >
-            Voltar
-          </Button>
+              <Button
+                variant="outlined"
+                startIcon={<ArrowBackIcon />}
+                color="primary"
+                onClick={() => navigate("/gestor")}
+              >
+                Voltar
+              </Button>
             </Box>
           </Paper>
         </Box>
