@@ -207,7 +207,7 @@ function RegisterForm({ onSwitchToLogin }) {
                   control={control}
                   rules={{
                     required: 'CRN é obrigatório',
-                    minLength: { value: 6, message: 'CRN deve ter pelo menos 6 caracteres' }
+                    minLength: { value: 5, message: 'CRN deve ter pelo menos 5 caracteres' }
                   }}
                   render={({ field }) => (
                     <TextField
