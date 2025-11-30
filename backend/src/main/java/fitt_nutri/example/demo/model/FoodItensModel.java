@@ -10,77 +10,77 @@ public class FoodItensModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
     @Column(name = "nome")
     private String nome;
 
     @Column(name = "umidade")
-    private double umidade;
+    private Double umidade;
 
     @Column(name = "energia_kcal")
-    private double energiaKcal;
+    private Double energiaKcal;
 
     @Column(name = "proteina")
-    private double proteina;
+    private Double proteina;
 
     @Column(name = "lipideos")
-    private double lipideos;
+    private Double lipideos;
 
     @Column(name = "colesterol")
-    private double colesterol;
+    private Double colesterol;
 
     @Column(name = "carboidrato")
-    private double carboidrato;
+    private Double carboidrato;
 
     @Column(name = "fibra")
-    private double fibra;
+    private Double fibra;
 
     @Column(name = "cinzas")
-    private double cinzas;
+    private Double cinzas;
 
     @Column(name = "calcio")
-    private double calcio;
+    private Double calcio;
 
     @Column(name = "magnesio")
-    private double magnesio;
+    private Double magnesio;
 
     @Column(name = "manganes")
-    private double manganes;
+    private Double manganes;
 
     @Column(name = "fosforo")
-    private double fosforo;
+    private Double fosforo;
 
     @Column(name = "ferro")
-    private double ferro;
+    private Double ferro;
 
     @Column(name = "sodio")
-    private double sodio;
+    private Double sodio;
 
     @Column(name = "potassio")
-    private double potassio;
+    private Double potassio;
 
     @Column(name = "cobre")
-    private double cobre;
+    private Double cobre;
 
     @Column(name = "zinco")
-    private double zinco;
+    private Double zinco;
 
     @Column(name = "retinol")
-    private double retinol;
+    private Double retinol;
 
     @Column(name = "tiamina")
-    private double tiamina;
+    private Double tiamina;
 
     @Column(name = "riboflavina")
-    private double riboflavina;
+    private Double riboflavina;
 
     @Column(name = "piridoxina")
-    private double piridoxina;
+    private Double piridoxina;
 
     @Column(name = "niacina")
-    private double niacina;
+    private Double niacina;
 
     @Column(name = "vitaminaC")
-    private double vitaminaC;
+    private Double vitaminaC;
 }
