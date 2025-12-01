@@ -41,8 +41,9 @@ public class SecurityConfig {
             "/forms/**",
             "/schedullings/**",
             "/data-circle/**",
-            "anthropometric-data/**"
-        };
+            "anthropometric-data/**",
+            "/food-itens/**"
+    };
 
     @Bean
     public PasswordEncoder passwordEncoder() {

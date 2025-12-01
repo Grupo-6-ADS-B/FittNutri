@@ -265,157 +265,111 @@ export default function ResumoCircunferencia() {
         { titulo: "Educação Alimentar", descricao: "Workshops e materiais educativos sobre nutrição.", imagem: "/vendo.jpg" },
     ];
 
+  
+  const massaMuscular =
+    dadosCirc['Massa Muscular (kg)'] ||
+    dadosCirc['massaMuscular'] ||
+    dadosCirc['massa_muscular'] ||
+    antropo['Massa Muscular (kg)'] ||
+    antropo['massaMuscular'] ||
+    antropo['massa_muscular'] ||
+    '-';
 
-    
-    const KpiLayout = () => {
-        const kpis = [
-            {
-                title: "Peso Atual",
-                value: pesoAtual != null ? pesoAtual.toString() : '-',
-                unit: 'kg',
-                description: 'Valor mais recente informado.',
-                icon: ScaleIcon,
-                imageId: 'pesoAtual',
-                valueColor: success,
-            },
-            {
-                title: "Meta de Peso (Ideal)",
-                value: pesoMeta != null ? pesoMeta.toString() : '-',
-                unit: 'kg',
-                description: 'Objetivo de peso definido.',
-                icon: TrendingUpIcon,
-                imageId: 'pesoMeta',
-                valueColor: success,
-            },
-            {
-                title: "Índice de Massa Corporal",
-                value: imcValue ?? '-',
-                unit: '',
-                description: imcClass,
-                icon: FitnessCenterIcon,
-                imageId: 'imc',
-                valueColor: success,
-            },
-            {
-                title: "Taxa Metabólica Basal",
-                value: tmbValue ?? '-',
-                unit: 'kcal/dia',
-                description: 'Gasto calórico diário estimado.',
-                icon: LocalFireDepartmentIcon,
-                imageId: 'tmb',
-                valueColor: '#ff9800', // Laranja
-            },
-        ];
+  const gorduraVisceral =
+    antropo['Gordura Visceral (%)'] ||
+    antropo['gorduraVisceral'] ||
+    antropo['gordura_visceral'] ||
+    dadosCirc['Gordura Visceral (%)'] ||
+    dadosCirc['gorduraVisceral'] ||
+    dadosCirc['gordura_visceral'] ||
+    '-';
 
-        return (
-            <Grid container spacing={2}>
-                {kpis.map((kpi, index) => (
-                    <Grid item xs={12} sm={6} key={index}>
-                        <KpiCarouselCard {...kpi} />
-                    </Grid>
-                ))}
-            </Grid>
-        );
-    };
-
-    
-    const UserDetailDrawer = () => (
-        <Drawer
-            anchor="left"
-            open={isCardOpen}
-            onClose={() => setIsCardOpen(false)}
+  
+  const UserSidebarContent = (
+    <Paper 
+        elevation={3} 
+        sx={{ 
+          p: 2, 
+          borderRadius: 3, 
+          display: 'flex', 
+          flexDirection: 'column', 
+          justifyContent: 'flex-start',
+          bgcolor: 'white',
+          height: '100%'
+        }}
+    >
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        {selectedUser.avatar ? (
+          <Box component="img" src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid', borderColor: 'success.main' }} />
+        ) : (
+          <Box
             sx={{
-                '& .MuiDrawer-paper': { 
-                    width: 340, 
-                    boxSizing: 'border-box', 
-                    p: 2, 
-                    bgcolor: 'grey.100' 
-                },
-                zIndex: 1200
+              width: 56,
+              height: 56,
+              borderRadius: '50%',
+              border: '2px solid',
+              borderColor: 'success.main',
+              backgroundColor: 'grey.300',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: 20,
+              fontWeight: 600,
+              color: 'white',
             }}
+          >
+            {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : <Box component="img" src="/avatar-default.png" alt="avatar" sx={{ width: 40, height: 40 }} />}
+          </Box>
+        )}
+        <Box>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name}</Typography>
+          <Typography variant="body2" color="text.secondary">{selectedUser.email}</Typography>
+          <Typography variant="body2" color="text.secondary">{selectedUser.phone}</Typography>
+        </Box>
+      </Box>
+      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+        <InputLabel id="select-user-label">Trocar usuário</InputLabel>
+        <Select
+          labelId="select-user-label"
+          value={selectedUser?.id ?? ''}
+          label="Trocar usuário"
+          onChange={handleChangeUser}
         >
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                <IconButton onClick={() => setIsCardOpen(false)} color="primary">
-                    <MenuOpenIcon />
-                </IconButton>
-            </Box>
-            <Paper 
-                elevation={3} 
-                sx={{ 
-                    p: 2, 
-                    borderRadius: 3, 
-                    bgcolor: 'white',
-                }}
-            >
-                {selectedUser ? (
-                    <>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                            <Avatar 
-                                src={selectedUser.avatar || ''} 
-                                alt={selectedUser.name || 'Usuário'} 
-                                sx={{ width: 56, height: 56, border: '2px solid', borderColor: success }} 
-                            />
-                            <Box>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name || 'Usuário'}</Typography>
-                                <Typography variant="body2" color="text.secondary">{selectedUser.email || '-'}</Typography>
-                                <Typography variant="body2" color="text.secondary">{selectedUser.phone || '-'}</Typography>
-                            </Box>
-                        </Box>
-                        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                            <InputLabel id="select-user-label">Trocar usuário</InputLabel>
-                            <Select
-                                labelId="select-user-label"
-                                value={selectedUser?.id ?? ''}
-                                label="Trocar usuário"
-                                onChange={handleChangeUser}
-                            >
-                                {(usersList || []).map(u => (
-                                    <MenuItem key={u.id} value={u.id}>{u.id} - {u.name || 'Usuário'}</MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                            <Typography variant="subtitle2">Informações preenchidas</Typography>
-                            <Tooltip title="Editar dados">
-                                <IconButton
-                                    size="small"
-                                    onClick={() => navigate('/questionario', { state: { user: selectedUser, antropoData: antropo || {}, dados: dadosCirc || {} } })}
-                                >
-                                    <EditIcon fontSize="small" />
-                                </IconButton>
-                            </Tooltip>
-                        </Box>
-                        <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1, mb: 2 }}>
-                            {antropo && Object.entries(antropo).map(([key, value]) => (
-                                value ? <Typography key={`antropo-${key}`} variant="body2">{key}: {value}</Typography> : null
-                            ))}
-                            {dadosCirc && Object.entries(dadosCirc).map(([key, value]) => (
-                                value ? <Typography key={`circ-${key}`} variant="body2">{key}: {value}</Typography> : null
-                            ))}
-                        </Box>
-                        <Button
-                            variant="outlined"
-                            color="primary"
-                            size="small"
-                            sx={{ mt: 1, alignSelf: 'center', fontSize: '0.85rem', px: 2 }}
-                            onClick={() => navigate('/gestor')}
-                        >
-                            Voltar para gerenciamento de usuários
-                        </Button>
-                    </>
-                ) : (
-                    <Typography variant="body1" color="text.secondary" sx={{ p: 2 }}>
-                        Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
-                    </Typography>
-                )}
-            </Paper>
-        </Drawer>
-    );
-
-    
-    const MinimalSidebar = () => {
-        const iconSize = 40;
-        const minimalAvatarSize = 40;
+          {(usersList || []).map(u => (
+            <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+        <Typography variant="subtitle2">Informações preenchidas</Typography>
+        <Tooltip title="Editar dados">
+          <IconButton
+            size="small"
+            onClick={() => navigate('/questionario', { state: { user: selectedUser, antropoData: antropo || {}, dados: dadosCirc || {} } })}
+          >
+            <EditIcon fontSize="small" />
+          </IconButton>
+        </Tooltip>
+      </Box>
+      <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1, mb: 2 }}>
+        {antropo && Object.entries(antropo).map(([key, value]) => (
+          value ? <Typography key={`antropo-${key}`} variant="body2">{key}: {value}</Typography> : null
+        ))}
+        {dadosCirc && Object.entries(dadosCirc).map(([key, value]) => (
+          value ? <Typography key={`circ-${key}`} variant="body2">{key}: {value}</Typography> : null
+        ))}
+      </Box>
+      <Button
+        variant="outlined"
+        color="primary"
+        size="small"
+        sx={{ mt: 1, alignSelf: 'center', fontSize: '0.85rem', px: 2 }}
+        onClick={() => navigate('/gestor')}
+      >
+        Voltar para gerenciamento de usuários
+      </Button>
+    </Paper>
+  );
 
         return (
             <Box 

@@ -80,7 +80,8 @@ export default function QuestionarioStepper() {
     porcentagemGordura: location.state?.antropoData?.porcentagemGordura ?? "",
     massaMuscular: location.state?.antropoData?.massaMuscular ?? "",
     gorduraVisceral: location.state?.antropoData?.gorduraVisceral ?? "",
-    taxaMetabolicaBasal: location.state?.antropoData?.taxaMetabolicaBasal ?? ""
+    taxaMetabolicaBasal: location.state?.antropoData?.taxaMetabolicaBasal ?? "",
+    idadeMetabolica: location.state?.antropoData?.idadeMetabolica ?? ""
   }));
   const [circData, setCircData] = useState(() => ({
     "Circunferência Abdominal (cm)": location.state?.dados?.["Circunferência Abdominal (cm)"] ?? "",
@@ -105,7 +106,6 @@ export default function QuestionarioStepper() {
         if (parsed.completed) setCompleted(parsed.completed);
   } catch { /* ignore parse errors */ }
     }
-    // Marcar hidratação como concluída após um pequeno delay (evita toast na restauração inicial)
     hydrationRef.current = false;
     const t = setTimeout(() => { hydrationRef.current = true; }, 800);
     return () => clearTimeout(t);
@@ -117,9 +117,8 @@ export default function QuestionarioStepper() {
     localStorage.setItem(`questionario_${selectedUser.id}`, JSON.stringify(payload));
   }, [selectedUser?.id, antropoData, circData, completed]);
 
-  // Exibe toast "Dados salvos" quando os dados mudarem (evita exibir na hidratação inicial)
   useEffect(() => {
-    if (!hydrationRef.current) return; // não mostrar na primeira carga
+    if (!hydrationRef.current) return; 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setSaveToastOpen(true);
@@ -199,7 +198,7 @@ export default function QuestionarioStepper() {
   const handleAntropoChange = (field) => async (event) => {
     const inputValue = event.target.value;
     const numericFields = ['peso', 'altura', 'idade', 'porcentagemGordura', 'massaMuscular', 'gorduraVisceral', 'taxaMetabolicaBasal'];
-    let next;
+    if (field === 'idadeMetabolica') numericFields.push('idadeMetabolica');
     if (numericFields.includes(field)) {
       const sanitizedValue = numericInputHandler(inputValue);
       if (sanitizedValue !== null) {
@@ -256,9 +255,10 @@ export default function QuestionarioStepper() {
     { label: "IMC", field: "imc", isCalculated: true },
     { label: "Idade", field: "idade" },
     { label: "Porcentagem de Gordura (%)", field: "porcentagemGordura" },
-    { label: "Massa Muscular (kg)", field: "massaMuscular" },
+    { label: "Massa Muscular (%)", field: "massaMuscular" },
     { label: "Gordura Visceral (%)", field: "gorduraVisceral" },
     { label: "Taxa Metabólica Basal (kcal)", field: "taxaMetabolicaBasal" },
+    { label: "Idade Metabólica (anos)", field: "idadeMetabolica" } 
   ];
 
   const circFields = [
@@ -367,6 +367,7 @@ export default function QuestionarioStepper() {
                 </Box>
                 <Box component="form" sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
                   {antropoFields.map((item) => (
+                    item.field !== 'imc' && (
                     <TextField 
                       key={item.field}
                       label={item.label} 
@@ -379,8 +380,9 @@ export default function QuestionarioStepper() {
                         pattern: "[0-9]*[.,]?[0-9]*" 
                       }}
                     />
+                    )
                   ))}
-                  <Grid container spacing={2} sx={{ ml: 23, justifyContent: 'center' }}>
+                <Grid container spacing={2} sx={{ ml: 23, justifyContent: 'center' }}>
                     <Grid item xs={6}>
                       <Button 
                         variant="outlined" 
