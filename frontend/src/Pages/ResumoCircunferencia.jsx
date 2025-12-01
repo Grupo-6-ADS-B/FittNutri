@@ -371,219 +371,161 @@ export default function ResumoCircunferencia() {
     </Paper>
   );
 
-        return (
-            <Box 
-                sx={{ 
-                    width: isSidebarOpen ? expandedWidth : minimalWidth, 
-                    minWidth: isSidebarOpen ? expandedWidth : minimalWidth,
-                    transition: theme.transitions.create(['width', 'min-width'], {
-                        easing: theme.transitions.easing.sharp,
-                        duration: theme.transitions.duration.enteringScreen,
-                    }) + ', height 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                    bgcolor: 'grey.100', 
-                    borderRight: '1px solid #e0e0e0',
-                    p: 2,
-                    position: 'sticky',
-                    top: 0,
-                    height: isSidebarOpen ? '70vh' : '15vh',
-                    flexShrink: 0,
-                    zIndex: 1000,
-                    borderRadius: 2,
-                    overflowX: 'hidden', 
-                }}
-            >
-                <Box 
-                    onClick={isSidebarOpen ? null : () => setIsCardOpen(true)}
-                    sx={{ 
-                        display: 'flex', 
-                        flexDirection: isSidebarOpen ? 'row' : 'column',
-                        justifyContent: isSidebarOpen ? 'space-between' : 'flex-start', 
-                        alignItems: isSidebarOpen ? 'center' : 'center', 
-                        py: 1, 
-                        mb: 2, 
-                        cursor: isSidebarOpen ? 'default' : 'pointer',
-                        bgcolor: 'transparent',
-                        height: 56, 
-                    }}
-                >
-                    {!isSidebarOpen && (
-                        <Tooltip title={selectedUser?.name || 'Usuário'} placement="right">
-                             <Avatar 
-                                src={selectedUser?.avatar || ''} 
-                                alt={selectedUser?.name || 'Usuário'} 
-                                sx={{ 
-                                    width: minimalAvatarSize, 
-                                    height: minimalAvatarSize, 
-                                    border: '2px solid', 
-                                    borderColor: success,
-                                    mb: 1
-                                }} 
-                            />
-                        </Tooltip>
-                    )}
-                    
-                    <Tooltip title={isSidebarOpen ? "Comprimir Menu" : "Expandir Menu"} placement={isSidebarOpen ? "top" : "right"}>
-                        <IconButton 
-                            onClick={(e) => {
-                                if (!isSidebarOpen) e.stopPropagation(); 
-                                setIsSidebarOpen(!isSidebarOpen);
-                            }} 
-                            size="large" 
-                            color="primary"
-                            sx={!isSidebarOpen ? { mt: 0 } : {}}
-                        >
-                            {isSidebarOpen ? <MenuOpenIcon /> : <MenuIcon />}
-                        </IconButton>
-                    </Tooltip>
-                </Box>
+// Define minimalAvatarSize for Avatar usage
+const minimalAvatarSize = 40;
 
-                {isSidebarOpen && (
-                    <Box sx={{ minWidth: expandedWidth - 40 }}>
-                        <Paper 
-                            elevation={3} 
-                            sx={{ 
-                                p: 2, 
-                                borderRadius: 3, 
-                                bgcolor: 'transparent',
-                                background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
-                            
-                            }}
-                        >
-                            {selectedUser ? (
-                                <>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                        <Avatar src={selectedUser.avatar || ''} alt={selectedUser.name || 'Usuário'} sx={{ width: 56, height: 56, border: '2px solid', borderColor: success }} />
-                                        <Box>
-                                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name || 'Usuário'}</Typography>
-                                            <Typography variant="body2" color="text.secondary">{selectedUser.email || '-'}</Typography>
-                                            <Typography variant="body2" color="text.secondary">{selectedUser.phone || '-'}</Typography>
-                                        </Box>
-                                    </Box>
-                                    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                                        <InputLabel id="select-user-label">Trocar usuário</InputLabel>
-                                        <Select
-                                            labelId="select-user-label"
-                                            value={selectedUser?.id ?? ''}
-                                            label="Trocar usuário"
-                                            onChange={handleChangeUser}
-                                        >
-                                            {(usersList || []).map(u => (
-                                                <MenuItem key={u.id} value={u.id}>{u.id} - {u.name || 'Usuário'}</MenuItem>
-                                            ))}
-                                        </Select>
-                                    </FormControl>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                                        <Typography variant="subtitle2">Informações preenchidas</Typography>
-                                        <Tooltip title="Editar dados">
-                                            <IconButton
-                                                size="small"
-                                                onClick={() => navigate('/questionario', { state: { user: selectedUser, antropoData: antropo || {}, dados: dadosCirc || {} } })}
-                                            >
-                                                <EditIcon fontSize="small" />
-                                            </IconButton>
-                                        </Tooltip>
-                                    </Box>
-                                    <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1, mb: 2 }}>
-                                        {antropo && Object.entries(antropo).map(([key, value]) => (
-                                            value ? <Typography key={`antropo-${key}`} variant="body2">{key}: {value}</Typography> : null
-                                        ))}
-                                        {dadosCirc && Object.entries(dadosCirc).map(([key, value]) => (
-                                            value ? <Typography key={`circ-${key}`} variant="body2">{key}: {value}</Typography> : null
-                                        ))}
-                                    </Box>
-                                    <Button
-                                        variant="outlined"
-                                        color="primary"
-                                        size="small"
-                                        sx={{ mt: 1, alignSelf: 'center', fontSize: '0.85rem', px: 2 }}
-                                        onClick={() => navigate('/gestor')}
-                                    >
-                                        Voltar para gerenciamento de usuários
-                                    </Button>
-                                </>
-                            ) : (
-                                <Typography variant="body1" color="text.secondary" sx={{ p: 2 }}>
-                                    Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
-                                </Typography>
-                            )}
-                        </Paper>
-                    </Box>
-                )}
-            </Box>
-        );
-    };
-
+// MinimalSidebar component
+function MinimalSidebar() {
     return (
-        <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', display: "flex", width: '100%' }}>
-            <MinimalSidebar />
-            <UserDetailDrawer />
-            <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, overflowY: 'auto' }}>
-                <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
-                    {loadingUsers ? (
-                        <Typography variant="h6" color="primary" sx={{ textAlign: 'center', mt: 6 }}>
-                            Carregando usuários...
-                        </Typography>
-                    ) : usersList.length === 0 ? (
-                        <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', mt: 6 }}>
-                            Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
-                        </Typography>
-                    ) : (
-                        <>
-                            <Typography variant="h5" gutterBottom>Resumo dos Dados de Circunferência</Typography>
-                            <Typography variant="body1" sx={{ mb: 4 }}>
-                                Aqui está um resumo dos dados mais importantes para sua avaliação nutricional.
-                            </Typography>
-                            <Grid container spacing={4} sx={{ mb: 4 }}>
-                                <Grid item xs={12} md={7}>
-                                    <Typography variant="h6" gutterBottom>Indicadores Antropométricos</Typography>
-                                    <KpiLayout />
-                                </Grid>
-                                <Grid item xs={12} md={5}>
-                                    <Paper elevation={0} sx={{ p: 3, height: '100%', borderLeft: '3px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
-                                        <Typography variant="subtitle1" fontWeight="bold" color="primary">
-                                            Bem-vindo à sua experiência FIttNutri
-                                        </Typography>
-                                        <Typography variant="body1" sx={{ mt: 2, lineHeight: 1.8 }}>
-                                            <span style={{ color: '#185a2e', fontWeight: 700 }}>FittNutri</span> utiliza seus <span style={{ color: '#185a2e', fontWeight: 700 }}>dados</span> para proporcionar uma <span style={{ color: '#ff9800', fontWeight: 700 }}>consulta mais precisa</span> e personalizada. Nossa equipe está dedicada a oferecer <span style={{ color: '#185a2e', fontWeight: 700 }}>monitoramento</span> contínuo e <span style={{ color: '#ff9800', fontWeight: 700 }}>auxílio</span> para atender às suas <span style={{ color: '#185a2e', fontWeight: 700 }}>necessidades nutricionais</span>.
-                                            <br /><br />
-                                            Com o acompanhamento dos <span style={{ color: '#185a2e', fontWeight: 700 }}>Indicadores Antropométricos</span>, você terá clareza sobre seu progresso e metas. Conte com a <span style={{ color: '#185a2e', fontWeight: 700 }}>FittNutri</span> para serviços de <span style={{ color: '#185a2e', fontWeight: 700 }}>monitoramento</span>, <span style={{ color: '#ff9800', fontWeight: 700 }}>consultoria</span> e suporte em todas as etapas da sua jornada de saúde!
-                                        </Typography>
-                                    </Paper>
-                                </Grid>
-                            </Grid>
-                            <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 3 }}>Serviços de Nutricionismo</Typography>
-                            <Box sx={{
-                                display: 'grid',
-                                gap: 2,
-                                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }
-                            }}>
-                                {servicos.map((serv, idx) => (
-                                    <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 280, p: 1, boxShadow: 3 }}>
-                                        <Box sx={{ display: 'flex', gap: 1, flexGrow: 1, minHeight: 80 }}>
-                                            <CardMedia component="img" image={serv.imagem} alt={serv.titulo} sx={{ width: 100, height: 80, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }} />
-                                            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                                <Typography variant="subtitle1" fontWeight={600} noWrap>{serv.titulo}</Typography>
-                                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>{serv.descricao}</Typography>
-                                            </Box>
-                                        </Box>
-                                        <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                                            <Button
-                                                variant="contained"
-                                                color="primary"
-                                                size="small"
-                                                sx={{ minWidth: 100 }}
-                                                onClick={() => navigate('/dashboard')}
-                                            >
-                                                Ver serviço
-                                            </Button>
-                                        </Box>
-                                    </Card>
-                                ))}
-                            </Box>
-                        </>
-                    )}
-                </Paper>
-            </Box>
+        <Box
+            sx={{
+                width: minimalWidth,
+                minWidth: minimalWidth,
+                bgcolor: 'grey.100',
+                borderRight: '1px solid #e0e0e0',
+                p: 2,
+                position: 'sticky',
+                top: 0,
+                height: '15vh',
+                flexShrink: 0,
+                zIndex: 1000,
+                borderRadius: 2,
+                overflowX: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+            }}
+        >
+            <Tooltip title="Expandir Menu" placement="right">
+                <IconButton color="primary">
+                    <MenuIcon />
+                </IconButton>
+            </Tooltip>
         </Box>
     );
+}
+
+// UserDetailDrawer component (shows sidebar content if needed)
+function UserDetailDrawer() {
+    // For demo, just return null or you can render UserSidebarContent if needed
+    return null;
+}
+
+// KpiLayout component (shows KPIs)
+function KpiLayout() {
+    return (
+        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
+            <KpiCarouselCard
+                title="Peso Atual"
+                value={pesoAtual ?? '-'}
+                unit="kg"
+                description="Seu peso atual"
+                icon={ScaleIcon}
+                imageId="pesoAtual"
+                valueColor={primary}
+            />
+            <KpiCarouselCard
+                title="Peso Meta"
+                value={pesoMeta ?? '-'}
+                unit="kg"
+                description="Meta de peso ideal"
+                icon={TrendingUpIcon}
+                imageId="pesoMeta"
+                valueColor={success}
+            />
+            <KpiCarouselCard
+                title="IMC"
+                value={imcValue ?? '-'}
+                unit=""
+                description={imcClass}
+                icon={FitnessCenterIcon}
+                imageId="imc"
+                valueColor={primary}
+            />
+            <KpiCarouselCard
+                title="TMB"
+                value={tmbValue ?? '-'}
+                unit="kcal"
+                description="Taxa Metabólica Basal"
+                icon={LocalFireDepartmentIcon}
+                imageId="tmb"
+                valueColor={success}
+            />
+        </Box>
+    );
+}
+
+return (
+    <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', display: "flex", width: '100%' }}>
+        <MinimalSidebar />
+        <UserDetailDrawer />
+        <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, overflowY: 'auto' }}>
+            <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
+                {loadingUsers ? (
+                    <Typography variant="h6" color="primary" sx={{ textAlign: 'center', mt: 6 }}>
+                        Carregando usuários...
+                    </Typography>
+                ) : usersList.length === 0 ? (
+                    <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', mt: 6 }}>
+                        Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
+                    </Typography>
+                ) : (
+                    <>
+                        <Typography variant="h5" gutterBottom>Resumo dos Dados de Circunferência</Typography>
+                        <Typography variant="body1" sx={{ mb: 4 }}>
+                            Aqui está um resumo dos dados mais importantes para sua avaliação nutricional.
+                        </Typography>
+                        <Grid container spacing={4} sx={{ mb: 4 }}>
+                            <Grid item xs={12} md={7}>
+                                <Typography variant="h6" gutterBottom>Indicadores Antropométricos</Typography>
+                                <KpiLayout />
+                            </Grid>
+                            <Grid item xs={12} md={5}>
+                                <Paper elevation={0} sx={{ p: 3, height: '100%', borderLeft: '3px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
+                                    <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                                        Bem-vindo à sua experiência FIttNutri
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ mt: 2, lineHeight: 1.8 }}>
+                                        <span style={{ color: '#185a2e', fontWeight: 700 }}>FittNutri</span> utiliza seus <span style={{ color: '#185a2e', fontWeight: 700 }}>dados</span> para proporcionar uma <span style={{ color: '#ff9800', fontWeight: 700 }}>consulta mais precisa</span> e personalizada. Nossa equipe está dedicada a oferecer <span style={{ color: '#185a2e', fontWeight: 700 }}>monitoramento</span> contínuo e <span style={{ color: '#ff9800', fontWeight: 700 }}>auxílio</span> para atender às suas <span style={{ color: '#185a2e', fontWeight: 700 }}>necessidades nutricionais</span>.
+                                        <br /><br />
+                                        Com o acompanhamento dos <span style={{ color: '#185a2e', fontWeight: 700 }}>Indicadores Antropométricos</span>, você terá clareza sobre seu progresso e metas. Conte com a <span style={{ color: '#185a2e', fontWeight: 700 }}>FittNutri</span> para serviços de <span style={{ color: '#185a2e', fontWeight: 700 }}>monitoramento</span>, <span style={{ color: '#ff9800', fontWeight: 700 }}>consultoria</span> e suporte em todas as etapas da sua jornada de saúde!
+                                    </Typography>
+                                </Paper>
+                            </Grid>
+                        </Grid>
+                        <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 3 }}>Serviços de Nutricionismo</Typography>
+                        <Box sx={{
+                            display: 'grid',
+                            gap: 2,
+                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }
+                        }}>
+                            {servicos.map((serv, idx) => (
+                                <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 280, p: 1, boxShadow: 3 }}>
+                                    <Box sx={{ display: 'flex', gap: 1, flexGrow: 1, minHeight: 80 }}>
+                                        <CardMedia component="img" image={serv.imagem} alt={serv.titulo} sx={{ width: 100, height: 80, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }} />
+                                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                            <Typography variant="subtitle1" fontWeight={600} noWrap>{serv.titulo}</Typography>
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>{serv.descricao}</Typography>
+                                        </Box>
+                                    </Box>
+                                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            size="small"
+                                            sx={{ minWidth: 100 }}
+                                            onClick={() => navigate('/dashboard')}
+                                        >
+                                            Ver serviço
+                                        </Button>
+                                    </Box>
+                                </Card>
+                            ))}
+                        </Box>
+                    </>
+                )}
+            </Paper>
+        </Box>
+    </Box>
+);
 }
