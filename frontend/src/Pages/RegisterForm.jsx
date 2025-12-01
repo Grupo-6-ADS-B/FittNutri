@@ -77,8 +77,15 @@ function RegisterForm() {
 
     try {
       const resp = await api.post('/users', payload);
+      sessionStorage.setItem('token', resp.data?.token);
+      sessionStorage.setItem('nomeUsuario', data.name);
+      sessionStorage.setItem('emailUsuario', data.email);
+      sessionStorage.setItem('cpfUsuario', data.cpf);
+      sessionStorage.setItem('crnUsuario', data.crn);
+      sessionStorage.setItem('idUsuario', resp.data?.id ? String(resp.data.id) : '');
+
       setSuccess(resp.data?.message ?? 'Cadastro realizado com sucesso.');
-      setTimeout(() => navigate('/login'), 1200);
+      setTimeout(() => navigate('/gestor'), 1200);
     } catch (err) {
       const status = err.response?.status;
       const msg = err.response?.data?.message;

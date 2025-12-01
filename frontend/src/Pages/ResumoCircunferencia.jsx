@@ -123,36 +123,57 @@ export default function ResumoCircunferencia() {
     
     const [usersList, setUsersList] = React.useState([]);
     const [selectedUser, setSelectedUser] = React.useState(null);
+    const [loadingUsers, setLoadingUsers] = React.useState(true);
     useEffect(() => {
         async function fetchUsers() {
+            setLoadingUsers(true);
             try {
                 const response = await api.get('/users');
                 setUsersList(Array.isArray(response.data) ? response.data : []);
-                setSelectedUser(response.data?.[0] || null);
+                // Prioriza usuário vindo do location.state
+                if (location.state?.user) {
+                    setSelectedUser(location.state.user);
+                } else {
+                    setSelectedUser(response.data?.[0] || null);
+                }
             } catch {
                 setUsersList([]);
+                setSelectedUser(location.state?.user || null);
             }
+            setLoadingUsers(false);
         }
         fetchUsers();
-    }, []);
+    }, [location.state?.user]);
 
     const [antropo, setAntropo] = React.useState({});
     const [dadosCirc, setDadosCirc] = React.useState({});
     useEffect(() => {
         async function fetchData() {
             if (!selectedUser?.id) return;
-            try {
-                const antropoRes = await api.get(`/anthropometric/${selectedUser.id}`);
-                setAntropo(antropoRes.data || {});
-                const circRes = await api.get(`/circumference/${selectedUser.id}`);
-                setDadosCirc(circRes.data || {});
-            } catch {
-                setAntropo({});
-                setDadosCirc({});
+            // Prioriza dados vindos do location.state
+            if (location.state?.antropoData) {
+                setAntropo(location.state.antropoData);
+            } else {
+                try {
+                    const antropoRes = await api.get(`/anthropometric/${selectedUser.id}`);
+                    setAntropo(antropoRes.data || {});
+                } catch {
+                    setAntropo({});
+                }
+            }
+            if (location.state?.dados) {
+                setDadosCirc(location.state.dados);
+            } else {
+                try {
+                    const circRes = await api.get(`/circumference/${selectedUser.id}`);
+                    setDadosCirc(circRes.data || {});
+                } catch {
+                    setDadosCirc({});
+                }
             }
         }
         fetchData();
-    }, [selectedUser?.id]);
+    }, [selectedUser?.id, location.state?.antropoData, location.state?.dados]);
 
     const handleChangeUser = (e) => {
         const uid = e.target.value;
@@ -326,59 +347,67 @@ export default function ResumoCircunferencia() {
                     bgcolor: 'white',
                 }}
             >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                    <Avatar 
-                        src={selectedUser.avatar} 
-                        alt={selectedUser.name} 
-                        sx={{ width: 56, height: 56, border: '2px solid', borderColor: success }} 
-                    />
-                    <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name}</Typography>
-                        <Typography variant="body2" color="text.secondary">{selectedUser.email}</Typography>
-                        <Typography variant="body2" color="text.secondary">{selectedUser.phone}</Typography>
-                    </Box>
-                </Box>
-                <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                    <InputLabel id="select-user-label">Trocar usuário</InputLabel>
-                    <Select
-                        labelId="select-user-label"
-                        value={selectedUser?.id ?? ''}
-                        label="Trocar usuário"
-                        onChange={handleChangeUser}
-                    >
-                        {(usersList || []).map(u => (
-                            <MenuItem key={u.id} value={u.id}>{u.id} - {u.name}</MenuItem>
-                        ))}
-                    </Select>
-                </FormControl>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                    <Typography variant="subtitle2">Informações preenchidas</Typography>
-                    <Tooltip title="Editar dados">
-                        <IconButton
+                {selectedUser ? (
+                    <>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                            <Avatar 
+                                src={selectedUser.avatar || ''} 
+                                alt={selectedUser.name || 'Usuário'} 
+                                sx={{ width: 56, height: 56, border: '2px solid', borderColor: success }} 
+                            />
+                            <Box>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name || 'Usuário'}</Typography>
+                                <Typography variant="body2" color="text.secondary">{selectedUser.email || '-'}</Typography>
+                                <Typography variant="body2" color="text.secondary">{selectedUser.phone || '-'}</Typography>
+                            </Box>
+                        </Box>
+                        <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                            <InputLabel id="select-user-label">Trocar usuário</InputLabel>
+                            <Select
+                                labelId="select-user-label"
+                                value={selectedUser?.id ?? ''}
+                                label="Trocar usuário"
+                                onChange={handleChangeUser}
+                            >
+                                {(usersList || []).map(u => (
+                                    <MenuItem key={u.id} value={u.id}>{u.id} - {u.name || 'Usuário'}</MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                            <Typography variant="subtitle2">Informações preenchidas</Typography>
+                            <Tooltip title="Editar dados">
+                                <IconButton
+                                    size="small"
+                                    onClick={() => navigate('/questionario', { state: { user: selectedUser, antropoData: antropo || {}, dados: dadosCirc || {} } })}
+                                >
+                                    <EditIcon fontSize="small" />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>
+                        <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1, mb: 2 }}>
+                            {antropo && Object.entries(antropo).map(([key, value]) => (
+                                value ? <Typography key={`antropo-${key}`} variant="body2">{key}: {value}</Typography> : null
+                            ))}
+                            {dadosCirc && Object.entries(dadosCirc).map(([key, value]) => (
+                                value ? <Typography key={`circ-${key}`} variant="body2">{key}: {value}</Typography> : null
+                            ))}
+                        </Box>
+                        <Button
+                            variant="outlined"
+                            color="primary"
                             size="small"
-                            onClick={() => navigate('/questionario', { state: { user: selectedUser, antropoData: antropo || {}, dados: dadosCirc || {} } })}
+                            sx={{ mt: 1, alignSelf: 'center', fontSize: '0.85rem', px: 2 }}
+                            onClick={() => navigate('/gestor')}
                         >
-                            <EditIcon fontSize="small" />
-                        </IconButton>
-                    </Tooltip>
-                </Box>
-                <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1, mb: 2 }}>
-                    {antropo && Object.entries(antropo).map(([key, value]) => (
-                        value ? <Typography key={`antropo-${key}`} variant="body2">{key}: {value}</Typography> : null
-                    ))}
-                    {dadosCirc && Object.entries(dadosCirc).map(([key, value]) => (
-                        value ? <Typography key={`circ-${key}`} variant="body2">{key}: {value}</Typography> : null
-                    ))}
-                </Box>
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    size="small"
-                    sx={{ mt: 1, alignSelf: 'center', fontSize: '0.85rem', px: 2 }}
-                    onClick={() => navigate('/gestor')}
-                >
-                    Voltar para gerenciamento de usuários
-                </Button>
+                            Voltar para gerenciamento de usuários
+                        </Button>
+                    </>
+                ) : (
+                    <Typography variant="body1" color="text.secondary" sx={{ p: 2 }}>
+                        Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
+                    </Typography>
+                )}
             </Paper>
         </Drawer>
     );
@@ -424,10 +453,10 @@ export default function ResumoCircunferencia() {
                     }}
                 >
                     {!isSidebarOpen && (
-                        <Tooltip title={selectedUser.name} placement="right">
+                        <Tooltip title={selectedUser?.name || 'Usuário'} placement="right">
                              <Avatar 
-                                src={selectedUser.avatar} 
-                                alt={selectedUser.name} 
+                                src={selectedUser?.avatar || ''} 
+                                alt={selectedUser?.name || 'Usuário'} 
                                 sx={{ 
                                     width: minimalAvatarSize, 
                                     height: minimalAvatarSize, 
@@ -466,55 +495,63 @@ export default function ResumoCircunferencia() {
                             
                             }}
                         >
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                <Avatar src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 56, height: 56, border: '2px solid', borderColor: success }} />
-                                <Box>
-                                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name}</Typography>
-                                    <Typography variant="body2" color="text.secondary">{selectedUser.email}</Typography>
-                                    <Typography variant="body2" color="text.secondary">{selectedUser.phone}</Typography>
-                                </Box>
-                            </Box>
-                            <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-                                <InputLabel id="select-user-label">Trocar usuário</InputLabel>
-                                <Select
-                                    labelId="select-user-label"
-                                    value={selectedUser?.id ?? ''}
-                                    label="Trocar usuário"
-                                    onChange={handleChangeUser}
-                                >
-                                    {(usersList || []).map(u => (
-                                        <MenuItem key={u.id} value={u.id}>{u.id} - {u.name}</MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                                <Typography variant="subtitle2">Informações preenchidas</Typography>
-                                <Tooltip title="Editar dados">
-                                    <IconButton
+                            {selectedUser ? (
+                                <>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                                        <Avatar src={selectedUser.avatar || ''} alt={selectedUser.name || 'Usuário'} sx={{ width: 56, height: 56, border: '2px solid', borderColor: success }} />
+                                        <Box>
+                                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name || 'Usuário'}</Typography>
+                                            <Typography variant="body2" color="text.secondary">{selectedUser.email || '-'}</Typography>
+                                            <Typography variant="body2" color="text.secondary">{selectedUser.phone || '-'}</Typography>
+                                        </Box>
+                                    </Box>
+                                    <FormControl fullWidth size="small" sx={{ mb: 2 }}>
+                                        <InputLabel id="select-user-label">Trocar usuário</InputLabel>
+                                        <Select
+                                            labelId="select-user-label"
+                                            value={selectedUser?.id ?? ''}
+                                            label="Trocar usuário"
+                                            onChange={handleChangeUser}
+                                        >
+                                            {(usersList || []).map(u => (
+                                                <MenuItem key={u.id} value={u.id}>{u.id} - {u.name || 'Usuário'}</MenuItem>
+                                            ))}
+                                        </Select>
+                                    </FormControl>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                                        <Typography variant="subtitle2">Informações preenchidas</Typography>
+                                        <Tooltip title="Editar dados">
+                                            <IconButton
+                                                size="small"
+                                                onClick={() => navigate('/questionario', { state: { user: selectedUser, antropoData: antropo || {}, dados: dadosCirc || {} } })}
+                                            >
+                                                <EditIcon fontSize="small" />
+                                            </IconButton>
+                                        </Tooltip>
+                                    </Box>
+                                    <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1, mb: 2 }}>
+                                        {antropo && Object.entries(antropo).map(([key, value]) => (
+                                            value ? <Typography key={`antropo-${key}`} variant="body2">{key}: {value}</Typography> : null
+                                        ))}
+                                        {dadosCirc && Object.entries(dadosCirc).map(([key, value]) => (
+                                            value ? <Typography key={`circ-${key}`} variant="body2">{key}: {value}</Typography> : null
+                                        ))}
+                                    </Box>
+                                    <Button
+                                        variant="outlined"
+                                        color="primary"
                                         size="small"
-                                        onClick={() => navigate('/questionario', { state: { user: selectedUser, antropoData: antropo || {}, dados: dadosCirc || {} } })}
+                                        sx={{ mt: 1, alignSelf: 'center', fontSize: '0.85rem', px: 2 }}
+                                        onClick={() => navigate('/gestor')}
                                     >
-                                        <EditIcon fontSize="small" />
-                                    </IconButton>
-                                </Tooltip>
-                            </Box>
-                            <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1, mb: 2 }}>
-                                {antropo && Object.entries(antropo).map(([key, value]) => (
-                                    value ? <Typography key={`antropo-${key}`} variant="body2">{key}: {value}</Typography> : null
-                                ))}
-                                {dadosCirc && Object.entries(dadosCirc).map(([key, value]) => (
-                                    value ? <Typography key={`circ-${key}`} variant="body2">{key}: {value}</Typography> : null
-                                ))}
-                            </Box>
-                            <Button
-                                variant="outlined"
-                                color="primary"
-                                size="small"
-                                sx={{ mt: 1, alignSelf: 'center', fontSize: '0.85rem', px: 2 }}
-                                onClick={() => navigate('/gestor')}
-                            >
-                                Voltar para gerenciamento de usuários
-                            </Button>
+                                        Voltar para gerenciamento de usuários
+                                    </Button>
+                                </>
+                            ) : (
+                                <Typography variant="body1" color="text.secondary" sx={{ p: 2 }}>
+                                    Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
+                                </Typography>
+                            )}
                         </Paper>
                     </Box>
                 )}
@@ -524,67 +561,73 @@ export default function ResumoCircunferencia() {
 
     return (
         <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', display: "flex", width: '100%' }}>
-            
             <MinimalSidebar />
-            
             <UserDetailDrawer />
-            
             <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, overflowY: 'auto' }}>
                 <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
-                    
-                    <Typography variant="h5" gutterBottom>Resumo dos Dados de Circunferência</Typography>
-                    <Typography variant="body1" sx={{ mb: 4 }}>
-                        Aqui está um resumo dos dados mais importantes para sua avaliação nutricional.
-                    </Typography>
-                    
-                    <Grid container spacing={4} sx={{ mb: 4 }}>
-                        <Grid item xs={12} md={7}>
-                            <Typography variant="h6" gutterBottom>Indicadores Antropométricos</Typography>
-                            <KpiLayout />
-                        </Grid>
-                        <Grid item xs={12} md={5}>
-                            <Paper elevation={0} sx={{ p: 3, height: '100%', borderLeft: '3px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
-                                <Typography variant="subtitle1" fontWeight="bold" color="primary">
-                                    Bem-vindo à sua experiência FIttNutri
-                                </Typography>
-                                <Typography variant="body1" sx={{ mt: 2, lineHeight: 1.8 }}>
-                                    <span style={{ color: '#185a2e', fontWeight: 700 }}>FittNutri</span> utiliza seus <span style={{ color: '#185a2e', fontWeight: 700 }}>dados</span> para proporcionar uma <span style={{ color: '#ff9800', fontWeight: 700 }}>consulta mais precisa</span> e personalizada. Nossa equipe está dedicada a oferecer <span style={{ color: '#185a2e', fontWeight: 700 }}>monitoramento</span> contínuo e <span style={{ color: '#ff9800', fontWeight: 700 }}>auxílio</span> para atender às suas <span style={{ color: '#185a2e', fontWeight: 700 }}>necessidades nutricionais</span>.
-                                    <br /><br />
-                                    Com o acompanhamento dos <span style={{ color: '#185a2e', fontWeight: 700 }}>Indicadores Antropométricos</span>, você terá clareza sobre seu progresso e metas. Conte com a <span style={{ color: '#185a2e', fontWeight: 700 }}>FittNutri</span> para serviços de <span style={{ color: '#185a2e', fontWeight: 700 }}>monitoramento</span>, <span style={{ color: '#ff9800', fontWeight: 700 }}>consultoria</span> e suporte em todas as etapas da sua jornada de saúde!
-                                </Typography>
-                            </Paper>
-                        </Grid>
-                    </Grid>
-                    
-                    <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 3 }}>Serviços de Nutricionismo</Typography>
-                    <Box sx={{
-                        display: 'grid',
-                        gap: 2,
-                        gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }
-                    }}>
-                        {servicos.map((serv, idx) => (
-                            <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 280, p: 1, boxShadow: 3 }}>
-                                <Box sx={{ display: 'flex', gap: 1, flexGrow: 1, minHeight: 80 }}>
-                                    <CardMedia component="img" image={serv.imagem} alt={serv.titulo} sx={{ width: 100, height: 80, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }} />
-                                    <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                        <Typography variant="subtitle1" fontWeight={600} noWrap>{serv.titulo}</Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>{serv.descricao}</Typography>
-                                    </Box>
-                                </Box>
-                                <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                                    <Button
-                                        variant="contained"
-                                        color="primary"
-                                        size="small"
-                                        sx={{ minWidth: 100 }}
-                                        onClick={() => navigate('/dashboard')}
-                                    >
-                                        Ver serviço
-                                    </Button>
-                                </Box>
-                            </Card>
-                        ))}
-                    </Box>
+                    {loadingUsers ? (
+                        <Typography variant="h6" color="primary" sx={{ textAlign: 'center', mt: 6 }}>
+                            Carregando usuários...
+                        </Typography>
+                    ) : usersList.length === 0 ? (
+                        <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', mt: 6 }}>
+                            Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
+                        </Typography>
+                    ) : (
+                        <>
+                            <Typography variant="h5" gutterBottom>Resumo dos Dados de Circunferência</Typography>
+                            <Typography variant="body1" sx={{ mb: 4 }}>
+                                Aqui está um resumo dos dados mais importantes para sua avaliação nutricional.
+                            </Typography>
+                            <Grid container spacing={4} sx={{ mb: 4 }}>
+                                <Grid item xs={12} md={7}>
+                                    <Typography variant="h6" gutterBottom>Indicadores Antropométricos</Typography>
+                                    <KpiLayout />
+                                </Grid>
+                                <Grid item xs={12} md={5}>
+                                    <Paper elevation={0} sx={{ p: 3, height: '100%', borderLeft: '3px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
+                                        <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                                            Bem-vindo à sua experiência FIttNutri
+                                        </Typography>
+                                        <Typography variant="body1" sx={{ mt: 2, lineHeight: 1.8 }}>
+                                            <span style={{ color: '#185a2e', fontWeight: 700 }}>FittNutri</span> utiliza seus <span style={{ color: '#185a2e', fontWeight: 700 }}>dados</span> para proporcionar uma <span style={{ color: '#ff9800', fontWeight: 700 }}>consulta mais precisa</span> e personalizada. Nossa equipe está dedicada a oferecer <span style={{ color: '#185a2e', fontWeight: 700 }}>monitoramento</span> contínuo e <span style={{ color: '#ff9800', fontWeight: 700 }}>auxílio</span> para atender às suas <span style={{ color: '#185a2e', fontWeight: 700 }}>necessidades nutricionais</span>.
+                                            <br /><br />
+                                            Com o acompanhamento dos <span style={{ color: '#185a2e', fontWeight: 700 }}>Indicadores Antropométricos</span>, você terá clareza sobre seu progresso e metas. Conte com a <span style={{ color: '#185a2e', fontWeight: 700 }}>FittNutri</span> para serviços de <span style={{ color: '#185a2e', fontWeight: 700 }}>monitoramento</span>, <span style={{ color: '#ff9800', fontWeight: 700 }}>consultoria</span> e suporte em todas as etapas da sua jornada de saúde!
+                                        </Typography>
+                                    </Paper>
+                                </Grid>
+                            </Grid>
+                            <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 3 }}>Serviços de Nutricionismo</Typography>
+                            <Box sx={{
+                                display: 'grid',
+                                gap: 2,
+                                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }
+                            }}>
+                                {servicos.map((serv, idx) => (
+                                    <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 280, p: 1, boxShadow: 3 }}>
+                                        <Box sx={{ display: 'flex', gap: 1, flexGrow: 1, minHeight: 80 }}>
+                                            <CardMedia component="img" image={serv.imagem} alt={serv.titulo} sx={{ width: 100, height: 80, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }} />
+                                            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                                <Typography variant="subtitle1" fontWeight={600} noWrap>{serv.titulo}</Typography>
+                                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>{serv.descricao}</Typography>
+                                            </Box>
+                                        </Box>
+                                        <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                                            <Button
+                                                variant="contained"
+                                                color="primary"
+                                                size="small"
+                                                sx={{ minWidth: 100 }}
+                                                onClick={() => navigate('/dashboard')}
+                                            >
+                                                Ver serviço
+                                            </Button>
+                                        </Box>
+                                    </Card>
+                                ))}
+                            </Box>
+                        </>
+                    )}
                 </Paper>
             </Box>
         </Box>

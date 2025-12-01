@@ -44,19 +44,39 @@ export default function UserGestor() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const stored = localStorage.getItem('users');
-      async function fetchUsers() {
-        try {
-          const response = await api.get('/users');
-          setUsers(Array.isArray(response.data) ? response.data : []);
-        } catch (error) {
-          setUsers([]); // fallback vazio
-        }
+    async function fetchUsers() {
+      try {
+        const response = await api.get('/patients');
+        const mapped = Array.isArray(response.data)
+          ? response.data.map(u => ({
+              id: u.id ?? u.ID ?? u.idUsuario ?? u.codigo ?? undefined,
+              name: u.name ?? u.nome ?? '',
+              email: u.email ?? '',
+              telefone: u.telefone ?? u.phone ?? '',
+              cidade: u.cidade ?? u.city ?? '',
+              avatar: u.avatar ?? '',
+              cpf: u.cpf ?? '',
+              crn: u.crn ?? '',
+            }))
+          : [];
+        setUsers(mapped);
+      } catch (error) {
+        setUsers([]); 
       }
-      fetchUsers();
-    }, []);
+    }
+    fetchUsers();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUsers();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
   const handleAddUser = () => {
-    navigate("/register");
+    navigate("/register-patient");
   };
 
   const requestDeleteUser = (user) => {
@@ -69,7 +89,7 @@ export default function UserGestor() {
     const uid = userToDelete.id;
     (async () => {
       try {
-        await api.delete(`/users/${uid}`);
+        await api.delete(`/patients/${uid}`);
         setUsers((prev) => prev.filter(u => u.id !== uid));
       } catch {
         // ignore

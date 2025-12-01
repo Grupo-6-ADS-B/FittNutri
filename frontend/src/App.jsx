@@ -14,6 +14,8 @@ import ResumoCircunferencia from "./Pages/ResumoCircunferencia";
 import Diet from "./Pages/Diet";
 import Dashboard from "./Pages/Dashboard";
 
+import PatientRegister from './Pages/PatientRegister';
+
 function Layout() {
   const navigate = useNavigate();
 
@@ -58,7 +60,7 @@ function App() {
               <Route path="/" element={<Main />} />
               <Route path="/login" element={<LoginForm />} />
               <Route path="/auth" element={<RegisterForm />} />
-              <Route path="/register" element={<UserRegister />} />
+              <Route path="/register-patient" element={<PatientRegister />} />
               <Route path="/questionario" element={<QuestionarioStepper />} />
               <Route path="/resumo-circunferencia" element={<ResumoCircunferencia />} />
               <Route path="/gestor" element={<UserGestor />} />
