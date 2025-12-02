@@ -1,10 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Grid, TextField, Button, IconButton, List, ListItem, ListItemText, Box, FormControl, InputLabel, Select, MenuItem,
   Autocomplete, CircularProgress
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import api from '../utils/api';
+
 
 export default function MealModal({ open, onClose, onSave, initial = null }) {
   const [meal, setMeal] = useState({ horario: '', descricao: '', alimentos: [], observacao: '' });
@@ -13,33 +15,30 @@ export default function MealModal({ open, onClose, onSave, initial = null }) {
     setMeal(initial ?? { horario: '', descricao: '', alimentos: [], observacao: '' });
   }, [initial, open]);
 
-const handleChange = (key) => (eventOrValue) => {
-  let value;
 
-  if (eventOrValue?.target) {
-    value = eventOrValue.target.value;
-  } 
-  else {
-    value = eventOrValue ?? '';
-  }
+  const [query, setQuery] = useState('');
+  const [options, setOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedFood, setSelectedFood] = useState(null);
+  const [selectedQuantity, setSelectedQuantity] = useState(100);
+  const [selectedUnit, setSelectedUnit] = useState('g');
+  const units = ['g', 'ml', 'un', 'porção'];
 
-  setMeal(prev => ({ ...prev, [key]: value }));
-};
+  const handleChange = (key) => (eventOrValue) => {
+    let value;
+
+    if (eventOrValue?.target) {
+      value = eventOrValue.target.value;
+    } 
+    else {
+      value = eventOrValue ?? '';
+    }
+
+    setMeal(prev => ({ ...prev, [key]: value }));
+  };
 
   const removeFood = (id) => setMeal(prev => ({ ...prev, alimentos: prev.alimentos.filter(a => a.id !== id) }));
 
-  const mockFoods = useMemo(() => ([
-    { id: 1, nome: 'Arroz integral' },
-    { id: 2, nome: 'Feijão carioca' },
-    { id: 3, nome: 'Peito de frango grelhado' },
-    { id: 4, nome: 'Ovo cozido' },
-    { id: 5, nome: 'Banana prata' },
-    { id: 6, nome: 'Maçã' },
-    { id: 7, nome: 'Iogurte natural' },
-    { id: 8, nome: 'Aveia em flocos' },
-    { id: 9, nome: 'Batata doce' },
-    { id: 10, nome: 'Salada verde' }
-  ]), []);
   
   const times = useMemo(() => {
     const out = [];
@@ -53,57 +52,73 @@ const handleChange = (key) => (eventOrValue) => {
     return out;
   }, []);
 
-const fetchFoods = async (q) => {
-  const term = String(q || '').trim().toLowerCase();
+  const fetchController = useRef(null);
 
-  return mockFoods.filter(f =>
-    f.nome.toLowerCase().includes(term)
-  );
-};
-
-  const [query, setQuery] = useState('');
-  const [options, setOptions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedFood, setSelectedFood] = useState(null);
-
-  const [selectedQuantity, setSelectedQuantity] = useState(100);
-  const [selectedUnit, setSelectedUnit] = useState('g');
-  const units = ['g', 'mg', 'unidade', 'colher de sopa', 'copo americano'];
+  const fetchFoods = async (q) => {
+    const term = String(q || '').trim();
+    if (!term) return [];
+    try {
+      const resp = await api.get('/food-itens/search-part', { params: { nomeParte: term } });
+      return Array.isArray(resp.data) ? resp.data : [];
+    } catch (e) {
+      console.error('Erro buscando alimentos:', e);
+      return [];
+    }
+  };
 
   useEffect(() => {
-    let active = true;
+    let mounted = true;
     setLoading(true);
-    fetchFoods(query).then(list => {
-      if (!active) return;
-      setOptions(list);
-      setLoading(false);
-    });
-    return () => { active = false; };
+    if (fetchController.current) {
+      fetchController.current = null;
+    }
+    const handler = setTimeout(() => {
+      if (!mounted) return;
+      if (!query || String(query).trim() === '') {
+        setOptions([]);
+        setLoading(false);
+        return;
+      }
+      fetchFoods(query).then(list => {
+        if (!mounted) return;
+        setOptions(list);
+        setLoading(false);
+      }).catch(() => {
+        if (!mounted) return;
+        setOptions([]);
+        setLoading(false);
+      });
+    }, 300);
+
+    return () => {
+      mounted = false;
+      clearTimeout(handler);
+    };
   }, [query]);
 
   const handleAddSelectedFood = () => {
-  if (!selectedFood || typeof selectedFood !== "object") {
-    setError("Selecione um alimento válido da lista.");
-    return;
-  }
+    if (!selectedFood || typeof selectedFood !== "object") {
+      setError("Selecione um alimento válido da lista.");
+      return;
+    }
 
-  const proximoAlimento = {
-    id: crypto.randomUUID(),
-    nome: selectedFood.nome,
-    quantidade: Number(selectedQuantity),
-    unidade: selectedUnit
+    const proximoAlimento = {
+      id: crypto.randomUUID(),
+      nome: selectedFood.nome,
+      quantidade: Number(selectedQuantity),
+      unidade: selectedUnit
+    };
+
+    setMeal(prev => ({
+      ...prev,
+      alimentos: [...prev.alimentos, proximoAlimento]
+    }));
+
+    setSelectedFood(null);
+    setQuery('');
+    setSelectedQuantity(100);
+    setSelectedUnit('g');
   };
-
-  setMeal(prev => ({
-    ...prev,
-    alimentos: [...prev.alimentos, proximoAlimento]
-  }));
-
-  setSelectedFood(null);
-  setQuery('');
-  setSelectedQuantity(100);
-  setSelectedUnit('g');
-};
 
   const handleSave = () => {
     if (onSave) onSave(meal);
