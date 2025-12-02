@@ -336,50 +336,7 @@ export default function UserGestor() {
       <CssBaseline />
       <Box sx={{ display: "flex", minHeight: "88vh" }}>
         
-        <Box
-          sx={{
-            width: sidebarWidth,
-            p: 2,
-            bgcolor: "linear-gradient(180deg, #aed9aeff 0%, #475447ff 100%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 2,
-            minHeight: "100vh",
-            position: "sticky",
-            top: 0,
-            borderRight: "1px solid rgba(0,0,0,0.04)"
-          }}
-        >
-          <Avatar sx={{ bgcolor: "transparent", mb: 1, width: 56, height: 56, boxShadow: "0 2px 6px rgba(46,125,50,0.08)" }}>
-          </Avatar>
 
-          <Button
-            onClick={openWeekDialog}
-            sx={{
-              width: 100,
-              height: 56,
-              borderRadius: 3,
-              bgcolor: "#2e7d32",
-              color: "#fff",
-              boxShadow: "0 6px 14px rgba(46,125,50,0.12)",
-              textTransform: "none",
-              fontSize: 11,
-              lineHeight: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              "&:hover": { bgcolor: "#27692c" }
-            }}
-          >
-            <CalendarTodayIcon sx={{ fontSize: 18, mb: 0.3 }} />
-            <span style={{ whiteSpace: "pre-line", fontWeight: 700 }}>VER{"\n"}CONSULTAS</span>
-          </Button>
-
-          <Box sx={{ flex: 1 }} />
-
-        </Box>
 
         <Box
           sx={{
@@ -413,24 +370,46 @@ export default function UserGestor() {
               <Typography variant="h5">Gerenciamento de Usuários</Typography>
 
               <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                <TextField
-                  select
-                  size="small"
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <FilterListIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                >
-                  <MenuItem value="name">Nome</MenuItem>
-                  <MenuItem value="email">Email</MenuItem>
-                  <MenuItem value="telefone">Telefone</MenuItem>
-                  <MenuItem value="cidade">Cidade</MenuItem>
-                </TextField>
+                        <Button
+              onClick={openWeekDialog}
+              variant="contained"
+              startIcon={
+                <Box sx={{ bgcolor: "#fff", borderRadius: "50%", p: 0.7, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 6px rgba(0,0,0,0.08)" }}>
+                  <CalendarTodayIcon sx={{ color: "#2e7d32", fontSize: 20 }} />
+                </Box>
+              }
+              sx={{
+                height: 56,
+                borderRadius: 8,
+                bgcolor: "linear-gradient(180deg, #2e7d32, #256026)",
+                color: "#fff",
+                boxShadow: "0 10px 30px rgba(46,125,50,0.12)",
+                textTransform: "none",
+                display: "flex",
+                alignItems: "center",
+                "&:hover": { bgcolor: "#27692c", boxShadow: "0 12px 34px rgba(38,114,44,0.14)" }
+              }}
+            >
+              Consultas
+            </Button>
+               <TextField
+                 select
+                 size="small"
+                 value={filterType}
+                 onChange={(e) => setFilterType(e.target.value)}
+                 InputProps={{
+                   startAdornment: (
+                     <InputAdornment position="start">
+                       <FilterListIcon />
+                     </InputAdornment>
+                   ),
+                 }}
+               >
+                 <MenuItem value="name">Nome</MenuItem>
+                 <MenuItem value="email">Email</MenuItem>
+                 <MenuItem value="telefone">Telefone</MenuItem>
+                 <MenuItem value="cidade">Cidade</MenuItem>
+               </TextField>
 
                 <TextField
                   size="small"
@@ -460,28 +439,49 @@ export default function UserGestor() {
             <List sx={{ flex: 1, overflowY: "auto" }}>
               {filteredUsers.map((user, index) => (
                 <React.Fragment key={user?.id || index}>
-                  <ListItem sx={{ my: 1, borderRadius: "15px" }}>
-                    <ListItemAvatar>
-                      <Avatar src={user.avatar} sx={{ border: "2px solid #2e7d32" }} />
-                    </ListItemAvatar>
-
-                    <ListItemText primary={user.name} />
-                    <ListItemText primary={user.email} />
-                    <ListItemText primary={user.telefone} />
-                    <ListItemText primary={user.cidade} />
-
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => openScheduleDialog(user)}
+                  <ListItem sx={{ my: 1, borderRadius: "15px", px: 0 }}>
+                    <Box
+                      sx={{
+                        display: "grid",
+                        alignItems: "center",
+                        width: "100%",
+                        gap: 2,
+                        gridTemplateColumns: {
+                          xs: "56px 1fr auto",
+                          sm: "56px 2fr 2fr 1.2fr 1fr auto"
+                        }
+                      }}
                     >
-                      AGENDAR CONSULTA
-                    </Button>
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Avatar src={user.avatar} sx={{ border: "2px solid #2e7d32" }} />
+                      </Box>
 
-          
-                    <IconButton onClick={() => requestDeleteUser(user)}>
-                      <DeleteIcon />
-                    </IconButton>
+                      <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                        <Typography sx={{ fontWeight: 500 }}>{user.name}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: { xs: "block", sm: "none" } }}>{user.email}</Typography>
+                      </Box>
+
+                      <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
+                        {user.email}
+                      </Typography>
+
+                      <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
+                        {user.telefone}
+                      </Typography>
+
+                      <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
+                        {user.cidade}
+                      </Typography>
+
+                      <Box sx={{ display: "flex", gap: 1, alignItems: "center", justifyContent: "flex-end" }}>
+                        <Button variant="outlined" size="small" onClick={() => openScheduleDialog(user)}>
+                          AGENDAR CONSULTA
+                        </Button>
+                        <IconButton onClick={() => requestDeleteUser(user)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
                   </ListItem>
 
                   {index < filteredUsers.length - 1 && (
