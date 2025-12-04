@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import api from '../utils/api';
 import {
   Box,
   Button,
@@ -46,7 +47,7 @@ const numericInputHandler = (value) => {
 
 export default function QuestionarioStepper() {
   const [activeStep, setActiveStep] = useState(0);
-  const [openModal, setOpenModal] = useState(false);
+  const [openModal, _setOpenModal] = useState(false);
   const [completed, setCompleted] = useState({ antropo: false, circ: false });
   const [saveToastOpen, setSaveToastOpen] = useState(false);
   const hydrationRef = React.useRef(false);
@@ -56,7 +57,7 @@ export default function QuestionarioStepper() {
     try {
       const payload = { antropoData: aData, circData: cData, completed: comp };
       localStorage.setItem(`questionario_${uid}`, JSON.stringify(payload));
-    } catch {}
+  } catch { /* ignore storage errors */ }
   }, []);
   const location = useLocation();
   const mockUsers = [
@@ -95,7 +96,7 @@ export default function QuestionarioStepper() {
   
   useEffect(() => {
     if (!selectedUser?.id) return;
-    try { localStorage.setItem('lastUserId', String(selectedUser.id)); } catch {}
+  try { localStorage.setItem('lastUserId', String(selectedUser.id)); } catch { /* ignore */ }
     const stored = localStorage.getItem(`questionario_${selectedUser.id}`);
     if (stored) {
       try {
@@ -103,7 +104,7 @@ export default function QuestionarioStepper() {
         if (parsed.antropoData) setAntropoData(prev => ({ ...prev, ...parsed.antropoData }));
         if (parsed.circData) setCircData(prev => ({ ...prev, ...parsed.circData }));
         if (parsed.completed) setCompleted(parsed.completed);
-      } catch {}
+  } catch { /* ignore parse errors */ }
     }
     hydrationRef.current = false;
     const t = setTimeout(() => { hydrationRef.current = true; }, 800);
@@ -147,7 +148,7 @@ export default function QuestionarioStepper() {
       avatar: userInfo?.avatar || ''
     });
   };
-  const saveEditUser = () => {
+  const saveEditUser = async () => {
     const updated = {
       ...userInfo,
       name: userDraft.name,
@@ -159,6 +160,9 @@ export default function QuestionarioStepper() {
     setUserInfo(updated);
     setIsEditingUser(false);
     try {
+      // Atualiza no backend
+      await api.put(`/users/${updated.id}`, updated);
+      // Atualiza localStorage para fallback/offline
       const stored = localStorage.getItem('users');
       const arr = stored ? JSON.parse(stored) : [];
       if (Array.isArray(arr)) {
@@ -170,7 +174,11 @@ export default function QuestionarioStepper() {
         }
         localStorage.setItem('users', JSON.stringify(arr));
       }
-    } catch {}
+      // Atualiza o nome do usuário no sessionStorage
+      sessionStorage.setItem('nomeUsuario', updated.name);
+    } catch (e) {
+      // ignore errors
+    }
   };
   const onChangeDraft = (field) => (e) => {
     setUserDraft(prev => ({ ...prev, [field]: e.target.value }));
@@ -187,37 +195,43 @@ export default function QuestionarioStepper() {
     reader.readAsDataURL(file);
   };
 
-  const handleAntropoChange = (field) => (event) => {
+  const handleAntropoChange = (field) => async (event) => {
     const inputValue = event.target.value;
     const numericFields = ['peso', 'altura', 'idade', 'porcentagemGordura', 'massaMuscular', 'gorduraVisceral', 'taxaMetabolicaBasal'];
     if (field === 'idadeMetabolica') numericFields.push('idadeMetabolica');
     if (numericFields.includes(field)) {
       const sanitizedValue = numericInputHandler(inputValue);
       if (sanitizedValue !== null) {
-        setAntropoData(d => {
-          const next = { ...d, [field]: sanitizedValue };
-          persistData(selectedUser?.id, next, circData, completed);
-          return next;
-        });
+        next = { ...antropoData, [field]: sanitizedValue };
+        setAntropoData(next);
+        persistData(selectedUser?.id, next, circData, completed);
       }
     } else {
-      setAntropoData(d => {
-        const next = { ...d, [field]: inputValue };
-        persistData(selectedUser?.id, next, circData, completed);
-        return next;
-      });
+      next = { ...antropoData, [field]: inputValue };
+      setAntropoData(next);
+      persistData(selectedUser?.id, next, circData, completed);
     }
+    // Envia para o backend
+    try {
+      if (selectedUser?.id) {
+        await api.put(`/anthropometric/${selectedUser.id}`, next);
+      }
+    } catch (e) { /* ignore */ }
   };
 
-  const handleCircChange = (field) => (event) => {
+  const handleCircChange = (field) => async (event) => {
     const inputValue = event.target.value;
     const sanitizedValue = numericInputHandler(inputValue);
     if (sanitizedValue !== null) {
-      setCircData(d => {
-        const next = { ...d, [field]: sanitizedValue };
-        persistData(selectedUser?.id, antropoData, next, completed);
-        return next;
-      });
+      const next = { ...circData, [field]: sanitizedValue };
+      setCircData(next);
+      persistData(selectedUser?.id, antropoData, next, completed);
+      // Envia para o backend
+      try {
+        if (selectedUser?.id) {
+          await api.put(`/circumference/${selectedUser.id}`, next);
+        }
+      } catch (e) { /* ignore */ }
     }
   };
   const handleNext = () => {
@@ -228,7 +242,7 @@ export default function QuestionarioStepper() {
     setActiveStep((prev) => prev - 1);
   };
   
-  const handleToggleModal = () => setOpenModal((prev) => !prev);
+  // removed unused handler to satisfy linter
 
   const handleResumoClick = () => {
     setCompleted((prev) => ({ ...prev, circ: true }));

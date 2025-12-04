@@ -23,28 +23,19 @@ public record PatientRequestDTO(
         @NotBlank(message = "CPF não pode estar vazio")
         String cpf,
 
-        @NotNull(message = "A data de nascimento não pode estar vazia")
-        @Past(message = "A data de nascimento deve ser no passado")
+        // Campos opcionais (não enviados pelo frontend)
         LocalDate dataNascimento,
 
         @NotBlank(message = "O campo sexo não pode estar vazio")
         String sexo,
 
-        @NotBlank(message = "O campo estado civil não pode estar vazio")
         String estadoCivil,
 
-        @NotNull(message = "O campo dataConsulta não pode estar vazio")
-        @PastOrPresent(message = "A data da consulta não pode ser futura")
         LocalDate dataConsulta,
 
-        @NotBlank(message = "O campo motivoConsulta não pode estar vazio")
         String motivoConsulta,
 
-        @NotBlank(message = "O campo comorbidade não pode estar vazio")
         String comorbidade,
 
-        @NotNull(message = "O campo frequenciaAtividadeFisica não pode estar vazio")
-        @Min(value = 0, message = "Frequência mínima: 0")
-        @Max(value = 7, message = "Frequência máxima: 7")
         Integer frequenciaAtividadeFisica
 ) {}

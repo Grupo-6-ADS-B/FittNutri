@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import api from '../utils/api';
+import axios from "axios";
 import {
   Box,
   TextField,
@@ -15,7 +17,7 @@ import { theme } from "../theme";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
-export default function UserRegister(props) {
+export default function UserRegister() {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -106,29 +108,38 @@ export default function UserRegister(props) {
       setErrors(formErrors);
       return;
     }
-    const stored = localStorage.getItem('users');
-    const users = stored ? (()=>{ try { return JSON.parse(stored) } catch { return [] } })() : [];
-    const newUser = {
-      id: Date.now(),
-      name: formData.name,
+    const payload = {
+      nome: formData.name,
       email: formData.email,
-      phone: formData.phone,
+      cpf: formData.cpf,
       telefone: formData.phone,
       cidade: formData.cidade,
       estado: formData.estado,
-      avatar: null,
       sexo: formData.sexo,
       etnia: formData.etnia,
       atividade: formData.atividade
     };
-    const updated = Array.isArray(users) && users.length ? [...users, newUser] : [...[] , newUser];
-    localStorage.setItem('users', JSON.stringify(updated));
-
-    setNotification({
-      open: true,
-      message: `Sucesso! Novo usuário ${formData.name} registrado`,
-    });
-    setTimeout(() => navigate("/questionario", { state: { user: newUser } }), 1200);
+    (async () => {
+      try {
+        const resp = await axios.post('http://localhost:8080/patients', {...payload, estadoCivil: 'Solteiro'}, {
+          headers: {
+            'Content-Type': 'application/json', 
+            Authorization: `Bearer ${sessionStorage.getItem('token')}`
+          }
+        });
+        setNotification({
+          open: true,
+          message: `Sucesso! Novo usuário ${formData.name} registrado`,
+        });
+        setTimeout(() => navigate("/questionario", { state: { user: resp.data } }), 1200);
+      } catch (err) {
+        console.error('Erro ao registrar usuário:', err);
+        setNotification({
+          open: true,
+          message: `Erro ao registrar usuário: ${err.response?.data?.message || err.message || 'Erro desconhecido'}`,
+        });
+      }
+    })();
   };
 
   return (
@@ -226,9 +237,9 @@ export default function UserRegister(props) {
                 onChange={handleChange}
                 fullWidth
               >
-                <MenuItem value="masculino">Masculino</MenuItem>
-                <MenuItem value="feminino">Feminino</MenuItem>
-                <MenuItem value="outro">Outro</MenuItem>
+                <MenuItem value="Masculino">Masculino</MenuItem>
+                <MenuItem value="Feminino">Feminino</MenuItem>
+                <MenuItem value="Outro">Outro</MenuItem>
               </TextField>
 
               <TextField
