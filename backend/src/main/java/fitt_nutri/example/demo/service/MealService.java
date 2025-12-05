@@ -17,6 +17,13 @@ import com.lowagie.text.Paragraph;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 
+import com.lowagie.text.*;
+import com.lowagie.text.pdf.*;
+import java.awt.Color;
+import java.io.ByteArrayOutputStream;
+import java.util.List;
+
+
 @Service
 @RequiredArgsConstructor
 public class MealService {
@@ -63,38 +70,70 @@ public class MealService {
     }
 
 
-
     public byte[] generateDietPdf(Integer patientId) throws Exception {
+
+        PatientModel patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
 
         List<MealModel> meals = repository.findByPatientId(patientId);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        // Criação do documento
         Document doc = new Document();
         PdfWriter.getInstance(doc, out);
 
         doc.open();
-        doc.add(new Paragraph("Dieta do Paciente - 1 Dia"));
-        doc.add(new Paragraph(" "));
 
-        // Criando a tabela
-        PdfPTable table = new PdfPTable(6); // 6 colunas
-        table.addCell("Horário");
-        table.addCell("Descrição");
-        table.addCell("Alimento");
-        table.addCell("Quantidade");
-        table.addCell("Unidade");
-        table.addCell("Observação");
+        Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD, new Color(0, 102, 0));
+        Paragraph title = new Paragraph("Dieta de " + patient.getNome(), titleFont);
+        title.setAlignment(Element.ALIGN_CENTER);
+        title.setSpacingAfter(20f);
+        doc.add(title);
 
-        // Adicionando os dados das refeições
+        PdfPTable table = new PdfPTable(6);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(10f);
+
+        Font headFont = new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE);
+        Color headerBg = new Color(0, 153, 0);
+        String[] headers = {"Horário", "Descrição", "Alimento", "Quantidade", "Unidade", "Observação"};
+        for (String h : headers) {
+            PdfPCell cell = new PdfPCell(new Phrase(h, headFont));
+            cell.setBackgroundColor(headerBg);
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setPadding(5f);
+            table.addCell(cell);
+        }
+
+        Color rowColor1 = Color.WHITE;
+        Color rowColor2 = new Color(204, 255, 204);
+        boolean alternate = false;
+
         for (MealModel m : meals) {
-            table.addCell(m.getHorario());
-            table.addCell(m.getDescricao());
-            table.addCell(m.getAlimento());
-            table.addCell(m.getQuantidade().toString());
-            table.addCell(m.getUnidade());
-            table.addCell(m.getObservacao());
+            Color bg = alternate ? rowColor2 : rowColor1;
+            alternate = !alternate;
+
+            PdfPCell c1 = new PdfPCell(new Phrase(m.getHorario()));
+            PdfPCell c2 = new PdfPCell(new Phrase(m.getDescricao()));
+            PdfPCell c3 = new PdfPCell(new Phrase(m.getAlimento()));
+            PdfPCell c4 = new PdfPCell(new Phrase(m.getQuantidade().toString()));
+            PdfPCell c5 = new PdfPCell(new Phrase(m.getUnidade()));
+            PdfPCell c6 = new PdfPCell(new Phrase(m.getObservacao()));
+
+            for (PdfPCell cell : new PdfPCell[]{c1, c2, c3, c4, c5, c6}) {
+                cell.setBackgroundColor(bg);
+                cell.setPadding(5f);
+            }
+
+            c1.setHorizontalAlignment(Element.ALIGN_CENTER);
+            c4.setHorizontalAlignment(Element.ALIGN_CENTER);
+            c5.setHorizontalAlignment(Element.ALIGN_CENTER);
+
+            table.addCell(c1);
+            table.addCell(c2);
+            table.addCell(c3);
+            table.addCell(c4);
+            table.addCell(c5);
+            table.addCell(c6);
         }
 
         doc.add(table);
