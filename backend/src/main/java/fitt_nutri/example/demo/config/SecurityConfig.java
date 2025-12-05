@@ -44,7 +44,8 @@ public class SecurityConfig {
             "/schedullings/**",
             "/data-circle/**",
             "anthropometric-data/**",
-            "/food-itens/**"
+            "/food-itens/**",
+            "/meals/**"
     };
 
     @Bean
