@@ -5,6 +5,7 @@ import fitt_nutri.example.demo.dto.response.MealResponseDTO;
 import fitt_nutri.example.demo.service.MealService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,7 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/meals")
+@Tag(name = "Refeições", description = "CRUD de refeições")
 @RequiredArgsConstructor
 public class MealController {
 
