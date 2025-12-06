@@ -45,9 +45,7 @@ export default function UserGestor() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  const [appointments, setAppointments] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("appointments") || "[]"); } catch { return []; }
-  });
+  const [appointments, setAppointments] = useState([]);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduleUser, setScheduleUser] = useState(null);
   const [apptDate, setApptDate] = useState("");
@@ -98,18 +96,48 @@ export default function UserGestor() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const stored = localStorage.getItem("users");
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored);
-        setUsers(Array.isArray(parsed) ? parsed : defaultUsers);
-      } catch {
+    const loadUsers = () => {
+      const stored = localStorage.getItem("users");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setUsers(Array.isArray(parsed) ? parsed : defaultUsers);
+        } catch {
+          setUsers(defaultUsers);
+        }
+      } else {
         setUsers(defaultUsers);
+        localStorage.setItem("users", JSON.stringify(defaultUsers));
       }
-    } else {
-      setUsers(defaultUsers);
-      localStorage.setItem("users", JSON.stringify(defaultUsers));
-    }
+    };
+    loadUsers();
+  }, []);
+
+  useEffect(() => {
+    const loadAppointments = async () => {
+      try {
+        const res = await api.get('/schedulings');
+        const list = Array.isArray(res.data) ? res.data : [];
+        const mapped = list.map((a) => ({
+          id: a.id,
+          userId: a.pacienteId ?? a.usuarioId ?? null,
+          userName: a.pacienteNome ?? "",
+          nutricionistaName: a.nutricionistaNome ?? "",
+          date: a.dataAgendada ?? "",
+          time: "09:00",
+          note: a.observacoes ?? "",
+        }));
+        setAppointments(mapped);
+        try { localStorage.setItem("appointments", JSON.stringify(mapped)); } catch {}
+      } catch (e) {
+        console.error("Erro ao carregar agendamentos:", e);
+        try {
+          const stored = localStorage.getItem("appointments");
+          if (stored) setAppointments(JSON.parse(stored));
+        } catch {}
+      }
+    };
+    loadAppointments();
   }, []);
 
   const handleAddUser = () => {
