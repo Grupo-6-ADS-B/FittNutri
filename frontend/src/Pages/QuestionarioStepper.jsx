@@ -83,16 +83,19 @@ export default function QuestionarioStepper() {
     taxaMetabolicaBasal: location.state?.antropoData?.taxaMetabolicaBasal ?? "",
     idadeMetabolica: location.state?.antropoData?.idadeMetabolica ?? ""
   }));
-  const [circData, setCircData] = useState(() => ({
-    "Circunferência Abdominal (cm)": location.state?.dados?.["Circunferência Abdominal (cm)"] ?? "",
-    "Circunferência Cintura (cm)": location.state?.dados?.["Circunferência Cintura (cm)"] ?? "",
-    "Circunferência Quadril (cm)": location.state?.dados?.["Circunferência Quadril (cm)"] ?? "",
-    "Circunferência Pulso (cm)": location.state?.dados?.["Circunferência Pulso (cm)"] ?? "",
-    "Circunferência Panturrilha (cm)": location.state?.dados?.["Circunferência Panturrilha (cm)"] ?? "",
-    "Circunferência Braço (cm)": location.state?.dados?.["Circunferência Braço (cm)"] ?? "",
-    "Circunferência Coxa (cm)": location.state?.dados?.["Circunferência Coxa (cm)"] ?? "",
-    "Peso Ideal (kg)": location.state?.dados?.["Peso Ideal (kg)"] ?? ""
-  }));
+const [circData, setCircData] = useState(() => ({
+  abdominal: location.state?.dados?.abdominal ?? "",
+  cintura: location.state?.dados?.cintura ?? "",
+  quadril: location.state?.dados?.quadril ?? "",
+  pulso: location.state?.dados?.pulso ?? "",
+  panturrilha: location.state?.dados?.panturrilha ?? "",
+  braco: location.state?.dados?.braco ?? "",
+  coxa: location.state?.dados?.coxa ?? "",
+  pesoIdeal: location.state?.dados?.pesoIdeal ?? ""
+}));
+
+
+  
   
   useEffect(() => {
     if (!selectedUser?.id) return;
@@ -194,46 +197,36 @@ export default function QuestionarioStepper() {
     };
     reader.readAsDataURL(file);
   };
+  
 
-  const handleAntropoChange = (field) => async (event) => {
-    const inputValue = event.target.value;
-    const numericFields = ['peso', 'altura', 'idade', 'porcentagemGordura', 'massaMuscular', 'gorduraVisceral', 'taxaMetabolicaBasal'];
-    if (field === 'idadeMetabolica') numericFields.push('idadeMetabolica');
-    if (numericFields.includes(field)) {
-      const sanitizedValue = numericInputHandler(inputValue);
-      if (sanitizedValue !== null) {
-        next = { ...antropoData, [field]: sanitizedValue };
-        setAntropoData(next);
-        persistData(selectedUser?.id, next, circData, completed);
-      }
-    } else {
-      next = { ...antropoData, [field]: inputValue };
-      setAntropoData(next);
-      persistData(selectedUser?.id, next, circData, completed);
-    }
-    // Envia para o backend
-    try {
-      if (selectedUser?.id) {
-        await api.put(`/anthropometric/${selectedUser.id}`, next);
-      }
-    } catch (e) { /* ignore */ }
-  };
+const handleAntropoChange = (field) => (event) => {
+  const inputValue = event.target.value;
+  const numericFields = ['peso', 'altura', 'idade', 'porcentagemGordura', 'massaMuscular', 'gorduraVisceral', 'taxaMetabolicaBasal'];
+  if (field === 'idadeMetabolica') numericFields.push('idadeMetabolica');
 
-  const handleCircChange = (field) => async (event) => {
-    const inputValue = event.target.value;
+  let next;
+  if (numericFields.includes(field)) {
     const sanitizedValue = numericInputHandler(inputValue);
-    if (sanitizedValue !== null) {
-      const next = { ...circData, [field]: sanitizedValue };
-      setCircData(next);
-      persistData(selectedUser?.id, antropoData, next, completed);
-      // Envia para o backend
-      try {
-        if (selectedUser?.id) {
-          await api.put(`/circumference/${selectedUser.id}`, next);
-        }
-      } catch (e) { /* ignore */ }
-    }
-  };
+    next = { ...antropoData, [field]: sanitizedValue };
+  } else {
+    next = { ...antropoData, [field]: inputValue };
+  }
+
+  setAntropoData(next);
+};
+
+
+
+ const handleCircChange = (field) => (event) => {
+  const inputValue = event.target.value;
+  const sanitizedValue = numericInputHandler(inputValue);
+  if (sanitizedValue !== null) {
+    const next = { ...circData, [field]: sanitizedValue };
+    setCircData(next);
+  }
+};
+
+
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
   };
@@ -244,10 +237,25 @@ export default function QuestionarioStepper() {
   
   // removed unused handler to satisfy linter
 
-  const handleResumoClick = () => {
-    setCompleted((prev) => ({ ...prev, circ: true }));
+const handleResumoClick = async () => {
+  setCompleted((prev) => ({ ...prev, circ: true }));
+
+  try {
+    if (selectedUser?.id) {
+      // Salva dados antropométricos
+      await api.post(`/anthropometric-data/patient/${selectedUser.id}`, antropoData);
+
+      // Salva dados de circunferência
+      await api.post(`/data-circle/patient/${selectedUser.id}`, circData);
+    }
+
     navigate('/resumo-circunferencia', { state: { dados: circData, antropoData, user: selectedUser } });
-  };
+  } catch (e) {
+    console.error("Erro ao salvar dados:", e);
+  }
+};
+
+
 
   const antropoFields = [
     { label: "Peso (kg)", field: "peso" },
@@ -262,14 +270,15 @@ export default function QuestionarioStepper() {
   ];
 
   const circFields = [
-    "Circunferência Abdominal (cm)",
-    "Circunferência Cintura (cm)",
-    "Circunferência Quadril (cm)",
-    "Circunferência Pulso (cm)",
-    "Circunferência Panturrilha (cm)",
-    "Circunferência Braço (cm)",
-    "Circunferência Coxa (cm)",
-    "Peso Ideal (kg)"
+    {label: "Circunferência Abdominal (cm)", field: "abdominal"},
+    {label:"Circunferência Cintura (cm)", field: "cintura"},
+    {label:"Circunferência Quadril (cm)", field: "quadril",},
+    {label:"Circunferência Pulso (cm)",field: "pulso",},
+    {label:"Circunferência Panturrilha (cm)",field: "panturrilha",},
+    {label:"Circunferência Braço (cm)",field: "braco",},
+    {label:"Circunferência Coxa (cm)",field: "coxa",},
+    {label:"Peso Ideal (kg)",field: "pesoIdeal",},
+    
   ];
   return (
     <ThemeProvider theme={theme}>
@@ -498,13 +507,13 @@ export default function QuestionarioStepper() {
                   <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>Dados de Circunferência</Typography>
                 </Box>
                 <Box component="form" sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
-                  {circFields.map((label) => (
+                  {circFields.map(({ label, field }) => (
                     <TextField 
-                      key={label}
+                      key={field}
                       label={label} 
                       fullWidth 
-                      value={circData[label]} 
-                      onChange={handleCircChange(label)}
+                      value={circData[field]} 
+                      onChange={handleCircChange(field)}
                       type="text" 
                       inputProps={{
                         pattern: "[0-9]*[.,]?[0-9]*"
