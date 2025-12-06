@@ -7,10 +7,8 @@ import fitt_nutri.example.demo.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,46 +17,45 @@ public class PatientAdapter {
     private final PatientService service;
 
     public PatientResponseDTO create(PatientRequestDTO dto) {
-        PatientModel patient = service.createPatient(dto);
-        return toDTO(patient);
+        return toDTO(service.create(dto));
     }
 
     public List<PatientResponseDTO> getAll() {
-        return service.getAllPatients()
-                .stream()
+        return service.findAll().stream()
                 .map(this::toDTO)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public PatientResponseDTO getById(Integer id) {
-        return toDTO(service.getPatientById(id));
+        return toDTO(service.findById(id));
     }
 
     public PatientResponseDTO update(Integer id, PatientRequestDTO dto) {
-        return toDTO(service.updatePatient(id, dto));
-    }
-
-    public PatientResponseDTO patch(Integer id, Map<String, Object> updates) {
-        return toDTO(service.patchPatient(id, updates));
+        return toDTO(service.update(id, dto));
     }
 
     public void delete(Integer id) {
-        service.deletePatient(id);
+        service.delete(id);
     }
 
-    private PatientResponseDTO toDTO(PatientModel patient) {
+    public PatientResponseDTO patch(Integer id, Map<String, Object> updates) {
+        PatientModel updated = service.patchPatient(id, updates);
+        return toDTO(updated);
+    }
+
+
+    private PatientResponseDTO toDTO(PatientModel p) {
         return new PatientResponseDTO(
-                patient.getId(),
-                patient.getNome(),
-                patient.getEmail(),
-                patient.getCpf(),
-                patient.getDataNascimento() != null ? patient.getDataNascimento().toString() : null,
-                patient.getSexo(),
-                patient.getEstadoCivil(),
-                patient.getDataConsulta() != null ? LocalDate.parse(patient.getDataConsulta().toString()) : null,
-                patient.getMotivoConsulta(),
-                patient.getComorbidade(),
-                patient.getFrequenciaAtividadeFisica()
+                p.getId(),
+                p.getNome(),
+                p.getEmail(),
+                p.getCpf(),
+                p.getTelefone(),
+                p.getEstado(),
+                p.getCidade(),
+                p.getSexo(),
+                p.getEtnia(),
+                p.getAtividade()
         );
     }
 }

@@ -38,37 +38,27 @@ public class PatientModel {
     @Column(nullable = false, unique = true)
     private String cpf;
 
-    @NotNull(message = "A data de nascimento não pode estar vazia")
-    @Past(message = "A data de nascimento deve ser no passado")
     @Column(nullable = false)
-    private LocalDate dataNascimento;
+    private String telefone;
+
+    @NotBlank(message = "O campo estado não pode estar vazio")
+    @Column(nullable = false)
+    private String estado;
+
+    @Column(nullable = false)
+    private String cidade;
 
     @NotBlank(message = "O campo sexo não pode estar vazio")
     @Column(nullable = false)
     private String sexo;
 
-    @NotBlank(message = "O campo estado civil não pode estar vazio")
+    @NotBlank(message = "O campo etnia não pode estar vazio")
     @Column(nullable = false)
-    private String estadoCivil;
+    private String etnia;
 
-    @NotNull(message = "O campo dataConsulta não pode estar vazio")
-    @PastOrPresent(message = "A data da consulta não pode ser futura")
+    @NotNull(message = "O campo atividade não pode estar vazio")
     @Column(nullable = false)
-    private LocalDate dataConsulta;
-
-    @NotBlank(message = "O campo motivoConsulta não pode estar vazio")
-    @Column(nullable = false)
-    private String motivoConsulta;
-
-    @NotBlank(message = "O campo comorbidade não pode estar vazio")
-    @Column(nullable = false)
-    private String comorbidade;
-
-    @NotNull(message = "O campo frequenciaAtividadeFisica não pode estar vazio")
-    @Min(value = 0, message = "Frequência mínima: 0")
-    @Max(value = 7, message = "Frequência máxima: 7")
-    @Column(nullable = false)
-    private Integer frequenciaAtividadeFisica;
+    private String atividade;
 
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL)
     private List<SchedulingModel> agendamentos = new ArrayList<>();

@@ -3,15 +3,10 @@ package fitt_nutri.example.demo.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
 import org.hibernate.validator.constraints.br.CPF;
 
-import java.time.LocalDate;
-
 public record PatientRequestDTO(
+
         @NotBlank(message = "Nome não pode estar vazio")
         String nome,
 
@@ -23,19 +18,22 @@ public record PatientRequestDTO(
         @NotBlank(message = "CPF não pode estar vazio")
         String cpf,
 
-        // Campos opcionais (não enviados pelo frontend)
-        LocalDate dataNascimento,
+        @NotBlank(message = "O campo telefone não pode estar vazio")
+        String telefone,
+
+        @NotBlank(message = "O campo estado não pode estar vazio")
+        String estado,
+
+        @NotBlank(message = "O campo cidade não pode estar vazio")
+        String cidade,
 
         @NotBlank(message = "O campo sexo não pode estar vazio")
         String sexo,
 
-        String estadoCivil,
+        @NotBlank(message = "O campo etnia não pode estar vazio")
+        String etnia,
 
-        LocalDate dataConsulta,
+        @NotNull(message = "O campo atividade não pode estar vazio")
+        String atividade
 
-        String motivoConsulta,
-
-        String comorbidade,
-
-        Integer frequenciaAtividadeFisica
 ) {}

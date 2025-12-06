@@ -1,18 +1,13 @@
 package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.dto.request.PatientRequestDTO;
-import fitt_nutri.example.demo.exceptions.InvalidDataException;
-import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.PatientModel;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,117 +15,76 @@ public class PatientService {
 
     private final PatientRepository repository;
 
-    @Transactional
-    public PatientModel createPatient(PatientRequestDTO dto) {
-        if (!"Masculino".equals(dto.sexo()) && !"Feminino".equals(dto.sexo())) {
-            throw new InvalidDataException("Sexo inválido");
-        }
+    public PatientModel create(PatientRequestDTO dto) {
 
-        if (!"Solteiro".equals(dto.estadoCivil()) &&
-                !"Casado".equals(dto.estadoCivil()) &&
-                !"Divorciado".equals(dto.estadoCivil()) &&
-                !"Viúvo".equals(dto.estadoCivil())) {
-            throw new InvalidDataException("Estado civil inválido");
-        }
+        PatientModel p = new PatientModel();
 
-        PatientModel patient = new PatientModel();
-        patient.setNome(dto.nome());
-        patient.setEmail(dto.email());
-        patient.setCpf(dto.cpf());
-        patient.setDataNascimento(dto.dataNascimento());
-        patient.setSexo(dto.sexo());
-        patient.setEstadoCivil(dto.estadoCivil());
-        patient.setDataConsulta(dto.dataConsulta());
-        patient.setMotivoConsulta(dto.motivoConsulta());
-        patient.setComorbidade(dto.comorbidade());
-        patient.setFrequenciaAtividadeFisica(dto.frequenciaAtividadeFisica());
+        p.setNome(dto.nome());
+        p.setEmail(dto.email());
+        p.setCpf(dto.cpf());
+        p.setTelefone(dto.telefone());
+        p.setEstado(dto.estado());
+        p.setCidade(dto.cidade());
+        p.setSexo(dto.sexo());
+        p.setEtnia(dto.etnia());
+        p.setAtividade(dto.atividade());
 
-        return repository.save(patient);
+        return repository.save(p);
     }
 
-    public PatientModel getPatientById(Integer id) {
+    public List<PatientModel> findAll() {
+        return repository.findAll();
+    }
+
+    public PatientModel findById(Integer id) {
         return repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Paciente não encontrado com ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
     }
 
-    public List<PatientModel> getAllPatients() {
-        List<PatientModel> patients = repository.findAll();
-        if (patients.isEmpty()) {
-            throw new NotFoundException("Nenhum paciente cadastrado");
-        }
-        return patients;
+    public PatientModel update(Integer id, PatientRequestDTO dto) {
+
+        PatientModel p = findById(id);
+
+        p.setNome(dto.nome());
+        p.setEmail(dto.email());
+        p.setCpf(dto.cpf());
+        p.setTelefone(dto.telefone());
+        p.setEstado(dto.estado());
+        p.setCidade(dto.cidade());
+        p.setSexo(dto.sexo());
+        p.setEtnia(dto.etnia());
+        p.setAtividade(dto.atividade());
+
+        return repository.save(p);
     }
 
-    @Transactional
-    public PatientModel updatePatient(Integer id, PatientRequestDTO dto) {
-        PatientModel patient = getPatientById(id);
 
-        if (!"Masculino".equals(dto.sexo()) && !"Feminino".equals(dto.sexo())) {
-            throw new InvalidDataException("Sexo inválido");
-        }
 
-        if (!"Solteiro".equals(dto.estadoCivil()) &&
-                !"Casado".equals(dto.estadoCivil()) &&
-                !"Divorciado".equals(dto.estadoCivil()) &&
-                !"Viúvo".equals(dto.estadoCivil())) {
-            throw new InvalidDataException("Estado civil inválido");
-        }
-
-        patient.setNome(dto.nome());
-        patient.setEmail(dto.email());
-        patient.setCpf(dto.cpf());
-        patient.setDataNascimento(dto.dataNascimento());
-        patient.setSexo(dto.sexo());
-        patient.setEstadoCivil(dto.estadoCivil());
-        patient.setDataConsulta(dto.dataConsulta());
-        patient.setMotivoConsulta(dto.motivoConsulta());
-        patient.setComorbidade(dto.comorbidade());
-        patient.setFrequenciaAtividadeFisica(dto.frequenciaAtividadeFisica());
-
-        return repository.save(patient);
-    }
-
-    @Transactional
-    public PatientModel patchPatient(Integer id, Map<String, Object> updates) {
-        PatientModel patient = getPatientById(id);
-
-        for (String key : updates.keySet()) {
-            Object value = updates.get(key);
-
-            if ("sexo".equals(key)) {
-                String sexo = (String) value;
-                if (!"Masculino".equals(sexo) && !"Feminino".equals(sexo)) {
-                    throw new InvalidDataException("Sexo inválido");
-                }
-                patient.setSexo(sexo);
-            } else if ("estadoCivil".equals(key)) {
-                String estadoCivil = (String) value;
-                if (!"Solteiro".equals(estadoCivil) &&
-                        !"Casado".equals(estadoCivil) &&
-                        !"Divorciado".equals(estadoCivil) &&
-                        !"Viúvo".equals(estadoCivil)) {
-                    throw new InvalidDataException("Estado civil inválido");
-                }
-                patient.setEstadoCivil(estadoCivil);
-            } else if ("dataNascimento".equals(key)) {
-                patient.setDataNascimento(LocalDate.parse((String) value));
-            } else if ("dataConsulta".equals(key)) {
-                patient.setDataConsulta(LocalDate.parse((String) value));
-            } else if ("motivoConsulta".equals(key)) {
-                patient.setMotivoConsulta((String) value);
-            } else if ("comorbidade".equals(key)) {
-                patient.setComorbidade((String) value);
-            } else if ("frequenciaAtividadeFisica".equals(key)) {
-                patient.setFrequenciaAtividadeFisica((Integer) value);
-            }
-        }
-
-        return repository.save(patient);
-    }
-
-    @Transactional
-    public void deletePatient(Integer id) {
-        if (!repository.existsById(id)) throw new NotFoundException("Paciente não encontrado com ID: " + id);
+    public void delete(Integer id) {
         repository.deleteById(id);
+    }
+
+    public PatientModel patchPatient(Integer id, Map<String, Object> updates) {
+
+        PatientModel p = findById(id);
+
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "nome" -> p.setNome(String.valueOf(value));
+                case "email" -> p.setEmail(String.valueOf(value));
+                case "cpf" -> p.setCpf(String.valueOf(value));
+                case "telefone" -> p.setTelefone(String.valueOf(value));
+                case "estado" -> p.setEstado(String.valueOf(value));
+                case "cidade" -> p.setCidade(String.valueOf(value));
+                case "sexo" -> p.setSexo(String.valueOf(value));
+                case "etnia" -> p.setEtnia(String.valueOf(value));
+                case "frequenciaAtividadeFisica" -> p.setAtividade(String.valueOf(value));
+                default -> {
+                    throw new IllegalArgumentException("Campo inválido para PATCH: " + key);
+                }
+            }
+        });
+
+        return repository.save(p);
     }
 }
