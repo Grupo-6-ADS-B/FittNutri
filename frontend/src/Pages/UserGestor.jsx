@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import api from '../utils/api';
 import { useNavigate } from "react-router-dom";
 import {
   CssBaseline,
@@ -134,23 +135,6 @@ export default function UserGestor() {
 
   const hasAppointment = (user) => !!getNextAppointment(user);
 
-  const saveAppointment = () => {
-    if (!scheduleUser || !apptDate) return;
-    const appt = {
-      id: Date.now(),
-      userId: scheduleUser.id,
-      userName: scheduleUser.name,
-      date: apptDate,
-      time: apptTime,
-      note: apptNote || "",
-    };
-    setAppointments(prev => {
-      const next = [...prev, appt];
-      try { localStorage.setItem("appointments", JSON.stringify(next)); } catch {}
-      return next;
-    });
-    setScheduleOpen(false);
-  };
 
   const openStartConsultation = (user) => {
     const appt = getNextAppointment(user);
@@ -330,6 +314,84 @@ export default function UserGestor() {
     const value = raw?.toString().toLowerCase();
     return value && value.includes(term);
   });
+
+  const saveAppointment = async () => {
+  if (!scheduleUser || !apptDate) {
+    alert('Preencha todos os campos obrigatórios.');
+    return;
+  }
+  
+  const token = sessionStorage.getItem('token');
+  if (!token) {
+    alert('Você precisa estar logado para agendar consultas.');
+    return;
+  }
+  
+  try {
+    const usuarioIdString = sessionStorage.getItem('idUsuario');
+    const usuarioId = usuarioIdString ? parseInt(usuarioIdString, 10) : null;
+    
+    if (!usuarioIdString) {
+      alert('Erro ao identificar o nutricionista. Faça login novamente.');
+      // navigate('/login');
+      return;
+    }
+
+    const payload = {
+      pacienteId: 1,
+      usuarioId: usuarioId,
+      dataAgendada: apptDate,
+      observacoes: apptNote || ""
+    };
+
+    console.log('Payload sendo enviado:', payload);
+        console.log('Token:', token);
+
+
+    const response = await api.post('/schedulings', payload);
+    
+    console.log('Resposta da API:', response.data);
+    
+    const appt = {
+      id: response.data.id,
+      userId: scheduleUser.id,
+      userName: response.data.pacienteNome,
+      nutricionistaName: response.data.nutricionistaNome,
+      date: response.data.dataAgendada,
+      time: apptTime,
+      note: response.data.observacoes || "",
+    };
+    
+    setAppointments(prev => {
+      const next = [...prev, appt];
+      try { 
+        localStorage.setItem("appointments", JSON.stringify(next)); 
+      } catch {}
+      return next;
+    });
+    
+    setScheduleOpen(false);
+    alert('Agendamento criado com sucesso!');
+  } catch (error) {
+    console.error('Erro ao salvar agendamento:', error);
+     console.error('Erro ao salvar agendamento:', error);
+    console.error('Response data:', error.response?.data);
+    console.error('Response status:', error.response?.status);
+    console.error('Request headers:', error.config?.headers);
+    
+    if (error.response?.status === 401) {
+      alert('Sessão expirada. Faça login novamente.');
+  
+      // navigate('/login');
+    } else if (error.response?.status === 400) {
+      alert(`Dados inválidos: ${JSON.stringify(error.response.data)}`);
+    } else if (error.response?.status === 404) {
+      alert('Paciente ou nutricionista não encontrado no sistema.');
+    } else {
+      alert('Erro ao criar agendamento. Verifique o console para mais detalhes.');
+    }
+  }
+};
 
   return (
     <>

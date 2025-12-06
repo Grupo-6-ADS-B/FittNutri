@@ -57,6 +57,7 @@ function LoginForm() {
         console.warn('Token não encontrado na resposta de login.');
       }
       sessionStorage.setItem('nomeUsuario', body?.nome || '');
+      sessionStorage.setItem('idUsuario', body?.id || 1);
       const nome = body?.nome;
       setSuccess(`Login realizado com sucesso${nome ? `! Bem-vindo(a), ${nome}` : '!'}`);
       navigate('/gestor');
