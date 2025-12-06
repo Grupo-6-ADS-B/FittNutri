@@ -4,8 +4,11 @@ import fitt_nutri.example.demo.exceptions.AlreadyExistingData;
 import fitt_nutri.example.demo.exceptions.NotFoundData;
 import fitt_nutri.example.demo.exceptions.NotFoundUser;
 import fitt_nutri.example.demo.model.AnthropometricDataModel;
+import fitt_nutri.example.demo.model.PatientModel;
 import fitt_nutri.example.demo.repository.AnthropometricDataRepository;
+import fitt_nutri.example.demo.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
@@ -18,6 +21,9 @@ public class AnthropometricDataService {
 
     @Autowired
     private AnthropometricDataRepository repository;
+
+    @Autowired
+    private PatientRepository patientRepository;
 
     public List<AnthropometricDataModel> listAll() {
         if (repository.findAll().isEmpty()) {
@@ -41,10 +47,10 @@ public class AnthropometricDataService {
         if (data.getPeso() > 300.2 || data.getPeso() <= 0) {
             throw new NotFoundData("Peso inválido");
         }
-        if (data.getTmb() > 3000 || data.getTmb() <= 0) {
+        if (data.getTaxaMetabolicaBasal() > 3000 || data.getTaxaMetabolicaBasal() <= 0) {
             throw new NotFoundData("Taxa Metabólica inválida");
         }
-        if (data.getPercentualGordura() > 100 || data.getPercentualGordura() <= 0) {
+        if (data.getPorcentagemGordura() > 100 || data.getPorcentagemGordura() <= 0) {
             throw new NotFoundData("Percentual de gordura inválido");
         }
         if (data.getGorduraVisceral() > 60) {
@@ -61,8 +67,23 @@ public class AnthropometricDataService {
     }
 
     public AnthropometricDataModel update(AnthropometricDataModel data) {
-        return repository.save(data);
+
+        AnthropometricDataModel existente = repository.findById(data.getIdDadosAntropometricos())
+                .orElseThrow(() -> new NotFoundData("ID " + data.getIdDadosAntropometricos() + " não encontrado"));
+
+        existente.setAltura(data.getAltura());
+        existente.setPeso(data.getPeso());
+        existente.setImc(data.getImc());
+        existente.setPorcentagemGordura(data.getPorcentagemGordura());
+        existente.setMassaMuscular(data.getMassaMuscular());
+        existente.setTaxaMetabolicaBasal(data.getTaxaMetabolicaBasal());
+        existente.setIdadeMetabolica(data.getIdadeMetabolica());
+        existente.setGorduraVisceral(data.getGorduraVisceral());
+        existente.setPaciente(data.getPaciente());
+
+        return repository.save(existente);
     }
+
 
     public AnthropometricDataModel partialUpdate(Integer id, Map<String, Object> fields) {
         Optional<AnthropometricDataModel> optionalData = repository.findById(id);
@@ -89,10 +110,10 @@ public class AnthropometricDataService {
         if (existingData.getPeso() > 300.2 || existingData.getPeso() <= 0) {
             throw new NotFoundData("Peso inválido");
         }
-        if (existingData.getTmb() > 3000 || existingData.getTmb() <= 0) {
+        if (existingData.getTaxaMetabolicaBasal() > 3000 || existingData.getTaxaMetabolicaBasal() <= 0) {
             throw new NotFoundData("Taxa Metabólica inválida");
         }
-        if (existingData.getPercentualGordura() > 100 || existingData.getPercentualGordura() <= 0) {
+        if (existingData.getPorcentagemGordura() > 100 || existingData.getPorcentagemGordura() <= 0) {
             throw new NotFoundData("Percentual de gordura inválido");
         }
         if (existingData.getGorduraVisceral() > 60) {
@@ -111,21 +132,69 @@ public class AnthropometricDataService {
     }
 
     public AnthropometricDataModel partialUpdateByPacienteId(Integer pacienteId, Map<String, Object> fields) {
-        AnthropometricDataModel existingData = repository.findFirstByPaciente_Id(pacienteId);
-        if (existingData == null) {
-            throw new NotFoundData("Nenhum dado antropométrico encontrado para o paciente ID " + pacienteId);
+
+        List<AnthropometricDataModel> existentes =
+                repository.findByPaciente_Id(pacienteId);
+
+        AnthropometricDataModel data;
+
+        if (existentes.isEmpty()) {
+            data = new AnthropometricDataModel();
+
+            PatientModel paciente = patientRepository.findById(pacienteId)
+                    .orElseThrow(() -> new NotFoundData("Paciente não encontrado"));
+
+            data.setPaciente(paciente);
+        } else {
+            data = existentes.get(0);
         }
 
         fields.forEach((key, value) -> {
-            try {
-                Field field = AnthropometricDataModel.class.getDeclaredField(key);
+            Field field = ReflectionUtils.findField(AnthropometricDataModel.class, key);
+            if (field != null) {
                 field.setAccessible(true);
-                field.set(existingData, value);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                throw new NotFoundData("Campo '" + key + "' inválido para atualização parcial");
+
+                Object convertedValue = convertValue(field.getType(), value);
+
+                ReflectionUtils.setField(field, data, convertedValue);
             }
         });
 
-        return repository.save(existingData);
+        return repository.save(data);
     }
+
+    /** Conversão automática de tipos */
+    private Object convertValue(Class<?> targetType, Object value) {
+        if (value == null) return null;
+
+        if (targetType.equals(Double.class)) {
+            if (value instanceof Number n) return n.doubleValue();
+            return Double.valueOf(value.toString());
+        }
+
+        if (targetType.equals(Integer.class)) {
+            if (value instanceof Number n) return n.intValue();
+            return Integer.valueOf(value.toString());
+        }
+
+        if (targetType.equals(String.class)) {
+            return value.toString();
+        }
+
+        return value;
+    }
+
+
+
+    public AnthropometricDataModel createByPaciente(Integer patientId, AnthropometricDataModel data) {
+
+        PatientModel patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new NotFoundData("Paciente não encontrado"));
+
+        data.setPaciente(patient);
+
+        return repository.save(data);
+    }
+
+
 }

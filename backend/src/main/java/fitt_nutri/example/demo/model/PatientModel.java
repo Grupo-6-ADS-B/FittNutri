@@ -20,6 +20,11 @@ import java.util.List;
 @Table(name = "Paciente")
 public class PatientModel {
 
+    public PatientModel(Integer id) {
+        this.id = id;
+    }
+
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

@@ -40,6 +40,24 @@ public class DataCircleController {
         return ResponseEntity.created(location).body(saved);
     }
 
+    @PostMapping("/patient/{pacienteId}")
+    @Operation(summary = "Cria um novo registro de dados de circunferência para um paciente específico")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Registro criado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "ID de paciente inválido ou dados inválidos"),
+            @ApiResponse(responseCode = "409", description = "Conflito: Rótulo já existe")
+    })
+    public ResponseEntity<DataCircleModel> cadastrarPorPaciente(@PathVariable Integer pacienteId,
+                                                                @Valid @RequestBody DataCircleModel body) {
+        DataCircleModel saved = service.cadastrarPorPaciente(pacienteId, body);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(saved.getIdDadosCircunferencia())
+                .toUri();
+        return ResponseEntity.created(location).body(saved);
+    }
+
+
     @GetMapping
     @Operation(summary = "Recupera todos os registros de dados de circunferência")
     @ApiResponses(value = {
