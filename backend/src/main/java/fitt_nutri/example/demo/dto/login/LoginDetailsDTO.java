@@ -16,16 +16,20 @@ public class LoginDetailsDTO implements UserDetails {
     private final String nome;
     private final String email;
     private final String senha;
+    private final String role;
+
 
     public LoginDetailsDTO(UserModel userModel) {
         this.nome = userModel.getNome();
         this.email = userModel.getEmail();
         this.senha = userModel.getSenha();
+        this.role = userModel.getRole();
     }
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of();
+        return List.of(() -> "ROLE_" + this.role);
     }
+
 
     @Override
     public String getPassword() {

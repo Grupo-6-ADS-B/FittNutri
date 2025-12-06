@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-
+@Component
 public class GerenciadorTokenJwt {
 
     @Value("${jwt.secret}")
@@ -31,7 +31,10 @@ public class GerenciadorTokenJwt {
     public Date getExpirationDateFromToken(String token) {
         return getClaimForToken(token, Claims::getExpiration);
     }
-
+    public String getRoleFromToken(String token) {
+        Claims claims = getAllClaimsFromToken(token);
+        return claims.get("roles", String.class);
+    }
     public String generateToken(final Authentication authentication) {
         // Para verificações de permissões:
         final String authorities = authentication.getAuthorities()

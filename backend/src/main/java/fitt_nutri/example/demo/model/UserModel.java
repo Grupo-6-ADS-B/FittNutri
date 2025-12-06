@@ -40,6 +40,9 @@ public class UserModel {
     @Column(nullable = false)
     private String senha;
 
+    @Column(nullable = false)
+    private String role = "NUTRI";
+
     @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL)
     private List<SchedulingModel> agendamentos = new ArrayList<>();
 }
