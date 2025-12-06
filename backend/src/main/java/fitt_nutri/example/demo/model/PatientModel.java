@@ -63,6 +63,9 @@ public class PatientModel {
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL)
     private List<SchedulingModel> agendamentos = new ArrayList<>();
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private UserModel nutricionista;
 
 
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)

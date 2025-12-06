@@ -1,7 +1,5 @@
 package fitt_nutri.example.demo.dto.response;
 
-import java.time.LocalDate;
-
 public record PatientResponseDTO(
         Integer id,
         String nome,
@@ -12,4 +10,5 @@ public record PatientResponseDTO(
         String cidade,
         String sexo,
         String etnia,
-        String atividade) {}
+        String atividade,
+        Integer nutriId) {}
