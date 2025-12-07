@@ -45,7 +45,7 @@ public class SecurityConfig {
             "/data-circle/**",
             "/anthropometric-data/**",
             "/food-itens/**",
-            "/meals/**"
+            "/meals/**",
             "/patients/**",
                 "/h2-console/**"
     };
@@ -79,7 +79,7 @@ public class SecurityConfig {
                 .authenticationEntryPoint(autenticacaoEntryPoint))
             .sessionManagement(management -> management
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(autenticacaoFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

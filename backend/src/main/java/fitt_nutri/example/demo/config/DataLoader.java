@@ -20,14 +20,13 @@ public class DataLoader implements CommandLineRunner {
             PatientModel p = new PatientModel();
             p.setNome("João Silva");
             p.setEmail("joao.silva@example.com");
-            p.setCpf("12345678909"); // CPF de teste válido
-            p.setDataNascimento(LocalDate.of(1990, 1, 15));
+            p.setCpf("12345678909");
+            p.setTelefone("11999999999");
+            p.setEstado("SP");
+            p.setCidade("São Paulo");
             p.setSexo("Masculino");
-            p.setEstadoCivil("Solteiro");
-            p.setDataConsulta(LocalDate.now());
-            p.setMotivoConsulta("Avaliação nutricional");
-            p.setComorbidade("Nenhuma");
-            p.setFrequenciaAtividadeFisica(3);
+            p.setEtnia("Pardo");
+            p.setAtividade("Moderada");
 
             repository.save(p);
             System.out.println("Paciente mock salvo: " + p.getNome());
