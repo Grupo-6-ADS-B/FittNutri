@@ -26,7 +26,7 @@ export default function Diet() {
     }
   })();
 
-  const userName = selectedUser?.name ?? sessionStorage.getItem('nome') ?? 'Nome do paciente';
+  const userName = location.state.patientName;
   const userAge = selectedUser?.age ?? selectedUser?.idade ?? null;
 
   const initials = userName
