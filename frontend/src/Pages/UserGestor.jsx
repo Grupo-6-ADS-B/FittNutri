@@ -30,7 +30,6 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 
-  import api from '../utils/api';
 const defaultUsers = [
   { id: 1, name: "André Goulart", email: "andre.goulart@example.com", telefone: "(11) 98765-4321", cidade: "São Paulo", avatar: "https://i.pravatar.cc/150?img=1" },
   { id: 2, name: "Carlos Lima", email: "carlos.lima@example.com", telefone: "(21) 91234-5678", cidade: "Rio de Janeiro", avatar: "https://i.pravatar.cc/150?img=2" },
@@ -389,82 +388,74 @@ export default function UserGestor() {
   });
 
   const saveAppointment = async () => {
-  if (!scheduleUser || !apptDate) {
-    alert('Preencha todos os campos obrigatórios.');
-    return;
-  }
-  
-  const token = sessionStorage.getItem('token');
-  if (!token) {
-    alert('Você precisa estar logado para agendar consultas.');
-    return;
-  }
-  
-  try {
-    const usuarioIdString = sessionStorage.getItem('idUsuario');
-    const usuarioId = usuarioIdString ? parseInt(usuarioIdString, 10) : null;
-    
-    if (!usuarioIdString) {
-      alert('Erro ao identificar o nutricionista. Faça login novamente.');
-      // navigate('/login');
+    if (!scheduleUser || !apptDate) {
+      alert('Preencha todos os campos obrigatórios.');
       return;
     }
-
-    const payload = {
-      pacienteId: 1,
-      usuarioId: usuarioId,
-      dataAgendada: apptDate,
-      observacoes: apptNote || ""
-    };
-
-    console.log('Payload sendo enviado:', payload);
-        console.log('Token:', token);
-
-
-    const response = await api.post('/schedulings', payload);
-    
-    console.log('Resposta da API:', response.data);
-    
-    const appt = {
-      id: response.data.id,
-      userId: scheduleUser.id,
-      userName: response.data.pacienteNome,
-      nutricionistaName: response.data.nutricionistaNome,
-      date: response.data.dataAgendada,
-      time: apptTime,
-      note: response.data.observacoes || "",
-    };
-    
-    setAppointments(prev => {
-      const next = [...prev, appt];
-      try { 
-        localStorage.setItem("appointments", JSON.stringify(next)); 
-      } catch {}
-      return next;
-    });
-    
-    setScheduleOpen(false);
-    alert('Agendamento criado com sucesso!');
-  } catch (error) {
-    console.error('Erro ao salvar agendamento:', error);
-     console.error('Erro ao salvar agendamento:', error);
-    console.error('Response data:', error.response?.data);
-    console.error('Response status:', error.response?.status);
-    console.error('Request headers:', error.config?.headers);
-    
-    if (error.response?.status === 401) {
-      alert('Sessão expirada. Faça login novamente.');
   
-      // navigate('/login');
-    } else if (error.response?.status === 400) {
-      alert(`Dados inválidos: ${JSON.stringify(error.response.data)}`);
-    } else if (error.response?.status === 404) {
-      alert('Paciente ou nutricionista não encontrado no sistema.');
-    } else {
-      alert('Erro ao criar agendamento. Verifique o console para mais detalhes.');
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    if (!token) {
+      alert('Você precisa estar logado para agendar consultas.');
+      return;
     }
-  }
-};
+  
+    try {
+      const usuarioIdStr = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
+      const usuarioId = usuarioIdStr ? parseInt(usuarioIdStr, 10) : null;
+      const pacienteId = scheduleUser?.id ? parseInt(scheduleUser.id, 10) : 1;
+    
+      if (!usuarioId || !pacienteId) {
+        alert('Erro ao identificar paciente ou nutricionista.');
+        return;
+      }
+
+      const payload = {
+        pacienteId,
+        usuarioId,
+        dataAgendada: apptDate,
+        observacoes: apptNote || ""
+      };
+
+      console.log('Payload sendo enviado:', payload);
+      console.log('Token:', token);
+
+      const response = await api.post('/schedulings', payload);
+    
+      const appt = {
+        id: response.data.id,
+        userId: pacienteId,
+        userName: response.data.pacienteNome,
+        nutricionistaName: response.data.nutricionistaNome,
+        date: response.data.dataAgendada,
+        time: apptTime,
+        note: response.data.observacoes || "",
+      };
+    
+      setAppointments(prev => {
+        const next = [...prev, appt];
+        try { localStorage.setItem("appointments", JSON.stringify(next)); } catch {}
+        return next;
+      });
+    
+      setScheduleOpen(false);
+      alert('Agendamento criado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao salvar agendamento:', error);
+      console.error('Response data:', error.response?.data);
+      console.error('Response status:', error.response?.status);
+      console.error('Request headers:', error.config?.headers);
+    
+      if (error.response?.status === 401) {
+        alert('Sessão expirada. Faça login novamente.');
+      } else if (error.response?.status === 400) {
+        alert(`Dados inválidos: ${JSON.stringify(error.response.data)}`);
+      } else if (error.response?.status === 404) {
+        alert('Paciente ou nutricionista não encontrado no sistema.');
+      } else {
+        alert('Erro ao criar agendamento. Verifique o console para mais detalhes.');
+      }
+    }
+  };
 
   return (
     <>
@@ -574,49 +565,6 @@ export default function UserGestor() {
             <List sx={{ flex: 1, overflowY: "auto" }}>
               {filteredUsers.map((user, index) => (
                 <React.Fragment key={user?.id || index}>
-                  <ListItem sx={{ my: 1, borderRadius: "15px", px: 0 }}>
-                    <Box
-                      sx={{
-                        display: "grid",
-                        alignItems: "center",
-                        width: "100%",
-                        gap: 2,
-                        gridTemplateColumns: {
-                          xs: "56px 1fr auto",
-                          sm: "56px 2fr 2fr 1.2fr 1fr auto"
-                        }
-                      }}
-                    >
-                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        <Avatar src={user.avatar} sx={{ border: "2px solid #2e7d32" }} />
-                      </Box>
-
-                      <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
-                        <Typography sx={{ fontWeight: 500 }}>{user.name}</Typography>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: { xs: "block", sm: "none" } }}>{user.email}</Typography>
-                      </Box>
-
-                      <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
-                        {user.email}
-                      </Typography>
-
-                      <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
-                        {user.telefone}
-                      </Typography>
-
-                      <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
-                        {user.cidade}
-                      </Typography>
-
-                      <Box sx={{ display: "flex", gap: 1, alignItems: "center", justifyContent: "flex-end" }}>
-                        <Button variant="outlined" size="small" onClick={() => openScheduleDialog(user)}>
-                          AGENDAR CONSULTA
-                        </Button>
-                        <IconButton onClick={() => requestDeleteUser(user)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    </Box>
                   <ListItem
                     sx={{
                       my: 1,
@@ -651,7 +599,7 @@ export default function UserGestor() {
                             variant="contained"
                             size="small"
                             onClick={() => {
-                              try { localStorage.setItem('lastUserId', String(user.id)); } catch { /* ignore */ }
+                              try { localStorage.setItem('lastUserId', String(user.id)); } catch {}
                               let target = '/questionario';
                               let state = { user };
                               try {
@@ -666,11 +614,14 @@ export default function UserGestor() {
                                     state = { user, antropoData: parsed.antropoData || {}, dados: parsed.circData || {} };
                                   }
                                 }
-                              } catch { /* ignore parse errors */ }
+                              } catch {}
                               navigate(target, { state });
                             }}
                           >
                             Ver Dados
+                          </Button>
+                          <Button variant="outlined" size="small" onClick={() => openScheduleDialog(user)}>
+                            AGENDAR CONSULTA
                           </Button>
                           <IconButton
                             color="secondary"
