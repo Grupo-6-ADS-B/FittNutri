@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "Usuario")
+@Table(name = "usuario")
 public class UserModel {
 
     @Id
@@ -42,6 +42,10 @@ public class UserModel {
 
     @Column(nullable = false)
     private String role = "NUTRI";
+
+    @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL)
+    private List<PatientModel> pacientes = new ArrayList<>();
+
 
     @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL)
     private List<SchedulingModel> agendamentos = new ArrayList<>();

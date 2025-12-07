@@ -1,6 +1,7 @@
+import React from 'react';
 import { Paper, Typography, Box } from '@mui/material';
 
-function Card({ title, description, icon: Icon, image, color = 'primary' }) {
+function Card({ title, description, icon: IconComponent, image, color = 'primary' }) {
   return (
     <Paper
       elevation={0}
@@ -85,8 +86,8 @@ function Card({ title, description, icon: Icon, image, color = 'primary' }) {
             left: 16,
           }}
         >
-          <Box
-            className="card-icon"
+            <Box
+              className="card-icon"
             sx={{
               p: 1.5,
               borderRadius: 2,
@@ -100,8 +101,8 @@ function Card({ title, description, icon: Icon, image, color = 'primary' }) {
               backdropFilter: 'blur(10px)',
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
             }}
-          >
-            <Icon sx={{ fontSize: 'inherit' }} />
+            >
+            {IconComponent && React.createElement(IconComponent, { sx: { fontSize: 'inherit' } })}
           </Box>
         </Box>
       </Box>
