@@ -36,7 +36,7 @@ public class MealController {
             meal.setAlimento(item.getAlimento());
             meal.setQuantidade(item.getQuantidade());
             meal.setUnidade(item.getUnidade());
-            meal.setObservacao(item.getObservacao());
+            meal.setObservacao(request.getObservacao());
             return service.addMeal(patientId, meal);
         }).toList();
 

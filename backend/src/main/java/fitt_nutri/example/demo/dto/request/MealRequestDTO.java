@@ -8,5 +8,6 @@ import java.util.List;
 public class MealRequestDTO {
     private String descricao;
     private String horario;
+    private String observacao;
     private List<MealItemDTO> alimentos;
 }
