@@ -10,6 +10,7 @@ import api from '../utils/api';
 
 export default function MealModal({ open, onClose, onSave, initial = null }) {
   const [meal, setMeal] = useState({ horario: '', descricao: '', alimentos: [], observacao: '' });
+  const [alimentosDisponiveis, setAlimentosDisponiveis] = useState([]);
 
   useEffect(() => {
     setMeal(initial ?? { horario: '', descricao: '', alimentos: [], observacao: '' });

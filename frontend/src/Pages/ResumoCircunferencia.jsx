@@ -1,166 +1,269 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
+import api from '../utils/api';
 import { useNavigate, useLocation } from "react-router-dom";
-import { Box, Typography, Paper, Card, CardMedia, IconButton, Tooltip, Button, FormControl, InputLabel, Select, MenuItem, Collapse } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import {
+    Box, Typography, Paper, Card, CardMedia, CardContent,
+    IconButton, Tooltip, Button, FormControl, InputLabel,
+    Select, MenuItem, Collapse, Drawer, Avatar, Grid
+} from "@mui/material";
+import { useTheme, styled } from "@mui/material/styles";
 import EditIcon from '@mui/icons-material/Edit';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import MenuIcon from '@mui/icons-material/Menu';
+import ScaleIcon from '@mui/icons-material/Scale';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+
+const minimalWidth = 80;
+const expandedWidth = 340;
+
+const KpiImageUrls = {
+    pesoAtual: 'https://images.unsplash.com/photo-1542849800-47864f77894a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80',
+    pesoMeta: 'https://images.unsplash.com/photo-1579621970588-a35d0e7ab93b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80',
+    imc: 'https://images.unsplash.com/photo-1533538415848-0c6c19f668f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80',
+    tmb: 'https://images.unsplash.com/photo-1542838337-ab72f883215f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80',
+};
+
+const KpiAnimatedCard = styled(Card)(({ theme, imageurl }) => ({
+    borderRadius: theme.spacing(2),
+    overflow: 'hidden',
+    position: 'relative',
+    height: 180,
+    width: '100%',
+    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.05)',
+    transition: 'transform 0.4s ease, box-shadow 0.4s ease',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: theme.spacing(2),
+    
+    '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
+        zIndex: 1,
+    },
+    
+    '& .kpi-media': {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        bottom: 0,
+        width: 100,
+        backgroundImage: `url(${imageurl})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        opacity: 0,
+        transition: 'opacity 0.4s ease, transform 0.4s ease',
+        transform: 'translateX(20px)',
+        zIndex: 2,
+    },
+
+    '& .MuiCardContent-root': {
+        position: 'relative',
+        zIndex: 3,
+        flexGrow: 1,
+        transition: 'opacity 0.4s ease, transform 0.4s ease',
+        transform: 'translateX(0)',
+    },
+
+    '&:hover': {
+        transform: 'scale(1.02)',
+        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.12)',
+        
+        '& .kpi-media': {
+            opacity: 1,
+            transform: 'translateX(0)',
+        },
+        
+        '& .MuiCardContent-root': {
+            transform: 'translateX(-10px)',
+        },
+    },
+}));
+
+const KpiCarouselCard = ({ title, value, unit, description, icon: Icon, imageId, valueColor }) => {
+    const imageUrl = KpiImageUrls[imageId];
+    return (
+        <KpiAnimatedCard imageurl={imageUrl}>
+            <Box className="kpi-media" />
+            <CardContent sx={{ position: 'relative', zIndex: 3, p: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                    <Icon sx={{ color: valueColor, fontSize: 28, mr: 1 }} />
+                    <Typography variant="body2" color="text.secondary" fontWeight="bold">{title}</Typography>
+                </Box>
+                <Typography variant="h4" fontWeight="bold" sx={{ color: valueColor, mb: 0.5 }}>
+                    {value} {unit}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">{description}</Typography>
+            </CardContent>
+        </KpiAnimatedCard>
+    );
+};
+
+
 
 export default function ResumoCircunferencia() {
-  const theme = useTheme();
-  const primary = theme.palette.primary.main;
-  const success = theme.palette.success.main;
-  const warning = theme.palette.warning.main;
-  const error = theme.palette.error.main;
-  const info = theme.palette.info.main;
-  const textSecondary = theme.palette.text.secondary;
-  const divider = theme.palette.divider;
-  const navigate = useNavigate();
-  const location = useLocation();
-  const dados = location.state?.dados;
+    const theme = useTheme();
+    const primary = theme.palette.primary.main;
+    const success = theme.palette.success.main;
+    const navigate = useNavigate();
+    const location = useLocation();
+    
+    const [isCardOpen, setIsCardOpen] = React.useState(false); 
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
+    
+    // Removido array mocado, agora os dados vêm do backend
+    
+    const [usersList, setUsersList] = React.useState([]);
+    const [selectedUser, setSelectedUser] = React.useState(null);
+    const [loadingUsers, setLoadingUsers] = React.useState(true);
+    useEffect(() => {
+        async function fetchUsers() {
+            setLoadingUsers(true);
+            try {
+                const response = await api.get('/users');
+                setUsersList(Array.isArray(response.data) ? response.data : []);
+                // Prioriza usuário vindo do location.state
+                if (location.state?.user) {
+                    setSelectedUser(location.state.user);
+                } else {
+                    setSelectedUser(response.data?.[0] || null);
+                }
+            } catch {
+                setUsersList([]);
+                setSelectedUser(location.state?.user || null);
+            }
+            setLoadingUsers(false);
+        }
+        fetchUsers();
+    }, [location.state?.user]);
 
-  const mockUsers = [
-    { id: 1, name: "André Goulart", email: "andre.goulart@example.com", phone: "(11) 98765-4321", avatar: "https://i.pravatar.cc/150?img=1" },
-    { id: 2, name: "Carlos Lima", email: "carlos.lima@example.com", phone: "(21) 91234-5678", avatar: "https://i.pravatar.cc/150?img=2" },
-  ];
-  
-  const initialSelectedUser = (() => {
-    if (location.state?.user) return location.state.user;
-    try {
-      const lastId = localStorage.getItem('lastUserId');
-      const usersStr = localStorage.getItem('users');
-      const users = usersStr ? JSON.parse(usersStr) : [];
-      if (lastId && Array.isArray(users)) {
-        const u = users.find(x => String(x.id) === String(lastId));
-        if (u) return u;
-      }
-    } catch {}
-    return mockUsers[0];
-  })();
-  const [selectedUser, setSelectedUser] = React.useState(initialSelectedUser);
-  const [usersList, setUsersList] = React.useState(() => {
-    try { const s = localStorage.getItem('users'); return s ? JSON.parse(s) : mockUsers; } catch { return mockUsers; }
-  });
+    const [antropo, setAntropo] = React.useState({});
+    const [dadosCirc, setDadosCirc] = React.useState({});
+    useEffect(() => {
+        async function fetchData() {
+            if (!selectedUser?.id) return;
+            // Prioriza dados vindos do location.state
+            if (location.state?.antropoData) {
+                setAntropo(location.state.antropoData);
+            } else {
+                try {
+                    const antropoRes = await api.get(`/anthropometric/${selectedUser.id}`);
+                    setAntropo(antropoRes.data || {});
+                } catch {
+                    setAntropo({});
+                }
+            }
+            if (location.state?.dados) {
+                setDadosCirc(location.state.dados);
+            } else {
+                try {
+                    const circRes = await api.get(`/circumference/${selectedUser.id}`);
+                    setDadosCirc(circRes.data || {});
+                } catch {
+                    setDadosCirc({});
+                }
+            }
+        }
+        fetchData();
+    }, [selectedUser?.id, location.state?.antropoData, location.state?.dados]);
 
-  React.useEffect(() => {
-    try {
-      const s = localStorage.getItem('users');
-      if (s) setUsersList(JSON.parse(s));
-    } catch {}
-  }, []);
+    const handleChangeUser = (e) => {
+        const uid = e.target.value;
+        const found = (usersList || []).find(u => String(u.id) === String(uid));
+        if (found) {
+            setSelectedUser(found);
+            setIsCardOpen(false);
+        }
+    };
+    const calcularIMC = (peso, alturaM) => {
+        if (!peso || !alturaM) return null;
+        const v = peso / (alturaM * alturaM);
+        return Number.isFinite(v) ? v : null;
+    };
+    const classificarIMC = (imc) => {
+        if (imc == null) return "-";
+        if (imc < 18.5) return "Abaixo do peso";
+        if (imc < 24.9) return "Peso normal";
+        if (imc < 29.9) return "Sobrepeso";
+        if (imc < 34.9) return "Obesidade grau I";
+        if (imc < 39.9) return "Obesidade grau II";
+        return "Obesidade grau III";
+    };
+    const calcularTMB = (peso, alturaCm, idade, sexoFonte, atividadeFonte) => {
+        if (!peso || !alturaCm || !idade) return null;
+        let tmbBase;
+        if ((sexoFonte || "").toLowerCase() === "masculino") {
+            tmbBase = (10 * peso) + (6.25 * alturaCm) - (5 * idade) + 5;
+        } else {
+            tmbBase = (10 * peso) + (6.25 * alturaCm) - (5 * idade) - 161;
+        }
+        const fator = {
+            "sedentário": 1.2,
+            "levemente ativo": 1.375,
+            "moderadamente ativo": 1.55,
+            "muito ativo": 1.725,
+            "extremamente ativo": 1.9,
+        }[atividadeFonte] || 1.2;
+        return Math.round(tmbBase * fator);
+    };
 
-  const [antropo, setAntropo] = React.useState(location.state?.antropoData || {});
-  const [dadosCirc, setDadosCirc] = React.useState(location.state?.dados || {});
+    const imcValue = useMemo(() => {
+        const peso = parseFloat(String(antropo.peso || '').replace(',', '.'));
+        const alturaCm = parseFloat(String(antropo.altura || '').replace(',', '.'));
+        if (!peso || !alturaCm) return null;
+        const alturaM = alturaCm / 100;
+        const v = calcularIMC(peso, alturaM);
+        return v != null ? v.toFixed(2) : null;
+    }, [antropo.peso, antropo.altura]);
 
-  React.useEffect(() => {
-    if (location.state?.antropoData || location.state?.dados) return; 
-    try {
-      const uid = selectedUser?.id;
-      if (!uid) return;
-      const stored = localStorage.getItem(`questionario_${uid}`);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed?.antropoData) setAntropo(parsed.antropoData);
-        if (parsed?.circData) setDadosCirc(parsed.circData);
-      } else {
-        setAntropo({});
-        setDadosCirc({});
-      }
-    } catch { setAntropo({}); setDadosCirc({}); }
-  }, [selectedUser?.id, location.state?.antropoData, location.state?.dados]);
+    const imcClass = useMemo(() => {
+        if (!imcValue) return "-";
+        return classificarIMC(parseFloat(imcValue));
+    }, [imcValue]);
 
-  const handleChangeUser = (e) => {
-    const uid = e.target.value;
-    const found = (usersList || []).find(u => String(u.id) === String(uid));
-    if (found) {
-      setSelectedUser(found);
-      try { localStorage.setItem('lastUserId', String(found.id)); } catch {}
-    }
-  };
-  const calcularIMC = (peso, alturaM) => {
-    if (!peso || !alturaM) return null;
-    const v = peso / (alturaM * alturaM);
-    return Number.isFinite(v) ? v : null;
-  };
-  const classificarIMC = (imc) => {
-    if (imc == null) return "-";
-    if (imc < 18.5) return "Abaixo do peso";
-    if (imc < 24.9) return "Peso normal";
-    if (imc < 29.9) return "Sobrepeso";
-    if (imc < 34.9) return "Obesidade grau I";
-    if (imc < 39.9) return "Obesidade grau II";
-    return "Obesidade grau III";
-  };
-
-
-
-  const calcularTMB = (peso, alturaCm, idade, sexoFonte , atividadeFonte) => {
-    if (!peso || !alturaCm || !idade) return null;
-    let tmbBase;
-    if ((sexoFonte || "").toLowerCase() === "masculino") {
-      tmbBase = (10 * peso) + (6.25 * alturaCm) - (5 * idade) + 5;
-    } else {
-      tmbBase = (10 * peso) + (6.25 * alturaCm) - (5 * idade) - 161;
-    }
-    const fator = {
-      "sedentário": 1.2,
-      "levemente ativo": 1.375,
-      "moderadamente ativo": 1.55,
-      "muito ativo": 1.725,
-      "extremamente ativo": 1.9,
-    }[atividadeFonte] || 1.2;
-    return Math.round(tmbBase * fator);
-  };
-  const imcValue = useMemo(() => {
-    const peso = parseFloat(String(antropo.peso || '').replace(',', '.'));
-    const alturaCm = parseFloat(String(antropo.altura || '').replace(',', '.'));
-    if (!peso || !alturaCm) return null;
-    const alturaM = alturaCm / 100;
-    const v = calcularIMC(peso, alturaM);
-    return v != null ? v.toFixed(2) : null;
-  }, [antropo.peso, antropo.altura]);
-
-  const imcClass = useMemo(() => {
-    if (!imcValue) return "-";
-    return classificarIMC(parseFloat(imcValue));
-  }, [imcValue]);
-
-  const tmbValue = useMemo(() => {
-    const peso = parseFloat(String(antropo.peso || '').replace(',', '.'));
-    const alturaCm = parseFloat(String(antropo.altura || '').replace(',', '.'));
-    const idade = parseFloat(String(antropo.idade || '').replace(',', '.'));
+    const tmbValue = useMemo(() => {
+        const peso = parseFloat(String(antropo.peso || '').replace(',', '.'));
+        const alturaCm = parseFloat(String(antropo.altura || '').replace(',', '.'));
+        const idade = parseFloat(String(antropo.idade || '').replace(',', '.'));
         const sexoFonte = selectedUser?.sexo ?? 'feminino';
-    const atividadeFonte = (selectedUser?.atividade ?? 'sedentario');
-    if (!peso || !alturaCm || !idade) return null;
-    return calcularTMB(peso, alturaCm, idade, sexoFonte, atividadeFonte);
-  }, [antropo.peso, antropo.altura, antropo.idade]);
+        const atividadeFonte = (selectedUser?.atividade ?? 'sedentario');
+        if (!peso || !alturaCm || !idade) return null;
+        return calcularTMB(peso, alturaCm, idade, sexoFonte, atividadeFonte);
+    }, [antropo.peso, antropo.altura, antropo.idade, selectedUser?.sexo, selectedUser?.atividade]);
 
-  const pesoAtual = useMemo(() => {
-    const p = parseFloat(String(antropo.peso || '').replace(',', '.'));
-    return Number.isFinite(p) && p > 0 ? parseFloat(p.toFixed(1)) : null;
-  }, [antropo.peso]);
+    const pesoAtual = useMemo(() => {
+        const p = parseFloat(String(antropo.peso || '').replace(',', '.'));
+        return Number.isFinite(p) && p > 0 ? parseFloat(p.toFixed(1)) : null;
+    }, [antropo.peso]);
 
-  const pesoMeta = useMemo(() => {
-    const circ = location.state?.dados || dadosCirc;
-    let metaValor = null;
-    for (const [k, v] of Object.entries(circ)) {
-      if (typeof k === 'string' && k.toLowerCase().includes('peso ideal')) {
-        metaValor = v;
-        break;
-      }
-    }
-    if (metaValor == null) return null;
-    const metaNum = parseFloat(String(metaValor).replace(',', '.').replace(/[^\d.]/g, ''));
-    return Number.isFinite(metaNum) && metaNum > 0 ? parseFloat(metaNum.toFixed(1)) : null;
-  }, [location.state, dadosCirc]);
+    const pesoMeta = useMemo(() => {
+        const circ = location.state?.dados || dadosCirc;
+        let metaValor = null;
+        for (const [k, v] of Object.entries(circ)) {
+            if (typeof k === 'string' && k.toLowerCase().includes('peso ideal')) {
+                metaValor = v;
+                break;
+            }
+        }
+        if (metaValor == null) return null;
+        const metaNum = parseFloat(String(metaValor).replace(',', '.').replace(/[^\d.]/g, ''));
+        return Number.isFinite(metaNum) && metaNum > 0 ? parseFloat(metaNum.toFixed(1)) : null;
+    }, [location.state, dadosCirc]);
 
-  const servicos = [
-    { titulo: "Consulta Nutricional", descricao: "Avaliação completa e plano alimentar personalizado.", imagem: "/tempo.jpg" },
-    { titulo: "Acompanhamento Online", descricao: "Suporte remoto para dúvidas e ajustes no plano.", imagem: "/tempo2.jpg" },
-    { titulo: "Educação Alimentar", descricao: "Workshops e materiais educativos sobre nutrição.", imagem: "/vendo.jpg" },
-  ];
+
+    const servicos = [
+        { titulo: "Consulta Nutricional", descricao: "Avaliação completa e plano alimentar personalizado.", imagem: "/tempo.jpg" },
+        { titulo: "Acompanhamento Online", descricao: "Suporte remoto para dúvidas e ajustes no plano.", imagem: "/tempo2.jpg" },
+        { titulo: "Educação Alimentar", descricao: "Workshops e materiais educativos sobre nutrição.", imagem: "/vendo.jpg" },
+    ];
 
   
   const massaMuscular =
@@ -268,233 +371,161 @@ export default function ResumoCircunferencia() {
     </Paper>
   );
 
-  return (
-    <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', display: "flex", width: '100%' }}>
-      
-      <Box 
-        sx={{ 
-          width: { xs: isSidebarOpen ? 300 : 0, md: isSidebarOpen ? 340 : 80 }, 
-          minWidth: { xs: isSidebarOpen ? 300 : 0, md: isSidebarOpen ? 340 : 80 },
-          height: '100%', 
-          transition: theme.transitions.create(['width', 'min-width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
-          bgcolor: 'grey.100', 
-          borderRight: isSidebarOpen ? '1px solid #e0e0e0' : 'none',
-          p: { xs: 0, md: 2 },
-          overflow: 'hidden', 
-          position: { xs: 'fixed', md: 'static' }, 
-          zIndex: 1000,
-        }}
-      >
-        <Box 
-            sx={{ 
-                display: 'flex', 
-                justifyContent: isSidebarOpen ? 'flex-end' : 'center', 
-                alignItems: 'center', 
-                py: 1, 
-                mb: 2, 
-                pr: isSidebarOpen ? 0 : 2, 
-                height: 56, 
-                bgcolor: { xs: 'white', md: 'transparent' } 
+// Define minimalAvatarSize for Avatar usage
+const minimalAvatarSize = 40;
+
+// MinimalSidebar component
+function MinimalSidebar() {
+    return (
+        <Box
+            sx={{
+                width: minimalWidth,
+                minWidth: minimalWidth,
+                bgcolor: 'grey.100',
+                borderRight: '1px solid #e0e0e0',
+                p: 2,
+                position: 'sticky',
+                top: 0,
+                height: '15vh',
+                flexShrink: 0,
+                zIndex: 1000,
+                borderRadius: 2,
+                overflowX: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
             }}
         >
-            <Tooltip title={isSidebarOpen ? "Comprimir Menu" : "Expandir Menu"}>
-                <IconButton onClick={() => setIsSidebarOpen(!isSidebarOpen)} size="large" color="primary">
-                    {isSidebarOpen ? <MenuOpenIcon /> : <MenuIcon />}
+            <Tooltip title="Expandir Menu" placement="right">
+                <IconButton color="primary">
+                    <MenuIcon />
                 </IconButton>
             </Tooltip>
         </Box>
+    );
+}
 
-        <Collapse orientation="horizontal" in={isSidebarOpen} timeout={300}>
-            <Box sx={{ minWidth: 300 }}>
-                {UserSidebarContent}
-            </Box>
-        </Collapse>
+// UserDetailDrawer component (shows sidebar content if needed)
+function UserDetailDrawer() {
+    // For demo, just return null or you can render UserSidebarContent if needed
+    return null;
+}
 
-        {!isSidebarOpen && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mt: 1, px: 1 }}>
-                <Tooltip title={selectedUser.name}>
-                    <Box component="img" src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 40, height: 40, borderRadius: '50%', border: '2px solid', borderColor: 'success.main', mb: 1 }} />
-                </Tooltip>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 'bold' }}>{selectedUser.name.charAt(0)}</Typography>
-            </Box>
-        )}
-      </Box>
+// KpiLayout component (shows KPIs)
+function KpiLayout() {
+    return (
+        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
+            <KpiCarouselCard
+                title="Peso Atual"
+                value={pesoAtual ?? '-'}
+                unit="kg"
+                description="Seu peso atual"
+                icon={ScaleIcon}
+                imageId="pesoAtual"
+                valueColor={primary}
+            />
+            <KpiCarouselCard
+                title="Peso Meta"
+                value={pesoMeta ?? '-'}
+                unit="kg"
+                description="Meta de peso ideal"
+                icon={TrendingUpIcon}
+                imageId="pesoMeta"
+                valueColor={success}
+            />
+            <KpiCarouselCard
+                title="IMC"
+                value={imcValue ?? '-'}
+                unit=""
+                description={imcClass}
+                icon={FitnessCenterIcon}
+                imageId="imc"
+                valueColor={primary}
+            />
+            <KpiCarouselCard
+                title="TMB"
+                value={tmbValue ?? '-'}
+                unit="kcal"
+                description="Taxa Metabólica Basal"
+                icon={LocalFireDepartmentIcon}
+                imageId="tmb"
+                valueColor={success}
+            />
+        </Box>
+    );
+}
 
-      <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, overflowY: 'auto' }}>
-        <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
-          
-          <Typography variant="h5" gutterBottom>Resumo dos Dados de Circunferência</Typography>
-          <Typography variant="body1" sx={{ mb: 4 }}>
-            Aqui está um resumo dos dados mais importantes para sua avaliação nutricional.
-          </Typography>
-          
-          <Box sx={{ mb: 4, display: 'grid', gap: 3, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)', lg: 'repeat(5, 1fr)' } }}>
-            {(() => {
-              const imcNum = imcValue ? parseFloat(imcValue) : null;
-              let imcColor = info;
-              if (imcNum != null) {
-                if (imcNum < 18.5) imcColor = warning;
-                else if (imcNum < 24.9) imcColor = success;
-                else if (imcNum < 29.9) imcColor = warning;
-                else imcColor = error;
-              }
-              return (
-                <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="subtitle1" color={textSecondary}>IMC</Typography>
-                  <Typography variant="h5" sx={{ color: imcColor }}>{imcValue ?? '-'}</Typography>
-                  <Typography variant="body2" color={textSecondary}>{imcClass}</Typography>
-                </Paper>
-              );
-            })()}
-            <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle1" color={textSecondary}>Gasto energético total</Typography>
-              <Typography variant="h5" sx={{ color: primary }}>{tmbValue ? `${tmbValue} kcal` : '-'}</Typography>
-              <Typography variant="body2" color={textSecondary}>Estimativa</Typography>
+return (
+    <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', display: "flex", width: '100%' }}>
+        <MinimalSidebar />
+        <UserDetailDrawer />
+        <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, overflowY: 'auto' }}>
+            <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
+                {loadingUsers ? (
+                    <Typography variant="h6" color="primary" sx={{ textAlign: 'center', mt: 6 }}>
+                        Carregando usuários...
+                    </Typography>
+                ) : usersList.length === 0 ? (
+                    <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', mt: 6 }}>
+                        Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
+                    </Typography>
+                ) : (
+                    <>
+                        <Typography variant="h5" gutterBottom>Resumo dos Dados de Circunferência</Typography>
+                        <Typography variant="body1" sx={{ mb: 4 }}>
+                            Aqui está um resumo dos dados mais importantes para sua avaliação nutricional.
+                        </Typography>
+                        <Grid container spacing={4} sx={{ mb: 4 }}>
+                            <Grid item xs={12} md={7}>
+                                <Typography variant="h6" gutterBottom>Indicadores Antropométricos</Typography>
+                                <KpiLayout />
+                            </Grid>
+                            <Grid item xs={12} md={5}>
+                                <Paper elevation={0} sx={{ p: 3, height: '100%', borderLeft: '3px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
+                                    <Typography variant="subtitle1" fontWeight="bold" color="primary">
+                                        Bem-vindo à sua experiência FIttNutri
+                                    </Typography>
+                                    <Typography variant="body1" sx={{ mt: 2, lineHeight: 1.8 }}>
+                                        <span style={{ color: '#185a2e', fontWeight: 700 }}>FittNutri</span> utiliza seus <span style={{ color: '#185a2e', fontWeight: 700 }}>dados</span> para proporcionar uma <span style={{ color: '#ff9800', fontWeight: 700 }}>consulta mais precisa</span> e personalizada. Nossa equipe está dedicada a oferecer <span style={{ color: '#185a2e', fontWeight: 700 }}>monitoramento</span> contínuo e <span style={{ color: '#ff9800', fontWeight: 700 }}>auxílio</span> para atender às suas <span style={{ color: '#185a2e', fontWeight: 700 }}>necessidades nutricionais</span>.
+                                        <br /><br />
+                                        Com o acompanhamento dos <span style={{ color: '#185a2e', fontWeight: 700 }}>Indicadores Antropométricos</span>, você terá clareza sobre seu progresso e metas. Conte com a <span style={{ color: '#185a2e', fontWeight: 700 }}>FittNutri</span> para serviços de <span style={{ color: '#185a2e', fontWeight: 700 }}>monitoramento</span>, <span style={{ color: '#ff9800', fontWeight: 700 }}>consultoria</span> e suporte em todas as etapas da sua jornada de saúde!
+                                    </Typography>
+                                </Paper>
+                            </Grid>
+                        </Grid>
+                        <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 3 }}>Serviços de Nutricionismo</Typography>
+                        <Box sx={{
+                            display: 'grid',
+                            gap: 2,
+                            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }
+                        }}>
+                            {servicos.map((serv, idx) => (
+                                <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 280, p: 1, boxShadow: 3 }}>
+                                    <Box sx={{ display: 'flex', gap: 1, flexGrow: 1, minHeight: 80 }}>
+                                        <CardMedia component="img" image={serv.imagem} alt={serv.titulo} sx={{ width: 100, height: 80, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }} />
+                                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                            <Typography variant="subtitle1" fontWeight={600} noWrap>{serv.titulo}</Typography>
+                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>{serv.descricao}</Typography>
+                                        </Box>
+                                    </Box>
+                                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            size="small"
+                                            sx={{ minWidth: 100 }}
+                                            onClick={() => navigate('/dashboard')}
+                                        >
+                                            Ver serviço
+                                        </Button>
+                                    </Box>
+                                </Card>
+                            ))}
+                        </Box>
+                    </>
+                )}
             </Paper>
-            {(() => {
-              const pg = antropo.porcentagemGordura ? parseFloat(String(antropo.porcentagemGordura).replace(',', '.')) : null;
-              const sexo = (antropo.sexo || 'feminino').toString().toLowerCase();
-              const idade = parseFloat(String(antropo.idade || '').replace(',', '.'));
-              const classificarGordura = (valor, sexo, idade) => {
-                if (valor == null) return { status: 'Não informado', color: textSecondary, faixa: null };
-                const age = Number.isFinite(idade) ? idade : 30;
-                const isMasc = sexo.includes('masc');
-                let status = 'Adequado';
-                let color = success;
-                if (isMasc) {
-                  const obeso = age < 40 ? 25 : age < 60 ? 28 : 30;
-                  const baixo = 8;
-                  const elevadoIni = age < 40 ? 20 : age < 60 ? 22 : 25;
-                  if (valor >= obeso) { status = 'Obesidade'; color = error; }
-                  else if (valor >= elevadoIni) { status = 'Elevado'; color = warning; }
-                  else if (valor < baixo) { status = 'Baixo'; color = warning; }
-                  else { status = 'Adequado'; color = success; }
-                } else {
-                  const obeso = age < 40 ? 39 : age < 60 ? 40 : 42;
-                  const baixo = 21;
-                  const elevadoIni = age < 40 ? 33 : age < 60 ? 34 : 36;
-                  if (valor >= obeso) { status = 'Obesidade'; color = error; }
-                  else if (valor >= elevadoIni) { status = 'Elevado'; color = warning; }
-                  else if (valor < baixo) { status = 'Baixo'; color = warning; }
-                  else { status = 'Adequado'; color = success; }
-                }
-                return { status, color, faixa: `${sexo.includes('masc') ? 'M' : 'F'} • ${Number.isFinite(idade) ? `${idade}a` : 'idade não informada'}` };
-              };
-              const cls = classificarGordura(pg, sexo, idade);
-              const tooltip = pg != null ? `Classificação: ${cls.status} (${pg}% gordura corporal). Baseado em sexo e idade.` : 'Percentual de gordura não informado.';
-              return (
-                <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="subtitle1" color={textSecondary}>Percentual de Gordura</Typography>
-                  <Tooltip title={tooltip} arrow>
-                    <Typography variant="h5" sx={{ color: cls.color }}>{pg != null ? `${pg}%` : '-'}</Typography>
-                  </Tooltip>
-                  <Typography variant="body2" color={textSecondary}>{cls.status}</Typography>
-                </Paper>
-              );
-            })()}
-            <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle1" color={textSecondary}>Massa Muscular</Typography>
-              <Typography variant="h5" sx={{ color: info }}>{massaMuscular}</Typography>
-              <Typography variant="body2" color={textSecondary}>kg</Typography>
-            </Paper>
-            <Paper elevation={2} sx={{ p: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle1" color={textSecondary}>Gordura Visceral</Typography>
-              <Typography variant="h5" sx={{ color: info }}>{gorduraVisceral}</Typography>
-              <Typography variant="body2" color={textSecondary}>%</Typography>
-            </Paper>
-          </Box>
-          
-          <Paper elevation={2} sx={{ p: 2, mb: 4, textAlign: 'center' }}>
-            <Box sx={{ width: '100%', height: 180, position: 'relative', px: 1, my: 1 }}>
-              <svg width="100%" height="100%" viewBox="0 0 240 140" preserveAspectRatio="none">
-                {(() => {
-                  const W = 240, H = 140; const ml = 42, mr = 22, mt = 14, mb = 26;
-                  const x1 = ml, x2 = W - mr;
-                  const vals = [pesoAtual, pesoMeta].filter(v => typeof v === 'number');
-                  if (vals.length === 0) {
-                    return <text x={W/2} y={H/2} textAnchor="middle" fill={textSecondary} fontSize="12" fontFamily="'Montserrat', sans-serif">Dados insuficientes para gráfico.</text>;
-                  }
-                  let minV = Math.min(...vals); let maxV = Math.max(...vals);
-                  if (!(isFinite(minV) && isFinite(maxV))) {
-                    return null;
-                  }
-                  const padding = (maxV - minV) * 0.15 || 1;
-                  minV -= padding;
-                  maxV += padding;
-                  if (minV === maxV) { minV -= 1; maxV += 1; }
-
-                  const scaleY = (v) => mt + (H - mt - mb) * (1 - (v - minV) / (maxV - minV));
-                  const y1 = typeof pesoAtual === 'number' ? scaleY(pesoAtual) : null;
-                  const y2 = typeof pesoMeta === 'number' ? scaleY(pesoMeta) : null;
-                  const steps = 2;
-                  const stepVal = (maxV - minV) / steps;
-                  const yTicks = Array.from({ length: steps + 1 }, (_, i) => minV + i * stepVal);
-
-                  const semanas = [
-                    '1ª', '', '2ª', '', '3ª', '', '4ª', '', '5ª', '', '6ª', '', '7ª'
-                  ];
-                  const xStep = (W - ml - mr) / (semanas.length - 1);
-
-                  return (
-                    <g>
-                      {yTicks.map((t, i) => {
-                        const y = scaleY(t);
-                        return (
-                          <g key={i}>
-                            <line x1={ml} y1={y} x2={W-mr} y2={y} stroke={divider} strokeDasharray="3 3" />
-                          </g>
-                        );
-                      })}
-                      <line x1={ml} y1={H-mb} x2={W-mr} y2={H-mb} stroke={divider} />
-                      {y1 != null && y2 != null && (
-                        <polyline points={`${x1},${y1} ${x2},${y2}`} fill="none" stroke={primary} strokeWidth={2} />
-                      )}
-                      {y1 != null && (<circle cx={x1} cy={y1} r={2.2} fill={primary} />)}
-                      {y2 != null && (<circle cx={x2} cy={y2} r={2.2} fill={success} />)}
-                      {y1 != null && (
-                          <text x={x1} y={y1 - 4} textAnchor="middle" fill={primary} fontWeight="bold" fontSize="6" fontFamily="'Montserrat', sans-serif">{pesoAtual} kg</text>
-                      )}
-                      {y2 != null && (
-                          <text x={x2} y={y2 - 4} textAnchor="middle" fill={success} fontWeight="bold" fontSize="6" fontFamily="'Montserrat', sans-serif">{pesoMeta} kg</text>
-                      )}
-                      {semanas.map((sem, i) => {
-                        const x = ml + i * xStep;
-                        return sem ? (
-                          <text key={sem + i} x={x} y={H - 3} textAnchor="middle" fill={textSecondary} fontSize="4.5" fontFamily="'Montserrat', sans-serif">{sem} sem</text>
-                        ) : null;
-                      })}
-                    </g>
-                  );
-                })()}
-              </svg>
-            </Box>
-          </Paper>
-          <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 3 }}>Serviços de Nutricionismo</Typography>
-          <Box sx={{
-            display: 'grid',
-            gap: 2,
-            gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }
-          }}>
-            {servicos.map((serv, idx) => (
-              <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 280, p: 1, boxShadow: 3 }}>
-                <Box sx={{ display: 'flex', gap: 1, flexGrow: 1, minHeight: 80 }}>
-                  <CardMedia component="img" image={serv.imagem} alt={serv.titulo} sx={{ width: 100, height: 80, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }} />
-                  <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <Typography variant="subtitle1" fontWeight={600} noWrap>{serv.titulo}</Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>{serv.descricao}</Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
-                  <Button variant="contained" color="primary" size="small" sx={{ minWidth: 100 }}>Ver serviço</Button>
-                </Box>
-              </Card>
-            ))}
-          </Box>
-        </Paper>
-      </Box>
+        </Box>
     </Box>
-  );
+);
 }

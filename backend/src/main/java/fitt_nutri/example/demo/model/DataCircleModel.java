@@ -3,7 +3,6 @@ package fitt_nutri.example.demo.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -14,23 +13,13 @@ import lombok.*;
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Entity
-@Table(
-        name = "dados_circunferencia",
-        uniqueConstraints = {
-                // 🔐 Garante que o rótulo seja único por paciente (opcional, mas recomendado)
-                @UniqueConstraint(name = "uk_rotulo_paciente", columnNames = {"rotulo", "idUsuarioFK"})
-        }
-)
+@Table(name = "dados_circunferencia")
 public class DataCircleModel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Integer idDadosCircunferencia;
-
-    @NotBlank(message = "O rótulo da medição não pode estar vazio")
-    @Column(nullable = false, length = 100)
-    private String rotulo;
 
     @NotNull(message = "Abdominal não pode estar vazio")
     @Column(nullable = false)

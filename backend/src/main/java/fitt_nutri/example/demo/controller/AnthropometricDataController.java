@@ -68,6 +68,8 @@ public class AnthropometricDataController {
         }
     }
 
+
+
     @Operation(summary = "Atualiza dados antropométricos por ID")
     @ApiResponse(responseCode = "200", description = "Dados atualizados com sucesso")
     @ApiResponse(responseCode = "404", description = "Dado com o ID fornecido não encontrado")
@@ -148,4 +150,13 @@ public class AnthropometricDataController {
                     .body("Erro ao buscar dados antropométricos do paciente: " + ex.getMessage());
         }
     }
+
+    @PostMapping("/patient/{patientId}")
+    public AnthropometricDataModel createByPaciente(
+            @PathVariable Integer patientId,
+            @RequestBody AnthropometricDataModel data
+    ) {
+        return service.createByPaciente(patientId, data);
+    }
+
 }

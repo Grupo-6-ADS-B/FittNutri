@@ -31,7 +31,6 @@ public class UserController {
     private final LoginService service;
 
     @PostMapping
-    @SecurityRequirement(name = "Bearer")
     public ResponseEntity<Void> createUser(@Valid @RequestBody LoginCreateDTO dto) {
         final UserModel user = LoginMapperDTO.of(dto);
         service.criar(user);

@@ -30,6 +30,7 @@ import FilterListIcon from "@mui/icons-material/FilterList";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 
+  import api from '../utils/api';
 const defaultUsers = [
   { id: 1, name: "André Goulart", email: "andre.goulart@example.com", telefone: "(11) 98765-4321", cidade: "São Paulo", avatar: "https://i.pravatar.cc/150?img=1" },
   { id: 2, name: "Carlos Lima", email: "carlos.lima@example.com", telefone: "(21) 91234-5678", cidade: "Rio de Janeiro", avatar: "https://i.pravatar.cc/150?img=2" },
@@ -139,9 +140,53 @@ export default function UserGestor() {
     };
     loadAppointments();
   }, []);
+  const fetchUsers = async () => {
+    try {
+      const response = await api.get('/patients');
+      const mapped = Array.isArray(response.data)
+        ? response.data.map(u => ({
+            id: u.id ?? u.ID ?? u.idUsuario ?? u.codigo ?? undefined,
+            name: u.name ?? u.nome ?? '',
+            email: u.email ?? '',
+            telefone: u.telefone ?? u.phone ?? '',
+            cidade: u.cidade ?? u.city ?? '',
+            avatar: u.avatar ?? '',
+            cpf: u.cpf ?? '',
+            crn: u.crn ?? '',
+          }))
+        : [];
+      setUsers(mapped);
+      try { localStorage.setItem("users", JSON.stringify(mapped)); } catch {}
+    } catch (error) {
+      // fallback to stored users or defaults
+      const stored = localStorage.getItem("users");
+      if (stored) {
+        try {
+          setUsers(JSON.parse(stored));
+        } catch {
+          setUsers([]);
+        }
+      } else {
+        setUsers(defaultUsers);
+        try { localStorage.setItem("users", JSON.stringify(defaultUsers)); } catch {}
+      }
+    }
+  };
 
+  useEffect(() => {
+    fetchUsers();
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUsers();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
   const handleAddUser = () => {
-    navigate("/register");
+    navigate("/register-patient");
   };
 
   const openScheduleDialog = (user) => {
@@ -572,6 +617,71 @@ export default function UserGestor() {
                         </IconButton>
                       </Box>
                     </Box>
+                  <ListItem
+                    sx={{
+                      my: 1,
+                      borderRadius: '15px',
+                      transition: 'background-color 0.3s',
+                      '&:hover': {
+                        backgroundColor: user?.name ? 'rgba(0, 0, 0, 0.04)' : 'transparent'
+                      },
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                  >
+                    {user?.name ? (
+                      <>
+                        <ListItemAvatar>
+                          <Avatar
+                            src={user.avatar ? user.avatar : '/avatar-default.png'}
+                            sx={{ width: 50, height: 50, border: "2px solid #2e7d32" }}
+                          >
+                            {(!user.avatar && user.name) ? user.name.charAt(0) : null}
+                          </Avatar>
+                        </ListItemAvatar>
+                        <ListItemText
+                          primary={user.name}
+                          primaryTypographyProps={{ fontWeight: 'bold', width: '150px', flexShrink: 0 }}
+                        />
+                        <ListItemText primary={user.email} sx={{ width: '250px', flexShrink: 0, mx: 2 }} />
+                        <ListItemText primary={user.telefone || user.phone} sx={{ width: '150px', flexShrink: 0, mx: 2 }} />
+                        <ListItemText primary={user.cidade} sx={{ width: '150px', flexShrink: 0, mx: 2 }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => {
+                              try { localStorage.setItem('lastUserId', String(user.id)); } catch { /* ignore */ }
+                              let target = '/questionario';
+                              let state = { user };
+                              try {
+                                const raw = localStorage.getItem(`questionario_${user.id}`);
+                                if (raw) {
+                                  const parsed = JSON.parse(raw);
+                                  const done = parsed?.completed?.antropo && parsed?.completed?.circ;
+                                  if (done) {
+                                    target = '/resumo-circunferencia';
+                                    state = { user, antropoData: parsed.antropoData || {}, dados: parsed.circData || {} };
+                                  } else {
+                                    state = { user, antropoData: parsed.antropoData || {}, dados: parsed.circData || {} };
+                                  }
+                                }
+                              } catch { /* ignore parse errors */ }
+                              navigate(target, { state });
+                            }}
+                          >
+                            Ver Dados
+                          </Button>
+                          <IconButton
+                            color="secondary"
+                            onClick={() => requestDeleteUser(user)}
+                            sx={{ ml: 1, '&:hover': { color: 'error.main', backgroundColor: 'rgba(244, 67, 54, 0.08)' } }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      </>
+                    ) : null}
                   </ListItem>
 
                   {index < filteredUsers.length - 1 && (

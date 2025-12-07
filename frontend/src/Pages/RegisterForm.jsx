@@ -19,11 +19,11 @@ import {
   Lock as LockIcon,
   PersonAdd as PersonAddIcon
 } from '@mui/icons-material';
-import { BrowserRouter as Router, Routes, Route, useNavigate, Outlet } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import api from '../utils/api';
 
 
-function RegisterForm({ onSwitchToLogin }) {
+function RegisterForm() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -77,8 +77,15 @@ function RegisterForm({ onSwitchToLogin }) {
 
     try {
       const resp = await api.post('/users', payload);
+      sessionStorage.setItem('token', resp.data?.token);
+      sessionStorage.setItem('nomeUsuario', data.name);
+      sessionStorage.setItem('emailUsuario', data.email);
+      sessionStorage.setItem('cpfUsuario', data.cpf);
+      sessionStorage.setItem('crnUsuario', data.crn);
+      sessionStorage.setItem('idUsuario', resp.data?.id ? String(resp.data.id) : '');
+
       setSuccess(resp.data?.message ?? 'Cadastro realizado com sucesso.');
-      setTimeout(() => navigate('/login'), 1200);
+      setTimeout(() => navigate('/gestor'), 1200);
     } catch (err) {
       const status = err.response?.status;
       const msg = err.response?.data?.message;
@@ -246,7 +253,7 @@ function RegisterForm({ onSwitchToLogin }) {
                   return requisitos.length === 0 || `A senha precisa de: ${requisitos.join(', ')}`;
                 }
               }}
-              render={({ field, fieldState }) => {
+              render={({ field }) => {
                 const requisitos = [];
                 if (!field.value || field.value.length < 8) requisitos.push('mínimo 8 caracteres');
                 if (!/[A-Z]/.test(field.value)) requisitos.push('uma letra maiúscula');

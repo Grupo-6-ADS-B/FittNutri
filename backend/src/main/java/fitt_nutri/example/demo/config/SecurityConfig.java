@@ -30,20 +30,22 @@ public class SecurityConfig {
     private final AutenticacaoService autenticacaoService;
     private final AutenticacaoEntryPoint autenticacaoEntryPoint;
 
-    private static final String[] URLS_PUBLICAS = {
+        private static final String[] URLS_PUBLICAS = {
+            "/users/**",
             "/users/login",
-            "/users",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
             "/swagger-resources/**",
             "/webjars/**",
             "/h2-console/**",
-            "/patients/**",
             "/forms/**",
             "/schedullings/**",
             "/data-circle/**",
-            "anthropometric-data/**"
+            "/anthropometric-data/**",
+            "/food-itens/**",
+            "/patients/**",
+                "/h2-console/**"
     };
 
     @Bean
@@ -80,23 +82,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(URLS_PUBLICAS).permitAll()
-                        .anyRequest()
-                        .authenticated()
-                )
-                .exceptionHandling(handling -> handling
-                        .authenticationEntryPoint(autenticacaoEntryPoint))
-                .sessionManagement(management -> management
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-           //     .authenticationProvider(authenticationProvider())
-                .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
-
-        http.addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(URLS_PUBLICAS).permitAll()
+                .anyRequest()
+                .authenticated()
+            )
+            .exceptionHandling(handling -> handling
+                .authenticationEntryPoint(autenticacaoEntryPoint))
+            .sessionManagement(management -> management
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
