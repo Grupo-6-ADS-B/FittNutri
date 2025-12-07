@@ -28,7 +28,8 @@ export default function Diet() {
 
   const userName = location.state.patientName;
   const userAge = selectedUser?.age ?? selectedUser?.idade ?? null;
-
+  const patientId = selectedUser?.id || null;
+console.log('Diet page - selectedUser:', selectedUser);
   const initials = userName
     ? userName.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
     : 'NA';
@@ -178,7 +179,7 @@ export default function Diet() {
             </Paper>
 
 
-            <MealModal open={openMeal} onClose={handleCloseMeal} onSave={handleSaveMeal} initial={selectedMeal} />
+            <MealModal open={openMeal} patientId={patientId} onClose={handleCloseMeal} onSave={handleSaveMeal} initial={selectedMeal} />
           </Stack>
         </Grid>
 

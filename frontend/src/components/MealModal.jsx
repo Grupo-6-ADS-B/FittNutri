@@ -8,10 +8,16 @@ import CloseIcon from '@mui/icons-material/Close';
 import api from '../utils/api';
 
 
-export default function MealModal({ open, onClose, onSave, initial = null }) {
+export default function MealModal({ open, onClose, onSave, initial = null, patientId = null }) {
   const [meal, setMeal] = useState({ horario: '', descricao: '', alimentos: [], observacao: '' });
   const [alimentosDisponiveis, setAlimentosDisponiveis] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [selectedFood, setSelectedFood] = useState(null); 
 
+  const [selectedQuantity, setSelectedQuantity] = useState(100);
+  const [selectedUnit, setSelectedUnit] = useState('g');
+  const units = ['g', 'ml', 'un', 'porção'];
   useEffect(() => {
     setMeal(initial ?? { horario: '', descricao: '', alimentos: [], observacao: '' });
   }, [initial, open]);
@@ -19,40 +25,6 @@ export default function MealModal({ open, onClose, onSave, initial = null }) {
 
   const [query, setQuery] = useState('');
   const [options, setOptions] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [selectedFood, setSelectedFood] = useState(null);
-  const [selectedQuantity, setSelectedQuantity] = useState(100);
-  const [selectedUnit, setSelectedUnit] = useState('g');
-  const units = ['g', 'ml', 'un', 'porção'];
-
-  const handleChange = (key) => (eventOrValue) => {
-    let value;
-
-    if (eventOrValue?.target) {
-      value = eventOrValue.target.value;
-    } 
-    else {
-      value = eventOrValue ?? '';
-    }
-
-    setMeal(prev => ({ ...prev, [key]: value }));
-  };
-
-  const removeFood = (id) => setMeal(prev => ({ ...prev, alimentos: prev.alimentos.filter(a => a.id !== id) }));
-
-  
-  const times = useMemo(() => {
-    const out = [];
-    for (let h = 5; h < 24; h++) {
-      for (let m of [0, 30]) {
-        const hh = String(h).padStart(2, '0');
-        const mm = String(m).padStart(2, '0');
-        out.push(`${hh}:${mm}`);
-      }
-    }
-    return out;
-  }, []);
-
   const fetchController = useRef(null);
 
   const fetchFoods = async (q) => {
@@ -97,6 +69,34 @@ export default function MealModal({ open, onClose, onSave, initial = null }) {
     };
   }, [query]);
 
+  const handleChange = (key) => (eventOrValue) => {
+    let value;
+
+    if (eventOrValue?.target) {
+      value = eventOrValue.target.value;
+    } 
+    else {
+      value = eventOrValue ?? '';
+    }
+
+    setMeal(prev => ({ ...prev, [key]: value }));
+  };
+
+  const removeFood = (id) => setMeal(prev => ({ ...prev, alimentos: prev.alimentos.filter(a => a.id !== id) }));
+
+  
+  const times = useMemo(() => {
+    const out = [];
+    for (let h = 5; h < 24; h++) {
+      for (let m of [0, 30]) {
+        const hh = String(h).padStart(2, '0');
+        const mm = String(m).padStart(2, '0');
+        out.push(`${hh}:${mm}`);
+      }
+    }
+    return out;
+  }, []);
+
   const handleAddSelectedFood = () => {
     if (!selectedFood || typeof selectedFood !== "object") {
       setError("Selecione um alimento válido da lista.");
@@ -121,8 +121,50 @@ export default function MealModal({ open, onClose, onSave, initial = null }) {
     setSelectedUnit('g');
   };
 
-  const handleSave = () => {
-    if (onSave) onSave(meal);
+  const handleSave = async () => {
+    if (!meal.descricao) {
+      setError('Por favor, selecione uma descrição de refeição.');
+      return;
+    }
+    if (!meal.horario) {
+      setError('Por favor, selecione um horário.');
+      return;
+    }
+    if (meal.alimentos.length === 0) {
+      setError('Por favor, adicione pelo menos um alimento.');
+      return;
+    }
+    if (!patientId) {
+      setError('ID do paciente não encontrado.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError('');
+
+      const payload = {
+        descricao: meal.descricao,
+        horario: meal.horario,
+        observacao: meal.observacao,
+        alimentos: meal.alimentos.map(a => ({
+          alimento: a.nome,
+          quantidade: a.quantidade,
+          unidade: a.unidade
+        }))
+      };
+
+      await api.post(`/meals/meal-by-type/${patientId}`, payload);
+      
+      if (onSave) onSave(meal);
+      alert('Refeição salva com sucesso!');
+      onClose();
+    } catch (err) {
+      console.error('Erro ao salvar refeição:', err);
+      setError('Erro ao salvar refeição. Verifique o console.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -133,12 +175,18 @@ export default function MealModal({ open, onClose, onSave, initial = null }) {
       </DialogTitle>
 
       <DialogContent dividers>
+        {error && (
+          <Box sx={{ mb: 2, p: 2, bgcolor: '#ffebee', color: '#c62828', borderRadius: 1 }}>
+            {error}
+          </Box>
+        )}
+        
         <Grid container spacing={2}>
           <Grid item xs={12} md={3}>
             <FormControl fullWidth>
               <InputLabel>Horário</InputLabel>
               <Select
-                value={meal.horário ?? meal.horario ?? ''}
+                value={meal.horario ?? ''}
                 label="Horário"
                 onChange={(e) => setMeal(prev => ({ ...prev, horario: e.target.value }))}
                 displayEmpty
@@ -247,9 +295,11 @@ export default function MealModal({ open, onClose, onSave, initial = null }) {
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button onClick={onClose} color="inherit">Cancelar</Button>
+        <Button onClick={onClose} color="inherit" disabled={loading}>Cancelar</Button>
         <Box sx={{ flexGrow: 1 }} />
-        <Button onClick={() => { handleSave(); onClose(); }} variant="contained" color="success">Salvar e Fechar</Button>
+        <Button onClick={handleSave} variant="contained" color="success" disabled={loading}>
+          {loading ? 'Salvando...' : 'Salvar e Fechar'}
+        </Button>
       </DialogActions>
     </Dialog>
   );
