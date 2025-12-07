@@ -2,6 +2,7 @@ package fitt_nutri.example.demo.controller;
 
 import fitt_nutri.example.demo.dto.request.FullDietRequestDTO;
 import fitt_nutri.example.demo.dto.request.MealRequestDTO;
+import fitt_nutri.example.demo.dto.response.MealItemResponseDTO;
 import fitt_nutri.example.demo.dto.response.MealResponseDTO;
 import fitt_nutri.example.demo.dto.response.PatientMealsResponseDTO;
 import fitt_nutri.example.demo.model.MealModel;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "http://localhost:5173")
 @RestController
@@ -24,26 +26,16 @@ public class MealController {
 
     private final MealService service;
 
-    @Operation(summary = "Cria uma refeição por tipo de refeicao para um paciente")
+    @Operation(summary = "Cria uma refeição (com vários alimentos) para um paciente")
     @ApiResponse(responseCode = "200", description = "Refeição criada com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @PostMapping("/meal-by-type/{patientId}")
-    public ResponseEntity<List<MealModel>> addMealByType(
+    public ResponseEntity<MealModel> addMealByType(
             @PathVariable Integer patientId,
             @RequestBody MealRequestDTO request) {
 
-        List<MealModel> meals = request.getAlimentos().stream().map(item -> {
-            MealModel meal = new MealModel();
-            meal.setDescricao(request.getDescricao());
-            meal.setHorario(request.getHorario());
-            meal.setAlimento(item.getAlimento());
-            meal.setQuantidade(item.getQuantidade());
-            meal.setUnidade(item.getUnidade());
-            meal.setObservacao(request.getObservacao());
-            return service.addMeal(patientId, meal);
-        }).toList();
-
-        return ResponseEntity.ok(meals);
+        MealModel saved = service.addMealFromDto(patientId, request);
+        return ResponseEntity.ok(saved);
     }
 
     @Operation(summary = "Lista todas as refeições de um paciente")
@@ -59,21 +51,30 @@ public class MealController {
 
         List<MealResponseDTO> refeicoesDTO = meals.stream().map(meal -> {
             MealResponseDTO dto = new MealResponseDTO();
+
             dto.setId(meal.getId());
             dto.setHorario(meal.getHorario());
             dto.setDescricao(meal.getDescricao());
-            dto.setAlimento(meal.getAlimento());
-            dto.setQuantidade(meal.getQuantidade());
-            dto.setUnidade(meal.getUnidade());
             dto.setObservacao(meal.getObservacao());
+
+            List<MealItemResponseDTO> itensDTO = meal.getAlimentos().stream().map(item -> {
+                MealItemResponseDTO i = new MealItemResponseDTO();
+                i.setId(item.getId());
+                i.setAlimento(item.getAlimento());
+                i.setQuantidade(item.getQuantidade());
+                i.setUnidade(item.getUnidade());
+                return i;
+            }).collect(Collectors.toList());
+
+            dto.setAlimentos(itensDTO);
+
             return dto;
-        }).toList();
+        }).collect(Collectors.toList());
 
         response.setRefeicoes(refeicoesDTO);
 
         return ResponseEntity.ok(response);
     }
-
 
     @Operation(summary = "Salva uma dieta completa para um paciente")
     @ApiResponse(responseCode = "200", description = "Dieta salva com sucesso")
@@ -83,20 +84,9 @@ public class MealController {
             @PathVariable Integer patientId,
             @RequestBody FullDietRequestDTO request) {
 
-        List<MealModel> meals = request.getRefeicoes().stream().map(item -> {
-            MealModel meal = new MealModel();
-            meal.setHorario(item.getHorario());
-            meal.setDescricao(item.getDescricao());
-            meal.setAlimento(item.getAlimento());
-            meal.setQuantidade(item.getQuantidade());
-            meal.setUnidade(item.getUnidade());
-            meal.setObservacao(item.getObservacao());
-            return meal;
-        }).toList();
-
-        return ResponseEntity.ok(service.saveFullDiet(patientId, meals));
+        List<MealModel> savedMeals = service.saveFullDiet(patientId, request);
+        return ResponseEntity.ok(savedMeals);
     }
-
 
     @Operation(summary = "Atualiza uma refeição existente")
     @ApiResponse(responseCode = "200", description = "Refeição atualizada com sucesso")
@@ -137,10 +127,4 @@ public class MealController {
                 .header("Content-Disposition", "attachment; filename=dieta.pdf")
                 .body(pdf);
     }
-
-
-
-
-
 }
-
