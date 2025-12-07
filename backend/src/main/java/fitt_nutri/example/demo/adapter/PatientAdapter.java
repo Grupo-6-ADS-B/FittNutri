@@ -5,60 +5,62 @@ import fitt_nutri.example.demo.dto.response.PatientResponseDTO;
 import fitt_nutri.example.demo.model.PatientModel;
 import fitt_nutri.example.demo.service.PatientService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Service
+@Component
 @RequiredArgsConstructor
 public class PatientAdapter {
 
     private final PatientService service;
 
     public PatientResponseDTO create(PatientRequestDTO dto) {
-        PatientModel patient = service.createPatient(dto);
-        return toDTO(patient);
+        PatientModel p = service.create(dto);
+        return mapToDTO(p);
     }
 
     public List<PatientResponseDTO> getAll() {
-        return service.getAllPatients()
-                .stream()
-                .map(this::toDTO)
+        List<PatientModel> patients = service.findAllByNutricionista();
+        return patients.stream()
+                .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
 
     public PatientResponseDTO getById(Integer id) {
-        return toDTO(service.getPatientById(id));
+        PatientModel p = service.findByIdAndNutricionista(id);
+        return mapToDTO(p);
     }
 
     public PatientResponseDTO update(Integer id, PatientRequestDTO dto) {
-        return toDTO(service.updatePatient(id, dto));
+        PatientModel p = service.update(id, dto);
+        return mapToDTO(p);
     }
 
     public PatientResponseDTO patch(Integer id, Map<String, Object> updates) {
-        return toDTO(service.patchPatient(id, updates));
+        PatientModel p = service.patchPatient(id, updates);
+        return mapToDTO(p);
     }
 
     public void delete(Integer id) {
-        service.deletePatient(id);
+        service.delete(id);
     }
 
-    private PatientResponseDTO toDTO(PatientModel patient) {
+    private PatientResponseDTO mapToDTO(PatientModel p) {
         return new PatientResponseDTO(
-                patient.getId(),
-                patient.getNome(),
-                patient.getEmail(),
-                patient.getCpf(),
-                patient.getDataNascimento() != null ? patient.getDataNascimento().toString() : null,
-                patient.getSexo(),
-                patient.getEstadoCivil(),
-                patient.getDataConsulta() != null ? LocalDate.parse(patient.getDataConsulta().toString()) : null,
-                patient.getMotivoConsulta(),
-                patient.getComorbidade(),
-                patient.getFrequenciaAtividadeFisica()
+                p.getId(),
+                p.getNome(),
+                p.getEmail(),
+                p.getCpf(),
+                p.getTelefone(),
+                p.getEstado(),
+                p.getCidade(),
+                p.getSexo(),
+                p.getEtnia(),
+                p.getAtividade(),
+                p.getNutricionista().getId()  // retorna o id do nutricionista associado
         );
     }
 }

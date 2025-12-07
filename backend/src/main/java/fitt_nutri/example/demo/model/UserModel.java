@@ -41,5 +41,9 @@ public class UserModel {
     private String senha;
 
     @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL)
+    private List<PatientModel> pacientes = new ArrayList<>();
+
+
+    @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL)
     private List<SchedulingModel> agendamentos = new ArrayList<>();
 }

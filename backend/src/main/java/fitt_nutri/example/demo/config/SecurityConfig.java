@@ -31,6 +31,7 @@ public class SecurityConfig {
     private final AutenticacaoEntryPoint autenticacaoEntryPoint;
 
         private static final String[] URLS_PUBLICAS = {
+            "/users/**",
             "/users/login",
             "/swagger-ui/**",
             "/swagger-ui.html",
@@ -41,8 +42,10 @@ public class SecurityConfig {
             "/forms/**",
             "/schedullings/**",
             "/data-circle/**",
-            "anthropometric-data/**",
-            "/food-itens/**"
+            "/anthropometric-data/**",
+            "/food-itens/**",
+            "/patients/**",
+                "/h2-console/**"
     };
 
     @Bean
