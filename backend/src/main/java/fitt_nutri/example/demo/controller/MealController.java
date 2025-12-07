@@ -32,7 +32,7 @@ public class MealController {
         List<MealModel> meals = request.getAlimentos().stream().map(item -> {
             MealModel meal = new MealModel();
             meal.setDescricao(request.getDescricao());
-            meal.setHorario(item.getHorario());
+            meal.setHorario(request.getHorario());
             meal.setAlimento(item.getAlimento());
             meal.setQuantidade(item.getQuantidade());
             meal.setUnidade(item.getUnidade());
