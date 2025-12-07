@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import api from '../utils/api';
 import { useNavigate } from "react-router-dom";
 import {
   CssBaseline,
@@ -45,9 +46,7 @@ export default function UserGestor() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
-  const [appointments, setAppointments] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("appointments") || "[]"); } catch { return []; }
-  });
+  const [appointments, setAppointments] = useState([]);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduleUser, setScheduleUser] = useState(null);
   const [apptDate, setApptDate] = useState("");
@@ -97,6 +96,50 @@ export default function UserGestor() {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const loadUsers = () => {
+      const stored = localStorage.getItem("users");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setUsers(Array.isArray(parsed) ? parsed : defaultUsers);
+        } catch {
+          setUsers(defaultUsers);
+        }
+      } else {
+        setUsers(defaultUsers);
+        localStorage.setItem("users", JSON.stringify(defaultUsers));
+      }
+    };
+    loadUsers();
+  }, []);
+
+  useEffect(() => {
+    const loadAppointments = async () => {
+      try {
+        const res = await api.get('/schedulings');
+        const list = Array.isArray(res.data) ? res.data : [];
+        const mapped = list.map((a) => ({
+          id: a.id,
+          userId: a.pacienteId ?? a.usuarioId ?? null,
+          userName: a.pacienteNome ?? "",
+          nutricionistaName: a.nutricionistaNome ?? "",
+          date: a.dataAgendada ?? "",
+          time: "09:00",
+          note: a.observacoes ?? "",
+        }));
+        setAppointments(mapped);
+        try { localStorage.setItem("appointments", JSON.stringify(mapped)); } catch {}
+      } catch (e) {
+        console.error("Erro ao carregar agendamentos:", e);
+        try {
+          const stored = localStorage.getItem("appointments");
+          if (stored) setAppointments(JSON.parse(stored));
+        } catch {}
+      }
+    };
+    loadAppointments();
+  }, []);
   const fetchUsers = async () => {
     try {
       const response = await api.get('/patients');
@@ -165,23 +208,6 @@ export default function UserGestor() {
 
   const hasAppointment = (user) => !!getNextAppointment(user);
 
-  const saveAppointment = () => {
-    if (!scheduleUser || !apptDate) return;
-    const appt = {
-      id: Date.now(),
-      userId: scheduleUser.id,
-      userName: scheduleUser.name,
-      date: apptDate,
-      time: apptTime,
-      note: apptNote || "",
-    };
-    setAppointments(prev => {
-      const next = [...prev, appt];
-      try { localStorage.setItem("appointments", JSON.stringify(next)); } catch {}
-      return next;
-    });
-    setScheduleOpen(false);
-  };
 
   const openStartConsultation = (user) => {
     const appt = getNextAppointment(user);
@@ -362,55 +388,90 @@ export default function UserGestor() {
     return value && value.includes(term);
   });
 
+  const saveAppointment = async () => {
+  if (!scheduleUser || !apptDate) {
+    alert('Preencha todos os campos obrigatórios.');
+    return;
+  }
+  
+  const token = sessionStorage.getItem('token');
+  if (!token) {
+    alert('Você precisa estar logado para agendar consultas.');
+    return;
+  }
+  
+  try {
+    const usuarioIdString = sessionStorage.getItem('idUsuario');
+    const usuarioId = usuarioIdString ? parseInt(usuarioIdString, 10) : null;
+    
+    if (!usuarioIdString) {
+      alert('Erro ao identificar o nutricionista. Faça login novamente.');
+      // navigate('/login');
+      return;
+    }
+
+    const payload = {
+      pacienteId: 1,
+      usuarioId: usuarioId,
+      dataAgendada: apptDate,
+      observacoes: apptNote || ""
+    };
+
+    console.log('Payload sendo enviado:', payload);
+        console.log('Token:', token);
+
+
+    const response = await api.post('/schedulings', payload);
+    
+    console.log('Resposta da API:', response.data);
+    
+    const appt = {
+      id: response.data.id,
+      userId: scheduleUser.id,
+      userName: response.data.pacienteNome,
+      nutricionistaName: response.data.nutricionistaNome,
+      date: response.data.dataAgendada,
+      time: apptTime,
+      note: response.data.observacoes || "",
+    };
+    
+    setAppointments(prev => {
+      const next = [...prev, appt];
+      try { 
+        localStorage.setItem("appointments", JSON.stringify(next)); 
+      } catch {}
+      return next;
+    });
+    
+    setScheduleOpen(false);
+    alert('Agendamento criado com sucesso!');
+  } catch (error) {
+    console.error('Erro ao salvar agendamento:', error);
+     console.error('Erro ao salvar agendamento:', error);
+    console.error('Response data:', error.response?.data);
+    console.error('Response status:', error.response?.status);
+    console.error('Request headers:', error.config?.headers);
+    
+    if (error.response?.status === 401) {
+      alert('Sessão expirada. Faça login novamente.');
+  
+      // navigate('/login');
+    } else if (error.response?.status === 400) {
+      alert(`Dados inválidos: ${JSON.stringify(error.response.data)}`);
+    } else if (error.response?.status === 404) {
+      alert('Paciente ou nutricionista não encontrado no sistema.');
+    } else {
+      alert('Erro ao criar agendamento. Verifique o console para mais detalhes.');
+    }
+  }
+};
+
   return (
     <>
       <CssBaseline />
       <Box sx={{ display: "flex", minHeight: "88vh" }}>
         
-        <Box
-          sx={{
-            width: sidebarWidth,
-            p: 2,
-            bgcolor: "linear-gradient(180deg, #aed9aeff 0%, #475447ff 100%)",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 2,
-            minHeight: "100vh",
-            position: "sticky",
-            top: 0,
-            borderRight: "1px solid rgba(0,0,0,0.04)"
-          }}
-        >
-          <Avatar sx={{ bgcolor: "transparent", mb: 1, width: 56, height: 56, boxShadow: "0 2px 6px rgba(46,125,50,0.08)" }}>
-          </Avatar>
 
-          <Button
-            onClick={openWeekDialog}
-            sx={{
-              width: 100,
-              height: 56,
-              borderRadius: 3,
-              bgcolor: "#2e7d32",
-              color: "#fff",
-              boxShadow: "0 6px 14px rgba(46,125,50,0.12)",
-              textTransform: "none",
-              fontSize: 11,
-              lineHeight: 1,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              "&:hover": { bgcolor: "#27692c" }
-            }}
-          >
-            <CalendarTodayIcon sx={{ fontSize: 18, mb: 0.3 }} />
-            <span style={{ whiteSpace: "pre-line", fontWeight: 700 }}>VER{"\n"}CONSULTAS</span>
-          </Button>
-
-          <Box sx={{ flex: 1 }} />
-
-        </Box>
 
         <Box
           sx={{
@@ -444,24 +505,46 @@ export default function UserGestor() {
               <Typography variant="h5">Gerenciamento de Usuários</Typography>
 
               <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                <TextField
-                  select
-                  size="small"
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <FilterListIcon />
-                      </InputAdornment>
-                    ),
-                  }}
-                >
-                  <MenuItem value="name">Nome</MenuItem>
-                  <MenuItem value="email">Email</MenuItem>
-                  <MenuItem value="telefone">Telefone</MenuItem>
-                  <MenuItem value="cidade">Cidade</MenuItem>
-                </TextField>
+                        <Button
+              onClick={openWeekDialog}
+              variant="contained"
+              startIcon={
+                <Box sx={{ bgcolor: "#fff", borderRadius: "50%", p: 0.7, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 6px rgba(0,0,0,0.08)" }}>
+                  <CalendarTodayIcon sx={{ color: "#2e7d32", fontSize: 20 }} />
+                </Box>
+              }
+              sx={{
+                height: 56,
+                borderRadius: 8,
+                bgcolor: "linear-gradient(180deg, #2e7d32, #256026)",
+                color: "#fff",
+                boxShadow: "0 10px 30px rgba(46,125,50,0.12)",
+                textTransform: "none",
+                display: "flex",
+                alignItems: "center",
+                "&:hover": { bgcolor: "#27692c", boxShadow: "0 12px 34px rgba(38,114,44,0.14)" }
+              }}
+            >
+              Consultas
+            </Button>
+               <TextField
+                 select
+                 size="small"
+                 value={filterType}
+                 onChange={(e) => setFilterType(e.target.value)}
+                 InputProps={{
+                   startAdornment: (
+                     <InputAdornment position="start">
+                       <FilterListIcon />
+                     </InputAdornment>
+                   ),
+                 }}
+               >
+                 <MenuItem value="name">Nome</MenuItem>
+                 <MenuItem value="email">Email</MenuItem>
+                 <MenuItem value="telefone">Telefone</MenuItem>
+                 <MenuItem value="cidade">Cidade</MenuItem>
+               </TextField>
 
                 <TextField
                   size="small"
@@ -491,6 +574,49 @@ export default function UserGestor() {
             <List sx={{ flex: 1, overflowY: "auto" }}>
               {filteredUsers.map((user, index) => (
                 <React.Fragment key={user?.id || index}>
+                  <ListItem sx={{ my: 1, borderRadius: "15px", px: 0 }}>
+                    <Box
+                      sx={{
+                        display: "grid",
+                        alignItems: "center",
+                        width: "100%",
+                        gap: 2,
+                        gridTemplateColumns: {
+                          xs: "56px 1fr auto",
+                          sm: "56px 2fr 2fr 1.2fr 1fr auto"
+                        }
+                      }}
+                    >
+                      <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <Avatar src={user.avatar} sx={{ border: "2px solid #2e7d32" }} />
+                      </Box>
+
+                      <Box sx={{ display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                        <Typography sx={{ fontWeight: 500 }}>{user.name}</Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: { xs: "block", sm: "none" } }}>{user.email}</Typography>
+                      </Box>
+
+                      <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
+                        {user.email}
+                      </Typography>
+
+                      <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
+                        {user.telefone}
+                      </Typography>
+
+                      <Typography variant="body2" color="text.secondary" sx={{ display: { xs: "none", sm: "block" } }}>
+                        {user.cidade}
+                      </Typography>
+
+                      <Box sx={{ display: "flex", gap: 1, alignItems: "center", justifyContent: "flex-end" }}>
+                        <Button variant="outlined" size="small" onClick={() => openScheduleDialog(user)}>
+                          AGENDAR CONSULTA
+                        </Button>
+                        <IconButton onClick={() => requestDeleteUser(user)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    </Box>
                   <ListItem
                     sx={{
                       my: 1,
