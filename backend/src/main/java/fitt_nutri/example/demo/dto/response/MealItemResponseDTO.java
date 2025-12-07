@@ -1,9 +1,10 @@
-package fitt_nutri.example.demo.dto.request;
+package fitt_nutri.example.demo.dto.response;
 
 import lombok.Data;
 
 @Data
-public class    MealItemDTO {
+public class MealItemResponseDTO {
+    private Integer id;
     private String alimento;
     private Double quantidade;
     private String unidade;

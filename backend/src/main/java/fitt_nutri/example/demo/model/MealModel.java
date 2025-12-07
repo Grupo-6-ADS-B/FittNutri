@@ -1,7 +1,11 @@
 package fitt_nutri.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "refeicao")
@@ -14,10 +18,11 @@ public class MealModel {
 
     private String horario;
     private String descricao;
-    private String alimento;
-    private Double quantidade;
-    private String unidade;
     private String observacao;
+
+    @OneToMany(mappedBy = "meal", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private List<MealItemModel> alimentos = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "patient_id")
