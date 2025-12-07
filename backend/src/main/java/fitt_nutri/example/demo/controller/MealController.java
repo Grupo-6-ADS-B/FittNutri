@@ -59,6 +59,33 @@ public class MealController {
         return ResponseEntity.ok(service.saveFullDiet(patientId, meals));
     }
 
+    @Operation(summary = "Atualiza uma refeição existente")
+    @ApiResponse(responseCode = "200", description = "Refeição atualizada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Refeição não encontrada")
+    @PutMapping("/{mealId}")
+    public ResponseEntity<MealModel> updateMeal(@PathVariable Integer mealId, @RequestBody MealModel meal) {
+        MealModel updatedMeal = service.updateMeal(mealId, meal);
+        return ResponseEntity.ok(updatedMeal);
+    }
+
+    @Operation(summary = "Deleta uma refeição existente")
+    @ApiResponse(responseCode = "204", description = "Refeição deletada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Refeição não encontrada")
+    @DeleteMapping("/{mealId}")
+    public ResponseEntity<Void> deleteMeal(@PathVariable Integer mealId) {
+        service.deleteMeal(mealId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Atualiza parcialmente uma refeição existente")
+    @ApiResponse(responseCode = "200", description = "Refeição atualizada com sucesso")
+    @ApiResponse(responseCode = "404", description = "Refeição não encontrada")
+    @PatchMapping("/{mealId}")
+    public ResponseEntity<MealModel> patchMeal(@PathVariable Integer mealId, @RequestBody MealModel mealPatch) {
+        MealModel updatedMeal = service.patchMeal(mealId, mealPatch);
+        return ResponseEntity.ok(updatedMeal);
+    }
+
     @Operation(summary = "Gera o PDF da dieta de um paciente")
     @ApiResponse(responseCode = "200", description = "PDF gerado com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")

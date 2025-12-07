@@ -59,6 +59,41 @@ public class MealService {
         return repository.saveAll(meals);
     }
 
+    public MealModel updateMeal(Integer mealId, MealModel updatedMeal) {
+        MealModel existingMeal = repository.findById(mealId)
+                .orElseThrow(() -> new NotFoundException("Refeição não encontrada"));
+
+        existingMeal.setDescricao(updatedMeal.getDescricao());
+        existingMeal.setHorario(updatedMeal.getHorario());
+        existingMeal.setAlimento(updatedMeal.getAlimento());
+        existingMeal.setQuantidade(updatedMeal.getQuantidade());
+        existingMeal.setUnidade(updatedMeal.getUnidade());
+        existingMeal.setObservacao(updatedMeal.getObservacao());
+
+        return repository.save(existingMeal);
+    }
+
+    public MealModel patchMeal(Integer mealId, MealModel mealPatch) {
+        MealModel existingMeal = repository.findById(mealId)
+                .orElseThrow(() -> new NotFoundException("Refeição não encontrada"));
+
+        if (mealPatch.getHorario() != null) existingMeal.setHorario(mealPatch.getHorario());
+        if (mealPatch.getDescricao() != null) existingMeal.setDescricao(mealPatch.getDescricao());
+        if (mealPatch.getAlimento() != null) existingMeal.setAlimento(mealPatch.getAlimento());
+        if (mealPatch.getQuantidade() != null) existingMeal.setQuantidade(mealPatch.getQuantidade());
+        if (mealPatch.getUnidade() != null) existingMeal.setUnidade(mealPatch.getUnidade());
+        if (mealPatch.getObservacao() != null) existingMeal.setObservacao(mealPatch.getObservacao());
+
+        return repository.save(existingMeal);
+    }
+
+
+    public void deleteMeal(Integer mealId) {
+        MealModel meal = repository.findById(mealId)
+                .orElseThrow(() -> new NotFoundException("Refeição não encontrada"));
+        repository.delete(meal);
+    }
+
 
     public byte[] generateDietPdf(Integer patientId) throws Exception {
 
