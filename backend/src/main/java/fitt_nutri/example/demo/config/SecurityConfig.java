@@ -4,8 +4,8 @@ import fitt_nutri.example.demo.service.AutenticacaoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -29,6 +29,7 @@ public class SecurityConfig {
 
     private final AutenticacaoService autenticacaoService;
     private final AutenticacaoEntryPoint autenticacaoEntryPoint;
+    private final AutenticacaoFilter autenticacaoFilter;
 
         private static final String[] URLS_PUBLICAS = {
             "/users/**",
@@ -38,12 +39,13 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-resources/**",
             "/webjars/**",
+            "/schedulings/**",
             "/h2-console/**",
             "/forms/**",
-            "/schedullings/**",
             "/data-circle/**",
             "/anthropometric-data/**",
             "/food-itens/**",
+            "/meals/**",
             "/patients/**",
                 "/h2-console/**"
     };
@@ -52,24 +54,6 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
-    @Bean
-    public AutenticacaoFilter jwtAuthFilter() {
-        return new AutenticacaoFilter(autenticacaoService, jwtAuthenticationUtilBean());
-    }
-
-    @Bean
-    public GerenciadorTokenJwt jwtAuthenticationUtilBean() {
-        return new GerenciadorTokenJwt();
-    }
-
-    /*@Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(autenticacaoService);
-        authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider;
-    }*/
 
     @Bean
     public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -95,10 +79,11 @@ public class SecurityConfig {
                 .authenticationEntryPoint(autenticacaoEntryPoint))
             .sessionManagement(management -> management
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(autenticacaoFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -110,6 +95,7 @@ public class SecurityConfig {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 }

@@ -1,0 +1,170 @@
+package fitt_nutri.example.demo.service;
+
+import fitt_nutri.example.demo.dto.MacrosDTO;
+import fitt_nutri.example.demo.dto.request.MealRequestDTO;
+import fitt_nutri.example.demo.dto.response.MealResponseDTO;
+import fitt_nutri.example.demo.exceptions.NotFoundException;
+import fitt_nutri.example.demo.model.MealModel;
+import fitt_nutri.example.demo.model.PatientModel;
+import fitt_nutri.example.demo.repository.MealRepository;
+import fitt_nutri.example.demo.repository.PatientRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import java.io.ByteArrayOutputStream;
+import java.util.List;
+import java.util.LinkedHashMap;
+
+
+import com.lowagie.text.Document;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.PdfPTable;
+import com.lowagie.text.pdf.PdfWriter;
+
+import com.lowagie.text.*;
+import com.lowagie.text.pdf.*;
+import java.awt.Color;
+import java.io.ByteArrayOutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+
+@Service
+@RequiredArgsConstructor
+public class MealService {
+
+    private final MealRepository repository;
+    private final PatientRepository patientRepository;
+    private final FoodItensService foodItensService;
+
+    public MealModel addMeal(Integer patientId, MealModel meal) {
+        PatientModel patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        meal.setPatient(patient);
+        return repository.save(meal);
+    }
+
+    public List<MealModel> getAllMealsByPatient(Integer patientId) {
+        PatientModel patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        return repository.findByPatient(patient);
+    }
+
+
+    public List<MealModel> saveFullDiet(Integer patientId, List<MealModel> meals) {
+        PatientModel patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+
+        meals.forEach(meal -> meal.setPatient(patient));
+        return repository.saveAll(meals);
+    }
+
+    public MealModel updateMeal(Integer mealId, MealModel updatedMeal) {
+        MealModel existingMeal = repository.findById(mealId)
+                .orElseThrow(() -> new NotFoundException("Refeição não encontrada"));
+
+        existingMeal.setDescricao(updatedMeal.getDescricao());
+        existingMeal.setHorario(updatedMeal.getHorario());
+        existingMeal.setAlimento(updatedMeal.getAlimento());
+        existingMeal.setQuantidade(updatedMeal.getQuantidade());
+        existingMeal.setUnidade(updatedMeal.getUnidade());
+        existingMeal.setObservacao(updatedMeal.getObservacao());
+
+        return repository.save(existingMeal);
+    }
+
+    public MealModel patchMeal(Integer mealId, MealModel mealPatch) {
+        MealModel existingMeal = repository.findById(mealId)
+                .orElseThrow(() -> new NotFoundException("Refeição não encontrada"));
+
+        if (mealPatch.getHorario() != null) existingMeal.setHorario(mealPatch.getHorario());
+        if (mealPatch.getDescricao() != null) existingMeal.setDescricao(mealPatch.getDescricao());
+        if (mealPatch.getAlimento() != null) existingMeal.setAlimento(mealPatch.getAlimento());
+        if (mealPatch.getQuantidade() != null) existingMeal.setQuantidade(mealPatch.getQuantidade());
+        if (mealPatch.getUnidade() != null) existingMeal.setUnidade(mealPatch.getUnidade());
+        if (mealPatch.getObservacao() != null) existingMeal.setObservacao(mealPatch.getObservacao());
+
+        return repository.save(existingMeal);
+    }
+
+
+    public void deleteMeal(Integer mealId) {
+        MealModel meal = repository.findById(mealId)
+                .orElseThrow(() -> new NotFoundException("Refeição não encontrada"));
+        repository.delete(meal);
+    }
+
+
+    public byte[] generateDietPdf(Integer patientId) throws Exception {
+
+        PatientModel patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
+
+        List<MealModel> meals = repository.findByPatientId(patientId);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        Document doc = new Document();
+        PdfWriter.getInstance(doc, out);
+
+        doc.open();
+
+        Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD, new Color(0, 102, 0));
+        Paragraph title = new Paragraph("Dieta de " + patient.getNome(), titleFont);
+        title.setAlignment(Element.ALIGN_CENTER);
+        title.setSpacingAfter(20f);
+        doc.add(title);
+
+        PdfPTable table = new PdfPTable(6);
+        table.setWidthPercentage(100);
+        table.setSpacingBefore(10f);
+
+        Font headFont = new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE);
+        Color headerBg = new Color(0, 153, 0);
+        String[] headers = {"Horário", "Descrição", "Alimento", "Quantidade", "Unidade", "Observação"};
+        for (String h : headers) {
+            PdfPCell cell = new PdfPCell(new Phrase(h, headFont));
+            cell.setBackgroundColor(headerBg);
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setPadding(5f);
+            table.addCell(cell);
+        }
+
+        Color rowColor1 = Color.WHITE;
+        Color rowColor2 = new Color(204, 255, 204);
+        boolean alternate = false;
+
+        for (MealModel m : meals) {
+            Color bg = alternate ? rowColor2 : rowColor1;
+            alternate = !alternate;
+
+            PdfPCell c1 = new PdfPCell(new Phrase(m.getHorario()));
+            PdfPCell c2 = new PdfPCell(new Phrase(m.getDescricao()));
+            PdfPCell c3 = new PdfPCell(new Phrase(m.getAlimento()));
+            PdfPCell c4 = new PdfPCell(new Phrase(m.getQuantidade().toString()));
+            PdfPCell c5 = new PdfPCell(new Phrase(m.getUnidade()));
+            PdfPCell c6 = new PdfPCell(new Phrase(m.getObservacao()));
+
+            for (PdfPCell cell : new PdfPCell[]{c1, c2, c3, c4, c5, c6}) {
+                cell.setBackgroundColor(bg);
+                cell.setPadding(5f);
+            }
+
+            c1.setHorizontalAlignment(Element.ALIGN_CENTER);
+            c4.setHorizontalAlignment(Element.ALIGN_CENTER);
+            c5.setHorizontalAlignment(Element.ALIGN_CENTER);
+
+            table.addCell(c1);
+            table.addCell(c2);
+            table.addCell(c3);
+            table.addCell(c4);
+            table.addCell(c5);
+            table.addCell(c6);
+        }
+
+        doc.add(table);
+        doc.close();
+
+        return out.toByteArray();
+    }
+}
+
