@@ -1,5 +1,6 @@
 package fitt_nutri.example.demo.service;
 
+import fitt_nutri.example.demo.dto.MacrosDTO;
 import fitt_nutri.example.demo.dto.request.MealRequestDTO;
 import fitt_nutri.example.demo.dto.response.MealResponseDTO;
 import fitt_nutri.example.demo.exceptions.NotFoundException;
@@ -11,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.LinkedHashMap;
+
 
 import com.lowagie.text.Document;
 import com.lowagie.text.Paragraph;
@@ -22,6 +25,8 @@ import com.lowagie.text.pdf.*;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -30,43 +35,28 @@ public class MealService {
 
     private final MealRepository repository;
     private final PatientRepository patientRepository;
+    private final FoodItensService foodItensService;
 
-    public MealResponseDTO save(MealRequestDTO dto) {
-
-        PatientModel patient = patientRepository.findById(dto.getPatientId())
-                .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
-
-        MealModel meal = new MealModel();
-        meal.setHorario(dto.getHorario());
-        meal.setDescricao(dto.getDescricao());
-        meal.setAlimento(dto.getAlimento());
-        meal.setQuantidade(dto.getQuantidade());
-        meal.setUnidade(dto.getUnidade());
-        meal.setObservacao(dto.getObservacao());
+    public MealModel addMeal(Integer patientId, MealModel meal) {
+        PatientModel patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
         meal.setPatient(patient);
-
-        repository.save(meal);
-
-        return toResponse(meal);
+        return repository.save(meal);
     }
 
-    public List<MealResponseDTO> getMealsByPatient(Integer patientId) {
-        return repository.findByPatientId(patientId)
-                .stream()
-                .map(this::toResponse)
-                .toList();
+    public List<MealModel> getAllMealsByPatient(Integer patientId) {
+        PatientModel patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        return repository.findByPatient(patient);
     }
 
-    private MealResponseDTO toResponse(MealModel m) {
-        MealResponseDTO dto = new MealResponseDTO();
-        dto.setId(m.getId());
-        dto.setHorario(m.getHorario());
-        dto.setDescricao(m.getDescricao());
-        dto.setAlimento(m.getAlimento());
-        dto.setQuantidade(m.getQuantidade());
-        dto.setUnidade(m.getUnidade());
-        dto.setObservacao(m.getObservacao());
-        return dto;
+
+    public List<MealModel> saveFullDiet(Integer patientId, List<MealModel> meals) {
+        PatientModel patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+
+        meals.forEach(meal -> meal.setPatient(patient));
+        return repository.saveAll(meals);
     }
 
 
@@ -141,9 +131,5 @@ public class MealService {
 
         return out.toByteArray();
     }
-
-
-
-
 }
 

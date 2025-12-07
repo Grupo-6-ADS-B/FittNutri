@@ -1,7 +1,7 @@
 package fitt_nutri.example.demo.controller;
 
 import fitt_nutri.example.demo.dto.request.MealRequestDTO;
-import fitt_nutri.example.demo.dto.response.MealResponseDTO;
+import fitt_nutri.example.demo.model.MealModel;
 import fitt_nutri.example.demo.service.MealService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,20 +21,42 @@ public class MealController {
 
     private final MealService service;
 
-    @Operation(summary = "Cria uma refeição para um paciente")
+    @Operation(summary = "Cria uma refeição por tipo de refeicao para um paciente")
     @ApiResponse(responseCode = "200", description = "Refeição criada com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
-    @PostMapping
-    public ResponseEntity<MealResponseDTO> create(@RequestBody MealRequestDTO dto) {
-        return ResponseEntity.ok(service.save(dto));
+    @PostMapping("/meal-by-type/{patientId}")
+    public ResponseEntity<List<MealModel>> addMealByType(
+            @PathVariable Integer patientId,
+            @RequestBody MealRequestDTO request) {
+
+        List<MealModel> meals = request.getAlimentos().stream().map(item -> {
+            MealModel meal = new MealModel();
+            meal.setDescricao(request.getDescricao());
+            meal.setHorario(item.getHorario());
+            meal.setAlimento(item.getAlimento());
+            meal.setQuantidade(item.getQuantidade());
+            meal.setUnidade(item.getUnidade());
+            meal.setObservacao(item.getObservacao());
+            return service.addMeal(patientId, meal);
+        }).toList();
+
+        return ResponseEntity.ok(meals);
     }
 
     @Operation(summary = "Lista todas as refeições de um paciente")
     @ApiResponse(responseCode = "200", description = "Refeições retornadas com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
-    @GetMapping("/patient/{patientId}")
-    public ResponseEntity<List<MealResponseDTO>> getByPatient(@PathVariable Integer patientId) {
-        return ResponseEntity.ok(service.getMealsByPatient(patientId));
+    @GetMapping("/{patientId}")
+    public ResponseEntity<List<MealModel>> getMealsByPatient(@PathVariable Integer patientId) {
+        return ResponseEntity.ok(service.getAllMealsByPatient(patientId));
+    }
+
+    @Operation(summary = "Salva uma dieta completa para um paciente")
+    @ApiResponse(responseCode = "200", description = "Dieta salva com sucesso")
+    @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
+    @PostMapping("/full-diet/{patientId}")
+    public ResponseEntity<List<MealModel>> saveFullDiet(@PathVariable Integer patientId, @RequestBody List<MealModel> meals) {
+        return ResponseEntity.ok(service.saveFullDiet(patientId, meals));
     }
 
     @Operation(summary = "Gera o PDF da dieta de um paciente")
@@ -49,5 +71,10 @@ public class MealController {
                 .header("Content-Disposition", "attachment; filename=dieta.pdf")
                 .body(pdf);
     }
+
+
+
+
+
 }
 

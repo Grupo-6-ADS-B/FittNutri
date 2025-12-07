@@ -1,15 +1,12 @@
 package fitt_nutri.example.demo.dto.request;
 
+import fitt_nutri.example.demo.model.FoodItensModel;
 import lombok.Data;
+
+import java.util.List;
 
 @Data
 public class MealRequestDTO {
-    private String horario;
     private String descricao;
-    private String alimento;
-    private Double quantidade;
-    private String unidade;
-    private String observacao;
-    private Integer patientId;
+    private List<MealItemDTO> alimentos;
 }
-
