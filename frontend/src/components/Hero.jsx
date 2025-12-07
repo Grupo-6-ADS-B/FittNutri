@@ -3,7 +3,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Section } from './Section';
 import { useNavigate } from 'react-router-dom';
 
-function Hero({ onScrollToCarousel, onSwitchToRegister }){
+function Hero(){
   const navigate = useNavigate();
     return (
         <Section 

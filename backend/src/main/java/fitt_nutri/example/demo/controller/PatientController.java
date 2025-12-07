@@ -36,7 +36,7 @@ public class PatientController {
     }
 
     @GetMapping
-    @Operation(summary = "Lista todos os pacientes")
+    @Operation(summary = "Lista todos os pacientes do nutricionista logado")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de pacientes retornada"),
             @ApiResponse(responseCode = "404", description = "Nenhum paciente cadastrado")
@@ -47,10 +47,10 @@ public class PatientController {
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Busca paciente por ID")
+    @Operation(summary = "Busca paciente por ID (apenas se pertencer ao nutricionista logado)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Paciente encontrado"),
-            @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
+            @ApiResponse(responseCode = "404", description = "Paciente não encontrado ou não pertence ao nutricionista logado")
     })
     public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable Integer id) {
         PatientResponseDTO response = adapter.getById(id);
@@ -58,10 +58,10 @@ public class PatientController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualiza um paciente")
+    @Operation(summary = "Atualiza um paciente (apenas se pertencer ao nutricionista logado)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Paciente atualizado com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Paciente não encontrado"),
+            @ApiResponse(responseCode = "404", description = "Paciente não encontrado ou não pertence ao nutricionista logado"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (Email, CPF ou Nome já cadastrado)")
     })
     public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Integer id,
@@ -71,10 +71,10 @@ public class PatientController {
     }
 
     @PatchMapping("/{id}")
-    @Operation(summary = "Atualiza parcialmente um paciente")
+    @Operation(summary = "Atualiza parcialmente um paciente (apenas se pertencer ao nutricionista logado)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Paciente atualizado com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Paciente não encontrado"),
+            @ApiResponse(responseCode = "404", description = "Paciente não encontrado ou não pertence ao nutricionista logado"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (Email, CPF ou Nome já cadastrado)")
     })
     public ResponseEntity<PatientResponseDTO> patchPatient(@PathVariable Integer id,
@@ -84,10 +84,10 @@ public class PatientController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Exclui um paciente")
+    @Operation(summary = "Exclui um paciente (apenas se pertencer ao nutricionista logado)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Paciente excluído com sucesso"),
-            @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
+            @ApiResponse(responseCode = "404", description = "Paciente não encontrado ou não pertence ao nutricionista logado")
     })
     public ResponseEntity<Void> deletePatient(@PathVariable Integer id) {
         adapter.delete(id);

@@ -31,9 +31,9 @@ public class SecurityConfig {
     private final AutenticacaoEntryPoint autenticacaoEntryPoint;
     private final AutenticacaoFilter autenticacaoFilter;
 
-    private static final String[] URLS_PUBLICAS = {
+        private static final String[] URLS_PUBLICAS = {
+            "/users/**",
             "/users/login",
-            "/users",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
@@ -41,12 +41,13 @@ public class SecurityConfig {
             "/webjars/**",
             "/schedulings/**",
             "/h2-console/**",
-            "/patients/**",
             "/forms/**",
             "/data-circle/**",
             "/anthropometric-data/**",
             "/food-itens/**",
             "/meals/**"
+            "/patients/**",
+                "/h2-console/**"
     };
 
     @Bean
@@ -65,18 +66,20 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-                .csrf(csrf -> csrf.disable())
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(URLS_PUBLICAS).permitAll()
-
-                        .anyRequest().authenticated()
-                )
-                .exceptionHandling(handling -> handling.authenticationEntryPoint(autenticacaoEntryPoint))
-
-        .addFilterBefore(autenticacaoFilter, UsernamePasswordAuthenticationFilter.class);
+            .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers(URLS_PUBLICAS).permitAll()
+                .anyRequest()
+                .authenticated()
+            )
+            .exceptionHandling(handling -> handling
+                .authenticationEntryPoint(autenticacaoEntryPoint))
+            .sessionManagement(management -> management
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .addFilterBefore(jwtAuthFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

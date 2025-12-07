@@ -9,8 +9,7 @@ import java.util.List;
 @Repository
 public interface DataCircleRepository extends JpaRepository<DataCircleModel, Integer> {
 
-    // rótulo único POR paciente (coerente com a uniqueConstraint rotulo+idUsuarioFK)
-    boolean existsByRotuloAndPaciente_Id(String rotulo, Integer pacienteId);
+    boolean existsByPaciente_Id(Integer pacienteId);
 
     // listar registros de um paciente
     List<DataCircleModel> findByPaciente_Id(Integer pacienteId);
