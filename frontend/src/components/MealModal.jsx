@@ -7,21 +7,59 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import api from '../utils/api';
 
+const units = ['g', 'kg', 'ml', 'L', 'unidade', 'colher de sopa', 'colher de chá', 'xícara'];
 
 export default function MealModal({ open, onClose, onSave, initial = null, patientId = null }) {
   const [meal, setMeal] = useState({ horario: '', descricao: '', alimentos: [], observacao: '' });
-  const [alimentosDisponiveis, setAlimentosDisponiveis] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [selectedFood, setSelectedFood] = useState(null); 
-
+  const [selectedFood, setSelectedFood] = useState(null);
   const [selectedQuantity, setSelectedQuantity] = useState(100);
   const [selectedUnit, setSelectedUnit] = useState('g');
-  const units = ['g', 'ml', 'un', 'porção'];
-  useEffect(() => {
-    setMeal(initial ?? { horario: '', descricao: '', alimentos: [], observacao: '' });
-  }, [initial, open]);
+  const [loading, setLoading] = useState(false);
 
+ useEffect(() => {
+  if (initial) {
+    setMeal({
+      id: initial.id,
+      horario: initial.horario || '',
+      descricao: initial.descricao || '',
+      observacao: initial.observacao || '',
+      alimentos: (initial.alimentos || []).map(a => ({
+        id: a.id,
+        nome: a.nome || a.alimento, 
+        quantidade: a.quantidade,
+        unidade: a.unidade
+      }))
+    });
+  } else {
+    setMeal({ horario: '', descricao: '', alimentos: [], observacao: '' });
+  }
+
+  setError('');
+  setSelectedFood(null);
+}, [initial, open]);
+
+
+  const handleSave = () => {
+    if (!meal.descricao) {
+      setError('Por favor, selecione uma descrição de refeição.');
+      return;
+    }
+    if (!meal.horario) {
+      setError('Por favor, selecione um horário.');
+      return;
+    }
+    if (meal.alimentos.length === 0) {
+      setError('Por favor, adicione pelo menos um alimento.');
+      return;
+    }
+
+    setError('');
+    console.log('MealModal - handleSave - meal:', meal); 
+    
+    if (onSave) onSave(meal); 
+    onClose();
+  };
 
   const [query, setQuery] = useState('');
   const [options, setOptions] = useState([]);
@@ -79,23 +117,19 @@ export default function MealModal({ open, onClose, onSave, initial = null, patie
       value = eventOrValue ?? '';
     }
 
-    setMeal(prev => ({ ...prev, [key]: value }));
+    setMeal(prev => {
+      const updated = { ...prev, [key]: value };
+      // IMPORTANTE: preservar o id se existir
+      if (prev.id !== undefined) updated.id = prev.id;
+      return updated;
+    });
   };
 
-  const removeFood = (id) => setMeal(prev => ({ ...prev, alimentos: prev.alimentos.filter(a => a.id !== id) }));
-
-  
-  const times = useMemo(() => {
-    const out = [];
-    for (let h = 5; h < 24; h++) {
-      for (let m of [0, 30]) {
-        const hh = String(h).padStart(2, '0');
-        const mm = String(m).padStart(2, '0');
-        out.push(`${hh}:${mm}`);
-      }
-    }
-    return out;
-  }, []);
+  const removeFood = (id) => setMeal(prev => {
+    const updated = { ...prev, alimentos: prev.alimentos.filter(a => a.id !== id) };
+    if (prev.id !== undefined) updated.id = prev.id;
+    return updated;
+  });
 
   const handleAddSelectedFood = () => {
     if (!selectedFood || typeof selectedFood !== "object") {
@@ -110,10 +144,14 @@ export default function MealModal({ open, onClose, onSave, initial = null, patie
       unidade: selectedUnit
     };
 
-    setMeal(prev => ({
-      ...prev,
-      alimentos: [...prev.alimentos, proximoAlimento]
-    }));
+    setMeal(prev => {
+      const updated = {
+        ...prev,
+        alimentos: [...prev.alimentos, proximoAlimento]
+      };
+      if (prev.id !== undefined) updated.id = prev.id;
+      return updated;
+    });
 
     setSelectedFood(null);
     setQuery('');
@@ -121,51 +159,17 @@ export default function MealModal({ open, onClose, onSave, initial = null, patie
     setSelectedUnit('g');
   };
 
-  const handleSave = async () => {
-    if (!meal.descricao) {
-      setError('Por favor, selecione uma descrição de refeição.');
-      return;
+  const times = useMemo(() => {
+    const out = [];
+    for (let h = 5; h < 24; h++) {
+      for (let m of [0, 30]) {
+        const hh = String(h).padStart(2, '0');
+        const mm = String(m).padStart(2, '0');
+        out.push(`${hh}:${mm}`);
+      }
     }
-    if (!meal.horario) {
-      setError('Por favor, selecione um horário.');
-      return;
-    }
-    if (meal.alimentos.length === 0) {
-      setError('Por favor, adicione pelo menos um alimento.');
-      return;
-    }
-    if (!patientId) {
-      setError('ID do paciente não encontrado.');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError('');
-
-      const payload = {
-        descricao: meal.descricao,
-        horario: meal.horario,
-        observacao: meal.observacao,
-        alimentos: meal.alimentos.map(a => ({
-          alimento: a.nome,
-          quantidade: a.quantidade,
-          unidade: a.unidade
-        }))
-      };
-
-      await api.post(`/meals/meal-by-type/${patientId}`, payload);
-      
-      if (onSave) onSave(meal);
-      alert('Refeição salva com sucesso!');
-      onClose();
-    } catch (err) {
-      console.error('Erro ao salvar refeição:', err);
-      setError('Erro ao salvar refeição. Verifique o console.');
-    } finally {
-      setLoading(false);
-    }
-  };
+    return out;
+  }, []);
 
   return (
     <Dialog open={!!open} onClose={onClose} fullWidth maxWidth="md">
@@ -188,7 +192,11 @@ export default function MealModal({ open, onClose, onSave, initial = null, patie
               <Select
                 value={meal.horario ?? ''}
                 label="Horário"
-                onChange={(e) => setMeal(prev => ({ ...prev, horario: e.target.value }))}
+                onChange={(e) => setMeal(prev => {
+                  const updated = { ...prev, horario: e.target.value };
+                  if (prev.id !== undefined) updated.id = prev.id;
+                  return updated;
+                })}
                 displayEmpty
               >
                 <MenuItem value=""></MenuItem>
@@ -200,7 +208,15 @@ export default function MealModal({ open, onClose, onSave, initial = null, patie
           <Grid item xs={12} md={9}>
             <FormControl fullWidth>
               <InputLabel>Descrição</InputLabel>
-              <Select value={meal.descricao} label="Descrição" onChange={handleChange('descricao')} >
+              <Select 
+                value={meal.descricao} 
+                label="Descrição" 
+                onChange={(e) => setMeal(prev => {
+                  const updated = { ...prev, descricao: e.target.value };
+                  if (prev.id !== undefined) updated.id = prev.id;
+                  return updated;
+                })}
+              >
                 <MenuItem value="Café da manhã">Café da manhã</MenuItem>
                 <MenuItem value="Colação">Colação</MenuItem>
                 <MenuItem value="Almoço">Almoço</MenuItem>
