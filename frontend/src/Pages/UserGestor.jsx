@@ -316,8 +316,16 @@ export default function UserGestor() {
 
   const handlePlanDiet = () => {
     if (!startAppointment) return;
+    const user = users.find(u => u.id === startAppointment.userId);
+    const patientName = startAppointment.userName || user?.name || 'Paciente';
     closeStartConsultation();
-    navigate("/diet", { state: { user: users.find(u => u.id === startAppointment.userId) } });
+    navigate("/diet", { 
+      state: { 
+        user: user || { id: startAppointment.userId, name: patientName },
+        patientName,
+        appointment: startAppointment
+      } 
+    });
   };
 
   const openWeekDialog = () => setWeekDialogOpen(true);
