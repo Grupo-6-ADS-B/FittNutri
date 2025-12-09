@@ -64,7 +64,7 @@ console.log('Diet page - selectedUser:', selectedUser);
       if (meal.id) {
         
         console.log('Fazendo PATCH para /meals/' + meal.id);
-        await api.patch(`/meals/${meal.id}`, payload);
+        await api.put(`/meals/${meal.id}`, payload);
         alert('Refeição atualizada com sucesso!');
       } else {
         
