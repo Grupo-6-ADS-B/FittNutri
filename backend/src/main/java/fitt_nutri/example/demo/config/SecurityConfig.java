@@ -47,7 +47,8 @@ public class SecurityConfig {
             "/food-itens/**",
             "/meals/**",
             "/patients/**",
-                "/h2-console/**"
+            "/h2-console/**",
+            "/patient-history/**"
     };
 
     @Bean

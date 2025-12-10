@@ -34,7 +34,7 @@ public class AnthropometricDataModel {
 
     private Double gorduraVisceral;
 
-    private Integer taxaMetabolicaBasal;
+    private Double taxaMetabolicaBasal;
 
     private Integer idadeMetabolica;
 

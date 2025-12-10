@@ -260,59 +260,82 @@ export default function UserGestor() {
 
   
   const saveUpdateData = async () => {
-    if (!startAppointment) return;
-    
-    if (!updateForm.date) {
-      alert("Data é obrigatória para gerar a dashboard.");
-      return;
+  if (!startAppointment) return;
+
+  if (!updateForm.date) {
+    alert("Data é obrigatória para gerar a dashboard.");
+    return;
+  }
+
+  const pacienteId = updateForm.id;
+
+  const payload = {
+    dataConsulta: updateForm.date,
+    antropometria: {
+      peso: Number(updateForm.peso),
+      altura: Number(updateForm.altura),
+      imc: Number(computeImc(updateForm.peso, updateForm.altura)),
+      idadeMetabolica: Number(updateForm.idadeMetabolica),
+      massaMuscular: Number(updateForm.massaMuscular),
+      gorduraVisceral: Number(updateForm.gorduraVisceral),
+      porcentagemGordura: Number(updateForm.porcentagemGordura),
+    },
+    circunferencia: {
+      abdominal: Number(updateForm.circ["Circunferência Abdominal (cm)"]),
+      cintura: Number(updateForm.circ["Circunferência Cintura (cm)"]),
+      quadril: Number(updateForm.circ["Circunferência Quadril (cm)"]),
+      pulso: Number(updateForm.circ["Circunferência Pulso (cm)"]),
+      panturrilha: Number(updateForm.circ["Circunferência Panturrilha (cm)"]),
+      braco: Number(updateForm.circ["Circunferência Braço (cm)"]),
+      coxa: Number(updateForm.circ["Circunferência Coxa (cm)"]),
+      pesoIdeal: Number(updateForm.circ["Peso Ideal (kg)"]),
     }
-
-  
-    const historyPayload = {
-      date: updateForm.date,
-      peso: updateForm.peso,
-      altura: updateForm.altura,
-      idadeMetabolica: updateForm.idadeMetabolica,
-      massaMuscular: updateForm.massaMuscular,
-      porcentagemGordura: updateForm.porcentagemGordura,
-      gorduraVisceral: updateForm.gorduraVisceral,
-      circ: updateForm.circ,
-      imc: computeImc(updateForm.peso, updateForm.altura)
-    };
-    try {
-      await fetch(`/api/appointments/${startAppointment.id}/history`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(historyPayload),
-      });
-    } catch (e) {
-    }
-
-    const updatedUser = {
-      id: updateForm.id,
-      name: updateForm.name,
-      peso: updateForm.peso,
-      altura: updateForm.altura,
-      idadeMetabolica: updateForm.idadeMetabolica,
-      massaMuscular: updateForm.massaMuscular,
-      porcentagemGordura: updateForm.porcentagemGordura,
-      gorduraVisceral: updateForm.gorduraVisceral,
-      circ: updateForm.circ,
-      imc: computeImc(updateForm.peso, updateForm.altura)
-    };
-
-    setUsers(prev => {
-      const found = prev.some(u => u.id === updatedUser.id);
-      const next = found ? prev.map(u => (u.id === updatedUser.id ? { ...u, ...updatedUser } : u)) : [...prev, updatedUser];
-      try { localStorage.setItem('users', JSON.stringify(next)); } catch {}
-      return next;
-    });
-
-    setUpdateDialogOpen(false);
-    setStartDialogOpen(false);
-
-    navigate('/questionario', { state: { user: updatedUser, appointment: startAppointment } });
   };
+
+  try {
+    await api.post(`/patient-history/${pacienteId}`, payload);
+  } catch (error) {
+    console.error("Erro ao salvar consulta:", error);
+    alert("Erro ao salvar os dados da consulta.");
+    return;
+  }
+
+  const updatedUser = {
+    id: updateForm.id,
+    name: updateForm.name,
+    peso: updateForm.peso,
+    altura: updateForm.altura,
+    idadeMetabolica: updateForm.idadeMetabolica,
+    massaMuscular: updateForm.massaMuscular,
+    porcentagemGordura: updateForm.porcentagemGordura,
+    gorduraVisceral: updateForm.gorduraVisceral,
+    circ: updateForm.circ,
+    imc: computeImc(updateForm.peso, updateForm.altura)
+  };
+
+  setUsers(prev => {
+    const found = prev.some(u => u.id === updatedUser.id);
+    const next = found
+      ? prev.map(u => (u.id === updatedUser.id ? { ...u, ...updatedUser } : u))
+      : [...prev, updatedUser];
+
+    try {
+      localStorage.setItem('users', JSON.stringify(next));
+    } catch {}
+
+    return next;
+  });
+
+  setUpdateDialogOpen(false);
+  setStartDialogOpen(false);
+
+  navigate('/questionario', {
+    state: {
+      user: updatedUser,
+      appointment: startAppointment
+    }
+  });
+};
 
   const handlePlanDiet = () => {
     if (!startAppointment) return;
