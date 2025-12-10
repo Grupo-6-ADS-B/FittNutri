@@ -338,12 +338,7 @@ export default function UserGestor() {
   setUpdateDialogOpen(false);
   setStartDialogOpen(false);
 
-  navigate('/questionario', {
-    state: {
-      user: updatedUser,
-      appointment: startAppointment
-    }
-  });
+  
 };
 
   const handlePlanDiet = () => {
@@ -763,8 +758,31 @@ export default function UserGestor() {
             Escolha uma ação para esta consulta:
           </DialogContentText>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button variant="outlined" onClick={openUpdateData}>1️⃣ ATUALIZAR DADOS</Button>
-            <Button variant="contained" color="success" onClick={handlePlanDiet}>2️⃣ PLANEJAR DIETA</Button>
+            <Button variant="outlined" onClick={openUpdateData}>
+              Atualizar Dados
+            </Button>
+            <Button variant="contained" color="success" onClick={handlePlanDiet}>
+              Planejar Dieta
+            </Button>
+            <Button 
+              fullWidth
+              variant="outlined" 
+              color="secondary"
+              onClick={() => {
+                if (!startAppointment) return;
+                const pacienteUser = users.find(u => u.id === startAppointment.userId) || {};
+                navigate('/dashboard', { 
+                  state: { 
+                    user: pacienteUser,
+                    pacienteId: startAppointment.userId,
+                    patientName: startAppointment.userName || pacienteUser?.name || 'Paciente'
+                  } 
+                });
+                closeStartConsultation();
+              }}
+            >
+              Ver Dashboard
+            </Button>
           </Box>
         </DialogContent>
         <DialogActions>

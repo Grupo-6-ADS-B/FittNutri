@@ -51,6 +51,7 @@ public class PatientHistoryService {
         antropo.setPorcentagemGordura(dto.getAntropometria().getPorcentagemGordura());
         antropo.setMassaMuscular(dto.getAntropometria().getMassaMuscular());
         antropo.setIdadeMetabolica(dto.getAntropometria().getIdadeMetabolica());
+        antropo.setTaxaMetabolicaBasal(dto.getAntropometria().getTaxaMetabolicaBasal());
 
         antropo.setPaciente(paciente);
 
