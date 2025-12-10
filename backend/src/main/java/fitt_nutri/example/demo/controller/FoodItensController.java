@@ -1,7 +1,7 @@
-// java
 package fitt_nutri.example.demo.controller;
 
 import fitt_nutri.example.demo.dto.MacrosDTO;
+import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.FoodItensModel;
 import fitt_nutri.example.demo.service.FoodItensService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -94,6 +94,22 @@ public class FoodItensController {
 
         return ResponseEntity.ok(macros);
     }
+
+    @GetMapping("/search-part")
+    @Operation(summary = "Busca alimentos por parte do nome")
+    @ApiResponse(responseCode = "200", description = "Dados encontrados com sucesso")
+    @ApiResponse(responseCode = "404", description = "Nenhum alimento encontrado")
+    public ResponseEntity<List<FoodItensModel>> getFoodItemsByNamePart(
+            @RequestParam String nomeParte
+    ) {
+        try {
+            List<FoodItensModel> resultados = service.findFoodsByNamePart(nomeParte);
+            return ResponseEntity.ok(resultados);
+        } catch (NotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 
 
 

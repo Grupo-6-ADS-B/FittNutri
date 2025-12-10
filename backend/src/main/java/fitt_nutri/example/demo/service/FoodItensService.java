@@ -100,6 +100,18 @@ public class FoodItensService {
         return new MacrosDTO(proteina, carboidrato, lipideos, fibra);
     }
 
+    public List<FoodItensModel> findFoodsByNamePart(String nomeParte) {
+        List<FoodItensModel> itens = foodItensRepository.findByNomeContainingIgnoreCase(nomeParte);
+
+        if (itens.isEmpty()) {
+            throw new NotFoundException("Nenhum alimento encontrado contendo: " + nomeParte);
+        }
+
+        return itens;
+    }
+
+
+
     private double safe(Double value) {
         return value == null ? 0.0 : value;
     }

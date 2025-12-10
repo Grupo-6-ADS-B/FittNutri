@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box, Grid, Paper, Typography, TextField, Button, Stack,
   Divider, Chip, List, ListItem, ListItemText, Avatar, IconButton, Tooltip
@@ -11,6 +11,7 @@ import MealModal from '../components/MealModal';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import api from '../utils/api';
 
 export default function Diet() {
 
@@ -26,28 +27,81 @@ export default function Diet() {
     }
   })();
 
-  const userName = selectedUser?.name ?? sessionStorage.getItem('nome') ?? 'Nome do paciente';
+  const userName = location.state.patientName;
   const userAge = selectedUser?.age ?? selectedUser?.idade ?? null;
-
+  const patientId = selectedUser?.id || null;
+console.log('Diet page - selectedUser:', selectedUser);
   const initials = userName
     ? userName.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
     : 'NA';
 
-  const handlePrint = () => window.print();
+  const handlePrint = async () => {
+  try {
+    const response = await api.get(`/meals/patient/${patientId}/pdf`, {
+      responseType: 'blob' 
+    });
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `dieta-${userName || 'paciente'}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Erro ao baixar PDF:', error);
+    alert('Erro ao baixar o PDF da dieta.');
+  }
+};
   const [openMeal, setOpenMeal] = useState(false);
   const [meals, setMeals] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState(null);
 
   const handleOpenMeal = () => { setSelectedMeal(null); setOpenMeal(true); };
   const handleCloseMeal = () => setOpenMeal(false);
-  const handleSaveMeal = (meal) => {
-    if (selectedMeal && selectedMeal.id) {
-      setMeals(prev => prev.map(m => (m.id === selectedMeal.id ? { ...selectedMeal, ...meal } : m)));
-    } else {
-      setMeals(prev => [...prev, { ...meal, id: Date.now() }]);
+  const handleSaveMeal = async (meal) => {
+    console.log('handleSaveMeal recebeu:', meal);
+    console.log('meal.id:', meal.id);
+    console.log('alimentos:', meal.alimentos); 
+    
+    try {
+      const payload = {
+        descricao: meal.descricao,
+        horario: meal.horario,
+        observacao: meal.observacao,
+        alimentos: meal.alimentos.map(a => ({
+          alimento: a.nome || a.alimento, 
+          quantidade: parseFloat(a.quantidade),
+          unidade: a.unidade
+        }))
+      };
+
+      console.log('payload enviado:', payload); 
+
+      if (meal.id) {
+        
+        console.log('Fazendo PATCH para /meals/' + meal.id);
+        await api.put(`/meals/${meal.id}`, payload);
+        alert('Refeição atualizada com sucesso!');
+      } else {
+        
+        console.log('Fazendo POST para /meals/meal-by-type/' + patientId);
+        await api.post(`/meals/meal-by-type/${patientId}`, payload);
+        alert('Refeição adicionada com sucesso!');
+      }
+
+      
+      await loadMeals();
+
+      setSelectedMeal(null);
+      setOpenMeal(false);
+    } catch (error) {
+      console.error('Erro ao salvar refeição:', error);
+      alert('Erro ao salvar refeição.');
     }
-    setSelectedMeal(null);
-    setOpenMeal(false);
   };
 
   const handleCopyMeal = (meal) => {
@@ -56,13 +110,54 @@ export default function Diet() {
   };
 
   const handleEditMeal = (meal) => {
+    console.log('handleEditMeal - meal antes de abrir modal:', meal); // Debug
     setSelectedMeal(meal);
     setOpenMeal(true);
   };
 
-  const handleDeleteMeal = (id) => {
-    setMeals(prev => prev.filter(m => m.id !== id));
+  const handleDeleteMeal = async (id) => {
+    try {
+      await api.delete(`/meals/${id}`);
+      setMeals(prev => prev.filter(m => m.id !== id));
+      alert('Refeição deletada com sucesso!');
+    } catch (error) {
+      console.error('Erro ao deletar refeição:', error);
+      alert('Erro ao deletar refeição.');
+    }
   };
+
+  const loadMeals = async () => {
+    try {
+      const response = await api.get(`/meals/${patientId}`);
+      console.log("Refeições carregadas:", response.data);
+
+      const refeicoes = response.data?.refeicoes ?? response.data;
+console.log("Refeições processadas:", refeicoes); // Debug
+      setMeals((refeicoes || []).map(r => ({
+        id: r.id || r.mealId,
+        descricao: r.descricao,
+        horario: r.horario,
+        observacao: r.observacao,
+        alimentos: (r.alimentos || []).map(a => ({
+          id: a.id,
+          nome: a.alimento,
+          quantidade: a.quantidade,
+          unidade: a.unidade
+        }))
+      })));
+      console.log("Meals mapeadas:", mealsList); // Debug
+      setMeals(mealsList);
+            console.log("Meals state atualizado"); 
+
+    } catch (err) {
+      console.error("Erro carregando refeições:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (patientId) loadMeals();
+  }, [patientId]);
+
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, background: '#f5f8fa', minHeight: '100vh' }}>
@@ -178,7 +273,7 @@ export default function Diet() {
             </Paper>
 
 
-            <MealModal open={openMeal} onClose={handleCloseMeal} onSave={handleSaveMeal} initial={selectedMeal} />
+            <MealModal open={openMeal} patientId={patientId} onClose={handleCloseMeal} onSave={handleSaveMeal} initial={selectedMeal} />
           </Stack>
         </Grid>
 

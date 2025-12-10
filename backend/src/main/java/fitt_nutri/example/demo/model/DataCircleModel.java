@@ -21,36 +21,27 @@ public class DataCircleModel {
     @EqualsAndHashCode.Include
     private Integer idDadosCircunferencia;
 
-    @NotNull(message = "Abdominal não pode estar vazio")
-    @Column(nullable = false)
+
     private Double abdominal;
 
-    @NotNull(message = "Cintura não pode estar vazio")
-    @Column(nullable = false)
+
     private Double cintura;
 
-    @NotNull(message = "Quadril não pode estar vazio")
-    @Column(nullable = false)
     private Double quadril;
 
-    @NotNull(message = "Punho não pode estar vazio")
-    @Column(nullable = false)
+
     private Double pulso;
 
-    @NotNull(message = "Panturrilha não pode estar vazio")
-    @Column(nullable = false)
+
     private Double panturrilha;
 
-    @NotNull(message = "Braço não pode estar vazio")
-    @Column(nullable = false)
+
     private Double braco;
 
-    @NotNull(message = "Coxa não pode estar vazio")
-    @Column(nullable = false)
+
     private Double coxa;
 
-    @NotNull(message = "Peso ideal não pode estar vazio")
-    @Column(nullable = false)
+
     @Max(value = 150, message = "O peso ideal não pode ultrapassar 150 kg")
     private Double pesoIdeal;
 

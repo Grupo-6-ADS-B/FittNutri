@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/schedulings")
-@CrossOrigin(origins = "http://localhost:5500")
+@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 @Tag(name = "Agendamentos", description = "CRUD de agendamentos")
 public class SchedulingController {
