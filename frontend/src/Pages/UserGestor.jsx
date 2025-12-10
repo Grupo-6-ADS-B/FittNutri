@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
+import Snackbar from '@mui/material/Snackbar';
 import api from '../utils/api';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   CssBaseline,
   Box,
@@ -52,6 +53,14 @@ export default function UserGestor() {
   const [apptTime, setApptTime] = useState("09:00");
   const [apptNote, setApptNote] = useState("");
   const [weekDialogOpen, setWeekDialogOpen] = useState(false);
+  // Busca userId do state, sessionStorage ou localStorage
+  const location = useNavigate ? useLocation() : {};
+  let userId = location?.state?.user?.id;
+  if (!userId) {
+    userId = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
+    if (userId) userId = parseInt(userId, 10);
+  }
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   
   const [startDialogOpen, setStartDialogOpen] = useState(false);
@@ -438,7 +447,7 @@ export default function UserGestor() {
       });
     
       setScheduleOpen(false);
-      alert('Agendamento criado com sucesso!');
+      setSnackbar({ open: true, message: 'Agendamento criado com sucesso!', severity: 'success' });
     } catch (error) {
       console.error('Erro ao salvar agendamento:', error);
       console.error('Response data:', error.response?.data);
@@ -446,19 +455,30 @@ export default function UserGestor() {
       console.error('Request headers:', error.config?.headers);
     
       if (error.response?.status === 401) {
-        alert('Sessão expirada. Faça login novamente.');
+        setSnackbar({ open: true, message: 'A observação precisa ser preenchida.', severity: 'error' });
       } else if (error.response?.status === 400) {
-        alert(`Dados inválidos: ${JSON.stringify(error.response.data)}`);
+        setSnackbar({ open: true, message: `Dados inválidos: ${JSON.stringify(error.response.data)}`, severity: 'error' });
       } else if (error.response?.status === 404) {
-        alert('Paciente ou nutricionista não encontrado no sistema.');
+        setSnackbar({ open: true, message: 'Paciente ou nutricionista não encontrado no sistema.', severity: 'error' });
       } else {
-        alert('Erro ao criar agendamento. Verifique o console para mais detalhes.');
+        setSnackbar({ open: true, message: 'Erro ao criar agendamento. Verifique o console para mais detalhes.', severity: 'error' });
       }
     }
   };
 
   return (
     <>
+      <CssBaseline />
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Box sx={{ bgcolor: snackbar.severity === 'success' ? '#43a047' : '#d32f2f', color: 'white', px: 3, py: 1.5, borderRadius: 2, boxShadow: 3, fontWeight: 500, fontSize: '1rem' }}>
+          {snackbar.message}
+        </Box>
+      </Snackbar>
       <CssBaseline />
       <Box sx={{ display: "flex", minHeight: "88vh" }}>
         
@@ -493,7 +513,7 @@ export default function UserGestor() {
                 mb: 2,
               }}
             >
-              <Typography variant="h5">Gerenciamento de Usuários</Typography>
+              <Typography variant="h5">Gerenciamento de pacientes</Typography>
 
               <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                         <Button
@@ -557,7 +577,7 @@ export default function UserGestor() {
                   onClick={handleAddUser}
                   sx={{ backgroundColor: "#2e7d32", borderRadius: "15px" }}
                 >
-                  Adicionar Usuário
+                  Adicionar paciente
                 </Button>
               </Box>
             </Box>

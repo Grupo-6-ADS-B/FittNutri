@@ -25,66 +25,20 @@ const KpiImageUrls = {
     tmb: 'https://images.unsplash.com/photo-1542838337-ab72f883215f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80',
 };
 
-const KpiAnimatedCard = styled(Card)(({ theme, imageurl }) => ({
-    borderRadius: theme.spacing(2),
+const KpiAnimatedCard = styled(Card)(({ theme }) => ({
+    borderRadius: theme.spacing(1.2),
     overflow: 'hidden',
     position: 'relative',
-    height: 180,
+    height: 120,
     width: '100%',
-    boxShadow: '0 4px 10px rgba(0, 0, 0, 0.05)',
-    transition: 'transform 0.4s ease, box-shadow 0.4s ease',
+    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
     display: 'flex',
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
-    padding: theme.spacing(2),
-    
-    '&::before': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
-        zIndex: 1,
-    },
-    
-    '& .kpi-media': {
-        position: 'absolute',
-        top: 0,
-        right: 0,
-        bottom: 0,
-        width: 100,
-        backgroundImage: `url(${imageurl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        opacity: 0,
-        transition: 'opacity 0.4s ease, transform 0.4s ease',
-        transform: 'translateX(20px)',
-        zIndex: 2,
-    },
-
-    '& .MuiCardContent-root': {
-        position: 'relative',
-        zIndex: 3,
-        flexGrow: 1,
-        transition: 'opacity 0.4s ease, transform 0.4s ease',
-        transform: 'translateX(0)',
-    },
-
-    '&:hover': {
-        transform: 'scale(1.02)',
-        boxShadow: '0 8px 25px rgba(0, 0, 0, 0.12)',
-        
-        '& .kpi-media': {
-            opacity: 1,
-            transform: 'translateX(0)',
-        },
-        
-        '& .MuiCardContent-root': {
-            transform: 'translateX(-10px)',
-        },
-    },
+    justifyContent: 'center',
+    padding: theme.spacing(1.2),
+    border: 'none',
+    background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
 }));
 
 const KpiCarouselCard = ({ title, value, unit, description, icon: Icon, imageId, valueColor }) => {
@@ -155,20 +109,34 @@ export default function ResumoCircunferencia() {
                 setAntropo(location.state.antropoData);
             } else {
                 try {
-                    const antropoRes = await api.get(`/anthropometric/${selectedUser.id}`);
-                    setAntropo(antropoRes.data || {});
-                } catch {
+                    const antropoRes = await api.get(`/anthropometric-data/paciente/${selectedUser.id}`);
+                    const lista = Array.isArray(antropoRes.data) ? antropoRes.data : [];
+                    setAntropo(lista[0] || {});
+                    if (!lista[0]) {
+                        // eslint-disable-next-line no-alert
+                        alert('Nenhum dado antropométrico encontrado para este usuário.');
+                    }
+                } catch (err) {
                     setAntropo({});
+                    // eslint-disable-next-line no-alert
+                    alert('Erro ao buscar dados antropométricos: ' + (err?.message || 'Erro desconhecido'));
                 }
             }
             if (location.state?.dados) {
                 setDadosCirc(location.state.dados);
             } else {
                 try {
-                    const circRes = await api.get(`/circumference/${selectedUser.id}`);
-                    setDadosCirc(circRes.data || {});
-                } catch {
+                    const circRes = await api.get(`/data-circle/patient/${selectedUser.id}`);
+                    const lista = Array.isArray(circRes.data) ? circRes.data : [];
+                    setDadosCirc(lista[0] || {});
+                    if (!lista[0]) {
+                        // eslint-disable-next-line no-alert
+                        alert('Nenhum dado de circunferência encontrado para este usuário.');
+                    }
+                } catch (err) {
                     setDadosCirc({});
+                    // eslint-disable-next-line no-alert
+                    alert('Erro ao buscar dados de circunferência: ' + (err?.message || 'Erro desconhecido'));
                 }
             }
         }
@@ -260,9 +228,9 @@ export default function ResumoCircunferencia() {
 
 
     const servicos = [
-        { titulo: "Consulta Nutricional", descricao: "Avaliação completa e plano alimentar personalizado.", imagem: "/tempo.jpg" },
-        { titulo: "Acompanhamento Online", descricao: "Suporte remoto para dúvidas e ajustes no plano.", imagem: "/tempo2.jpg" },
-        { titulo: "Educação Alimentar", descricao: "Workshops e materiais educativos sobre nutrição.", imagem: "/vendo.jpg" },
+        { titulo: "Consulta Nutricional", descricao: "Avaliação completa e plano alimentar personalizado.", imagem: "/ligando.png" },
+        { titulo: "Acompanhamento Online", descricao: "Suporte remoto para dúvidas e ajustes no plano.", imagem: "/falando.png" },
+        { titulo: "Educação Alimentar", descricao: "Workshops e materiais educativos sobre nutrição.", imagem: "/dietas.png" },
     ];
 
   
@@ -286,47 +254,47 @@ export default function ResumoCircunferencia() {
 
   
   const UserSidebarContent = (
-    <Paper 
-        elevation={3} 
-        sx={{ 
-          p: 2, 
-          borderRadius: 3, 
-          display: 'flex', 
-          flexDirection: 'column', 
-          justifyContent: 'flex-start',
-          bgcolor: 'white',
-          height: '100%'
-        }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-        {selectedUser.avatar ? (
-          <Box component="img" src={selectedUser.avatar} alt={selectedUser.name} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid', borderColor: 'success.main' }} />
-        ) : (
-          <Box
-            sx={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              border: '2px solid',
-              borderColor: 'success.main',
-              backgroundColor: 'grey.300',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: 20,
-              fontWeight: 600,
-              color: 'white',
-            }}
-          >
-            {selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : <Box component="img" src="/avatar-default.png" alt="avatar" sx={{ width: 40, height: 40 }} />}
-          </Box>
-        )}
-        <Box>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser.name}</Typography>
-          <Typography variant="body2" color="text.secondary">{selectedUser.email}</Typography>
-          <Typography variant="body2" color="text.secondary">{selectedUser.phone}</Typography>
-        </Box>
-      </Box>
+        <Paper 
+                elevation={3} 
+                sx={{ 
+                    p: 2, 
+                    borderRadius: 3, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    justifyContent: 'flex-start',
+                    bgcolor: 'white',
+                    height: '100%'
+                }}
+        >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                {selectedUser && selectedUser.avatar ? (
+                    <Box component="img" src={selectedUser.avatar} alt={selectedUser.name || 'avatar'} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid', borderColor: 'success.main' }} />
+                ) : (
+                    <Box
+                        sx={{
+                            width: 56,
+                            height: 56,
+                            borderRadius: '50%',
+                            border: '2px solid',
+                            borderColor: 'success.main',
+                            backgroundColor: 'grey.300',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 20,
+                            fontWeight: 600,
+                            color: 'white',
+                        }}
+                    >
+                        {selectedUser && selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : <Box component="img" src="/avatar-default.png" alt="avatar" sx={{ width: 40, height: 40 }} />}
+                    </Box>
+                )}
+                <Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser ? selectedUser.name : ''}</Typography>
+                    <Typography variant="body2" color="text.secondary">{selectedUser ? selectedUser.email : ''}</Typography>
+                    <Typography variant="body2" color="text.secondary">{selectedUser ? selectedUser.phone : ''}</Typography>
+                </Box>
+            </Box>
       <FormControl fullWidth size="small" sx={{ mb: 2 }}>
         <InputLabel id="select-user-label">Trocar usuário</InputLabel>
         <Select
@@ -371,10 +339,8 @@ export default function ResumoCircunferencia() {
     </Paper>
   );
 
-// Define minimalAvatarSize for Avatar usage
 const minimalAvatarSize = 40;
 
-// MinimalSidebar component
 function MinimalSidebar() {
     return (
         <Box
@@ -405,16 +371,13 @@ function MinimalSidebar() {
     );
 }
 
-// UserDetailDrawer component (shows sidebar content if needed)
 function UserDetailDrawer() {
-    // For demo, just return null or you can render UserSidebarContent if needed
     return null;
 }
 
-// KpiLayout component (shows KPIs)
 function KpiLayout() {
     return (
-        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
+        <Box sx={{ display: 'grid', gap: 1.2, gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' } }}>
             <KpiCarouselCard
                 title="Peso Atual"
                 value={pesoAtual ?? '-'}
@@ -455,6 +418,22 @@ function KpiLayout() {
     );
 }
 
+if (!selectedUser && !loadingUsers) {
+    return (
+        <Box sx={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)' }}>
+            <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
+                <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center' }}>
+                    Nenhum usuário selecionado ou encontrado.<br />
+                    Volte e preencha o questionário novamente.
+                </Typography>
+                <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate('/questionario')}>
+                    Voltar para o questionário
+                </Button>
+            </Paper>
+        </Box>
+    );
+}
+
 return (
     <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', display: "flex", width: '100%' }}>
         <MinimalSidebar />
@@ -481,7 +460,7 @@ return (
                                 <KpiLayout />
                             </Grid>
                             <Grid item xs={12} md={5}>
-                                <Paper elevation={0} sx={{ p: 3, height: '100%', borderLeft: '3px solid #e0e0e0', bgcolor: '#f5f5f5' }}>
+                                <Paper elevation={0} sx={{ p: 3, height: '100%', borderLeft: theme => `3px solid ${theme.palette.primary.dark}`, bgcolor: '#f5f5f5' }}>
                                     <Typography variant="subtitle1" fontWeight="bold" color="primary">
                                         Bem-vindo à sua experiência FIttNutri
                                     </Typography>
@@ -496,24 +475,37 @@ return (
                         <Typography variant="h6" gutterBottom sx={{ mt: 3, mb: 3 }}>Serviços de Nutricionismo</Typography>
                         <Box sx={{
                             display: 'grid',
-                            gap: 2,
+                            gap: 1.2,
                             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }
                         }}>
                             {servicos.map((serv, idx) => (
-                                <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: '100%', minWidth: 280, p: 1, boxShadow: 3 }}>
-                                    <Box sx={{ display: 'flex', gap: 1, flexGrow: 1, minHeight: 80 }}>
-                                        <CardMedia component="img" image={serv.imagem} alt={serv.titulo} sx={{ width: 100, height: 80, borderRadius: 1, objectFit: 'cover', flexShrink: 0 }} />
-                                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                                            <Typography variant="subtitle1" fontWeight={600} noWrap>{serv.titulo}</Typography>
-                                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>{serv.descricao}</Typography>
+                                <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: 140, minWidth: 200, p: 1, boxShadow: 2, background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)' }}>
+                                    <Box sx={{ display: 'flex', gap: 1.2, flexGrow: 1, minHeight: 70 }}>
+                                        <CardMedia component="img" image={serv.imagem} alt={serv.titulo} sx={{ width: 200, height: 180, borderRadius: 1.2, objectFit: 'cover', flexShrink: 0, ml: -1, mt: -3, mr: -4 }} />
+                                                                            <Box
+                                                                                sx={{
+                                                                                    position: 'absolute',
+                                                                                    top: 0,
+                                                                                    left: 0,
+                                                                                    right: 0,
+                                                                                    bottom: 0,
+                                                                                    border: theme => `2px solid ${theme.palette.success.main}`,
+                                                                                    borderRadius: 2,
+                                                                                    pointerEvents: 'none',
+                                                                                    zIndex: 2
+                                                                                }}
+                                                                            />
+                                        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-end', pr: 1 }}>
+                                            <Typography variant="h6" fontWeight={700} noWrap sx={{ fontSize: '1.2rem', textAlign: 'right' }}>{serv.titulo}</Typography>
+                                            <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1rem', textAlign: 'right' }}>{serv.descricao}</Typography>
                                         </Box>
                                     </Box>
-                                    <Box sx={{ mt: 1, display: 'flex', justifyContent: 'flex-end' }}>
+                                    <Box sx={{ mt: 0.7, display: 'flex', justifyContent: 'flex-end' }}>
                                         <Button
                                             variant="contained"
                                             color="primary"
                                             size="small"
-                                            sx={{ minWidth: 100 }}
+                                            sx={{ minWidth: 70, fontSize: '0.9rem', py: 0.7 }}
                                             onClick={() => navigate('/dashboard')}
                                         >
                                             Ver serviço

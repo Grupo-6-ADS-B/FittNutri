@@ -75,17 +75,22 @@ function RegisterForm() {
       senha: data.password
     };
 
+    // Recupera o token do sessionStorage ou localStorage
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+
     try {
-      const resp = await api.post('/users', payload);
-      sessionStorage.setItem('token', resp.data?.token);
-      sessionStorage.setItem('nomeUsuario', data.name);
+      const resp = await api.post('/users', payload, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
       sessionStorage.setItem('emailUsuario', data.email);
+      sessionStorage.setItem('senhaUsuario', data.password);
+      sessionStorage.setItem('nomeUsuario', data.name);
       sessionStorage.setItem('cpfUsuario', data.cpf);
       sessionStorage.setItem('crnUsuario', data.crn);
       sessionStorage.setItem('idUsuario', resp.data?.id ? String(resp.data.id) : '');
 
       setSuccess(resp.data?.message ?? 'Cadastro realizado com sucesso.');
-      setTimeout(() => navigate('/gestor'), 1200);
+      setTimeout(() => navigate('/login'), 1200);
     } catch (err) {
       const status = err.response?.status;
       const msg = err.response?.data?.message;

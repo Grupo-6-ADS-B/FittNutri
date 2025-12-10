@@ -242,14 +242,48 @@ const handleResumoClick = async () => {
 
   try {
     if (selectedUser?.id) {
-      // Salva dados antropométricos
-      await api.post(`/anthropometric-data/patient/${selectedUser.id}`, antropoData);
+      // Prepara todos os campos obrigatórios como número ou null
+      const parseOrNull = v => {
+        if (v === undefined || v === null || v === '') return null;
+        const n = Number(String(v).replace(',', '.'));
+        return isNaN(n) ? null : n;
+      };
+      const pStr = (antropoData.peso ?? '').toString();
+      const aStr = (antropoData.altura ?? '').toString();
+      const peso = parseOrNull(pStr);
+      const altura = parseOrNull(aStr);
+      let imcValue = null;
+      if (Number.isFinite(peso) && Number.isFinite(altura) && altura > 0) {
+        imcValue = peso / ((altura / 100) * (altura / 100));
+      }
+      const antropoToSend = {
+        peso,
+        altura,
+        idade: parseOrNull(antropoData.idade),
+        imc: imcValue !== null ? Number(imcValue.toFixed(2)) : null,
+        porcentagemGordura: parseOrNull(antropoData.porcentagemGordura),
+        massaMuscular: parseOrNull(antropoData.massaMuscular),
+        gorduraVisceral: parseOrNull(antropoData.gorduraVisceral),
+        taxaMetabolicaBasal: parseOrNull(antropoData.taxaMetabolicaBasal),
+        idadeMetabolica: parseOrNull(antropoData.idadeMetabolica)
+      };
+      await api.post(`/anthropometric-data/patient/${selectedUser.id}`, antropoToSend);
 
-      // Salva dados de circunferência
-      await api.post(`/data-circle/patient/${selectedUser.id}`, circData);
+      // Salva dados de circunferência (também convertendo para número ou null)
+      const circToSend = {
+        abdominal: parseOrNull(circData.abdominal),
+        cintura: parseOrNull(circData.cintura),
+        quadril: parseOrNull(circData.quadril),
+        pulso: parseOrNull(circData.pulso),
+        panturrilha: parseOrNull(circData.panturrilha),
+        braco: parseOrNull(circData.braco),
+        coxa: parseOrNull(circData.coxa),
+        pesoIdeal: parseOrNull(circData.pesoIdeal)
+      };
+      await api.post(`/data-circle/patient/${selectedUser.id}`, circToSend);
     }
 
-    navigate('/resumo-circunferencia', { state: { dados: circData, antropoData, user: selectedUser } });
+    navigate('/resumo-circunferencia', { state: { dados: circData, antropoData: { ...antropoData, imc: imc }, user: selectedUser } });
   } catch (e) {
     console.error("Erro ao salvar dados:", e);
   }
@@ -376,7 +410,6 @@ const handleResumoClick = async () => {
                 </Box>
                 <Box component="form" sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
                   {antropoFields.map((item) => (
-                    item.field !== 'imc' && (
                     <TextField 
                       key={item.field}
                       label={item.label} 
@@ -389,35 +422,34 @@ const handleResumoClick = async () => {
                         pattern: "[0-9]*[.,]?[0-9]*" 
                       }}
                     />
-                    )
                   ))}
-                <Grid container spacing={2} sx={{ ml: 23, justifyContent: 'center' }}>
-                    <Grid item xs={6}>
-                      <Button 
-                        variant="outlined" 
-                        color="primary" 
-                        fullWidth
-                        onClick={() => navigate('/register')}
-                      >
-                        Voltar
-                      </Button>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Button 
-                        variant="contained" 
-                        color="primary" 
-                        fullWidth
-                        onClick={() => {
-                          const newCompleted = { ...completed, antropo: true };
-                          setCompleted(newCompleted);
-                          persistData(selectedUser?.id, antropoData, circData, newCompleted);
-                          handleNext();
-                        }}
-                      >
-                        Próximo
-                      </Button>
-                    </Grid>
+                <Grid container spacing={2} sx={{ justifyContent: 'flex-start', pl: 0, ml: 0 }}>
+                  <Grid item xs={6} sx={{ pl: 0 }}>
+                    <Button 
+                      variant="outlined" 
+                      color="primary" 
+                      fullWidth
+                      onClick={() => navigate('/register')}
+                    >
+                      Voltar
+                    </Button>
                   </Grid>
+                  <Grid item xs={6} sx={{ pl: 0 }}>
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      fullWidth
+                      onClick={() => {
+                        const newCompleted = { ...completed, antropo: true };
+                        setCompleted(newCompleted);
+                        persistData(selectedUser?.id, antropoData, circData, newCompleted);
+                        handleNext();
+                      }}
+                    >
+                      Próximo
+                    </Button>
+                  </Grid>
+                </Grid>
                 </Box>
               </Paper>
               {openModal && (
