@@ -35,7 +35,27 @@ console.log('Diet page - selectedUser:', selectedUser);
     ? userName.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
     : 'NA';
 
-  const handlePrint = () => window.print();
+  const handlePrint = async () => {
+  try {
+    const response = await api.get(`/meals/patient/${patientId}/pdf`, {
+      responseType: 'blob' 
+    });
+
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `dieta-${userName || 'paciente'}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    
+    link.parentNode.removeChild(link);
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Erro ao baixar PDF:', error);
+    alert('Erro ao baixar o PDF da dieta.');
+  }
+};
   const [openMeal, setOpenMeal] = useState(false);
   const [meals, setMeals] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState(null);
