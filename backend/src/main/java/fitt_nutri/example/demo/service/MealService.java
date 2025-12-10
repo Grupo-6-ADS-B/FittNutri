@@ -248,26 +248,22 @@ public class MealService {
         PdfWriter.getInstance(doc, out);
         doc.open();
 
-        // Fontes
         Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD, new Color(0, 0, 0));
         Font sectionTitleFont = new Font(Font.HELVETICA, 13, Font.BOLD, new Color(0, 0, 0));
         Font textFont = new Font(Font.HELVETICA, 11);
         Font observationFont = new Font(Font.HELVETICA, 10, Font.ITALIC, new Color(90, 90, 90));
 
-        // Título principal
         Paragraph title = new Paragraph("PLANO ALIMENTAR", titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
         title.setSpacingAfter(18f);
         doc.add(title);
 
-        // Nome do paciente
         Paragraph name = new Paragraph("Paciente: " + patient.getNome(), textFont);
         name.setSpacingAfter(20f);
         doc.add(name);
 
         for (MealModel meal : meals) {
 
-            // Separador sutil
             LineSeparator separator = new LineSeparator();
             separator.setLineColor(new Color(210, 210, 210));
             doc.add(separator);
@@ -279,7 +275,6 @@ public class MealService {
             PdfPTable mealTable = new PdfPTable(new float[]{4f, 1.4f, 1.2f});
             mealTable.setWidthPercentage(100);
 
-            // Cabeçalho da refeição
             String cabecalho = (meal.getHorario() != null ? meal.getHorario() + " - " : "") + meal.getDescricao();
             PdfPCell header = new PdfPCell(new Phrase(cabecalho, sectionTitleFont));
             header.setBorder(PdfPCell.NO_BORDER);
@@ -301,9 +296,14 @@ public class MealService {
                 addCenteredValueCell(mealTable, item.getUnidade());
             }
 
+
+
+            Paragraph extraSpace = new Paragraph(" ");
+            extraSpace.setSpacingAfter(14f);
+            doc.add(extraSpace);
+
             doc.add(mealTable);
 
-            // MACROS — agora com respiro visual
             MacrosDTO macros = getTotalMacrosFromMeal(meal);
 
             Paragraph macroSpacing = new Paragraph("");
@@ -330,7 +330,6 @@ public class MealService {
 
             doc.add(macrosTable);
 
-            // Observação
             if (meal.getObservacao() != null && !meal.getObservacao().isBlank()) {
                 Paragraph obs = new Paragraph("Observação: " + meal.getObservacao(), observationFont);
                 obs.setIndentationLeft(8f);
@@ -343,7 +342,6 @@ public class MealService {
         return out.toByteArray();
     }
 
-// Helpers
 
     private String format(Double d) {
         return String.format("%.1f", d != null ? d : 0.0);
