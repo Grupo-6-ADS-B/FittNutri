@@ -1,12 +1,17 @@
 package fitt_nutri.example.demo.service;
 
+import com.lowagie.text.*;
+import com.lowagie.text.pdf.draw.LineSeparator;
+import fitt_nutri.example.demo.dto.MacrosDTO;
 import fitt_nutri.example.demo.dto.request.FullDietRequestDTO;
 import fitt_nutri.example.demo.dto.request.MealRequestDTO;
 import fitt_nutri.example.demo.dto.request.MealItemDTO;
 import fitt_nutri.example.demo.exceptions.NotFoundException;
+import fitt_nutri.example.demo.model.FoodItensModel;
 import fitt_nutri.example.demo.model.MealItemModel;
 import fitt_nutri.example.demo.model.MealModel;
 import fitt_nutri.example.demo.model.PatientModel;
+import fitt_nutri.example.demo.repository.FoodItensRepository;
 import fitt_nutri.example.demo.repository.MealRepository;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,11 +22,6 @@ import java.io.ByteArrayOutputStream;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.lowagie.text.Document;
-import com.lowagie.text.Element;
-import com.lowagie.text.Font;
-import com.lowagie.text.Paragraph;
-import com.lowagie.text.Phrase;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.PdfPCell;
@@ -32,8 +32,9 @@ public class MealService {
 
     private final MealRepository repository;
     private final PatientRepository patientRepository;
+    private final FoodItensService foodItensService;
+    private final FoodItensRepository foodItensRepository;
 
-    // salva uma refeição (com itens) para um paciente
     public MealModel addMealFromDto(Integer patientId, MealRequestDTO dto) {
         PatientModel patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
@@ -58,23 +59,19 @@ public class MealService {
         return repository.save(meal);
     }
 
-    // retorna todas as refeições de um paciente (MealModel com lista de MealItemModel)
     public List<MealModel> getAllMealsByPatient(Integer patientId) {
         PatientModel patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
         return repository.findByPatient(patient);
     }
 
-    // salva a dieta completa: deleta antigas e salva novas (FullDietRequestDTO)
     public List<MealModel> saveFullDiet(Integer patientId, FullDietRequestDTO request) {
         PatientModel patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
 
-        // deleta as refeições antigas do paciente
         List<MealModel> old = repository.findByPatient(patient);
         repository.deleteAll(old);
 
-        // salva as novas refeições
         List<MealModel> newMeals = request.getRefeicoes().stream().map(dto -> {
             MealModel meal = new MealModel();
             meal.setDescricao(dto.getDescricao());
@@ -107,7 +104,6 @@ public class MealService {
         existingMeal.setHorario(updatedMeal.getHorario());
         existingMeal.setObservacao(updatedMeal.getObservacao());
 
-        // atualizar itens: vamos simplificar: remover todos e adicionar os novos (client envia MealModel com alimentos preenchidos)
         existingMeal.getAlimentos().clear();
         if (updatedMeal.getAlimentos() != null) {
             updatedMeal.getAlimentos().forEach(item -> {
@@ -127,7 +123,6 @@ public class MealService {
         if (mealPatch.getDescricao() != null) existingMeal.setDescricao(mealPatch.getDescricao());
         if (mealPatch.getObservacao() != null) existingMeal.setObservacao(mealPatch.getObservacao());
 
-        // patch de itens não será tratado automaticamente aqui (poderíamos implementar lógica mais complexa)
         return repository.save(existingMeal);
     }
 
@@ -137,7 +132,110 @@ public class MealService {
         repository.delete(meal);
     }
 
-    // Gera PDF considerando MealModel com lista de MealItemModel
+    public MacrosDTO getTotalMacrosFromMeal(MealModel meal) {
+        double proteina = 0, carbo = 0, gordura = 0, fibra = 0, kcal = 0;
+
+        for (MealItemModel item : meal.getAlimentos()) {
+            MacrosDTO m = getMacrosFromMealItem(item);
+
+            proteina += m.proteina();
+            carbo += m.carboidrato();
+            gordura += m.lipideos();
+            fibra += m.fibra();
+            kcal += m.kcal();
+        }
+
+        return new MacrosDTO(
+                round(proteina),
+                round(carbo),
+                round(gordura),
+                round(fibra),
+                round(kcal)
+        );
+    }
+
+
+    public MacrosDTO calcularMacrosTotaisRefeicao(MealModel meal) {
+
+        double totalProteina = 0.0;
+        double totalCarbo = 0.0;
+        double totalGordura = 0.0;
+        double totalFibra = 0.0;
+        double totalKcal = 0.0;
+
+        for (MealItemModel item : meal.getAlimentos()) {
+            try {
+                MacrosDTO macros = foodItensService.getMacrosByNome(
+                        item.getAlimento(),
+                        item.getQuantidade()
+                );
+
+                totalProteina += macros.proteina();
+                totalCarbo += macros.carboidrato();
+                totalGordura += macros.lipideos();
+                totalFibra += macros.fibra();
+
+                totalKcal += foodItensService.getCaloriasByNomeAndGramas(
+                        item.getAlimento(),
+                        item.getQuantidade()
+                );
+
+            } catch (Exception e) {
+                System.out.println("Erro ao calcular macros para " + item.getAlimento());
+            }
+        }
+
+        return new MacrosDTO(
+                round(totalProteina),
+                round(totalCarbo),
+                round(totalGordura),
+                round(totalFibra),
+                round(totalKcal)
+        );
+    }
+
+    private double round(Double d) {
+        return Math.round(d * 10.0) / 10.0;
+    }
+
+    private Double safe(Double value) {
+        return value != null ? value : 0.0;
+    }
+
+
+    public MacrosDTO getMacrosFromMealItem(MealItemModel item) {
+        if (item.getQuantidade() == null || item.getQuantidade() <= 0) {
+            return new MacrosDTO(0.0, 0.0, 0.0, 0.0, 0.0);
+        }
+
+        List<FoodItensModel> matches = foodItensRepository.findByNomeContainingIgnoreCase(item.getAlimento());
+
+        if (matches.isEmpty()) {
+            System.out.println("⚠ Alimento não encontrado: " + item.getAlimento());
+            return new MacrosDTO(0.0, 0.0, 0.0, 0.0, 0.0);
+        }
+
+        FoodItensModel food = matches.get(0);
+
+        Double q = item.getQuantidade(); // já está em gramas
+
+        Double proteina = safe(food.getProteina()) * q;
+        Double carbo = safe(food.getCarboidrato()) * q;
+        Double gordura = safe(food.getLipideos()) * q;
+        Double fibra = safe(food.getFibra()) * q;
+        Double kcal = safe(food.getEnergiaKcal()) * q;
+
+        return new MacrosDTO(
+                round(proteina),
+                round(carbo),
+                round(gordura),
+                round(fibra),
+                round(kcal)
+        );
+    }
+
+
+
     public byte[] generateDietPdf(Integer patientId) throws Exception {
 
         PatientModel patient = patientRepository.findById(patientId)
@@ -146,70 +244,129 @@ public class MealService {
         List<MealModel> meals = repository.findByPatientId(patientId);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Document doc = new Document();
+        Document doc = new Document(PageSize.A4, 36, 36, 36, 36);
         PdfWriter.getInstance(doc, out);
-
         doc.open();
 
-        Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD, new Color(0, 102, 0));
-        Paragraph title = new Paragraph("Dieta de " + patient.getNome(), titleFont);
+        Font titleFont = new Font(Font.HELVETICA, 18, Font.BOLD, new Color(0, 0, 0));
+        Font sectionTitleFont = new Font(Font.HELVETICA, 13, Font.BOLD, new Color(0, 0, 0));
+        Font textFont = new Font(Font.HELVETICA, 11);
+        Font observationFont = new Font(Font.HELVETICA, 10, Font.ITALIC, new Color(90, 90, 90));
+
+        Paragraph title = new Paragraph("PLANO ALIMENTAR", titleFont);
         title.setAlignment(Element.ALIGN_CENTER);
-        title.setSpacingAfter(20f);
+        title.setSpacingAfter(18f);
         doc.add(title);
 
-        PdfPTable table = new PdfPTable(4); // horário, descrição, alimentos (lista), observação
-        table.setWidthPercentage(100);
-        table.setSpacingBefore(10f);
+        Paragraph name = new Paragraph("Paciente: " + patient.getNome(), textFont);
+        name.setSpacingAfter(20f);
+        doc.add(name);
 
-        Font headFont = new Font(Font.HELVETICA, 12, Font.BOLD, Color.WHITE);
-        Color headerBg = new Color(0, 153, 0);
-        String[] headers = {"Horário", "Descrição", "Alimentos", "Observação"};
-        for (String h : headers) {
-            PdfPCell cell = new PdfPCell(new Phrase(h, headFont));
-            cell.setBackgroundColor(headerBg);
-            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-            cell.setPadding(5f);
-            table.addCell(cell);
-        }
+        for (MealModel meal : meals) {
 
-        Color rowColor1 = Color.WHITE;
-        Color rowColor2 = new Color(240, 255, 240);
-        boolean alternate = false;
+            LineSeparator separator = new LineSeparator();
+            separator.setLineColor(new Color(210, 210, 210));
+            doc.add(separator);
 
-        for (MealModel m : meals) {
-            Color bg = alternate ? rowColor2 : rowColor1;
-            alternate = !alternate;
+            Paragraph topSpacing = new Paragraph("");
+            topSpacing.setSpacingBefore(12f);
+            doc.add(topSpacing);
 
-            PdfPCell c1 = new PdfPCell(new Phrase(m.getHorario() == null ? "" : m.getHorario()));
-            PdfPCell c2 = new PdfPCell(new Phrase(m.getDescricao() == null ? "" : m.getDescricao()));
+            PdfPTable mealTable = new PdfPTable(new float[]{4f, 1.4f, 1.2f});
+            mealTable.setWidthPercentage(100);
 
-            // concatena itens em uma única string
-            String alimentosStr = m.getAlimentos().stream()
-                    .map(it -> String.format("%s (%s %s)",
-                            it.getAlimento(),
-                            it.getQuantidade() == null ? "" : it.getQuantidade().toString(),
-                            it.getUnidade() == null ? "" : it.getUnidade()))
-                    .collect(Collectors.joining("\n"));
+            String cabecalho = (meal.getHorario() != null ? meal.getHorario() + " - " : "") + meal.getDescricao();
+            PdfPCell header = new PdfPCell(new Phrase(cabecalho, sectionTitleFont));
+            header.setBorder(PdfPCell.NO_BORDER);
+            header.setBackgroundColor(new Color(220, 245, 220));
+            header.setPadding(8f);
+            header.setColspan(3);
+            mealTable.setSpacingBefore(6f);
+            header.setPaddingBottom(10f);
+            mealTable.addCell(header);
 
-            PdfPCell c3 = new PdfPCell(new Phrase(alimentosStr));
-            PdfPCell c4 = new PdfPCell(new Phrase(m.getObservacao() == null ? "" : m.getObservacao()));
+            addHeaderCell(mealTable, "Alimento");
+            addHeaderCell(mealTable, "Qtd.");
+            addHeaderCell(mealTable, "Unid.");
 
-            for (PdfPCell cell : new PdfPCell[]{c1, c2, c3, c4}) {
-                cell.setBackgroundColor(bg);
-                cell.setPadding(5f);
+            for (MealItemModel item : meal.getAlimentos()) {
+                addValueCell(mealTable, item.getAlimento());
+                addCenteredValueCell(mealTable,
+                        item.getQuantidade() != null ? item.getQuantidade().toString() : "");
+                addCenteredValueCell(mealTable, item.getUnidade());
             }
 
-            c1.setHorizontalAlignment(Element.ALIGN_CENTER);
 
-            table.addCell(c1);
-            table.addCell(c2);
-            table.addCell(c3);
-            table.addCell(c4);
+
+            Paragraph extraSpace = new Paragraph(" ");
+            extraSpace.setSpacingAfter(14f);
+            doc.add(extraSpace);
+
+            doc.add(mealTable);
+
+            MacrosDTO macros = getTotalMacrosFromMeal(meal);
+
+            Paragraph macroSpacing = new Paragraph("");
+            macroSpacing.setSpacingBefore(8f);
+            doc.add(macroSpacing);
+
+            PdfPTable macrosTable = new PdfPTable(new float[]{2.2f, 1f, 1f, 1f, 1f, 1f});
+            macrosTable.setWidthPercentage(100);
+            macrosTable.setSpacingAfter(10f);
+
+            addHeaderCell(macrosTable, "Macros");
+            addHeaderCell(macrosTable, "Kcal");
+            addHeaderCell(macrosTable, "Prot.");
+            addHeaderCell(macrosTable, "Carb.");
+            addHeaderCell(macrosTable, "Gord.");
+            addHeaderCell(macrosTable, "Fibra");
+
+            addValueCell(macrosTable, "");
+            addCenteredValueCell(macrosTable, format(macros.kcal()));
+            addCenteredValueCell(macrosTable, format(macros.proteina()));
+            addCenteredValueCell(macrosTable, format(macros.carboidrato()));
+            addCenteredValueCell(macrosTable, format(macros.lipideos()));
+            addCenteredValueCell(macrosTable, format(macros.fibra()));
+
+            doc.add(macrosTable);
+
+            if (meal.getObservacao() != null && !meal.getObservacao().isBlank()) {
+                Paragraph obs = new Paragraph("Observação: " + meal.getObservacao(), observationFont);
+                obs.setIndentationLeft(8f);
+                obs.setSpacingAfter(20f);
+                doc.add(obs);
+            }
         }
 
-        doc.add(table);
         doc.close();
-
         return out.toByteArray();
+    }
+
+
+    private String format(Double d) {
+        return String.format("%.1f", d != null ? d : 0.0);
+    }
+
+    private void addHeaderCell(PdfPTable t, String txt) {
+        PdfPCell c = new PdfPCell(new Phrase(txt, new Font(Font.HELVETICA, 10, Font.BOLD, new Color(0, 0, 0))));
+        c.setHorizontalAlignment(Element.ALIGN_CENTER);
+        c.setBackgroundColor(new Color(232, 255, 232));
+        c.setPadding(6f);
+        t.addCell(c);
+    }
+
+    private void addValueCell(PdfPTable t, String txt) {
+        PdfPCell c = new PdfPCell(new Phrase(txt != null ? txt : "", new Font(Font.HELVETICA, 10)));
+        c.setBorder(PdfPCell.NO_BORDER);
+        c.setPadding(4f);
+        t.addCell(c);
+    }
+
+    private void addCenteredValueCell(PdfPTable t, String txt) {
+        PdfPCell c = new PdfPCell(new Phrase(txt != null ? txt : "", new Font(Font.HELVETICA, 10)));
+        c.setHorizontalAlignment(Element.ALIGN_CENTER);
+        c.setBorder(PdfPCell.NO_BORDER);
+        c.setPadding(4f);
+        t.addCell(c);
     }
 }

@@ -4,6 +4,8 @@ public record MacrosDTO(
         double proteina,
         double carboidrato,
         double lipideos,
-        double fibra
+        double fibra,
+        double kcal
+
 ) {}
 

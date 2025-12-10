@@ -33,7 +33,5 @@ public class SchedulingModel {
     @Column(nullable = false)
     private LocalDate dataAgendada;
 
-    @NotBlank(message = "As observações não podem estar vazias")
-    @Column(nullable = false)
     private String observacoes;
 }
