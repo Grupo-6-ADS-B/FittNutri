@@ -7,6 +7,9 @@ import FolderIcon from '@mui/icons-material/Folder';
 import AddTaskIcon from '@mui/icons-material/AddTask';
 import FaceIcon from '@mui/icons-material/Face';
 import FaceRetouchingNaturalIcon from '@mui/icons-material/FaceRetouchingNatural';
+import DiningIcon from '@mui/icons-material/Dining';
+import EditCalendarIcon from '@mui/icons-material/EditCalendar';
+import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import BalanceIcon from '@mui/icons-material/Balance';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
@@ -45,21 +48,67 @@ export default function Dashboard() {
   const theme = useTheme();
   const [antropo, setAntropo] = React.useState({});
   const [loading, setLoading] = React.useState(true);
+  const [questionario, setQuestionario] = React.useState(null);
+  const [userInfo, setUserInfo] = React.useState(null);
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Recupera userId
   let userId = location.state?.user?.id;
   if (!userId) {
     userId = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
     if (userId) userId = parseInt(userId, 10);
   }
 
+  // Recupera info do usuário
   React.useEffect(() => {
-    if (!userId) {
-      navigate('/');
+    // Sempre prioriza sessionStorage/localStorage para nome/email
+    const nomeSession = sessionStorage.getItem('nomeUsuario') || localStorage.getItem('nomeUsuario');
+    const emailSession = sessionStorage.getItem('emailUsuario') || localStorage.getItem('emailUsuario');
+    let user = null;
+    // 1. Se veio do state
+    if (location.state?.user) {
+      user = { ...location.state.user };
+    } else if (userId) {
+      // 2. Busca no localStorage (users)
+      const usersArr = (() => {
+        try {
+          return JSON.parse(localStorage.getItem('users')) || [];
+        } catch { return []; }
+      })();
+      user = usersArr.find(u => String(u.id) === String(userId));
+      if (user) user = { ...user };
     }
-  }, [userId, navigate]);
+    // 3. Se não achou, cria padrão
+    if (!user) {
+      user = {
+        name: nomeSession && nomeSession !== '' ? nomeSession : 'Usuário',
+        email: emailSession && emailSession !== '' ? emailSession : 'usuario@exemplo.com',
+        avatar: '',
+      };
+    }
+    // 4. Sempre sobrescreve se session/localStorage tem nome/email
+    if (nomeSession && nomeSession !== '') user.name = nomeSession;
+    if (emailSession && emailSession !== '') user.email = emailSession;
+    setUserInfo(user);
+  }, [location.state, userId]);
 
+  // Recupera dados do questionário
+  React.useEffect(() => {
+    if (!userId) return;
+    // Tenta pegar do localStorage
+    const raw = localStorage.getItem(`questionario_${userId}`);
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        setQuestionario(parsed);
+      } catch { setQuestionario(null); }
+    } else {
+      setQuestionario(null);
+    }
+  }, [userId]);
+
+  // Busca dados antropométricos do backend se não houver questionário
   React.useEffect(() => {
     async function fetchAntropo() {
       setLoading(true);
@@ -67,90 +116,141 @@ export default function Dashboard() {
         if (userId) {
           const res = await api.get(`/anthropometric-data/paciente/${userId}`);
           const lista = Array.isArray(res.data) ? res.data : [];
-          setAntropo(lista[0] || {});
+          const server = lista[0] || null;
+          if (server) {
+            const alturaServer = server.altura !== undefined && server.altura !== null ? Number(server.altura) : null;
+            // servidor guarda altura em metros (ex: 1.70). Se o valor retornado for <=10 assume-se metros, converte para cm.
+            const alturaCm = (alturaServer !== null && !Number.isNaN(alturaServer)) ? (alturaServer <= 10 ? alturaServer * 100 : alturaServer) : '';
+            setAntropo({ ...server, altura: alturaCm });
+          } else {
+            setAntropo({});
+          }
         }
       } catch {
         setAntropo({});
       }
       setLoading(false);
     }
-    fetchAntropo();
-  }, [userId]);
+    if (!questionario) fetchAntropo();
+  }, [userId, questionario]);
 
-  const kpiData = [
-    { title: 'IMC', value: antropo.imc ?? '-', icon: FactCheckIcon, colorKey: 'primary' },
-    { title: 'Gordura (%)', value: antropo.porcentagemGordura ?? '-', icon: BalanceIcon, colorKey: 'primary' },
-    { title: 'Massa Muscular', value: antropo.massaMuscular ?? '-', icon: FitnessCenterIcon, colorKey: 'secondary' },
-    { title: 'Gordura Visceral', value: antropo.gorduraVisceral ?? '-', icon: ManageAccountsIcon, colorKey: 'primary' },
-    { title: 'Taxa Metabolica Basal', value: antropo.taxaMetabolicaBasal ?? '-', icon: ContentPasteSearchIcon, colorKey: 'secondary' },
-    { title: 'Idade Metabólica', value: antropo.idadeMetabolica ?? '-', icon: PsychologyIcon, colorKey: 'primary' },
+  const camposKPI = [
+    { title: 'IMC', key: 'imc', icon: FactCheckIcon, colorKey: 'primary' },
+    { title: 'Gordura (%)', key: 'porcentagemGordura', icon: BalanceIcon, colorKey: 'primary' },
+    { title: 'Massa Muscular', key: 'massaMuscular', icon: FitnessCenterIcon, colorKey: 'secondary' },
+    { title: 'Gordura Visceral', key: 'gorduraVisceral', icon: ManageAccountsIcon, colorKey: 'primary' },
+    { title: 'Taxa Metabolica Basal', key: 'taxaMetabolicaBasal', icon: ContentPasteSearchIcon, colorKey: 'secondary' },
+    { title: 'Idade Metabólica', key: 'idadeMetabolica', icon: PsychologyIcon, colorKey: 'primary' },
   ];
 
+  const safeValue = v => (v !== undefined && v !== null && v !== '' ? v : '-');
+
+  const fonteDados = {};
+  const getRaw = (key) => {
+    if (questionario) {
+      if (questionario.antropoData && questionario.antropoData[key] !== undefined) return questionario.antropoData[key];
+      if (questionario[key] !== undefined) return questionario[key];
+    }
+    if (antropo && antropo[key] !== undefined) return antropo[key];
+    return undefined;
+  };
+
+  const parseNumberLike = (v) => {
+    if (v === undefined || v === null || v === '') return undefined;
+    if (typeof v === 'number') return v;
+    if (typeof v === 'string') {
+      const s = v.replace(',', '.').replace(/[^0-9.\-]/g, '');
+      const n = Number(s);
+      return Number.isFinite(n) ? n : v;
+    }
+    return v;
+  };
+
+  camposKPI.forEach(kpi => {
+    const raw = getRaw(kpi.key);
+    const parsed = parseNumberLike(raw);
+    // se for número, exibe número; senão exibe raw (string) ou '-'
+    fonteDados[kpi.key] = (parsed === undefined || parsed === null || parsed === '') ? (raw !== undefined ? raw : undefined) : parsed;
+  });
+
+  const kpiData = camposKPI.map(kpi => ({
+    title: kpi.title,
+    value: safeValue(fonteDados[kpi.key]),
+    icon: kpi.icon,
+    colorKey: kpi.colorKey
+  }));
+
   const menuItems = [
-    { label: 'Usuários', path: '/gestor', icon: <HomeIcon /> },
-    { label: 'Resumo de dados', path: '/resumoCircunferencia', icon: <FolderIcon /> },
+    { label: 'Usuários', path: '/gestor', icon: <GroupAddIcon /> },
+    { label: 'Resumo de dados', path: '/resumo-Circunferencia', icon: <FolderIcon /> },
     { label: 'Gráficos', path: '/dashboard', icon: <BarChartIcon /> },
-    { label: 'Dietas', path: '/dietas', icon: <MailIcon /> },
-    { label: 'Consultas', path: '/consultas', icon: <AddTaskIcon /> },
+    { label: 'Dietas', path: '/dietas', icon: <DiningIcon/> },
+    { label: 'Consultas', path: '/consultas', icon: <EditCalendarIcon /> },
     // { label: 'Notificações', path: '/notificacoes', icon: <NotificationsIcon /> },
     // { label: 'Localização', path: '/localizacao', icon: <LocationOnIcon /> },
   ];
 
-  // --- Sidebar ---
   function Sidebar() {
     const theme = useTheme();
     const bg = theme.palette.primary.dark || theme.palette.primary.main;
     const navigate = useNavigate();
-    const location = useLocation();
-    const user = location.state?.user || {
-      name: 'Usuário',
-      email: 'usuario@exemplo.com',
+    const user = userInfo || {
+      name: '',
+      email: '',
       avatar: '',
     };
+    const displayName = (user && user.name && user.name !== '' ? user.name : (sessionStorage.getItem('nomeUsuario') || localStorage.getItem('nomeUsuario') || 'Usuário'));
+    const displayEmail = (user && user.email && user.email !== '' ? user.email : (sessionStorage.getItem('emailUsuario') || localStorage.getItem('emailUsuario') || ''));
     return (
       <Box component="nav" sx={{ width: drawerWidth, flexShrink: 0 }}>
-        <Box sx={{ height: '100%', bgcolor: bg, color: 'white', position: 'fixed', width: drawerWidth }}>
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Avatar
-              onClick={() => navigate('/perfil')}
-              src={user.avatar || undefined}
-              sx={{ width: 64, height: 64, bgcolor: 'white', color: theme.palette.primary.main, mx: 'auto', mb: 1, boxShadow: 5, cursor: 'pointer', fontSize: 32 }}
-            >
-              {!user.avatar && <PersonIcon fontSize="large" />}
-            </Avatar>
-            <Typography variant="h6" fontWeight="bold" sx={{ mt: 1 }}>{user.name}</Typography>
-            <Typography variant="body2" sx={{ opacity: 0.7, color: 'white' }}>{user.email}</Typography>
-          </Box>
-          <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
-          <List>
-            {menuItems.map((item) => (
-              <ListItem key={item.path} disablePadding component={Link} to={item.path}>
-                <CustomListItemButton selected={item.path === '/inicio'}>
-                  <ListItemIcon sx={{ color: 'white' }}>{item.icon}</ListItemIcon>
-                  <ListItemText primary={item.label} primaryTypographyProps={{ sx: { color: 'white', textTransform: 'none' } }} />
-                </CustomListItemButton>
-              </ListItem>
-            ))}
-          </List>
+        <Box sx={{ height: '100%', bgcolor: bg, color: 'white', position: 'fixed', width: drawerWidth, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div>
+            <Box sx={{ p: 3, textAlign: 'center' }}>
+              <Avatar
+                onClick={() => navigate('/perfil')}
+                src={user.avatar || undefined}
+                sx={{ width: 64, height: 64, bgcolor: 'white', color: theme.palette.primary.main, mx: 'auto', mb: 1, boxShadow: 5, cursor: 'pointer', fontSize: 32 }}
+              >
+                {!user.avatar && <PersonIcon fontSize="large" />}
+              </Avatar>
+              <Typography variant="h6" fontWeight="bold" sx={{ mt: 1 }}>{displayName}</Typography>
+              <Typography variant="body2" sx={{ opacity: 0.7, color: 'white' }}>{displayEmail}</Typography>
             </Box>
+            <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
+            <List>
+              {menuItems.map((item, idx) => (
+                <React.Fragment key={item.path}>
+                  <ListItem disablePadding component={Link} to={item.path}>
+                    <CustomListItemButton selected={item.path === '/inicio'}>
+                      <ListItemIcon sx={{ color: 'white' }}>{item.icon}</ListItemIcon>
+                      <ListItemText primary={item.label} primaryTypographyProps={{ sx: { color: 'white', textTransform: 'none' } }} />
+                    </CustomListItemButton>
+                  </ListItem>
+                  {/* Insere o botão de voltar logo após o item Consultas */}
+                  {item.label === 'Consultas' && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1, mb: 1 }}>
+                      <Button variant="outlined" color="primary" fullWidth sx={{ color: 'white', borderColor: 'white', '&:hover': { borderColor: 'white', background: 'rgba(255,255,255,0.08)' }, mx: 2 }} onClick={() => navigate(-1)}>
+                        Voltar
+                      </Button>
+                    </Box>
+                  )}
+                </React.Fragment>
+              ))}
+            </List>
+          </div>
+        </Box>
       </Box>
     );
   }
 
   const KPICard = ({ title, value, icon: IconComponent, colorKey = 'primary' }) => {
     const theme = useTheme();
-    const navigate = useNavigate();
     const colorMain = theme.palette[colorKey]?.main || theme.palette.primary.main;
     const colorDark = theme.palette[colorKey]?.dark || colorMain;
     const accent = theme.palette.secondary?.main || theme.palette.secondary;
 
-    const handleClick = () => {
-      const slug = title.toLowerCase().replace(/\s+/g, '-');
-      navigate(`/dashboard/kpi/${slug}`);
-    };
-
     return (
-      <Card onClick={handleClick} sx={{ height: 110, minWidth: 230, maxWidth: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: 3, cursor: 'pointer', p: 2 }}>
+      <Card sx={{ height: 110, minWidth: 230, maxWidth: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: 3, p: 2 }}>
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <Typography variant="h6" fontWeight="bold" sx={{ textAlign: 'center', fontSize: '1.3rem', mb: 1 }}>{title}</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -293,7 +393,7 @@ export default function Dashboard() {
               borderRadius: '50%',
               bgcolor: 'white'
             }} />
-            <Typography variant="h4" sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 'bold', color: primary }}>Carb 40%</Typography>
+            <Typography variant="h4" sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 'bold', color: primary }}>100%</Typography>
           </Box>
 
           <Box sx={{ mt: 2 }}>
@@ -308,11 +408,6 @@ export default function Dashboard() {
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-          <Chip
-            label="Ver detalhes"
-            onClick={() => navigate('/macros')}
-            sx={{ bgcolor: theme.palette.secondary.main, color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
-          />
         </Box>
       </Card>
     );
@@ -323,12 +418,7 @@ export default function Dashboard() {
     return (
       <Box sx={{ flexGrow: 1, p: 2 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Button variant="outlined" color="primary" onClick={() => navigate(-1)}>
-              Voltar
-            </Button>
-            <Typography variant="h5" fontWeight="bold">Resumo Nutricional</Typography>
-          </Box>
+          <Typography variant="h5" fontWeight="bold">Resumo Nutricional</Typography>
           <MenuIcon sx={{ fontSize: 30, color: 'text.secondary' }} />
         </Box>
         <Box sx={{ mb: 2, overflowX: 'auto', whiteSpace: 'nowrap', pb: 1 }}>
@@ -349,6 +439,10 @@ export default function Dashboard() {
 
                 <Box sx={{ width: 540, pr: 4 }}>
                   <CalendarCard />
+                  {/* Botão de voltar abaixo do botão de consultas */}
+                  <Button variant="outlined" color="primary" sx={{ mt: 2 }} onClick={() => navigate(-1)}>
+                    Voltar
+                  </Button>
                 </Box>
                 <Box sx={{ width: 900, pl: 10 }}>
                   <ConsultasBarChart />

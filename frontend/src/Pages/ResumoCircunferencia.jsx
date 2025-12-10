@@ -9,6 +9,10 @@ import {
 import { useTheme, styled } from "@mui/material/styles";
 import EditIcon from '@mui/icons-material/Edit';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
 import MenuIcon from '@mui/icons-material/Menu';
 import ScaleIcon from '@mui/icons-material/Scale';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
@@ -63,6 +67,42 @@ const KpiCarouselCard = ({ title, value, unit, description, icon: Icon, imageId,
 
 
 export default function ResumoCircunferencia() {
+        const [consultas, setConsultas] = React.useState([]);
+        const [selectedConsulta, setSelectedConsulta] = React.useState(null);
+        const [evolucaoData, setEvolucaoData] = React.useState(null);
+
+        React.useEffect(() => {
+            async function fetchConsultas() {
+                try {
+                    const stored = localStorage.getItem("appointments");
+                    let list = [];
+                    if (stored) list = JSON.parse(stored);
+                    if (!list.length) {
+                        const res = await api.get('/schedulings');
+                        list = Array.isArray(res.data) ? res.data : [];
+                    }
+                    setConsultas(list);
+                    if (list.length) setSelectedConsulta(list[0]);
+                } catch {
+                    setConsultas([]);
+                }
+            }
+            fetchConsultas();
+        }, []);
+
+        React.useEffect(() => {
+            async function fetchEvolucao() {
+                if (!selectedConsulta?.userId || !selectedConsulta?.date) return;
+                try {
+                    const res = await api.get(`/anthropometric-data/paciente/${selectedConsulta.userId}?date=${selectedConsulta.date}`);
+                    setEvolucaoData(res.data);
+                    // backend retorna altura em metros; manter como está para evolução (service pode usar metros)
+                } catch {
+                    setEvolucaoData(null);
+                }
+            }
+            fetchEvolucao();
+        }, [selectedConsulta]);
     const theme = useTheme();
     const primary = theme.palette.primary.main;
     const success = theme.palette.success.main;
@@ -78,6 +118,9 @@ export default function ResumoCircunferencia() {
     const [usersList, setUsersList] = React.useState([]);
     const [selectedUser, setSelectedUser] = React.useState(null);
     const [loadingUsers, setLoadingUsers] = React.useState(true);
+    React.useEffect(() => {
+        if (location.state?.user) setSelectedUser(location.state.user);
+    }, [location.state?.user]);
     useEffect(() => {
         async function fetchUsers() {
             setLoadingUsers(true);
@@ -101,47 +144,88 @@ export default function ResumoCircunferencia() {
 
     const [antropo, setAntropo] = React.useState({});
     const [dadosCirc, setDadosCirc] = React.useState({});
+    const [noAntropoFound, setNoAntropoFound] = React.useState(false);
+    const [noCircFound, setNoCircFound] = React.useState(false);
     useEffect(() => {
         async function fetchData() {
             if (!selectedUser?.id) return;
-            // Prioriza dados vindos do location.state
-            if (location.state?.antropoData) {
-                setAntropo(location.state.antropoData);
-            } else {
-                try {
-                    const antropoRes = await api.get(`/anthropometric-data/paciente/${selectedUser.id}`);
-                    const lista = Array.isArray(antropoRes.data) ? antropoRes.data : [];
-                    setAntropo(lista[0] || {});
-                    if (!lista[0]) {
-                        // eslint-disable-next-line no-alert
-                        alert('Nenhum dado antropométrico encontrado para este usuário.');
+            try {
+                const stored = localStorage.getItem(`questionario_${selectedUser.id}`);
+                if (stored) {
+                    const parsed = JSON.parse(stored);
+                    if (parsed?.antropoData) {
+                        const a = parsed.antropoData;
+                        // normaliza altura: se estiver em metros (<=10) converte para cm, se já estiver em cm mantém
+                        let alturaVal = a.altura;
+                        if (alturaVal !== undefined && alturaVal !== null && alturaVal !== '') {
+                            const num = Number(String(alturaVal).replace(',', '.'));
+                            if (!Number.isNaN(num)) {
+                                alturaVal = num <= 10 ? num * 100 : num;
+                            }
+                        } else {
+                            alturaVal = '';
+                        }
+                        setAntropo({ ...a, altura: alturaVal });
                     }
-                } catch (err) {
-                    setAntropo({});
-                    // eslint-disable-next-line no-alert
-                    alert('Erro ao buscar dados antropométricos: ' + (err?.message || 'Erro desconhecido'));
+                    if (parsed?.circData) {
+                        const c = parsed.circData;
+                        const converted = {};
+                        ["abdominal","cintura","quadril","pulso","panturrilha","braco","coxa","pesoIdeal"].forEach(k => {
+                            if (c[k] !== undefined && c[k] !== null) converted[k] = String(c[k]);
+                            else converted[k] = "";
+                        });
+                        setDadosCirc(converted);
+                    }
+                    return;
                 }
+            } catch (e) {
+                console.error('Falha ao ler questionario local:', e);
             }
-            if (location.state?.dados) {
-                setDadosCirc(location.state.dados);
-            } else {
-                try {
-                    const circRes = await api.get(`/data-circle/patient/${selectedUser.id}`);
-                    const lista = Array.isArray(circRes.data) ? circRes.data : [];
-                    setDadosCirc(lista[0] || {});
-                    if (!lista[0]) {
-                        // eslint-disable-next-line no-alert
-                        alert('Nenhum dado de circunferência encontrado para este usuário.');
-                    }
-                } catch (err) {
-                    setDadosCirc({});
-                    // eslint-disable-next-line no-alert
-                    alert('Erro ao buscar dados de circunferência: ' + (err?.message || 'Erro desconhecido'));
+            try {
+                const antropoRes = await api.get(`/anthropometric-data/paciente/${selectedUser.id}`);
+                const lista = Array.isArray(antropoRes.data) ? antropoRes.data : [];
+                const server = lista[0] || null;
+                if (server) {
+                    // converter altura de metros (backend) para cm (frontend espera cm)
+                    const alturaServer = server.altura !== undefined && server.altura !== null ? Number(server.altura) : null;
+                    // servidor guarda altura em metros (ex: 1.70). Se o valor retornado for <= 10 assume-se metros, converte para cm.
+                    const alturaCm = (alturaServer !== null && !Number.isNaN(alturaServer)) ? (alturaServer <= 10 ? alturaServer * 100 : alturaServer) : '';
+                    setAntropo({ ...server, altura: alturaCm });
+                    setNoAntropoFound(false);
+                } else {
+                    setAntropo({});
+                    setNoAntropoFound(true);
                 }
+            } catch (err) {
+                setAntropo({});
+                setNoAntropoFound(true);
+                console.error('Erro ao buscar dados antropométricos:', err);
+            }
+            try {
+                const circRes = await api.get(`/data-circle/patient/${selectedUser.id}`);
+                const lista = Array.isArray(circRes.data) ? circRes.data : [];
+                const serverCirc = lista[0] || null;
+                if (serverCirc) {
+                    // converte valores para string para exibição consistente
+                    const converted = {};
+                    ["abdominal","cintura","quadril","pulso","panturrilha","braco","coxa","pesoIdeal"].forEach(k => {
+                        if (serverCirc[k] !== undefined && serverCirc[k] !== null) converted[k] = String(serverCirc[k]);
+                        else converted[k] = "";
+                    });
+                    setDadosCirc(converted);
+                    setNoCircFound(false);
+                } else {
+                    setDadosCirc({});
+                    setNoCircFound(true);
+                }
+            } catch (err) {
+                setDadosCirc({});
+                setNoCircFound(true);
+                console.error('Erro ao buscar dados de circunferência:', err);
             }
         }
         fetchData();
-    }, [selectedUser?.id, location.state?.antropoData, location.state?.dados]);
+    }, [selectedUser?.id]);
 
     const handleChangeUser = (e) => {
         const uid = e.target.value;
@@ -184,13 +268,18 @@ export default function ResumoCircunferencia() {
     };
 
     const imcValue = useMemo(() => {
+        // Prioriza o IMC retornado pelo servidor quando disponível
+        if (antropo && (antropo.imc !== undefined && antropo.imc !== null)) {
+            const n = Number(antropo.imc);
+            return Number.isFinite(n) ? n.toFixed(2) : null;
+        }
         const peso = parseFloat(String(antropo.peso || '').replace(',', '.'));
         const alturaCm = parseFloat(String(antropo.altura || '').replace(',', '.'));
         if (!peso || !alturaCm) return null;
         const alturaM = alturaCm / 100;
         const v = calcularIMC(peso, alturaM);
         return v != null ? v.toFixed(2) : null;
-    }, [antropo.peso, antropo.altura]);
+    }, [antropo]);
 
     const imcClass = useMemo(() => {
         if (!imcValue) return "-";
@@ -198,6 +287,11 @@ export default function ResumoCircunferencia() {
     }, [imcValue]);
 
     const tmbValue = useMemo(() => {
+        // Prioriza valor retornado pelo servidor (taxaMetabolicaBasal)
+        if (antropo && (antropo.taxaMetabolicaBasal !== undefined && antropo.taxaMetabolicaBasal !== null)) {
+            const n = Number(antropo.taxaMetabolicaBasal);
+            return Number.isFinite(n) ? Math.round(n) : null;
+        }
         const peso = parseFloat(String(antropo.peso || '').replace(',', '.'));
         const alturaCm = parseFloat(String(antropo.altura || '').replace(',', '.'));
         const idade = parseFloat(String(antropo.idade || '').replace(',', '.'));
@@ -205,7 +299,7 @@ export default function ResumoCircunferencia() {
         const atividadeFonte = (selectedUser?.atividade ?? 'sedentario');
         if (!peso || !alturaCm || !idade) return null;
         return calcularTMB(peso, alturaCm, idade, sexoFonte, atividadeFonte);
-    }, [antropo.peso, antropo.altura, antropo.idade, selectedUser?.sexo, selectedUser?.atividade]);
+    }, [antropo, selectedUser?.sexo, selectedUser?.atividade]);
 
     const pesoAtual = useMemo(() => {
         const p = parseFloat(String(antropo.peso || '').replace(',', '.'));
@@ -213,24 +307,22 @@ export default function ResumoCircunferencia() {
     }, [antropo.peso]);
 
     const pesoMeta = useMemo(() => {
-        const circ = location.state?.dados || dadosCirc;
-        let metaValor = null;
-        for (const [k, v] of Object.entries(circ)) {
-            if (typeof k === 'string' && k.toLowerCase().includes('peso ideal')) {
-                metaValor = v;
-                break;
-            }
+        // Sempre prioriza o valor salvo no backend (dadosCirc.pesoIdeal)
+        let metaValor = dadosCirc?.pesoIdeal;
+        if (metaValor === undefined || metaValor === null || metaValor === '') return '-';
+        // Se vier string, tenta converter
+        if (typeof metaValor === 'string') {
+            metaValor = metaValor.replace(',', '.').replace(/[^\d.\-]/g, '');
         }
-        if (metaValor == null) return null;
-        const metaNum = parseFloat(String(metaValor).replace(',', '.').replace(/[^\d.]/g, ''));
-        return Number.isFinite(metaNum) && metaNum > 0 ? parseFloat(metaNum.toFixed(1)) : null;
-    }, [location.state, dadosCirc]);
-
+        const metaNum = Number(metaValor);
+        if (Number.isFinite(metaNum)) return metaNum;
+        return '-';
+    }, [dadosCirc?.pesoIdeal]);
 
     const servicos = [
-        { titulo: "Consulta Nutricional", descricao: "Avaliação completa e plano alimentar personalizado.", imagem: "/ligando.png" },
-        { titulo: "Acompanhamento Online", descricao: "Suporte remoto para dúvidas e ajustes no plano.", imagem: "/falando.png" },
-        { titulo: "Educação Alimentar", descricao: "Workshops e materiais educativos sobre nutrição.", imagem: "/dietas.png" },
+        { titulo: "Consulta Nutricional", descricao: "Avaliação completa e plano nutricional personalizado.", imagem: "/ligando.png" },
+        { titulo: "Gráfico de evolução", descricao: "Gráficos detalhados para acompanhar seu progresso.", imagem: "/falando.png" },
+        { titulo: "Educação Alimentar", descricao: "Orientação e criação de dietas nutritivas e personalizaveis.", imagem: "/dietas.png" },
     ];
 
   
@@ -253,91 +345,20 @@ export default function ResumoCircunferencia() {
     '-';
 
   
-  const UserSidebarContent = (
-        <Paper 
-                elevation={3} 
-                sx={{ 
-                    p: 2, 
-                    borderRadius: 3, 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    justifyContent: 'flex-start',
-                    bgcolor: 'white',
-                    height: '100%'
-                }}
-        >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                {selectedUser && selectedUser.avatar ? (
-                    <Box component="img" src={selectedUser.avatar} alt={selectedUser.name || 'avatar'} sx={{ width: 56, height: 56, borderRadius: '50%', border: '2px solid', borderColor: 'success.main' }} />
-                ) : (
-                    <Box
-                        sx={{
-                            width: 56,
-                            height: 56,
-                            borderRadius: '50%',
-                            border: '2px solid',
-                            borderColor: 'success.main',
-                            backgroundColor: 'grey.300',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: 20,
-                            fontWeight: 600,
-                            color: 'white',
-                        }}
-                    >
-                        {selectedUser && selectedUser.name ? selectedUser.name.charAt(0).toUpperCase() : <Box component="img" src="/avatar-default.png" alt="avatar" sx={{ width: 40, height: 40 }} />}
-                    </Box>
-                )}
-                <Box>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>{selectedUser ? selectedUser.name : ''}</Typography>
-                    <Typography variant="body2" color="text.secondary">{selectedUser ? selectedUser.email : ''}</Typography>
-                    <Typography variant="body2" color="text.secondary">{selectedUser ? selectedUser.phone : ''}</Typography>
-                </Box>
-            </Box>
-      <FormControl fullWidth size="small" sx={{ mb: 2 }}>
-        <InputLabel id="select-user-label">Trocar usuário</InputLabel>
-        <Select
-          labelId="select-user-label"
-          value={selectedUser?.id ?? ''}
-          label="Trocar usuário"
-          onChange={handleChangeUser}
-        >
-          {(usersList || []).map(u => (
-            <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-        <Typography variant="subtitle2">Informações preenchidas</Typography>
-        <Tooltip title="Editar dados">
-          <IconButton
-            size="small"
-            onClick={() => navigate('/questionario', { state: { user: selectedUser, antropoData: antropo || {}, dados: dadosCirc || {} } })}
-          >
-            <EditIcon fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      </Box>
-      <Box sx={{ maxHeight: 220, overflowY: 'auto', pr: 1, mb: 2 }}>
-        {antropo && Object.entries(antropo).map(([key, value]) => (
-          value ? <Typography key={`antropo-${key}`} variant="body2">{key}: {value}</Typography> : null
-        ))}
-        {dadosCirc && Object.entries(dadosCirc).map(([key, value]) => (
-          value ? <Typography key={`circ-${key}`} variant="body2">{key}: {value}</Typography> : null
-        ))}
-      </Box>
-      <Button
-        variant="outlined"
-        color="primary"
-        size="small"
-        sx={{ mt: 1, alignSelf: 'center', fontSize: '0.85rem', px: 2 }}
-        onClick={() => navigate('/gestor')}
-      >
-        Voltar para gerenciamento de usuários
-      </Button>
-    </Paper>
-  );
+
+    const UserSidebarContent = (
+        <Paper elevation={3} sx={{ width: expandedWidth, p: 2, borderRadius: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 120 }}>
+            <Button
+                variant="outlined"
+                color="primary"
+                size="large"
+                sx={{ mt: 2, fontWeight: 'bold', fontSize: 18, px: 3 }}
+                onClick={() => navigate('/gestor')}
+            >
+                Voltar para gerenciamento de pacientes
+            </Button>
+        </Paper>
+    );
 
 const minimalAvatarSize = 40;
 
@@ -434,26 +455,67 @@ if (!selectedUser && !loadingUsers) {
     );
 }
 
-return (
-    <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', display: "flex", width: '100%' }}>
-        <MinimalSidebar />
-        <UserDetailDrawer />
-        <Box sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, overflowY: 'auto' }}>
-            <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
-                {loadingUsers ? (
-                    <Typography variant="h6" color="primary" sx={{ textAlign: 'center', mt: 6 }}>
-                        Carregando usuários...
-                    </Typography>
-                ) : usersList.length === 0 ? (
-                    <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', mt: 6 }}>
-                        Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
-                    </Typography>
-                ) : (
-                    <>
-                        <Typography variant="h5" gutterBottom>Resumo dos Dados de Circunferência</Typography>
-                        <Typography variant="body1" sx={{ mb: 4 }}>
-                            Aqui está um resumo dos dados mais importantes para sua avaliação nutricional.
+    return (
+        <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', width: '100%' }}>
+            <Box sx={{ p: { xs: 2, md: 4 }, overflowY: 'auto' }}>
+                <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
+                    {loadingUsers ? (
+                        <Typography variant="h6" color="primary" sx={{ textAlign: 'center', mt: 6 }}>
+                            Carregando usuários...
                         </Typography>
+                    ) : usersList.length === 0 ? (
+                        <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', mt: 6 }}>
+                            Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
+                        </Typography>
+                    ) : (
+                        <>
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                                <Typography variant="h5" fontWeight="bold" sx={{ flexGrow: 1 }}>Resumo dos Dados de Circunferência</Typography>
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    size="large"
+                                    sx={{ ml: 2, fontWeight: 'bold', fontSize: 18, px: 3, height: 56, textTransform: 'none' }}
+                                    aria-label="Selecionar data de consulta"
+                                    endIcon={<MenuOpenIcon />}
+                                    onClick={() => setIsCardOpen(true)}
+                                    id="select-consulta-btn"
+                                >
+                                    {selectedConsulta?.date ? new Date(selectedConsulta.date).toLocaleDateString() : 'Selecionar data de consulta'}
+                                </Button>
+                                <Dialog open={isCardOpen} onClose={() => setIsCardOpen(false)} aria-labelledby="select-consulta-dialog" maxWidth="xs" fullWidth anchorEl={document.getElementById('select-consulta-btn')}>
+                                    <DialogTitle id="select-consulta-dialog" sx={{ fontWeight: 'bold', fontSize: 18 }}>Selecione a data da consulta</DialogTitle>
+                                    <DialogContent>
+                                        {consultas.map(c => (
+                                            <Button
+                                                key={c.id}
+                                                variant={selectedConsulta?.id === c.id ? 'contained' : 'outlined'}
+                                                color="primary"
+                                                sx={{ mb: 1, width: '100%', textTransform: 'none', fontSize: 16 }}
+                                                onClick={() => { setSelectedConsulta(c); setIsCardOpen(false); }}
+                                            >
+                                                {c.date ? new Date(c.date).toLocaleDateString() : 'Sem data'}
+                                            </Button>
+                                        ))}
+                                    </DialogContent>
+                                    <DialogActions>
+                                        <Button onClick={() => setIsCardOpen(false)} sx={{ width: '100%' }}>Fechar</Button>
+                                    </DialogActions>
+                                </Dialog>
+                                <Button
+                                    variant="outlined"
+                                    color="primary"
+                                    size="medium"
+                                    sx={{ ml: 2, fontWeight: 'bold', fontSize: 16, px: 2 }}
+                                    onClick={() => navigate('/gestor')}
+                                >
+                                    Voltar para gerenciamento de pacientes
+                                </Button>
+                            </Box>
+                            {/* Removido JSON bruto de evolução. Exiba apenas dados relevantes, se necessário. */}
+                            <Typography variant="body1" sx={{ mb: 4 }}>
+                                Aqui está um resumo dos dados mais importantes para sua avaliação nutricional.
+                            </Typography>
                         <Grid container spacing={4} sx={{ mb: 4 }}>
                             <Grid item xs={12} md={7}>
                                 <Typography variant="h6" gutterBottom>Indicadores Antropométricos</Typography>
@@ -482,19 +544,19 @@ return (
                                 <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: 140, minWidth: 200, p: 1, boxShadow: 2, background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)' }}>
                                     <Box sx={{ display: 'flex', gap: 1.2, flexGrow: 1, minHeight: 70 }}>
                                         <CardMedia component="img" image={serv.imagem} alt={serv.titulo} sx={{ width: 200, height: 180, borderRadius: 1.2, objectFit: 'cover', flexShrink: 0, ml: -1, mt: -3, mr: -4 }} />
-                                                                            <Box
-                                                                                sx={{
-                                                                                    position: 'absolute',
-                                                                                    top: 0,
-                                                                                    left: 0,
-                                                                                    right: 0,
-                                                                                    bottom: 0,
-                                                                                    border: theme => `2px solid ${theme.palette.success.main}`,
-                                                                                    borderRadius: 2,
-                                                                                    pointerEvents: 'none',
-                                                                                    zIndex: 2
-                                                                                }}
-                                                                            />
+                                        <Box
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                right: 0,
+                                                bottom: 0,
+                                                border: theme => `2px solid ${theme.palette.success.main}`,
+                                                borderRadius: 2,
+                                                pointerEvents: 'none',
+                                                zIndex: 2
+                                            }}
+                                        />
                                         <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'flex-end', pr: 1 }}>
                                             <Typography variant="h6" fontWeight={700} noWrap sx={{ fontSize: '1.2rem', textAlign: 'right' }}>{serv.titulo}</Typography>
                                             <Typography variant="body1" color="text.secondary" sx={{ fontSize: '1rem', textAlign: 'right' }}>{serv.descricao}</Typography>
@@ -506,7 +568,15 @@ return (
                                             color="primary"
                                             size="small"
                                             sx={{ minWidth: 70, fontSize: '0.9rem', py: 0.7 }}
-                                            onClick={() => navigate('/dashboard')}
+                                            onClick={() => {
+                                                if (serv.titulo === 'Consulta Nutricional') {
+                                                    navigate('/gestor');
+                                                } else if (serv.titulo === 'Educação Alimentar') {
+                                                    navigate('/diet');
+                                                } else {
+                                                    navigate('/dashboard');
+                                                }
+                                            }}
                                         >
                                             Ver serviço
                                         </Button>

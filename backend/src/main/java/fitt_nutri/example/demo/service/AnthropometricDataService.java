@@ -125,9 +125,7 @@ public class AnthropometricDataService {
 
     public List<AnthropometricDataModel> findByPaciente_Id(Integer pacienteId) {
         List<AnthropometricDataModel> dados = repository.findByPaciente_Id(pacienteId);
-        if (dados.isEmpty()) {
-            throw new NotFoundData("Nenhum dado antropométrico encontrado para o paciente " + pacienteId);
-        }
+        // Não lança exceção se não houver dados, apenas retorna lista vazia
         return dados;
     }
 
