@@ -96,8 +96,9 @@ public class FoodItensService {
         Double carboidrato = safe(item.getCarboidrato()) * quantidadeEmGramas;
         Double lipideos = safe(item.getLipideos()) * quantidadeEmGramas;
         Double fibra = safe(item.getFibra()) * quantidadeEmGramas;
+        Double kcal = safe(item.getEnergiaKcal()) * quantidadeEmGramas;
 
-        return new MacrosDTO(proteina, carboidrato, lipideos, fibra);
+        return new MacrosDTO(proteina, carboidrato, lipideos, fibra,kcal);
     }
 
     public List<FoodItensModel> findFoodsByNamePart(String nomeParte) {
