@@ -706,8 +706,8 @@ export default function UserGestor() {
 
       <Dialog open={scheduleOpen} onClose={closeScheduleDialog}>
         <DialogTitle>Agendar Consulta</DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 320 }}>
-          <TextField label="Paciente" value={scheduleUser?.name || ""} disabled />
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 320, }}>
+          <TextField label="Paciente" value={scheduleUser?.name || ""} sx={{mt:4}} disabled />
           <TextField type="date" label="Data" value={apptDate} onChange={(e) => setApptDate(e.target.value)} InputLabelProps={{ shrink: true }} />
           <TextField type="time" label="Hora" value={apptTime} onChange={(e) => setApptTime(e.target.value)} InputLabelProps={{ shrink: true }} />
           <TextField label="Observação" value={apptNote} onChange={(e) => setApptNote(e.target.value)} multiline minRows={2} />
