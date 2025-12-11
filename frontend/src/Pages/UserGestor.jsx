@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
+import Snackbar from '@mui/material/Snackbar';
 import api from '../utils/api';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   CssBaseline,
   Box,
@@ -52,6 +53,14 @@ export default function UserGestor() {
   const [apptTime, setApptTime] = useState("09:00");
   const [apptNote, setApptNote] = useState("");
   const [weekDialogOpen, setWeekDialogOpen] = useState(false);
+  // Busca userId do state, sessionStorage ou localStorage
+  const location = useNavigate ? useLocation() : {};
+  let userId = location?.state?.user?.id;
+  if (!userId) {
+    userId = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
+    if (userId) userId = parseInt(userId, 10);
+  }
+  const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
   
   const [startDialogOpen, setStartDialogOpen] = useState(false);
@@ -268,6 +277,16 @@ export default function UserGestor() {
   }
 
   const pacienteId = updateForm.id;
+  if (!pacienteId) {
+    alert("ID do paciente não encontrado. Selecione um paciente válido.");
+    return;
+  }
+
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  if (!token) {
+    alert("Você precisa estar logado para salvar os dados.");
+    return;
+  }
 
   const payload = {
     dataConsulta: updateForm.date,
@@ -293,7 +312,11 @@ export default function UserGestor() {
   };
 
   try {
-    await api.post(`/patient-history/${pacienteId}`, payload);
+    await api.post(`/patient-history/${pacienteId}`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
   } catch (error) {
     console.error("Erro ao salvar consulta:", error);
     alert("Erro ao salvar os dados da consulta.");
@@ -329,12 +352,6 @@ export default function UserGestor() {
   setUpdateDialogOpen(false);
   setStartDialogOpen(false);
 
-  navigate('/questionario', {
-    state: {
-      user: updatedUser,
-      appointment: startAppointment
-    }
-  });
 };
 
   const handlePlanDiet = () => {
@@ -469,7 +486,7 @@ export default function UserGestor() {
       });
     
       setScheduleOpen(false);
-      alert('Agendamento criado com sucesso!');
+      setSnackbar({ open: true, message: 'Agendamento criado com sucesso!', severity: 'success' });
     } catch (error) {
       console.error('Erro ao salvar agendamento:', error);
       console.error('Response data:', error.response?.data);
@@ -477,19 +494,30 @@ export default function UserGestor() {
       console.error('Request headers:', error.config?.headers);
     
       if (error.response?.status === 401) {
-        alert('Sessão expirada. Faça login novamente.');
+        setSnackbar({ open: true, message: 'A observação precisa ser preenchida.', severity: 'error' });
       } else if (error.response?.status === 400) {
-        alert(`Dados inválidos: ${JSON.stringify(error.response.data)}`);
+        setSnackbar({ open: true, message: `Dados inválidos: ${JSON.stringify(error.response.data)}`, severity: 'error' });
       } else if (error.response?.status === 404) {
-        alert('Paciente ou nutricionista não encontrado no sistema.');
+        setSnackbar({ open: true, message: 'Paciente ou nutricionista não encontrado no sistema.', severity: 'error' });
       } else {
-        alert('Erro ao criar agendamento. Verifique o console para mais detalhes.');
+        setSnackbar({ open: true, message: 'Erro ao criar agendamento. Verifique o console para mais detalhes.', severity: 'error' });
       }
     }
   };
 
   return (
     <>
+      <CssBaseline />
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar(s => ({ ...s, open: false }))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Box sx={{ bgcolor: snackbar.severity === 'success' ? '#43a047' : '#d32f2f', color: 'white', px: 3, py: 1.5, borderRadius: 2, boxShadow: 3, fontWeight: 500, fontSize: '1rem' }}>
+          {snackbar.message}
+        </Box>
+      </Snackbar>
       <CssBaseline />
       <Box sx={{ display: "flex", minHeight: "88vh" }}>
         
@@ -524,7 +552,7 @@ export default function UserGestor() {
                 mb: 2,
               }}
             >
-              <Typography variant="h5">Gerenciamento de Usuários</Typography>
+              <Typography variant="h5">Gerenciamento de pacientes</Typography>
 
               <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
                         <Button
@@ -588,7 +616,7 @@ export default function UserGestor() {
                   onClick={handleAddUser}
                   sx={{ backgroundColor: "#2e7d32", borderRadius: "15px" }}
                 >
-                  Adicionar Usuário
+                  Adicionar paciente
                 </Button>
               </Box>
             </Box>
@@ -691,8 +719,8 @@ export default function UserGestor() {
 
       <Dialog open={scheduleOpen} onClose={closeScheduleDialog}>
         <DialogTitle>Agendar Consulta</DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 320 }}>
-          <TextField label="Paciente" value={scheduleUser?.name || ""} disabled />
+        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 320, }}>
+          <TextField label="Paciente" value={scheduleUser?.name || ""} sx={{mt:4}} disabled />
           <TextField type="date" label="Data" value={apptDate} onChange={(e) => setApptDate(e.target.value)} InputLabelProps={{ shrink: true }} />
           <TextField type="time" label="Hora" value={apptTime} onChange={(e) => setApptTime(e.target.value)} InputLabelProps={{ shrink: true }} />
           <TextField label="Observação" value={apptNote} onChange={(e) => setApptNote(e.target.value)} multiline minRows={2} />
@@ -743,8 +771,30 @@ export default function UserGestor() {
             Escolha uma ação para esta consulta:
           </DialogContentText>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button variant="outlined" onClick={openUpdateData}>1️⃣ ATUALIZAR DADOS</Button>
-            <Button variant="contained" color="success" onClick={handlePlanDiet}>2️⃣ PLANEJAR DIETA</Button>
+            <Button variant="outlined" onClick={openUpdateData}>
+              Atualizar Dados
+            </Button>
+            <Button variant="contained" color="success" onClick={handlePlanDiet}>
+              Planejar Dieta
+            </Button>
+            <Button 
+              fullWidth
+              variant="outlined" 
+              onClick={() => {
+                if (!startAppointment) return;
+                const pacienteUser = users.find(u => u.id === startAppointment.userId) || {};
+                navigate('/dashboard', { 
+                  state: { 
+                    user: pacienteUser,
+                    pacienteId: startAppointment.userId,
+                    patientName: startAppointment.userName || pacienteUser?.name || 'Paciente'
+                  } 
+                });
+                closeStartConsultation();
+              }}
+            >
+              Ver Dashboard
+            </Button>
           </Box>
         </DialogContent>
         <DialogActions>

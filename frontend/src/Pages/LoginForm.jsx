@@ -31,16 +31,27 @@ function LoginForm() {
   const [recoverySuccess, setRecoverySuccess] = useState('');
   const [recoveryError, setRecoveryError] = useState('');
 
+  // Recupera email/senha do sessionStorage se existirem
+  const emailSession = sessionStorage.getItem('emailUsuario') || '';
+  const senhaSession = sessionStorage.getItem('senhaUsuario') || '';
+
   const {
     control,
     handleSubmit,
-    formState: { errors }
+    formState: { errors },
+    setValue
   } = useForm({
     defaultValues: {
-      email: '',
-      password: ''
+      email: emailSession,
+      password: senhaSession
     }
   });
+
+  // Limpa email/senha do sessionStorage após preencher
+  useState(() => {
+    if (emailSession) sessionStorage.removeItem('emailUsuario');
+    if (senhaSession) sessionStorage.removeItem('senhaUsuario');
+  }, []);
 
   const onSubmit = async (data) => {
     setError('');
@@ -53,11 +64,18 @@ function LoginForm() {
       const token = body?.token;
       if (token) {
         sessionStorage.setItem('token', token);
+        localStorage.setItem('token', token);
       } else {
         console.warn('Token não encontrado na resposta de login.');
       }
-      sessionStorage.setItem('nomeUsuario', body?.nome || '');
-      sessionStorage.setItem('idUsuario', body?.id || 1);
+      if (body?.id) {
+        sessionStorage.setItem('idUsuario', body.id);
+        localStorage.setItem('idUsuario', body.id);
+      }
+      if (body?.nome) {
+        sessionStorage.setItem('nomeUsuario', body.nome);
+        localStorage.setItem('nomeUsuario', body.nome);
+      }
       const nome = body?.nome;
       setSuccess(`Login realizado com sucesso${nome ? `! Bem-vindo(a), ${nome}` : '!'}`);
       navigate('/gestor');

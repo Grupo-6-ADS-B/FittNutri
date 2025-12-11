@@ -8,8 +8,11 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  // Não envia o token para cadastro de usuário
+  if (!(config.url === '/users' && config.method === 'post')) {
+    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 

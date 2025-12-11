@@ -1,345 +1,415 @@
-import React from 'react';
-import { Box, CssBaseline, Grid, Card, Typography, Avatar, Divider, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Chip, styled, Button } from '@mui/material';
-import { useTheme, alpha } from '@mui/material/styles';
-import HomeIcon from '@mui/icons-material/Home';
-import FolderIcon from '@mui/icons-material/Folder';
-import MailIcon from '@mui/icons-material/Mail';
-import NotificationsIcon from '@mui/icons-material/Notifications';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
+import React, { useState } from 'react';
+import { Box, CssBaseline, Grid, Card, Typography, Avatar, Button, Chip } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import FactCheckIcon from '@mui/icons-material/FactCheck';
+import BalanceIcon from '@mui/icons-material/Balance';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
+import ContentPasteSearchIcon from '@mui/icons-material/ContentPasteSearch';
+import PsychologyIcon from '@mui/icons-material/Psychology';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import PersonIcon from '@mui/icons-material/Person';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import StarIcon from '@mui/icons-material/Star';
-import ShareIcon from '@mui/icons-material/Share';
-import FavoriteIcon from '@mui/icons-material/Favorite';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MenuIcon from '@mui/icons-material/Menu';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import api from '../utils/api';
 
-const drawerWidth = 240;
-
-// --- Componentes Internos ---
-const CustomListItemButton = styled(ListItemButton)(({ theme }) => ({
-  '&:hover': {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  '&.Mui-selected': {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  paddingLeft: theme.spacing(3),
-  paddingRight: theme.spacing(3),
-}));
-
-const kpiData = [
-  { title: 'IMC', value: '22,5', icon: BarChartIcon, colorKey: 'primary' },
-  { title: 'Peso Atual', value: '68 kg', icon: PersonIcon, colorKey: 'secondary' },
-  { title: 'Meta de Peso', value: '65 kg', icon: StarIcon, colorKey: 'secondary' },
-  { title: 'Consultas Realizadas', value: '12', icon: CheckCircleIcon, colorKey: 'secondary' },
-];
-
-const menuItems = [
-  { label: 'Usuários', path: '/Gestor', icon: <HomeIcon /> },
-  { label: 'Resumo de dados', path: '/resumoCircunferencia', icon: <FolderIcon /> },
-  { label: 'Gráficos', path: '/graficos', icon: <BarChartIcon /> },
-  // { label: 'Notificações', path: '/notificacoes', icon: <NotificationsIcon /> },
-  // { label: 'Localização', path: '/localizacao', icon: <LocationOnIcon /> },
-];
-
-
-import { useLocation } from 'react-router-dom';
-
-function Sidebar() {
-  const theme = useTheme();
-  const bg = theme.palette.primary.dark || theme.palette.primary.main;
+export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const user = location.state?.user || {
-    name: 'Usuário',
-    email: 'usuario@exemplo.com',
-    avatar: '',
+
+  const [dateRange, setDateRange] = React.useState({
+    from: new Date(2025, 11, 11),
+    to: new Date(2025, 11, 12),
+  });
+
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [evolution, setEvolution] = useState([]);
+  const [kpiValues, setKpiValues] = useState({
+    imc: '-',
+    gordura: '-',
+    massaMuscular: '-',
+    gorduraVisceral: '-',
+  });
+
+  // Recupera userId
+  let userId = location.state?.user?.id || location.state?.pacienteId;
+  if (!userId) {
+    userId = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
+    if (userId) userId = parseInt(userId, 10);
+  }
+
+
+  // Sincroniza datas e busca evolução ao montar ou ao mudar datas
+  React.useEffect(() => {
+    setStartDate(dateRange.from.toISOString().slice(0, 10));
+    setEndDate(dateRange.to.toISOString().slice(0, 10));
+  }, [dateRange]);
+
+  React.useEffect(() => {
+    if (userId && startDate && endDate) {
+      fetchEvolution(userId);
+    }
+  }, [userId, startDate, endDate]);
+
+  // Atualiza KPIs quando evolution muda
+  React.useEffect(() => {
+    if (evolution.length > 0) {
+      const lastEvolution = evolution[evolution.length - 1];
+      setKpiValues({
+        imc: lastEvolution.imc?.toFixed(1) || '-',
+        gordura: lastEvolution.gordura || '-',
+        massaMuscular: lastEvolution.massaMuscular || '-',
+        gorduraVisceral: lastEvolution.gorduraVisceral || '-',
+      });
+    } else {
+      setKpiValues({
+        imc: '-',
+        gordura: '-',
+        massaMuscular: '-',
+        gorduraVisceral: '-',
+      });
+    }
+  }, [evolution]);
+
+  const fetchEvolution = async (pacienteId) => {
+    console.log('fetchEvolution chamado com:', pacienteId, startDate, endDate); // DEBUG
+    
+    if (!pacienteId || !startDate || !endDate) {
+      alert('Informe paciente, data início e data fim.');
+      return;
+    }
+    try {
+      console.log(`Requisição: /patient-history/evolucao/${pacienteId}?dataInicio=${startDate}&dataFim=${endDate}`); // DEBUG
+    
+      const res = await api.get(`/patient-history/evolucao/${pacienteId}`, {
+        params: { dataInicio: startDate, dataFim: endDate }
+      });
+    
+      console.log('Resposta recebida:', res.data); // DEBUG
+      setEvolution(Array.isArray(res.data) ? res.data : []);
+    } catch (err) {
+      console.error('Erro ao buscar evolução:', err);
+      alert(`Erro: ${err.message}`);
+      setEvolution([]);
+    }
   };
-  return (
-    <Box component="nav" sx={{ width: drawerWidth, flexShrink: 0 }}>
-      <Box sx={{ height: '100%', bgcolor: bg, color: 'white', position: 'fixed', width: drawerWidth }}>
-        <Box sx={{ p: 3, textAlign: 'center' }}>
-          <Avatar
-            onClick={() => navigate('/perfil')}
-            src={user.avatar || undefined}
-            sx={{ width: 64, height: 64, bgcolor: 'white', color: theme.palette.primary.main, mx: 'auto', mb: 1, boxShadow: 5, cursor: 'pointer', fontSize: 32 }}
-          >
-            {!user.avatar && <PersonIcon fontSize="large" />}
-          </Avatar>
-          <Typography variant="h6" fontWeight="bold" sx={{ mt: 1 }}>{user.name}</Typography>
-          <Typography variant="body2" sx={{ opacity: 0.7, color: 'white' }}>{user.email}</Typography>
-        </Box>
-        <Divider sx={{ bgcolor: 'rgba(255, 255, 255, 0.1)' }} />
-        <List>
-          {menuItems.map((item) => (
-            <ListItem key={item.path} disablePadding component={Link} to={item.path}>
-              <CustomListItemButton selected={item.path === '/inicio'}>
-                <ListItemIcon sx={{ color: 'white' }}>{item.icon}</ListItemIcon>
-                <ListItemText primary={item.label} primaryTypographyProps={{ sx: { color: 'white', textTransform: 'none' } }} />
-              </CustomListItemButton>
-            </ListItem>
-          ))}
-        </List>
+
+  const KPICard = ({ title, value, icon: IconComponent, colorKey = 'primary' }) => {
+    const theme = useTheme();
+    const colorMain = theme.palette[colorKey]?.main || theme.palette.primary.main;
+    const colorDark = theme.palette[colorKey]?.dark || colorMain;
+    const accent = theme.palette.secondary?.main || theme.palette.secondary;
+
+    return (
+      <Card sx={{ height: 110, minWidth: 230, maxWidth: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: 3, p: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ textAlign: 'center', fontSize: '1.3rem', mb: 1 }}>{title}</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+            <Typography variant="h3" fontWeight="bold" sx={{ textAlign: 'center', color: colorDark }}>{value}</Typography>
+            {IconComponent && React.createElement(IconComponent, { sx: { color: accent, fontSize: 32, ml: 1 } })}
           </Box>
-    </Box>
-  );
-}
-
-const KPICard = ({ title, value, icon: IconComponent, colorKey = 'primary' }) => {
-  const theme = useTheme();
-  const navigate = useNavigate();
-  const colorMain = theme.palette[colorKey]?.main || theme.palette.primary.main;
-  const colorDark = theme.palette[colorKey]?.dark || colorMain;
-  const accent = theme.palette.secondary?.main || theme.palette.secondary;
-
-  const handleClick = () => {
-    const slug = title.toLowerCase().replace(/\s+/g, '-');
-    navigate(`/dashboard/kpi/${slug}`);
+        </Box>
+      </Card>
+    );
   };
 
-  return (
-    <Card onClick={handleClick} sx={{ height: 120, display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: 3, cursor: 'pointer' }}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', p: 1, pb: 0 }}>
-        {IconComponent && React.createElement(IconComponent, { sx: { color: accent, fontSize: 20 } })}
-      </Box>
-      <Box sx={{ px: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-        {colorKey === 'primary' && (
-          <Box sx={{ bgcolor: colorDark, p: 1, borderRadius: 1 }}>
-            <AttachMoneyIcon sx={{ color: 'white', fontSize: 18 }} />
-          </Box>
-        )}
-        <Box>
-          <Typography variant="body2" color="text.secondary" fontWeight="bold">{title}</Typography>
-          <Typography variant="h4" fontWeight="bold" sx={{ color: colorDark }}>{value}</Typography>
-        </Box>
-      </Box>
-    </Card>
-  );
-};
-
-const ResultChartCard = () => {
-  const theme = useTheme();
-  const primary = theme.palette.primary.main;
-  const secondary = theme.palette.secondary.main;
-  const navigate = useNavigate();
-  return (
-    <Card sx={{ p: 2, boxShadow: 3, mb: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8 }}>Evolução do Peso</Typography>
-        <Chip
-          icon={<CheckCircleIcon sx={{ color: 'white !important' }} />}
-          label="Ver detalhes"
-          onClick={() => navigate('/evolucao-peso')}
-          sx={{ bgcolor: secondary, color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
-        />
-      </Box>
-      <Box sx={{ height: 200, display: 'flex', alignItems: 'flex-end', gap: 1.25, borderBottom: '1px solid #ccc', pb: 0.5, px: 1 }}>
-        <Box sx={{ width: 30, textAlign: 'right', mr: 1 }}>
-            {[80, 75, 70, 65, 60, 55].map((val) => (
-                <Typography key={val} variant="caption" sx={{ display: 'block', height: '32px', color: 'text.secondary', fontSize: '0.7rem' }}>
-                    {val}
-                </Typography>
-            ))}
-        </Box>
-        {['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set'].map((month, index) => (
-          <Box key={month} sx={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end' }}>
-            {index === 6 && (
-                <Typography variant="caption" sx={{ bgcolor: primary, color: 'white', p: 0.5, borderRadius: 1, fontSize: '0.6rem' }}>65 kg</Typography>
-            )}
-            <Box sx={{ height: `${(index % 3) * 15 + 30}%`, width: '40%', bgcolor: primary, mb: 0.5, borderRadius: '4px 4px 0 0' }} />
-            <Box sx={{ height: `${(index % 4) * 10 + 20}%`, width: '40%', bgcolor: secondary, mb: 0.5, borderRadius: '4px 4px 0 0' }} />
-            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.6rem' }}>{month}</Typography>
-          </Box>
-        ))}
-      </Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, gap: 1 }}>
-        <Typography variant="caption" color="text.secondary">2024</Typography>
-        <Typography variant="caption" color="text.secondary" fontWeight="bold">2025</Typography>
-      </Box>
-    </Card>
-  );
-};
-
-const LineChartCard = () => {
-  const theme = useTheme();
-  const primary = theme.palette.primary.main;
-  const secondary = theme.palette.secondary.main;
-
-  const days = [
-    null, null, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-    16, 17, { val: 18, color: secondary }, { val: 19, color: secondary }, { val: 20, color: secondary },
-    21, 22, 23, 24, 25, 26, 27, 28, 29, 30
+  const kpiData = [
+    { title: 'IMC', value: kpiValues.imc, icon: FactCheckIcon, colorKey: 'primary' },
+    { title: 'Gordura (%)', value: kpiValues.gordura, icon: BalanceIcon, colorKey: 'primary' },
+    { title: 'Massa Muscular', value: kpiValues.massaMuscular, icon: FitnessCenterIcon, colorKey: 'secondary' },
+    { title: 'Gordura Visceral', value: kpiValues.gorduraVisceral, icon: ManageAccountsIcon, colorKey: 'primary' },
   ];
 
-  return (
-    <Card sx={{ p: 2, boxShadow: 3, height: 220 }}>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={7}>
-          <Box sx={{ height: 120, position: 'relative', overflow: 'hidden' }}>
-            <Box sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundImage: `linear-gradient(to top, ${alpha(secondary, 0.1)}, ${alpha(secondary, 0.35)}, ${alpha(secondary, 0.08)})`,
-              clipPath: 'polygon(0% 60%, 10% 40%, 20% 55%, 30% 30%, 40% 50%, 50% 20%, 60% 45%, 70% 30%, 80% 50%, 90% 20%, 100% 35%, 100% 100%, 0% 100%)',
-              opacity: 0.9
-            }} />
-            <Box sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              clipPath: 'polygon(0% 80%, 10% 60%, 20% 75%, 30% 50%, 40% 65%, 50% 40%, 60% 60%, 70% 45%, 80% 60%, 90% 35%, 100% 50%, 100% 100%, 0% 100%)',
-              backgroundImage: `linear-gradient(to top, ${alpha(primary, 0.08)}, ${alpha(primary, 0.35)}, ${alpha(primary, 0.08)})`,
-              opacity: 0.9
-            }} />
-          </Box>
-          <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: secondary, mr: 0.5 }} />
-              <Typography variant="caption" color="text.secondary">Meta A</Typography>
+  const ResultChartCard = () => {
+    const theme = useTheme();
+    const primary = theme.palette.primary.main;
+    const secondary = theme.palette.secondary.main;
+
+    // Pega o último registro de evolução para Peso Atual e Peso Ideal
+    const evoSorted = [...evolution].sort((a, b) => new Date(a.dataConsulta) - new Date(b.dataConsulta));
+    let pesoAtual = '-';
+    let pesoIdeal = '-';
+    if (evoSorted.length) {
+      const last = evoSorted[evoSorted.length - 1];
+      pesoAtual = last.peso ?? '-';
+      pesoIdeal = last.pesoIdeal ?? '-';
+    }
+    // Se não houver dados, usa valores fictícios
+    if (pesoAtual === '-' && pesoIdeal === '-') {
+      pesoAtual = 78;
+      pesoIdeal = 72;
+    }
+    // Dados do gráfico
+    const pesoData = [pesoAtual, pesoIdeal];
+    let labels = ['1° consulta', '2° consulta'];
+    // Se houver dados de evolução, use as datas reais
+    let evoLabels = ['1° consulta', '2° consulta'];
+    let evoDates = ['', ''];
+    if (evoSorted.length) {
+      evoLabels = evoSorted.map((e, idx) => `${idx+1}° consulta`);
+      evoDates = evoSorted.map(e => {
+        const data = e.dataConsulta ? new Date(e.dataConsulta) : null;
+        return data && !isNaN(data) ? `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth()+1).padStart(2, '0')}` : '';
+      });
+      if (evoLabels.length === 1) evoLabels.push('2° consulta');
+      if (evoDates.length === 1) evoDates.push('');
+    }
+    const width = 1100;
+    const height = 350;
+    const padding = 50;
+    const rightPadding = 100;
+    // Garante que ambos são números para o gráfico
+    const numPesoData = pesoData.map(v => Number(v)).filter(v => !isNaN(v));
+    const minPeso = Math.min(...numPesoData) - 1;
+    const maxPeso = Math.max(...numPesoData) + 1;
+    const getY = (peso) => padding + ((maxPeso - peso) / (maxPeso - minPeso)) * (height - padding * 2);
+    const getX = (i) => padding + i * ((width - padding - rightPadding) / (pesoData.length - 1));
+    const points = pesoData.map((peso, i) => `${getX(i)},${getY(Number(peso))}`).join(' ');
+    const [showSelect, setShowSelect] = React.useState(false);
+    return (
+      <Card sx={{ p: 2, boxShadow: 3, mb: 2}}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8 }}>Evolução do Peso</Typography>
+          {!showSelect ? (
+            <Chip
+              icon={<CheckCircleIcon sx={{ color: 'white !important' }} />}
+              label="Ver metas"
+              onClick={() => setShowSelect(true)}
+              sx={{ bgcolor: secondary, color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
+            />
+          ) : (
+            <Box sx={{ display: 'flex', gap: 1.2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#ff9800', color: 'white', px: 1.5, py: 0.5, borderRadius: 1.5, fontWeight: 'bold', fontSize: 14, boxShadow: 1 }}>
+                Peso Atual:&nbsp;{pesoAtual} kg
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#4caf50', color: 'white', px: 1.5, py: 0.5, borderRadius: 1.5, fontWeight: 'bold', fontSize: 14, boxShadow: 1 }}>
+                Peso Ideal:&nbsp;{pesoIdeal} kg
+              </Box>
+              <Button size="small" variant="outlined" color="secondary" sx={{ ml: 1, minWidth: 0, px: 1, fontSize: 13, py: 0.2 }} onClick={() => setShowSelect(false)}>Fechar</Button>
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: primary, mr: 0.5 }} />
-              <Typography variant="caption" color="text.secondary">Meta B</Typography>
-            </Box>
-          </Box>
-        </Grid>
-
-        <Grid item xs={12} md={5}>
-          <Box sx={{ p: 1, bgcolor: '#f0f0f0', borderRadius: 1 }}>
-            <Typography variant="caption" fontWeight="bold" sx={{ display: 'block', textAlign: 'right', mb: 1 }}>D S T Q Q S S</Typography>
-            <Grid container spacing={0.5} justifyContent="center" fontSize="0.7rem">
-              {days.map((day, index) => (
-                <Grid item xs={1.7} key={index} sx={{ textAlign: 'center' }}>
-                  {day && (
-                    <Box
-                      sx={{
-                        borderRadius: '50%',
-                        width: 20,
-                        height: 20,
-                        lineHeight: '20px',
-                        bgcolor: day.color || 'transparent',
-                        color: day.color ? 'white' : 'black',
-                        mx: 'auto'
-                      }}
-                    >
-                      {day.val || day}
-                    </Box>
-                  )}
-                </Grid>
-              ))}
-            </Grid>
-          </Box>
-        </Grid>
-      </Grid>
-    </Card>
-  );
-};
-
-const DonutChartCard = () => {
-  const theme = useTheme();
-  const primary = theme.palette.primary.main;
-  const secondary = theme.palette.secondary.main;
-  const navigate = useNavigate();
-
-  return (
-    <Card sx={{ p: 2, boxShadow: 3, height: 350, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-      <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8 }}>Distribuição de Macronutrientes</Typography>
-
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexGrow: 1 }}>
-        <Box sx={{ width: 140, height: 140, position: 'relative', my: 2 }}>
-          <Box sx={{
-            width: '100%',
-            height: '100%',
-            borderRadius: '50%',
-            background: `conic-gradient(${secondary} 0deg, ${secondary} 120deg, ${primary} 120deg, ${primary} 240deg, #FFD700 240deg, #FFD700 360deg)`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }} />
-          <Box sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: 100,
-            height: 100,
-            borderRadius: '50%',
-            bgcolor: 'white'
-          }} />
-          <Typography variant="h4" sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 'bold', color: primary }}>Carb 40%</Typography>
+          )}
         </Box>
+        <Box sx={{ width: width, height: height + 40, position: 'relative' }}>
+          <svg width={width} height={height} style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 4px #eee' }}>
+            {/* Eixos Y */}
+            {numPesoData.map((val, idx) => (
+              <g key={val}>
+                <text x={18} y={getY(val)+4} fontSize="13" fill="#888">{val}</text>
+                <line x1={padding-10} y1={getY(val)} x2={width-rightPadding+10} y2={getY(val)} stroke="#eee" strokeDasharray="2 2" />
+              </g>
+            ))}
+            {/* Linha do gráfico */}
+            <polyline
+              fill="none"
+              stroke={primary}
+              strokeWidth="4"
+              points={points}
+            />
+            {/* Pontos */}
+            {pesoData.map((peso, i) => (
+              <circle key={i} cx={getX(i)} cy={getY(Number(peso))} r={8} fill={secondary} />
+            ))}
+            {/* Eixo X: Consulta dinâmica e data abaixo */}
+            {evoLabels.map((label, i) => (
+              <g key={label}>
+                <text x={getX(i)} y={height-30} fontSize="16" textAnchor="middle" fill="#888">{label}</text>
+                <text x={getX(i)} y={height-10} fontSize="14" textAnchor="middle" fill="#aaa">{evoDates[i]}</text>
+              </g>
+            ))}
+          </svg>
+        </Box>
+      </Card>
+    );
+  };
 
-        <Box sx={{ textAlign: 'center' }}>
-          {['Carboidratos', 'Proteínas', 'Gorduras'].map((text, index) => (
-            <Typography key={index} variant="body2" color="text.secondary">{text}</Typography>
+  // const DonutChartCard = () => {
+  //   const theme = useTheme();
+  //   const primary = theme.palette.primary.main;
+  //   const secondary = theme.palette.secondary.main;
+  //
+  //   const legendData = [
+  //     { label: 'Carboidratos', value: 40, color: secondary },
+  //     { label: 'Proteínas', value: 35, color: primary },
+  //     { label: 'Gorduras', value: 25, color: '#FFD700' },
+  //   ];
+  //
+  //   return (
+  //     <Card sx={{ p: 2, boxShadow: 3, height: 388, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+  //       <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8 }}>Distribuição de Macronutrientes</Typography>
+  //
+  //       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexGrow: 1 }}>
+  //         <Box sx={{ width: 170, height: 160, position: 'relative', my: 2 }}>
+  //           <Box sx={{
+  //             width: '100%',
+  //             height: '100%',
+  //             borderRadius: '50%',
+  //             background: `conic-gradient(${secondary} 0deg, ${secondary} 120deg, ${primary} 120deg, ${primary} 240deg, #FFD700 240deg, #FFD700 360deg)`,
+  //             display: 'flex',
+  //             alignItems: 'center',
+  //             justifyContent: 'center'
+  //           }} />
+  //           <Box sx={{
+  //             position: 'absolute',
+  //             top: '50%',
+  //             left: '50%',
+  //             transform: 'translate(-50%, -50%)',
+  //             width: 100,
+  //             height: 100,
+  //             borderRadius: '50%',
+  //             bgcolor: 'white'
+  //           }} />
+  //           <Typography variant="h4" sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 'bold', color: primary }}>100%</Typography>
+  //         </Box>
+  //
+  //         <Box sx={{ mt: 2 }}>
+  //           {legendData.map((item) => (
+  //             <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 1, gap: 1.5 }}>
+  //               <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: item.color, mr: 1, border: '2px solid #eee' }} />
+  //               <Typography variant="body2" sx={{ minWidth: 90 }}>{item.label}</Typography>
+  //               <Typography variant="body2" fontWeight="bold" color="text.secondary">{item.value}%</Typography>
+  //             </Box>
+  //           ))}
+  //         </Box>
+  //       </Box>
+  //     </Card>
+  //   );
+  // };
+
+  const ConsultasBarChart = () => {
+    const consultas = [
+      { data: '12/06', qtd: 2 },
+      { data: '15/06', qtd: 1 },
+      { data: '18/06', qtd: 3 },
+      { data: '22/06', qtd: 1 },
+      { data: '25/06', qtd: 2 },
+      { data: '28/06', qtd: 1 },
+      { data: '30/06', qtd: 4 },
+    ];
+    const theme = useTheme();
+    const green = theme.palette.primary.main;
+
+    return (
+      <Box>
+        <Typography variant="h6" fontWeight="bold" mb={2}>Histórico de consultas</Typography>
+        <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', height: 180, gap: 7, pl: 2, pr: 2, bgcolor: '#f8fff9', borderRadius: 2, boxShadow: 1 }}>
+          {consultas.map((c, i) => (
+            <Box key={i} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
+              <Typography variant="caption" sx={{ mb: 1, fontWeight: 'bold', color: '#333' }}>{c.data}</Typography>
+              <Box sx={{ width: 28, height: `${c.qtd * 32}px`, bgcolor: green, borderRadius: 2, boxShadow: 2, mb: 0.5 }} />
+              <Typography variant="caption" sx={{ color: green, fontWeight: 'bold' }}>{c.qtd}</Typography>
+            </Box>
           ))}
         </Box>
       </Box>
+    );
+  };
 
-      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-        <Chip
-          label="Ver detalhes"
-          onClick={() => navigate('/macros')}
-          sx={{ bgcolor: theme.palette.secondary.main, color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
-        />
-      </Box>
-    </Card>
-  );
-};
+  function CalendarCard() {
+    return (
+      <Box sx={{ width: 540 }}>
+        <Typography variant="h6" fontWeight="bold" mb={2}>Calendário</Typography>
+        <Box sx={{ border: '1px solid #e0e0e0', borderRadius: 2, p: 2, bgcolor: '#f8fff9', boxShadow: 1 }}>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="caption" color="text.secondary">Data Início</Typography>
+            <input
+              type="date"
+              value={dateRange.from.toISOString().slice(0, 10)}
+              onChange={e => {
+                const newFrom = new Date(e.target.value);
+                setDateRange({ 
+                  from: newFrom, 
+                  to: dateRange.to < newFrom ? newFrom : dateRange.to 
+                });
+              }}
+              style={{ width: '100%', fontSize: 16, padding: 8, borderRadius: 8, border: '1px solid #e0e0e0', marginTop: 4 }}
+            />
+          </Box>
 
-function MainContent() {
-  const navigate = useNavigate();
-  return (
-    <Box sx={{ flexGrow: 1, p: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button variant="outlined" color="primary" onClick={() => navigate(-1)}>
-            Voltar
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="caption" color="text.secondary">Data Fim</Typography>
+            <input
+              type="date"
+              value={dateRange.to.toISOString().slice(0, 10)}
+              onChange={e => {
+                const newTo = new Date(e.target.value);
+                setDateRange({ 
+                  from: dateRange.from > newTo ? newTo : dateRange.from, 
+                  to: newTo 
+                });
+              }}
+              style={{ width: '100%', fontSize: 16, padding: 8, borderRadius: 8, border: '1px solid #e0e0e0', marginTop: 4 }}
+            />
+          </Box>
+
+          <Box sx={{ mt: 3, p: 2, bgcolor: '#e8f5e9', borderRadius: 2, mb: 2 }}>
+            <Typography variant="body2" fontWeight="bold">
+              Período: {dateRange.from.toLocaleDateString('pt-BR')} até {dateRange.to.toLocaleDateString('pt-BR')}
+            </Typography>
+          </Box>
+
+          <Button 
+            fullWidth
+            variant="contained" 
+            color="primary"
+            onClick={() => fetchEvolution(userId)}
+          >
+            Buscar evolução
           </Button>
-          <Typography variant="h5" fontWeight="bold">Resumo Nutricional</Typography>
         </Box>
-        <MenuIcon sx={{ fontSize: 30, color: 'text.secondary' }} />
       </Box>
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        {kpiData.map((kpi, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <KPICard {...kpi} />
-          </Grid>
-        ))}
-      </Grid>
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={8}>
-          <ResultChartCard />
-          <LineChartCard />
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <DonutChartCard />
-        </Grid>
-      </Grid>
-    </Box>
-  );
-}
-export default function Dashboard() {
-  const theme = useTheme();
+    );
+  }
+
+  function MainContent() {
+    return (
+      <Box sx={{ flexGrow: 1, p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ mb: 2, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>Resumo Nutricional</Typography>
+          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center', width: '100%', alignItems: 'center' }}>
+            <Button variant="outlined" color="primary" sx={{ height: 48, mr: 2 }} onClick={() => navigate(-1)}>
+              Voltar
+            </Button>
+            {kpiData.map((kpi, index) => (
+              <Box key={index} sx={{ minWidth: 230, maxWidth: 260, flex: '0 0 auto' }}>
+                <KPICard {...kpi} />
+              </Box>
+            ))}
+          </Box>
+        </Box>
+        <Box sx={{ width: '100%', maxWidth: 1400, display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', mt: 2 }}>
+          <Box sx={{ flex: 1, minWidth: 320, maxWidth: 640, mr: 2, ml: -22 }}>
+            <CalendarCard />
+          </Box>
+          <Box sx={{ flex: 2, minWidth: 1200, maxWidth: 1100, ml: 30, pl: 0 }}>
+            <ResultChartCard />
+          </Box>
+        </Box>
+        <Box sx={{ width: '100%', maxWidth: 1400, mt: 2 }}>
+          <ConsultasBarChart />
+        </Box>
+      </Box>
+    );
+  }
+
+  if (!userId) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', bgcolor: '#f8fff9' }}>
+        <Typography variant="h6" color="text.secondary">Carregando...</Typography>
+      </Box>
+    );
+  }
+
   return (
-    <Box sx={{ display: 'flex', minHeight: '90vh', background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', width: '100%' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', width: '100%' }}>
       <CssBaseline />
-      <Sidebar />
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           width: '100%',
           bgcolor: 'transparent',
-          minHeight: '90vh',
+          minHeight: '100vh',
           p: 2,
         }}
       >

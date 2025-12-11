@@ -176,7 +176,7 @@ console.log("Refeições processadas:", refeicoes); // Debug
               ) : null}
             </Typography>
             <Box sx={{ mt: 1, display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Button startIcon={<ArrowBackIcon />} size="small" onClick={() => navigate(-1)} variant="text">Perfil do Paciente</Button>
+              <Button startIcon={<ArrowBackIcon />} size="small" onClick={() => navigate(-1)} variant="text">Voltar</Button>
             </Box>
           </Grid>
           <Grid item>
