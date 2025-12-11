@@ -332,7 +332,7 @@ export default function Dashboard() {
             fullWidth
             variant="contained" 
             color="primary"
-            onClick={() => fetchEvolution(2)}
+            onClick={() => fetchEvolution(userId)}
           >
             Buscar evolução
           </Button>

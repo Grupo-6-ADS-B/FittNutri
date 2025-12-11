@@ -16,20 +16,6 @@ public class DataLoader implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (repository.count() == 0) {
-            PatientModel p = new PatientModel();
-            p.setNome("João Silva");
-            p.setEmail("joao.silva@example.com");
-            p.setCpf("12345678909");
-            p.setTelefone("11999999999");
-            p.setEstado("SP");
-            p.setCidade("São Paulo");
-            p.setSexo("Masculino");
-            p.setEtnia("Pardo");
-            p.setAtividade("Moderada");
 
-            repository.save(p);
-            System.out.println("Paciente mock salvo: " + p.getNome());
-        }
     }
 }

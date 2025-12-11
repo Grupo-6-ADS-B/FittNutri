@@ -767,7 +767,6 @@ export default function UserGestor() {
             <Button 
               fullWidth
               variant="outlined" 
-              color="secondary"
               onClick={() => {
                 if (!startAppointment) return;
                 const pacienteUser = users.find(u => u.id === startAppointment.userId) || {};
