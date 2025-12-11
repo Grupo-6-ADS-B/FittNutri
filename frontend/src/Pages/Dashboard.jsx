@@ -30,7 +30,6 @@ export default function Dashboard() {
     gordura: '-',
     massaMuscular: '-',
     gorduraVisceral: '-',
-    idadeMetabolica: '-',
   });
 
   // Recupera userId
@@ -40,11 +39,18 @@ export default function Dashboard() {
     if (userId) userId = parseInt(userId, 10);
   }
 
-  // Sincroniza datas
+
+  // Sincroniza datas e busca evolução ao montar ou ao mudar datas
   React.useEffect(() => {
     setStartDate(dateRange.from.toISOString().slice(0, 10));
     setEndDate(dateRange.to.toISOString().slice(0, 10));
   }, [dateRange]);
+
+  React.useEffect(() => {
+    if (userId && startDate && endDate) {
+      fetchEvolution(userId);
+    }
+  }, [userId, startDate, endDate]);
 
   // Atualiza KPIs quando evolution muda
   React.useEffect(() => {
@@ -55,7 +61,13 @@ export default function Dashboard() {
         gordura: lastEvolution.gordura || '-',
         massaMuscular: lastEvolution.massaMuscular || '-',
         gorduraVisceral: lastEvolution.gorduraVisceral || '-',
-        idadeMetabolica: lastEvolution.idadeMetabolica || '-',
+      });
+    } else {
+      setKpiValues({
+        imc: '-',
+        gordura: '-',
+        massaMuscular: '-',
+        gorduraVisceral: '-',
       });
     }
   }, [evolution]);
@@ -107,8 +119,6 @@ export default function Dashboard() {
     { title: 'Gordura (%)', value: kpiValues.gordura, icon: BalanceIcon, colorKey: 'primary' },
     { title: 'Massa Muscular', value: kpiValues.massaMuscular, icon: FitnessCenterIcon, colorKey: 'secondary' },
     { title: 'Gordura Visceral', value: kpiValues.gorduraVisceral, icon: ManageAccountsIcon, colorKey: 'primary' },
-    { title: 'Taxa Metabolica Basal', value: '-', icon: ContentPasteSearchIcon, colorKey: 'secondary' },
-    { title: 'Idade Metabólica', value: kpiValues.idadeMetabolica, icon: PsychologyIcon, colorKey: 'primary' },
   ];
 
   const ResultChartCard = () => {
@@ -116,38 +126,49 @@ export default function Dashboard() {
     const primary = theme.palette.primary.main;
     const secondary = theme.palette.secondary.main;
 
-    const evoSorted = [...evolution].sort((a, b) =>
-      new Date(a.dataConsulta) - new Date(b.dataConsulta)
-    );
-
-    const pesoData = evoSorted.length
-      ? evoSorted.map(e => e.peso)
-      : [78, 77.5, 77, 76.5, 76, 75.5, 75, 74.5, 74];
-
-    const semanas = evoSorted.length
-      ? evoSorted.map(e => {
-          const d = new Date(e.dataConsulta);
-          return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-        })
-      : ['S1','S2','S3','S4','S5','S6','S7','S8','S9'];
-
-    const width = 1000;
-    const height = 250;
+    // Pega o último registro de evolução para Peso Atual e Peso Ideal
+    const evoSorted = [...evolution].sort((a, b) => new Date(a.dataConsulta) - new Date(b.dataConsulta));
+    let pesoAtual = '-';
+    let pesoIdeal = '-';
+    if (evoSorted.length) {
+      const last = evoSorted[evoSorted.length - 1];
+      pesoAtual = last.peso ?? '-';
+      pesoIdeal = last.pesoIdeal ?? '-';
+    }
+    // Se não houver dados, usa valores fictícios
+    if (pesoAtual === '-' && pesoIdeal === '-') {
+      pesoAtual = 78;
+      pesoIdeal = 72;
+    }
+    // Dados do gráfico
+    const pesoData = [pesoAtual, pesoIdeal];
+    let labels = ['1° consulta', '2° consulta'];
+    // Se houver dados de evolução, use as datas reais
+    let evoLabels = ['1° consulta', '2° consulta'];
+    let evoDates = ['', ''];
+    if (evoSorted.length) {
+      evoLabels = evoSorted.map((e, idx) => `${idx+1}° consulta`);
+      evoDates = evoSorted.map(e => {
+        const data = e.dataConsulta ? new Date(e.dataConsulta) : null;
+        return data && !isNaN(data) ? `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth()+1).padStart(2, '0')}` : '';
+      });
+      if (evoLabels.length === 1) evoLabels.push('2° consulta');
+      if (evoDates.length === 1) evoDates.push('');
+    }
+    const width = 1100;
+    const height = 350;
     const padding = 50;
     const rightPadding = 100;
-    const minPeso = Math.min(...pesoData) - 1;
-    const maxPeso = Math.max(...pesoData) + 1;
-
+    // Garante que ambos são números para o gráfico
+    const numPesoData = pesoData.map(v => Number(v)).filter(v => !isNaN(v));
+    const minPeso = Math.min(...numPesoData) - 1;
+    const maxPeso = Math.max(...numPesoData) + 1;
     const getY = (peso) => padding + ((maxPeso - peso) / (maxPeso - minPeso)) * (height - padding * 2);
     const getX = (i) => padding + i * ((width - padding - rightPadding) / (pesoData.length - 1));
-    const points = pesoData.map((peso, i) => `${getX(i)},${getY(peso)}`).join(' ');
-
+    const points = pesoData.map((peso, i) => `${getX(i)},${getY(Number(peso))}`).join(' ');
     const [showSelect, setShowSelect] = React.useState(false);
-    const pesoAtual = evoSorted.length ? evoSorted[evoSorted.length - 1].peso : pesoData[pesoData.length - 1];
-    const pesoIdeal = evoSorted.length ? evoSorted[evoSorted.length - 1].pesoIdeal ?? pesoAtual : 72;
-
     return (
-      <Card sx={{ p: 2, boxShadow: 3, mb: 2 }}>
+      <Card sx={{ p: 2, boxShadow: 3, mb: 2}}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
           <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8 }}>Evolução do Peso</Typography>
           {!showSelect ? (
@@ -172,7 +193,7 @@ export default function Dashboard() {
         <Box sx={{ width: width, height: height + 40, position: 'relative' }}>
           <svg width={width} height={height} style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 4px #eee' }}>
             {/* Eixos Y */}
-            {[79,78,77,76,75,74,73].map((val, idx) => (
+            {numPesoData.map((val, idx) => (
               <g key={val}>
                 <text x={18} y={getY(val)+4} fontSize="13" fill="#888">{val}</text>
                 <line x1={padding-10} y1={getY(val)} x2={width-rightPadding+10} y2={getY(val)} stroke="#eee" strokeDasharray="2 2" />
@@ -187,74 +208,73 @@ export default function Dashboard() {
             />
             {/* Pontos */}
             {pesoData.map((peso, i) => (
-              <circle key={i} cx={getX(i)} cy={getY(peso)} r={6} fill={secondary} />
+              <circle key={i} cx={getX(i)} cy={getY(Number(peso))} r={8} fill={secondary} />
             ))}
-            {/* Semanas (Eixo X) */}
-            {semanas.map((semana, i) => (
-              <text key={semana} x={getX(i)} y={height-10} fontSize="14" textAnchor="middle" fill="#888">{semana}</text>
+            {/* Eixo X: Consulta dinâmica e data abaixo */}
+            {evoLabels.map((label, i) => (
+              <g key={label}>
+                <text x={getX(i)} y={height-30} fontSize="16" textAnchor="middle" fill="#888">{label}</text>
+                <text x={getX(i)} y={height-10} fontSize="14" textAnchor="middle" fill="#aaa">{evoDates[i]}</text>
+              </g>
             ))}
           </svg>
         </Box>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, gap: 1 }}>
-          <Typography variant="caption" color="text.secondary">2024</Typography>
-          <Typography variant="caption" color="text.secondary" fontWeight="bold">2025</Typography>
-        </Box>
       </Card>
     );
   };
 
-  const DonutChartCard = () => {
-    const theme = useTheme();
-    const primary = theme.palette.primary.main;
-    const secondary = theme.palette.secondary.main;
-
-    const legendData = [
-      { label: 'Carboidratos', value: 40, color: secondary },
-      { label: 'Proteínas', value: 35, color: primary },
-      { label: 'Gorduras', value: 25, color: '#FFD700' },
-    ];
-
-    return (
-      <Card sx={{ p: 2, boxShadow: 3, height: 388, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-        <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8 }}>Distribuição de Macronutrientes</Typography>
-
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexGrow: 1 }}>
-          <Box sx={{ width: 170, height: 160, position: 'relative', my: 2 }}>
-            <Box sx={{
-              width: '100%',
-              height: '100%',
-              borderRadius: '50%',
-              background: `conic-gradient(${secondary} 0deg, ${secondary} 120deg, ${primary} 120deg, ${primary} 240deg, #FFD700 240deg, #FFD700 360deg)`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }} />
-            <Box sx={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 100,
-              height: 100,
-              borderRadius: '50%',
-              bgcolor: 'white'
-            }} />
-            <Typography variant="h4" sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 'bold', color: primary }}>100%</Typography>
-          </Box>
-
-          <Box sx={{ mt: 2 }}>
-            {legendData.map((item) => (
-              <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 1, gap: 1.5 }}>
-                <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: item.color, mr: 1, border: '2px solid #eee' }} />
-                <Typography variant="body2" sx={{ minWidth: 90 }}>{item.label}</Typography>
-                <Typography variant="body2" fontWeight="bold" color="text.secondary">{item.value}%</Typography>
-              </Box>
-            ))}
-          </Box>
-        </Box>
-      </Card>
-    );
-  };
+  // const DonutChartCard = () => {
+  //   const theme = useTheme();
+  //   const primary = theme.palette.primary.main;
+  //   const secondary = theme.palette.secondary.main;
+  //
+  //   const legendData = [
+  //     { label: 'Carboidratos', value: 40, color: secondary },
+  //     { label: 'Proteínas', value: 35, color: primary },
+  //     { label: 'Gorduras', value: 25, color: '#FFD700' },
+  //   ];
+  //
+  //   return (
+  //     <Card sx={{ p: 2, boxShadow: 3, height: 388, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+  //       <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8 }}>Distribuição de Macronutrientes</Typography>
+  //
+  //       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexGrow: 1 }}>
+  //         <Box sx={{ width: 170, height: 160, position: 'relative', my: 2 }}>
+  //           <Box sx={{
+  //             width: '100%',
+  //             height: '100%',
+  //             borderRadius: '50%',
+  //             background: `conic-gradient(${secondary} 0deg, ${secondary} 120deg, ${primary} 120deg, ${primary} 240deg, #FFD700 240deg, #FFD700 360deg)`,
+  //             display: 'flex',
+  //             alignItems: 'center',
+  //             justifyContent: 'center'
+  //           }} />
+  //           <Box sx={{
+  //             position: 'absolute',
+  //             top: '50%',
+  //             left: '50%',
+  //             transform: 'translate(-50%, -50%)',
+  //             width: 100,
+  //             height: 100,
+  //             borderRadius: '50%',
+  //             bgcolor: 'white'
+  //           }} />
+  //           <Typography variant="h4" sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 'bold', color: primary }}>100%</Typography>
+  //         </Box>
+  //
+  //         <Box sx={{ mt: 2 }}>
+  //           {legendData.map((item) => (
+  //             <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 1, gap: 1.5 }}>
+  //               <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: item.color, mr: 1, border: '2px solid #eee' }} />
+  //               <Typography variant="body2" sx={{ minWidth: 90 }}>{item.label}</Typography>
+  //               <Typography variant="body2" fontWeight="bold" color="text.secondary">{item.value}%</Typography>
+  //             </Box>
+  //           ))}
+  //         </Box>
+  //       </Box>
+  //     </Card>
+  //   );
+  // };
 
   const ConsultasBarChart = () => {
     const consultas = [
@@ -343,13 +363,13 @@ export default function Dashboard() {
 
   function MainContent() {
     return (
-      <Box sx={{ flexGrow: 1, p: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h5" fontWeight="bold">Resumo Nutricional</Typography>
-          <MenuIcon sx={{ fontSize: 30, color: 'text.secondary' }} />
-        </Box>
-        <Box sx={{ mb: 2, overflowX: 'auto', whiteSpace: 'nowrap', pb: 1 }}>
-          <Box sx={{ display: 'inline-flex', gap: 2 }}>
+      <Box sx={{ flexGrow: 1, p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <Box sx={{ mb: 2, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>Resumo Nutricional</Typography>
+          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center', width: '100%', alignItems: 'center' }}>
+            <Button variant="outlined" color="primary" sx={{ height: 48, mr: 2 }} onClick={() => navigate(-1)}>
+              Voltar
+            </Button>
             {kpiData.map((kpi, index) => (
               <Box key={index} sx={{ minWidth: 230, maxWidth: 260, flex: '0 0 auto' }}>
                 <KPICard {...kpi} />
@@ -357,26 +377,17 @@ export default function Dashboard() {
             ))}
           </Box>
         </Box>
-        <Grid container spacing={2}>
-          <Grid item xs={12} md={8}>
+        <Box sx={{ width: '100%', maxWidth: 1400, display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', mt: 2 }}>
+          <Box sx={{ flex: 1, minWidth: 320, maxWidth: 640, mr: 2, ml: -22 }}>
+            <CalendarCard />
+          </Box>
+          <Box sx={{ flex: 2, minWidth: 1200, maxWidth: 1100, ml: 30, pl: 0 }}>
             <ResultChartCard />
-
-            <Card sx={{ p: 3, mt: 2, display: 'flex', flexDirection: 'row', alignItems: 'flex-start', boxShadow: 3 }}>
-              <Box sx={{ width: 540, pr: 4 }}>
-                <CalendarCard />
-                <Button variant="outlined" color="primary" sx={{ mt: 2 }} onClick={() => navigate(-1)}>
-                  Voltar
-                </Button>
-              </Box>
-              <Box sx={{ width: 900, pl: 10 }}>
-                <ConsultasBarChart />
-              </Box>
-            </Card>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <DonutChartCard />
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
+        <Box sx={{ width: '100%', maxWidth: 1400, mt: 2 }}>
+          <ConsultasBarChart />
+        </Box>
       </Box>
     );
   }

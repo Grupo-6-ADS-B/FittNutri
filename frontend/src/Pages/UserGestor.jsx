@@ -277,6 +277,16 @@ export default function UserGestor() {
   }
 
   const pacienteId = updateForm.id;
+  if (!pacienteId) {
+    alert("ID do paciente não encontrado. Selecione um paciente válido.");
+    return;
+  }
+
+  const token = sessionStorage.getItem('token') || localStorage.getItem('token');
+  if (!token) {
+    alert("Você precisa estar logado para salvar os dados.");
+    return;
+  }
 
   const payload = {
     dataConsulta: updateForm.date,
@@ -302,7 +312,11 @@ export default function UserGestor() {
   };
 
   try {
-    await api.post(`/patient-history/${pacienteId}`, payload);
+    await api.post(`/patient-history/${pacienteId}`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
   } catch (error) {
     console.error("Erro ao salvar consulta:", error);
     alert("Erro ao salvar os dados da consulta.");
@@ -338,7 +352,6 @@ export default function UserGestor() {
   setUpdateDialogOpen(false);
   setStartDialogOpen(false);
 
-  
 };
 
   const handlePlanDiet = () => {

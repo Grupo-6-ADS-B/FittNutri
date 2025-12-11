@@ -451,7 +451,7 @@ const handleResumoClick = async () => {
                       }}
                     />
                   ))}
-                <Grid container spacing={2} sx={{ justifyContent: 'flex-start', pl: 0, ml: 0 }}>
+                <Grid container spacing={2} sx={{ justifyContent: 'flex-start', pl: -1, ml: -2 }}>
                   <Grid item xs={6} sx={{ pl: 0 }}>
                     <Button 
                       variant="outlined" 
@@ -580,7 +580,7 @@ const handleResumoClick = async () => {
                       }}
                     />
                   ))}
-                  <Grid container spacing={2} sx={{ ml: 23, justifyContent: 'center' }}>
+                  <Grid container spacing={2} sx={{ ml: 22.2, justifyContent: 'center' }}>
                     <Grid item xs={6}>
                       <Button 
                         variant="outlined" 
