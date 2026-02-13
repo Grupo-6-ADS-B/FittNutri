@@ -15,22 +15,29 @@ import api from '../utils/api';
 
 export default function Diet() {
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const location = useLocation();
 
-  const selectedUser = location.state?.user ?? (() => {
+  let selectedUser = location.state?.user;
+  if (!selectedUser) {
     try {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      return users.length ? users[users.length - 1] : null;
-    } catch {
-      return null;
+      const stored = localStorage.getItem('lastUser') || sessionStorage.getItem('lastUser');
+      if (stored) selectedUser = JSON.parse(stored);
+    } catch {}
+    if (!selectedUser) {
+      try {
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        selectedUser = users.length ? users[users.length - 1] : null;
+      } catch {
+        selectedUser = null;
+      }
     }
-  })();
+  }
 
-  const userName = location.state.patientName;
+  const userName = location.state?.patientName || selectedUser?.name || '';
   const userAge = selectedUser?.age ?? selectedUser?.idade ?? null;
   const patientId = selectedUser?.id || null;
-console.log('Diet page - selectedUser:', selectedUser);
+  console.log('Diet page - selectedUser:', selectedUser);
   const initials = userName
     ? userName.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
     : 'NA';

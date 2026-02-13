@@ -356,7 +356,17 @@ export default function UserGestor() {
 
   const handlePlanDiet = () => {
     if (!startAppointment) return;
-    const user = users.find(u => u.id === startAppointment.userId);
+    let user = users.find(u => u.id === startAppointment.userId);
+    // Busca objeto completo do paciente do storage se não estiver em users
+    if (!user) {
+      try {
+        const stored = localStorage.getItem('lastUser') || sessionStorage.getItem('lastUser');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.id == startAppointment.userId) user = parsed;
+        }
+      } catch {}
+    }
     const patientName = startAppointment.userName || user?.name || 'Paciente';
     closeStartConsultation();
     navigate("/diet", { 

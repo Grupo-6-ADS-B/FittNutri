@@ -12,106 +12,32 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../utils/api';
+import { KPICard } from '../components/KPICard';
+import { ResultChartCard as ResultChartCardImport } from '../components/ResultChartCard';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-
-  const [dateRange, setDateRange] = React.useState({
-    from: new Date(2025, 11, 11),
-    to: new Date(2025, 11, 12),
-  });
-
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
   const [evolution, setEvolution] = useState([]);
-  const [kpiValues, setKpiValues] = useState({
-    imc: '-',
-    gordura: '-',
-    massaMuscular: '-',
-    gorduraVisceral: '-',
-  });
+  const [kpiValues, setKpiValues] = useState({ imc: '-', gordura: '-', massaMuscular: '-', gorduraVisceral: '-' });
+  const [dateRange, setDateRange] = useState({ from: new Date(new Date().setDate(new Date().getDate() - 30)), to: new Date() });
+  const userId = location.state?.userId;
 
-  // Recupera userId
-  let userId = location.state?.user?.id || location.state?.pacienteId;
-  if (!userId) {
-    userId = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
-    if (userId) userId = parseInt(userId, 10);
-  }
-
-
-  // Sincroniza datas e busca evolução ao montar ou ao mudar datas
-  React.useEffect(() => {
-    setStartDate(dateRange.from.toISOString().slice(0, 10));
-    setEndDate(dateRange.to.toISOString().slice(0, 10));
-  }, [dateRange]);
-
-  React.useEffect(() => {
-    if (userId && startDate && endDate) {
-      fetchEvolution(userId);
-    }
-  }, [userId, startDate, endDate]);
-
-  // Atualiza KPIs quando evolution muda
-  React.useEffect(() => {
-    if (evolution.length > 0) {
-      const lastEvolution = evolution[evolution.length - 1];
-      setKpiValues({
-        imc: lastEvolution.imc?.toFixed(1) || '-',
-        gordura: lastEvolution.gordura || '-',
-        massaMuscular: lastEvolution.massaMuscular || '-',
-        gorduraVisceral: lastEvolution.gorduraVisceral || '-',
-      });
-    } else {
-      setKpiValues({
-        imc: '-',
-        gordura: '-',
-        massaMuscular: '-',
-        gorduraVisceral: '-',
-      });
-    }
-  }, [evolution]);
-
-  const fetchEvolution = async (pacienteId) => {
-    console.log('fetchEvolution chamado com:', pacienteId, startDate, endDate); // DEBUG
-    
-    if (!pacienteId || !startDate || !endDate) {
-      alert('Informe paciente, data início e data fim.');
-      return;
-    }
+  const fetchEvolution = async (userId) => {
+    if (!userId) return;
     try {
-      console.log(`Requisição: /patient-history/evolucao/${pacienteId}?dataInicio=${startDate}&dataFim=${endDate}`); // DEBUG
-    
-      const res = await api.get(`/patient-history/evolucao/${pacienteId}`, {
-        params: { dataInicio: startDate, dataFim: endDate }
+      const response = await api.get(`/evolution/${userId}`, {
+        params: {
+          startDate: dateRange.from.toISOString().split('T')[0],
+          endDate: dateRange.to.toISOString().split('T')[0],
+        }
       });
-    
-      console.log('Resposta recebida:', res.data); // DEBUG
-      setEvolution(Array.isArray(res.data) ? res.data : []);
+      setEvolution(response.data);
     } catch (err) {
       console.error('Erro ao buscar evolução:', err);
       alert(`Erro: ${err.message}`);
       setEvolution([]);
     }
-  };
-
-  const KPICard = ({ title, value, icon: IconComponent, colorKey = 'primary' }) => {
-    const theme = useTheme();
-    const colorMain = theme.palette[colorKey]?.main || theme.palette.primary.main;
-    const colorDark = theme.palette[colorKey]?.dark || colorMain;
-    const accent = theme.palette.secondary?.main || theme.palette.secondary;
-
-    return (
-      <Card sx={{ height: 110, minWidth: 230, maxWidth: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: 3, p: 2 }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-          <Typography variant="h6" fontWeight="bold" sx={{ textAlign: 'center', fontSize: '1.3rem', mb: 1 }}>{title}</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <Typography variant="h3" fontWeight="bold" sx={{ textAlign: 'center', color: colorDark }}>{value}</Typography>
-            {IconComponent && React.createElement(IconComponent, { sx: { color: accent, fontSize: 32, ml: 1 } })}
-          </Box>
-        </Box>
-      </Card>
-    );
   };
 
   const kpiData = [

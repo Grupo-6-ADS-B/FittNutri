@@ -127,6 +127,15 @@ export default function UserRegister() {
             Authorization: `Bearer ${sessionStorage.getItem('token')}`
           }
         });
+        // Salva o paciente completo no localStorage/sessionStorage
+        try {
+          localStorage.setItem('lastUser', JSON.stringify(resp.data));
+          sessionStorage.setItem('lastUser', JSON.stringify(resp.data));
+          if (resp.data?.id) {
+            localStorage.setItem('lastUserId', String(resp.data.id));
+            sessionStorage.setItem('lastUserId', String(resp.data.id));
+          }
+        } catch {}
         setNotification({
           open: true,
           message: `Sucesso! Novo usuário ${formData.name} registrado`,

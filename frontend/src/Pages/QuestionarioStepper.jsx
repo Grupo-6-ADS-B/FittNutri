@@ -64,7 +64,26 @@ export default function QuestionarioStepper() {
     { id: 1, name: "André Goulart", email: "andre.goulart@example.com", phone: "(11) 98765-4321", avatar: "https://i.pravatar.cc/150?img=1" },
     { id: 2, name: "Carlos Lima", email: "carlos.lima@example.com", phone: "(21) 91234-5678", avatar: "https://i.pravatar.cc/150?img=2" },
   ];
-  const selectedUser = location.state?.user || mockUsers[0];
+  let selectedUser = location.state?.user;
+  if (!selectedUser) {
+    // Tenta recuperar do storage
+    try {
+      const stored = localStorage.getItem('lastUser') || sessionStorage.getItem('lastUser');
+      if (stored) selectedUser = JSON.parse(stored);
+    } catch {}
+    if (!selectedUser) selectedUser = mockUsers[0];
+  }
+    // Sempre salva o paciente atual no storage para garantir acesso em outros fluxos
+    useEffect(() => {
+      if (selectedUser && selectedUser.id) {
+        try {
+          localStorage.setItem('lastUser', JSON.stringify(selectedUser));
+          sessionStorage.setItem('lastUser', JSON.stringify(selectedUser));
+          localStorage.setItem('lastUserId', String(selectedUser.id));
+          sessionStorage.setItem('lastUserId', String(selectedUser.id));
+        } catch {}
+      }
+    }, [selectedUser]);
   const [userInfo, setUserInfo] = useState(selectedUser);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [userDraft, setUserDraft] = useState({
@@ -299,6 +318,11 @@ const handleResumoClick = async () => {
       try {
         const payload = { antropoData: savedAntropo || antropoToSend, circData: savedCirc || circToSend, completed: { ...completed, circ: true } };
         localStorage.setItem(`questionario_${selectedUser.id}`, JSON.stringify(payload));
+        // Atualiza o paciente completo no storage
+        localStorage.setItem('lastUser', JSON.stringify(selectedUser));
+        sessionStorage.setItem('lastUser', JSON.stringify(selectedUser));
+        localStorage.setItem('lastUserId', String(selectedUser.id));
+        sessionStorage.setItem('lastUserId', String(selectedUser.id));
       } catch (e) {
         // ignore
       }
