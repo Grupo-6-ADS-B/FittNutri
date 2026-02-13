@@ -25,7 +25,7 @@ function Footer() {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Box
                 component="img"
-                src="/logo.jpg" 
+                src="./docs/logo.jpg" 
                 alt="FittNutri"
                 sx={{
                   height: 50,

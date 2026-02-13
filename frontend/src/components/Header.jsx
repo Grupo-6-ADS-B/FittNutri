@@ -9,7 +9,7 @@ import {
   Stack,
   Avatar
 } from '@mui/material';
-import logo from '/logo.jpg'; 
+import logo from '../../docs/logo.jpg'; 
 
 function Header({
   onSwitchToLogin,
