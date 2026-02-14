@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Snackbar from '@mui/material/Snackbar';
 import api from '../utils/api';
 import { useNavigate, useLocation } from "react-router-dom";
@@ -12,22 +12,20 @@ import {
   Button,
   TextField,
   InputAdornment,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Divider,
   MenuItem,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
   DialogContentText,
+  Grid,
+  Chip,
+  Paper,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
 import SearchIcon from "@mui/icons-material/Search";
-import FilterListIcon from "@mui/icons-material/FilterList";
+import SortIcon from "@mui/icons-material/Sort";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 
@@ -53,7 +51,6 @@ export default function UserGestor() {
   const [apptTime, setApptTime] = useState("09:00");
   const [apptNote, setApptNote] = useState("");
   const [weekDialogOpen, setWeekDialogOpen] = useState(false);
-  // Busca userId do state, sessionStorage ou localStorage
   const location = useNavigate ? useLocation() : {};
   let userId = location?.state?.user?.id;
   if (!userId) {
@@ -494,15 +491,25 @@ export default function UserGestor() {
     return () => window.removeEventListener("focus", onFocus);
   }, []);
 
-  const filteredUsers = users.filter((user) => {
-    if (!searchTerm) return true;
-    const term = searchTerm.toLowerCase();
-    const raw =
-      user[filterType] ||
-      (filterType === "telefone" ? user.telefone || user.phone : undefined);
-    const value = raw?.toString().toLowerCase();
-    return value && value.includes(term);
-  });
+  const filteredUsers = users
+    .filter((user) => {
+      if (!searchTerm) return true;
+      const term = searchTerm.toLowerCase();
+      // Busca universal em todos os campos
+      return (
+        user.name?.toLowerCase().includes(term) ||
+        user.email?.toLowerCase().includes(term) ||
+        (user.telefone || user.phone)?.toLowerCase().includes(term) ||
+        user.cidade?.toLowerCase().includes(term)
+      );
+    })
+    .sort((a, b) => {
+      const fieldA = a[filterType] || "";
+      const fieldB = b[filterType] || "";
+      const valueA = fieldA.toString().toLowerCase();
+      const valueB = fieldB.toString().toLowerCase();
+      return valueA.localeCompare(valueB);
+    });
 
   const saveAppointment = async () => {
     if (!scheduleUser || !apptDate) {
@@ -601,152 +608,296 @@ export default function UserGestor() {
             background: "linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)",
           }}
         >
-          <Card
+          <Box
             sx={{
               width: "100%",
-              maxWidth: 1200,
-              borderRadius: "20px",
-              p: 2,
-              boxShadow: 3,
-              maxHeight: 600,
+              maxWidth: 1400,
               display: "flex",
               flexDirection: "column",
+              gap: 3,
             }}
           >
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                mb: 2,
-              }}
-            >
-              <Typography variant="h5">Gerenciamento de pacientes</Typography>
+            <Box>
+              <Typography variant="h4" sx={{mt: 5, fontWeight: 700, mb: 3, color: '#1b5e20' }}>
+                Gerenciamento de Pacientes
+              </Typography>
 
-              <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
-                        <Button
-              onClick={openWeekDialog}
-              variant="contained"
-              startIcon={
-                <Box sx={{ bgcolor: "#fff", borderRadius: "50%", p: 0.7, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 2px 6px rgba(0,0,0,0.08)" }}>
-                  <CalendarTodayIcon sx={{ color: "#2e7d32", fontSize: 20 }} />
-                </Box>
-              }
-              sx={{
-                height: 56,
-                borderRadius: 8,
-                bgcolor: "linear-gradient(180deg, #2e7d32, #256026)",
-                color: "#fff",
-                boxShadow: "0 10px 30px rgba(46,125,50,0.12)",
-                textTransform: "none",
-                display: "flex",
-                alignItems: "center",
-                "&:hover": { bgcolor: "#27692c", boxShadow: "0 12px 34px rgba(38,114,44,0.14)" }
-              }}
-            >
-              Consultas
-            </Button>
-               <TextField
-                 select
-                 size="small"
-                 value={filterType}
-                 onChange={(e) => setFilterType(e.target.value)}
-                 InputProps={{
-                   startAdornment: (
-                     <InputAdornment position="start">
-                       <FilterListIcon />
-                     </InputAdornment>
-                   ),
-                 }}
-               >
-                 <MenuItem value="name">Nome</MenuItem>
-                 <MenuItem value="email">Email</MenuItem>
-                 <MenuItem value="telefone">Telefone</MenuItem>
-                 <MenuItem value="cidade">Cidade</MenuItem>
-               </TextField>
-
+              <Paper
+                sx={{
+                  p: 2.5,
+                  borderRadius: 3,
+                  display: "flex",
+                  gap: 2,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                  backgroundColor: "rgba(255, 255, 255, 0.95)",
+                  boxShadow: 2,
+                }}
+              >
                 <TextField
-                  size="small"
-                  placeholder="Pesquisar..."
+                  placeholder="Buscar por nome, email ou telefone…"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   InputProps={{
                     startAdornment: (
                       <InputAdornment position="start">
-                        <SearchIcon />
+                        <SearchIcon sx={{ color: '#2e7d32' }} />
                       </InputAdornment>
                     ),
                   }}
+                  sx={{
+                    flex: 1,
+                    minWidth: 250,
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: 2,
+                      backgroundColor: '#f5f5f5',
+                    }
+                  }}
+                  size="small"
                 />
 
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={handleAddUser}
-                  sx={{ backgroundColor: "#2e7d32", borderRadius: "15px" }}
+                <TextField
+                  select
+                  size="small"
+                  value={filterType}
+                  onChange={(e) => setFilterType(e.target.value)}
+                  sx={{ minWidth: 160 }}
+                  label="Ordenar por"
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SortIcon sx={{ color: '#2e7d32' }} />
+                      </InputAdornment>
+                    ),
+                  }}
                 >
-                  Adicionar paciente
-                </Button>
-              </Box>
-            </Box>
+                  <MenuItem value="name"> Nome</MenuItem>
+                  <MenuItem value="email"> Email</MenuItem>
+                  <MenuItem value="telefone"> Telefone</MenuItem>
+                  <MenuItem value="cidade"> Cidade</MenuItem>
+                </TextField>
 
-            <List sx={{ flex: 1, overflowY: "auto" }}>
-              {filteredUsers.map((user, index) => (
-                <React.Fragment key={user?.id || index}>
-                  <ListItem
+                <Button
+                  onClick={openWeekDialog}
+                  variant="contained"
+                  startIcon={
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <CalendarTodayIcon sx={{ fontSize: 18 }} />
+                    </Box>
+                  }
+                  sx={{
+                    borderRadius: 2,
+                    backgroundColor: "#2e7d32",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    "&:hover": { backgroundColor: "#256026" }
+                  }}
+                >
+                  Consultas
+                </Button>
+
+                <Box sx={{ ml: 'auto' }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<AddIcon />}
+                    onClick={handleAddUser}
                     sx={{
-                      my: 1,
-                      borderRadius: '15px',
-                      transition: 'background-color 0.3s',
-                      '&:hover': {
-                        backgroundColor: user?.name ? 'rgba(0, 0, 0, 0.04)' : 'transparent'
-                      },
-                      display: 'flex',
-                      alignItems: 'center'
+                      backgroundColor: "#2e7d32",
+                      borderRadius: 2,
+                      textTransform: "none",
+                      fontWeight: 600,
+                      "&:hover": { backgroundColor: "#256026" }
                     }}
                   >
-                    {user?.name ? (
-                      <>
-                        <ListItemAvatar onClick={() => handleViewUserData(user)} sx={{ cursor: 'pointer' }}>
-                          <Avatar
-                            src={user.avatar ? user.avatar : '/avatar-default.png'}
-                            sx={{ width: 50, height: 50, border: "2px solid #2e7d32", transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.1)' } }}
-                          >
-                            {(!user.avatar && user.name) ? user.name.charAt(0) : null}
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText
-                          primary={user.name}
-                          primaryTypographyProps={{ fontWeight: 'bold', width: '150px', flexShrink: 0, cursor: 'pointer', '&:hover': { textDecoration: 'underline', color: '#2e7d32' } }}
-                          onClick={() => handleViewUserData(user)}
-                          sx={{ cursor: 'pointer' }}
-                        />
-                        <ListItemText primary={user.email} sx={{ width: '250px', flexShrink: 0, mx: 2 }} />
-                        <ListItemText primary={user.telefone || user.phone} sx={{ width: '150px', flexShrink: 0, mx: 2 }} />
-                        <ListItemText primary={user.cidade} sx={{ width: '150px', flexShrink: 0, mx: 2 }} />
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
-                          <Button variant="outlined" size="small" onClick={() => openScheduleDialog(user)}>
-                            AGENDAR CONSULTA
-                          </Button>
-                          <IconButton
-                            color="secondary"
-                            onClick={() => requestDeleteUser(user)}
-                            sx={{ ml: 1, '&:hover': { color: 'error.main', backgroundColor: 'rgba(244, 67, 54, 0.08)' } }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Box>
-                      </>
-                    ) : null}
-                  </ListItem>
+                    Adicionar Paciente
+                  </Button>
+                </Box>
+              </Paper>
+            </Box>
 
-                  {index < filteredUsers.length - 1 && (
-                    <Divider variant="inset" component="li" />
-                  )}
-                </React.Fragment>
-              ))}
-            </List>
-          </Card>
+            {filteredUsers.length === 0 ? (
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
+                  Nenhum paciente encontrado
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Adicione um novo paciente para começar
+                </Typography>
+              </Box>
+            ) : (
+              <Grid container spacing={3}>
+                {filteredUsers.map((user) => (
+                  <Grid item xs={12} sm={6} md={4} lg={3} key={user?.id}>
+                    <Card
+                      sx={{
+                        borderRadius: 3,
+                        backgroundColor: "white",
+                        boxShadow: 2,
+                        transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        cursor: "pointer",
+                        border: "2px solid transparent",
+                        "&:hover": {
+                          transform: "translateY(-6px)",
+                          boxShadow: 5,
+                          borderColor: "#2e7d32",
+                        },
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          p: 3,
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: 2,
+                          borderBottom: "3px solid #2e7d32",
+                          backgroundColor: "#fafafa",
+                        }}
+                      >
+                        <Avatar
+                          src={user.avatar}
+                          sx={{
+                            width: 80,
+                            height: 80,
+                            border: "3px solid #2e7d32",
+                            fontSize: "2rem",
+                            fontWeight: 700,
+                            backgroundColor: "#2e7d32",
+                          }}
+                        >
+                          {user.name?.charAt(0)}
+                        </Avatar>
+                        <Box sx={{ textAlign: "center" }}>
+                          <Typography
+                            variant="h6"
+                            sx={{ fontWeight: 700, color: "#1b5e20", mb: 1 }}
+                          >
+                            {user.name}
+                          </Typography>
+                          <Chip
+                            label={user.cidade}
+                            size="small"
+                            sx={{
+                              backgroundColor: "#e8f5e9",
+                              color: "#2e7d32",
+                              fontWeight: 600,
+                              fontSize: "0.75rem",
+                              height: 24,
+                            }}
+                          />
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ p: 3, flex: 1 }}>
+                        <Box sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+                          <Box>
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "#666", fontWeight: 600, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.5px" }}
+                            >
+                               Email
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: 500,
+                                color: "#333",
+                                mt: 0.5,
+                                wordBreak: "break-word",
+                                fontSize: "0.9rem",
+                              }}
+                            >
+                              {user.email}
+                            </Typography>
+                          </Box>
+
+                          <Box>
+                            <Typography
+                              variant="caption"
+                              sx={{ color: "#666", fontWeight: 600, fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.5px" }}
+                            >
+                               Telefone
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                fontWeight: 500,
+                                color: "#333",
+                                mt: 0.5,
+                                fontSize: "0.9rem",
+                              }}
+                            >
+                              {user.telefone || user.phone}
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </Box>
+
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          p: 2.5,
+                          borderTop: "1px solid #f0f0f0",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                        }}
+                      >
+                        <Button
+                          variant="text"
+                          size="small"
+                          onClick={() => handleViewUserData(user)}
+                          sx={{
+                            color: "#2e7d32",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            fontSize: "0.85rem",
+                            flex: 1,
+                            "&:hover": {
+                              backgroundColor: "#f1f8e9",
+                            },
+                          }}
+                        >
+                          Ver Dados
+                        </Button>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => openScheduleDialog(user)}
+                          sx={{
+                            backgroundColor: "#2e7d32",
+                            textTransform: "none",
+                            fontWeight: 600,
+                            fontSize: "0.85rem",
+                            flex: 1,
+                            "&:hover": { backgroundColor: "#256026" },
+                          }}
+                        >
+                          Agendar
+                        </Button>
+                        <IconButton
+                          size="small"
+                          onClick={() => requestDeleteUser(user)}
+                          sx={{
+                            color: "#d32f2f",
+                            padding: "8px",
+                            "&:hover": {
+                              backgroundColor: "rgba(211, 47, 47, 0.08)",
+                            },
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </Card>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+          </Box>
         </Box>
       </Box>
 
@@ -802,7 +953,7 @@ export default function UserGestor() {
                         setStartDialogOpen(true);
                       }}
                     >
-                      INICIAR CONSULTA
+                      Iniciar Consulta
                     </Button>
                   </Box>
                 </Box>

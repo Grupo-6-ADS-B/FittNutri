@@ -344,6 +344,18 @@ const handleResumoClick = async () => {
     {label:"Peso Ideal (kg)",field: "pesoIdeal",},
     
   ];
+
+  const circFieldLabels = {
+    abdominal: 'Abdominal',
+    cintura: 'Cintura',
+    quadril: 'Quadril',
+    pulso: 'Pulso',
+    panturrilha: 'Panturrilha',
+    braco: 'Braço',
+    coxa: 'Coxa',
+    pesoIdeal: 'Peso Ideal'
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Box
@@ -419,9 +431,11 @@ const handleResumoClick = async () => {
                   {!!antropoData.massaMuscular && <Typography variant="body2">Massa Muscular: {antropoData.massaMuscular} kg</Typography>}
                   {!!antropoData.gorduraVisceral && <Typography variant="body2">Gordura Visceral: {antropoData.gorduraVisceral} %</Typography>}
                   {!!antropoData.taxaMetabolicaBasal && <Typography variant="body2">TMB: {antropoData.taxaMetabolicaBasal} kcal</Typography>}
-                  {Object.entries(circData).map(([k,v]) => (
-                    v ? <Typography key={k} variant="body2">{k}: {v}</Typography> : null
-                  ))}
+                  {Object.entries(circData).map(([k,v]) => {
+                    if (k.startsWith('id')) return null;
+                    const label = circFieldLabels[k] || k;
+                    return v ? <Typography key={k} variant="body2">{label}: {v}</Typography> : null;
+                  })}
                 </Box>
                 <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
@@ -549,9 +563,11 @@ const handleResumoClick = async () => {
                   {!!antropoData.massaMuscular && <Typography variant="body2">Massa Muscular: {antropoData.massaMuscular} kg</Typography>}
                   {!!antropoData.gorduraVisceral && <Typography variant="body2">Gordura Visceral: {antropoData.gorduraVisceral} %</Typography>}
                   {!!antropoData.taxaMetabolicaBasal && <Typography variant="body2">TMB: {antropoData.taxaMetabolicaBasal} kcal</Typography>}
-                  {Object.entries(circData).map(([k,v]) => (
-                    v ? <Typography key={k} variant="body2">{k}: {v}</Typography> : null
-                  ))}
+                  {Object.entries(circData).map(([k,v]) => {
+                    if (k.startsWith('id')) return null;
+                    const label = circFieldLabels[k] || k;
+                    return v ? <Typography key={k} variant="body2">{label}: {v}</Typography> : null;
+                  })}
                 </Box>
                 <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>

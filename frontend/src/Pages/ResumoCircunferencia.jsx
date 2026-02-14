@@ -363,7 +363,7 @@ function KpiLayout() {
                 title="Peso Atual"
                 value={pesoAtual ?? '-'}
                 unit="kg"
-                description="Seu peso atual"
+                description="Peso atual"
                 icon={ScaleIcon}
                 imageId="pesoAtual"
                 valueColor={primary}
