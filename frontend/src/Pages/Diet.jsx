@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Box, Grid, Paper, Typography, TextField, Button, Stack,
-  Divider, Chip, List, ListItem, ListItemText, Avatar, IconButton, Tooltip
+  Box, Grid, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -18,18 +17,25 @@ export default function Diet() {
     const navigate = useNavigate();
   const location = useLocation();
 
+  const storedPatientId = sessionStorage.getItem('pacienteId') || localStorage.getItem('pacienteId');
+  const parsedPatientId = storedPatientId ? parseInt(storedPatientId, 10) : null;
+  const storedPatientName = sessionStorage.getItem('pacienteNome') || localStorage.getItem('pacienteNome');
+
   const selectedUser = location.state?.user ?? (() => {
     try {
       const users = JSON.parse(localStorage.getItem('users') || '[]');
+      if (parsedPatientId) {
+        return users.find(u => String(u.id) === String(parsedPatientId)) || (users.length ? users[users.length - 1] : null);
+      }
       return users.length ? users[users.length - 1] : null;
     } catch {
       return null;
     }
   })();
 
-  const userName = location.state.patientName;
+  const userName = location.state?.patientName || storedPatientName || selectedUser?.name || 'Paciente';
   const userAge = selectedUser?.age ?? selectedUser?.idade ?? null;
-  const patientId = selectedUser?.id || null;
+  const patientId = selectedUser?.id || parsedPatientId || null;
 console.log('Diet page - selectedUser:', selectedUser);
   const initials = userName
     ? userName.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
@@ -132,8 +138,8 @@ console.log('Diet page - selectedUser:', selectedUser);
       console.log("Refeições carregadas:", response.data);
 
       const refeicoes = response.data?.refeicoes ?? response.data;
-console.log("Refeições processadas:", refeicoes); // Debug
-      setMeals((refeicoes || []).map(r => ({
+      console.log("Refeições processadas:", refeicoes); // Debug
+      const mealsList = (refeicoes || []).map(r => ({
         id: r.id || r.mealId,
         descricao: r.descricao,
         horario: r.horario,
@@ -144,10 +150,10 @@ console.log("Refeições processadas:", refeicoes); // Debug
           quantidade: a.quantidade,
           unidade: a.unidade
         }))
-      })));
+      }));
       console.log("Meals mapeadas:", mealsList); // Debug
       setMeals(mealsList);
-            console.log("Meals state atualizado"); 
+      console.log("Meals state atualizado"); 
 
     } catch (err) {
       console.error("Erro carregando refeições:", err);

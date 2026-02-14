@@ -5,11 +5,7 @@ import FactCheckIcon from '@mui/icons-material/FactCheck';
 import BalanceIcon from '@mui/icons-material/Balance';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
-import ContentPasteSearchIcon from '@mui/icons-material/ContentPasteSearch';
-import PsychologyIcon from '@mui/icons-material/Psychology';
-import BarChartIcon from '@mui/icons-material/BarChart';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import MenuIcon from '@mui/icons-material/Menu';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../utils/api';
 
@@ -32,15 +28,14 @@ export default function Dashboard() {
     gorduraVisceral: '-',
   });
 
-  // Recupera userId
+
   let userId = location.state?.user?.id || location.state?.pacienteId;
   if (!userId) {
-    userId = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
-    if (userId) userId = parseInt(userId, 10);
+    const storedPatientId = sessionStorage.getItem('pacienteId') || localStorage.getItem('pacienteId');
+    if (storedPatientId) userId = parseInt(storedPatientId, 10);
   }
 
 
-  // Sincroniza datas e busca evolução ao montar ou ao mudar datas
   React.useEffect(() => {
     setStartDate(dateRange.from.toISOString().slice(0, 10));
     setEndDate(dateRange.to.toISOString().slice(0, 10));
@@ -52,7 +47,6 @@ export default function Dashboard() {
     }
   }, [userId, startDate, endDate]);
 
-  // Atualiza KPIs quando evolution muda
   React.useEffect(() => {
     if (evolution.length > 0) {
       const lastEvolution = evolution[evolution.length - 1];
@@ -126,7 +120,6 @@ export default function Dashboard() {
     const primary = theme.palette.primary.main;
     const secondary = theme.palette.secondary.main;
 
-    // Pega o último registro de evolução para Peso Atual e Peso Ideal
     const evoSorted = [...evolution].sort((a, b) => new Date(a.dataConsulta) - new Date(b.dataConsulta));
     let pesoAtual = '-';
     let pesoIdeal = '-';

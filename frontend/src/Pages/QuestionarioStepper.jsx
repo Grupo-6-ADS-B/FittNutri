@@ -231,7 +231,6 @@ const handleAntropoChange = (field) => (event) => {
     setActiveStep((prev) => prev - 1);
   };
   
-  // removed unused handler to satisfy linter
 
 const handleResumoClick = async () => {
   setCompleted((prev) => ({ ...prev, circ: true }));
@@ -247,7 +246,6 @@ const handleResumoClick = async () => {
       const aStr = (antropoData.altura ?? '').toString();
       const peso = parseOrNull(pStr);
       const altura = parseOrNull(aStr);
-      // Converte altura do formulário (cm) para metros para o backend
       const alturaMeters = (altura !== null && Number.isFinite(altura)) ? (altura > 10 ? altura / 100 : altura) : null;
       let imcValue = null;
       if (Number.isFinite(peso) && Number.isFinite(alturaMeters) && alturaMeters > 0) {
@@ -265,16 +263,6 @@ const handleResumoClick = async () => {
         idadeMetabolica: parseOrNull(antropoData.idadeMetabolica)
       };
 
-      // Envia para o backend e captura a resposta (salva o objeto retornado)
-      let savedAntropo = null;
-      try {
-        const res = await api.post(`/anthropometric-data/patient/${selectedUser.id}`, antropoToSend);
-        savedAntropo = res.data ?? null;
-      } catch (err) {
-        console.error('Erro ao salvar dados antropométricos no backend:', err);
-        throw err;
-      }
-
       const circToSend = {
         abdominal: parseOrNull(circData.abdominal),
         cintura: parseOrNull(circData.cintura),
@@ -286,33 +274,42 @@ const handleResumoClick = async () => {
         pesoIdeal: parseOrNull(circData.pesoIdeal)
       };
 
-      let savedCirc = null;
       try {
-        const res2 = await api.post(`/data-circle/patient/${selectedUser.id}`, circToSend);
-        savedCirc = res2.data ?? null;
+        const today = new Date().toISOString().slice(0, 10);
+        const historyPayload = {
+          dataConsulta: today,
+          antropometria: {
+            peso,
+            altura: alturaMeters,
+            imc: imcValue !== null ? Number(imcValue.toFixed(2)) : null,
+            idadeMetabolica: parseOrNull(antropoData.idadeMetabolica),
+            massaMuscular: parseOrNull(antropoData.massaMuscular),
+            porcentagemGordura: parseOrNull(antropoData.porcentagemGordura),
+            gorduraVisceral: parseOrNull(antropoData.gorduraVisceral),
+            taxaMetabolicaBasal: parseOrNull(antropoData.taxaMetabolicaBasal)
+          },
+          circunferencia: { ...circToSend }
+        };
+        await api.post(`/patient-history/${selectedUser.id}`, historyPayload);
       } catch (err) {
-        console.error('Erro ao salvar dados de circunferência no backend:', err);
+        console.error('Erro ao salvar consulta no backend:', err);
         throw err;
       }
 
-      // Atualiza o armazenamento local com os dados retornados pelo servidor
       try {
-        const payload = { antropoData: savedAntropo || antropoToSend, circData: savedCirc || circToSend, completed: { ...completed, circ: true } };
+        const payload = { antropoData: antropoToSend, circData: circToSend, completed: { ...completed, circ: true } };
         localStorage.setItem(`questionario_${selectedUser.id}`, JSON.stringify(payload));
       } catch (e) {
         // ignore
       }
 
-      // Navega para o resumo enviando os dados retornados pelo servidor (prioriza servidor)
-      navigate('/resumo-circunferencia', { state: { dados: savedCirc || circData, antropoData: savedAntropo || { ...antropoData, imc: imc }, user: selectedUser } });
+      navigate('/resumo-circunferencia', { state: { dados: circData, antropoData: { ...antropoData, imc: imc }, user: selectedUser } });
       return;
     }
 
-    // se não há selectedUser, apenas navega com estado local
     navigate('/resumo-circunferencia', { state: { dados: circData, antropoData: { ...antropoData, imc: imc }, user: selectedUser } });
   } catch (e) {
     console.error("Erro ao salvar dados:", e);
-    // exibe alerta simples
     window.alert('Ocorreu um erro ao salvar os dados. Verifique sua conexão e tente novamente.');
   }
 };

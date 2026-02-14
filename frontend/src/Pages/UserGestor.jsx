@@ -66,6 +66,23 @@ export default function UserGestor() {
   const [startDialogOpen, setStartDialogOpen] = useState(false);
   const [startAppointment, setStartAppointment] = useState(null); 
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+
+  const persistActivePatient = (patientId, patientName) => {
+    if (!patientId) return;
+    const idValue = String(patientId);
+    sessionStorage.setItem('pacienteId', idValue);
+    localStorage.setItem('pacienteId', idValue);
+    if (patientName) {
+      sessionStorage.setItem('pacienteNome', patientName);
+      localStorage.setItem('pacienteNome', patientName);
+    }
+  };
+
+  const resolveActivePatientId = () => {
+    if (startAppointment?.userId) return startAppointment.userId;
+    const stored = sessionStorage.getItem('pacienteId') || localStorage.getItem('pacienteId');
+    return stored ? parseInt(stored, 10) : null;
+  };
   
   const circKeys = [
     "Circunferência Abdominal (cm)",
@@ -166,7 +183,6 @@ export default function UserGestor() {
       setUsers(mapped);
       try { localStorage.setItem("users", JSON.stringify(mapped)); } catch {}
     } catch (error) {
-      // fallback to stored users or defaults
       const stored = localStorage.getItem("users");
       if (stored) {
         try {
@@ -206,35 +222,24 @@ export default function UserGestor() {
   };
   const closeScheduleDialog = () => setScheduleOpen(false);
 
-  
-  const getNextAppointment = (user) => {
-    const list = appointments
-      .filter(a => a.userId === user.id)
-      .sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
-    return list.length ? list[0] : null;
-  };
-
-  const hasAppointment = (user) => !!getNextAppointment(user);
-
-
-  const openStartConsultation = (user) => {
-    const appt = getNextAppointment(user);
-    if (!appt) return;
-    setStartAppointment(appt);
-    setStartDialogOpen(true);
-  };
   const closeStartConsultation = () => {
     setStartAppointment(null);
     setStartDialogOpen(false);
   };
 
   const openUpdateData = async () => {
-    if (!startAppointment) return;
-    const userFromList = users.find(u => u.id === startAppointment.userId) || {};
+    const patientId = resolveActivePatientId();
+    if (!patientId) {
+      alert("ID do paciente não encontrado. Selecione um paciente válido.");
+      return;
+    }
+    setUpdateDialogOpen(true);
+    const storedPatientName = sessionStorage.getItem('pacienteNome') || localStorage.getItem('pacienteNome');
+    const userFromList = users.find(u => u.id === patientId) || {};
     setUpdateForm(prev => ({
       ...prev,
-      id: userFromList.id ?? startAppointment.userId,
-      name: userFromList.name ?? "",
+      id: patientId,
+      name: userFromList.name ?? startAppointment?.userName ?? storedPatientName ?? "",
       peso: userFromList.peso ?? "",
       altura: userFromList.altura ?? "",
       idadeMetabolica: userFromList.idadeMetabolica ?? "",
@@ -242,28 +247,61 @@ export default function UserGestor() {
       porcentagemGordura: userFromList.porcentagemGordura ?? "",
       gorduraVisceral: userFromList.gorduraVisceral ?? "",
       circ: { ...initialCirc, ...(userFromList.circ || {}) },
-      date: startAppointment.date || ""
+      date: startAppointment?.date || ""
     }));
-     
-     try {
-       const res = await fetch(`/api/appointments/${startAppointment.id}/history`); // vamos trocar pelo nosso endpoint
-       if (res.ok) {
-         const data = await res.json();
-         setUpdateForm(prev => ({
-           ...prev,
-           date: data.date || prev.date,
-           peso: data.peso ?? prev.peso,
-           altura: data.altura ?? prev.altura,
-           idadeMetabolica: data.idadeMetabolica ?? prev.idadeMetabolica,
-           massaMuscular: data.massaMuscular ?? prev.massaMuscular,
-           porcentagemGordura: data.porcentagemGordura ?? prev.porcentagemGordura,
-           gorduraVisceral: data.gorduraVisceral ?? prev.gorduraVisceral,
-           circ: { ...prev.circ, ...(data.circ || {}) }
-         }));
-       }
-     } catch (e) {
-     setUpdateDialogOpen(true);
-   };}
+
+    try {
+      const res = await api.get(`/patient-history/${patientId}`);
+      const list = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.content)
+          ? res.data.content
+          : [];
+      const latest = list.length ? list[list.length - 1] : null;
+      if (latest) {
+        const anthropo =
+          latest.anthropometricDataModel ||
+          latest.anthropometricData ||
+          latest.dadosAntropometricos ||
+          {};
+        const circ =
+          latest.dataCircleModel ||
+          latest.dataCircle ||
+          latest.dadosCircunferencia ||
+          {};
+        const dateValue = latest.dataConsulta || latest.data || latest.date;
+        const circUpdates = {
+          "Circunferência Abdominal (cm)": circ.abdominal,
+          "Circunferência Cintura (cm)": circ.cintura,
+          "Circunferência Quadril (cm)": circ.quadril,
+          "Circunferência Pulso (cm)": circ.pulso,
+          "Circunferência Panturrilha (cm)": circ.panturrilha,
+          "Circunferência Braço (cm)": circ.braco,
+          "Circunferência Coxa (cm)": circ.coxa,
+          "Peso Ideal (kg)": circ.pesoIdeal
+        };
+        setUpdateForm(prev => {
+          const mergedCirc = { ...prev.circ };
+          Object.entries(circUpdates).forEach(([key, value]) => {
+            if (value !== undefined && value !== null) mergedCirc[key] = value;
+          });
+          return {
+            ...prev,
+            date: dateValue || prev.date,
+            peso: anthropo.peso ?? prev.peso,
+            altura: anthropo.altura ?? prev.altura,
+            idadeMetabolica: anthropo.idadeMetabolica ?? prev.idadeMetabolica,
+            massaMuscular: anthropo.massaMuscular ?? prev.massaMuscular,
+            porcentagemGordura: anthropo.porcentagemGordura ?? prev.porcentagemGordura,
+            gorduraVisceral: anthropo.gorduraVisceral ?? prev.gorduraVisceral,
+            circ: mergedCirc
+          };
+        });
+      }
+    } catch (e) {
+      console.error('Erro ao buscar historico do paciente:', e);
+    }
+  };
 
   const closeUpdateData = () => setUpdateDialogOpen(false);
 
@@ -276,7 +314,7 @@ export default function UserGestor() {
     return;
   }
 
-  const pacienteId = updateForm.id;
+  const pacienteId = updateForm.id || resolveActivePatientId();
   if (!pacienteId) {
     alert("ID do paciente não encontrado. Selecione um paciente válido.");
     return;
@@ -358,6 +396,7 @@ export default function UserGestor() {
     if (!startAppointment) return;
     const user = users.find(u => u.id === startAppointment.userId);
     const patientName = startAppointment.userName || user?.name || 'Paciente';
+    persistActivePatient(startAppointment.userId, patientName);
     closeStartConsultation();
     navigate("/diet", { 
       state: { 
@@ -749,7 +788,12 @@ export default function UserGestor() {
                     <Button
                       variant="contained"
                       size="small"
-                      onClick={() => { setStartAppointment(a); setStartDialogOpen(true); }}
+                      onClick={() => {
+                        const patientName = a.userName || users.find(u => u.id === a.userId)?.name || 'Paciente';
+                        persistActivePatient(a.userId, patientName);
+                        setStartAppointment(a);
+                        setStartDialogOpen(true);
+                      }}
                     >
                       INICIAR CONSULTA
                     </Button>
@@ -783,11 +827,13 @@ export default function UserGestor() {
               onClick={() => {
                 if (!startAppointment) return;
                 const pacienteUser = users.find(u => u.id === startAppointment.userId) || {};
+                const patientName = startAppointment.userName || pacienteUser?.name || 'Paciente';
+                persistActivePatient(startAppointment.userId, patientName);
                 navigate('/dashboard', { 
                   state: { 
                     user: pacienteUser,
                     pacienteId: startAppointment.userId,
-                    patientName: startAppointment.userName || pacienteUser?.name || 'Paciente'
+                    patientName
                   } 
                 });
                 closeStartConsultation();
