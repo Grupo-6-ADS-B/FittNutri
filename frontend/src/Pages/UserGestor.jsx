@@ -223,8 +223,8 @@ export default function UserGestor() {
   const closeScheduleDialog = () => setScheduleOpen(false);
 
   const closeStartConsultation = () => {
-    setStartAppointment(null);
     setStartDialogOpen(false);
+    setStartAppointment(null);
   };
 
   const openUpdateData = async () => {
@@ -233,13 +233,14 @@ export default function UserGestor() {
       alert("ID do paciente não encontrado. Selecione um paciente válido.");
       return;
     }
-    setUpdateDialogOpen(true);
-    const storedPatientName = sessionStorage.getItem('pacienteNome') || localStorage.getItem('pacienteNome');
+    
     const userFromList = users.find(u => u.id === patientId) || {};
-    setUpdateForm(prev => ({
-      ...prev,
+    const appointmentName = startAppointment?.userName;
+    const name = appointmentName || userFromList.name || "";
+    
+    setUpdateForm({
       id: patientId,
-      name: userFromList.name ?? startAppointment?.userName ?? storedPatientName ?? "",
+      name: name,
       peso: userFromList.peso ?? "",
       altura: userFromList.altura ?? "",
       idadeMetabolica: userFromList.idadeMetabolica ?? "",
@@ -248,7 +249,7 @@ export default function UserGestor() {
       gorduraVisceral: userFromList.gorduraVisceral ?? "",
       circ: { ...initialCirc, ...(userFromList.circ || {}) },
       date: startAppointment?.date || ""
-    }));
+    });
 
     try {
       const res = await api.get(`/patient-history/${patientId}`);
@@ -301,6 +302,7 @@ export default function UserGestor() {
     } catch (e) {
       console.error('Erro ao buscar historico do paciente:', e);
     }
+    setUpdateDialogOpen(true);
   };
 
   const closeUpdateData = () => setUpdateDialogOpen(false);
