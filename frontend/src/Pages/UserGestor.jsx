@@ -17,7 +17,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  DialogContentText,
   Grid,
   Chip,
   Paper,
@@ -28,6 +27,38 @@ import SearchIcon from "@mui/icons-material/Search";
 import SortIcon from "@mui/icons-material/Sort";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+
+const formatDateHuman = (dateString, timeString) => {
+  try {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const date = new Date(year, month - 1, day);
+    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    return `${day} ${months[month - 1]} ${year} • ${timeString || '09:00'}`;
+  } catch {
+    return `${dateString} • ${timeString || '09:00'}`;
+  }
+};
+
+const getConsultationStatus = (dateString) => {
+  try {
+    const [year, month, day] = dateString.split('-').map(Number);
+    const consultDate = new Date(year, month - 1, day);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    consultDate.setHours(0, 0, 0, 0);
+
+    if (consultDate.getTime() === today.getTime()) {
+      return { icon: '🟢', label: 'Hoje', color: '#4caf50', bgColor: '#e8f5e9' };
+    } else if (consultDate > today) {
+      return { icon: '🔵', label: 'Próxima', color: '#2196f3', bgColor: '#e3f2fd' };
+    } else {
+      return { icon: '🔴', label: 'Atrasada', color: '#f44336', bgColor: '#ffebee' };
+    }
+  } catch {
+    return { icon: '⚪', label: 'Data inválida', color: '#9e9e9e', bgColor: '#f5f5f5' };
+  }
+};
 
 const defaultUsers = [
   { id: 1, name: "André Goulart", email: "andre.goulart@example.com", telefone: "(11) 98765-4321", cidade: "São Paulo", avatar: "https://i.pravatar.cc/150?img=1" },
@@ -63,6 +94,7 @@ export default function UserGestor() {
   const [startDialogOpen, setStartDialogOpen] = useState(false);
   const [startAppointment, setStartAppointment] = useState(null); 
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState({ anthropo: false, diet: false, dashboard: false });
 
   const persistActivePatient = (patientId, patientName) => {
     if (!patientId) return;
@@ -333,6 +365,8 @@ export default function UserGestor() {
     return;
   }
 
+  setCompletedSteps(prev => ({ ...prev, anthropo: true }));
+
   const pacienteId = updateForm.id || resolveActivePatientId();
   if (!pacienteId) {
     alert("ID do paciente não encontrado. Selecione um paciente válido.");
@@ -415,7 +449,6 @@ export default function UserGestor() {
   });
 
   setUpdateDialogOpen(false);
-  setStartDialogOpen(false);
 
 };
 
@@ -424,7 +457,7 @@ export default function UserGestor() {
     const user = users.find(u => u.id === startAppointment.userId);
     const patientName = startAppointment.userName || user?.name || 'Paciente';
     persistActivePatient(startAppointment.userId, patientName);
-    closeStartConsultation();
+    setCompletedSteps(prev => ({ ...prev, diet: true }));
     navigate("/diet", { 
       state: { 
         user: user || { id: startAppointment.userId, name: patientName },
@@ -491,11 +524,52 @@ export default function UserGestor() {
     return () => window.removeEventListener("focus", onFocus);
   }, []);
 
+  useEffect(() => {
+    const storedAppointment = sessionStorage.getItem('activeConsultation');
+    const isDialogOpen = sessionStorage.getItem('consultationDialogOpen');
+    const storedSteps = sessionStorage.getItem('consultationSteps');
+    
+    if (storedAppointment && isDialogOpen === 'true') {
+      try {
+        const parsed = JSON.parse(storedAppointment);
+        setStartAppointment(parsed);
+        setStartDialogOpen(true);
+        
+        if (storedSteps) {
+          setCompletedSteps(JSON.parse(storedSteps));
+        }
+      } catch {
+        sessionStorage.removeItem('activeConsultation');
+        sessionStorage.removeItem('consultationDialogOpen');
+        sessionStorage.removeItem('consultationSteps');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (startAppointment && startDialogOpen) {
+      try {
+        sessionStorage.setItem('activeConsultation', JSON.stringify(startAppointment));
+        sessionStorage.setItem('consultationDialogOpen', 'true');
+      } catch {}
+    } else {
+      sessionStorage.removeItem('activeConsultation');
+      sessionStorage.setItem('consultationDialogOpen', 'false');
+    }
+  }, [startAppointment, startDialogOpen]);
+
+  useEffect(() => {
+    if (startDialogOpen && startAppointment) {
+      try {
+        sessionStorage.setItem('consultationSteps', JSON.stringify(completedSteps));
+      } catch {}
+    }
+  }, [completedSteps, startDialogOpen, startAppointment]);
+
   const filteredUsers = users
     .filter((user) => {
       if (!searchTerm) return true;
       const term = searchTerm.toLowerCase();
-      // Busca universal em todos os campos
       return (
         user.name?.toLowerCase().includes(term) ||
         user.email?.toLowerCase().includes(term) ||
@@ -739,6 +813,7 @@ export default function UserGestor() {
                         flexDirection: "column",
                         cursor: "pointer",
                         border: "2px solid transparent",
+                        position: "relative",
                         "&:hover": {
                           transform: "translateY(-6px)",
                           boxShadow: 5,
@@ -746,6 +821,7 @@ export default function UserGestor() {
                         },
                       }}
                     >
+                     
                       <Box
                         sx={{
                           p: 3,
@@ -929,80 +1005,364 @@ export default function UserGestor() {
       </Dialog>
 
       <Dialog open={weekDialogOpen} onClose={closeWeekDialog} fullWidth maxWidth="sm">
-        <DialogTitle>Consultas da Semana</DialogTitle>
-        <DialogContent dividers>
+        <DialogTitle sx={{ pb: 2 }}>📅 Consultas da Semana</DialogTitle>
+        <DialogContent dividers sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
           {weeklyAppointments.length === 0 ? (
-            <Typography variant="body2" color="text.secondary">Nenhuma consulta nesta semana.</Typography>
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography variant="body2" color="text.secondary">
+                Nenhuma consulta agendada nesta semana.
+              </Typography>
+            </Box>
           ) : (
-            weeklyAppointments.map(a => (
-              <Box key={a.id} sx={{ mb: 2, p: 1, borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{a.userName}</Typography>
-                    <Typography variant="body2" color="text.secondary">{a.date} • {a.time}</Typography>
-                    {a.note ? <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>Obs: {a.note}</Typography> : null}
-                  </Box>
-                  <Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              {weeklyAppointments.map(a => {
+                const status = getConsultationStatus(a.date);
+                const formattedDate = formatDateHuman(a.date, a.time);
+                return (
+                  <Paper
+                    key={a.id}
+                    sx={{
+                      p: 2.5,
+                      borderRadius: 2,
+                      border: '1px solid #e0e0e0',
+                      backgroundColor: a.status === 'finalizada' ? '#f5f5f5' : '#fafafa',
+                      transition: 'all 0.3s',
+                      opacity: a.status === 'finalizada' ? 0.7 : 1,
+                      '&:hover': a.status === 'finalizada' ? {} : {
+                        boxShadow: 2,
+                        backgroundColor: '#f5f5f5',
+                        borderColor: '#2e7d32',
+                      }
+                    }}
+                  >
+            
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                      <Box>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: '#1b5e20' }}>
+                          {a.userName}
+                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 1 }}>
+                          <Chip
+                            icon={<Typography sx={{ fontSize: '1rem !important', mr: 0.5 }}>{status.icon}</Typography>}
+                            label={a.status === 'finalizada' ? 'Finalizada' : status.label}
+                            size="small"
+                            sx={{
+                              backgroundColor: a.status === 'finalizada' ? '#c8e6c9' : status.bgColor,
+                              color: a.status === 'finalizada' ? '#2e7d32' : status.color,
+                              fontWeight: 700,
+                              fontSize: '0.85rem',
+                              height: 28
+                            }}
+                          />
+                          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                            {formattedDate}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    </Box>
+
+                    {/* Observações se existirem */}
+                    {a.note && (
+                      <Box sx={{ mb: 2, p: 1.5, borderLeft: '3px solid #2e7d32', backgroundColor: '#f9fdf8', borderRadius: '4px' }}>
+                        <Typography variant="body2" sx={{ color: '#333', fontStyle: 'italic', fontSize: '0.95rem' }}>
+                          "{a.note}"
+                        </Typography>
+                      </Box>
+                    )}
+
+                    {/* Botão Entrar na Consulta */}
                     <Button
+                      fullWidth
                       variant="contained"
-                      size="small"
+                      disabled={a.status === 'finalizada'}
+                      endIcon={a.status === 'finalizada' ? null : <PlayArrowIcon />}
                       onClick={() => {
                         const patientName = a.userName || users.find(u => u.id === a.userId)?.name || 'Paciente';
                         persistActivePatient(a.userId, patientName);
                         setStartAppointment(a);
                         setStartDialogOpen(true);
+                        setSnackbar({ open: true, message: '🟢 Consulta iniciada!', severity: 'success' });
+                      }}
+                      sx={{
+                        backgroundColor: a.status === 'finalizada' ? '#bdbdbd' : '#2e7d32',
+                        color: a.status === 'finalizada' ? '#666' : 'white',
+                        textTransform: 'none',
+                        fontWeight: 600,
+                        py: 1.3,
+                        borderRadius: '8px',
+                        fontSize: '1rem',
+                        cursor: a.status === 'finalizada' ? 'default' : 'pointer',
+                        transition: 'all 0.2s',
+                        '&:hover': a.status === 'finalizada' ? {} : { backgroundColor: '#256026' }
                       }}
                     >
-                      Iniciar Consulta
+                      {a.status === 'finalizada' ? '✅ Consulta Finalizada' : 'Entrar na Consulta'}
                     </Button>
-                  </Box>
-                </Box>
-              </Box>
-            ))
+                  </Paper>
+                );
+              })}
+            </Box>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ p: 2 }}>
           <Button onClick={closeWeekDialog}>Fechar</Button>
         </DialogActions>
       </Dialog>
 
-      <Dialog open={startDialogOpen} onClose={closeStartConsultation}>
-        <DialogTitle>Iniciar Consulta</DialogTitle>
-        <DialogContent sx={{ minWidth: 360 }}>
-          <DialogContentText sx={{ mb: 2 }}>
-            Escolha uma ação para esta consulta:
-          </DialogContentText>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <Button variant="outlined" onClick={openUpdateData}>
-              Atualizar Dados
-            </Button>
-            <Button variant="contained" color="success" onClick={handlePlanDiet}>
-              Planejar Dieta
-            </Button>
-            <Button 
+      <Dialog open={startDialogOpen} onClose={closeStartConsultation} fullWidth maxWidth="sm">
+        <DialogTitle sx={{ bgcolor: '#2e7d32', color: 'white', py: 1.8, px: 3 }}>
+          {startAppointment && (
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'white' }}>
+                  Consulta em Andamento
+                </Typography>
+              </Box>
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem' }}>
+                {startAppointment.userName} • {formatDateHuman(startAppointment.date, startAppointment.time)}
+              </Typography>
+            </Box>
+          )}
+        </DialogTitle>
+
+        <DialogContent sx={{ mt: 2, pt: 2.5 }}>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <Paper
+              sx={{
+                p: 2.5,
+                borderRadius: 2,
+                backgroundColor: '#f9fdf8',
+                borderLeft: '4px solid #2e7d32',
+                border: '1px solid #e8f5e9'
+              }}
+            >
+              <Typography variant="subtitle2" sx={{fontSize: '1.rem', fontWeight: 700, color: '#1b5e20', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Box sx={{ fontSize: '1.1rem' }}>📋</Box> Passos da Consulta
+              </Typography>
+              
+              {/* Progress Bar */}
+              <Box sx={{ mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600, color: '#2e7d32', fontSize: '0.85rem' }}>
+                    Progresso
+                  </Typography>
+                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#2e7d32', fontSize: '0.9rem' }}>
+                    {Object.values(completedSteps).filter(Boolean).length} de 3
+                  </Typography>
+                </Box>
+                <Box sx={{ width: '100%', height: '8px', backgroundColor: '#e0e0e0', borderRadius: '4px', overflow: 'hidden' }}>
+                  <Box
+                    sx={{
+                      height: '100%',
+                      width: `${(Object.values(completedSteps).filter(Boolean).length / 3) * 100}%`,
+                      backgroundColor: Object.values(completedSteps).filter(Boolean).length === 3 ? '#4caf50' : '#4caf50',
+                      transition: 'all 0.4s ease',
+                      borderRadius: '4px',
+                      boxShadow: Object.values(completedSteps).filter(Boolean).length === 3 ? '0 0 12px rgba(76, 175, 80, 0.6)' : 'none'
+                    }}
+                  />
+                </Box>
+                {Object.values(completedSteps).filter(Boolean).length === 3 && (
+                  <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#4caf50', fontWeight: 700, fontSize: '0.8rem', animation: 'pulse 2s ease-in-out infinite', '@keyframes pulse': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.7 } } }}>
+                    ✅ Consulta pronta para finalizar
+                  </Typography>
+                )}
+              </Box>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
+                {[
+                  { key: 'anthropo', icon: '📊', label: 'Atualizar dados antropométricos' },
+                  { key: 'diet', icon: '📋', label: 'Planejar ou ajustar dieta' },
+                  { key: 'dashboard', icon: '📈', label: 'Consultar dashboard e tendências' }
+                ].map((step) => (
+                  <Box
+                    key={step.key}
+                    onClick={() => setCompletedSteps(prev => ({ ...prev, [step.key]: !prev[step.key] }))}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      p: 1.2,
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      backgroundColor: completedSteps[step.key] ? '#e8f5e9' : 'transparent',
+                      border: completedSteps[step.key] ? '1px solid #4caf50' : '1px solid transparent',
+                      '&:hover': {
+                        backgroundColor: '#f1f1f1'
+                      }
+                    }}
+                  >
+                    <Box sx={{ fontSize: '1.3rem' }}>
+                      {completedSteps[step.key] ? '☑️' : '⬜'}
+                    </Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: completedSteps[step.key] ? 600 : 500,
+                        color: completedSteps[step.key] ? '#2e7d32' : '#333',
+                        textDecoration: completedSteps[step.key] ? 'line-through' : 'none',
+                        fontSize: '0.95rem'
+                      }}
+                    >
+                      {step.label}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </Paper>
+
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+            <Button
               fullWidth
-              variant="outlined" 
+              variant="contained"
+              onClick={openUpdateData}
+              sx={{
+                py: 1.4,
+                fontSize: '1rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                backgroundColor: '#2e7d32',
+                color: 'white',
+                borderRadius: '8px',
+                transition: 'all 0.2s',
+                border: 'none',
+                '&:hover': { 
+                  backgroundColor: '#256026',
+                  transform: 'translateY(-2px)',
+                  boxShadow: 2
+                }
+              }}
+            >
+              {completedSteps.anthropo ? '✅ Dados Atualizados' : '📊 Atualizar Dados'}
+            </Button>
+
+            <Button
+              fullWidth
+              variant="contained"
+              onClick={handlePlanDiet}
+              sx={{
+                py: 1.3,
+                fontSize: '0.95rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                backgroundColor: '#2e7d32',
+                color: 'white',
+                borderRadius: '8px',
+                transition: 'all 0.2s',
+                '&:hover': { 
+                  backgroundColor: '#256026',
+                  transform: 'translateY(-1px)',
+                  boxShadow: 2
+                }
+              }}
+            >
+              {completedSteps.diet ? '✅ Dieta Planejada' : '📋 Planejar Dieta'}
+            </Button>
+
+            <Button
+              fullWidth
+              variant="contained"
               onClick={() => {
                 if (!startAppointment) return;
                 const pacienteUser = users.find(u => u.id === startAppointment.userId) || {};
                 const patientName = startAppointment.userName || pacienteUser?.name || 'Paciente';
                 persistActivePatient(startAppointment.userId, patientName);
-                navigate('/dashboard', { 
-                  state: { 
+                setCompletedSteps(prev => ({ ...prev, dashboard: true }));
+                navigate('/dashboard', {
+                  state: {
                     user: pacienteUser,
                     pacienteId: startAppointment.userId,
                     patientName
-                  } 
+                  }
                 });
-                closeStartConsultation();
+              }}
+              sx={{
+                py: 1.3,
+                fontSize: '0.95rem',
+                fontWeight: 600,
+                textTransform: 'none',
+                backgroundColor: '#2e7d32',
+                color: 'white',
+                borderRadius: '8px',
+                transition: 'all 0.2s',
+                '&:hover': { 
+                  backgroundColor: '#256026',
+                  transform: 'translateY(-1px)',
+                  boxShadow: 2
+                }
               }}
             >
-              Ver Dashboard
+              {completedSteps.dashboard ? '✅ Dashboard Visualizado' : '📈 Ver Dashboard'}
             </Button>
+
+            {/* Botão Finalizar Consulta - aparece quando todos os 3 passos estão concluídos */}
+            {Object.values(completedSteps).filter(Boolean).length === 3 && (
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={() => {
+                  setSnackbar({ 
+                    open: true, 
+                    message: '✅ Consulta finalizada com sucesso! Paciente aguardando proximas orientações.', 
+                    severity: 'success' 
+                  });
+                  // Marcar consulta como finalizada
+                  setAppointments(prev => prev.map(a => 
+                    a.id === startAppointment.id ? { ...a, status: 'finalizada' } : a
+                  ));
+                  try {
+                    const updated = appointments.map(a => 
+                      a.id === startAppointment.id ? { ...a, status: 'finalizada' } : a
+                    );
+                    localStorage.setItem("appointments", JSON.stringify(updated));
+                  } catch {}
+                  // Limpar estado da consulta
+                  setStartDialogOpen(false);
+                  setStartAppointment(null);
+                  setCompletedSteps({ anthropo: false, diet: false, dashboard: false });
+                  sessionStorage.removeItem('activeConsultation');
+                  sessionStorage.removeItem('consultationDialogOpen');
+                  sessionStorage.removeItem('consultationSteps');
+                }}
+                sx={{
+                  py: 1.5,
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  backgroundColor: '#4caf50',
+                  borderRadius: '8px',
+                  transition: 'all 0.3s',
+                  boxShadow: 2,
+                  '&:hover': { 
+                    backgroundColor: '#388e3c',
+                    transform: 'scale(1.02)',
+                    boxShadow: 4
+                  },
+                }}
+              >
+                ✅ Finalizar Consulta
+              </Button>
+            )}
+            </Box>
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeStartConsultation}>Fechar</Button>
+
+        <DialogActions sx={{ p: 2.5, justifyContent: 'flex-start', borderTop: '1px solid #f0f0f0' }}>
+          <Button 
+            onClick={closeStartConsultation} 
+            sx={{
+              color: '#888',
+              textTransform: 'none',
+              fontWeight: 500,
+              fontSize: '0.95rem',
+              '&:hover': {
+                color: '#2e7d32',
+                backgroundColor: 'transparent'
+              }
+            }}
+          >
+            ← Voltar
+          </Button>
         </DialogActions>
       </Dialog>
       
