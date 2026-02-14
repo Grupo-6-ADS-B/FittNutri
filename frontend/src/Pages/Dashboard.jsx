@@ -27,6 +27,7 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [evolution, setEvolution] = useState([]);
+  const [patientName, setPatientName] = useState('');
   const [kpiValues, setKpiValues] = useState({
     imc: '-',
     gordura: '-',
@@ -40,6 +41,11 @@ export default function Dashboard() {
     const storedPatientId = sessionStorage.getItem('pacienteId') || localStorage.getItem('pacienteId');
     if (storedPatientId) userId = parseInt(storedPatientId, 10);
   }
+
+  React.useEffect(() => {
+    const name = location.state?.patientName || location.state?.user?.name || sessionStorage.getItem('pacienteNome') || localStorage.getItem('pacienteNome') || '';
+    setPatientName(name);
+  }, [location.state]);
 
 
   React.useEffect(() => {
@@ -62,12 +68,14 @@ export default function Dashboard() {
 
   React.useEffect(() => {
     if (evolution.length > 0) {
-      const lastEvolution = evolution[evolution.length - 1];
+      // Ordena por data descrescente para pegar a mais recente
+      const sorted = [...evolution].sort((a, b) => new Date(b.dataConsulta) - new Date(a.dataConsulta));
+      const latestEvolution = sorted[0]; // Primeira é a mais recente
       setKpiValues({
-        imc: lastEvolution.imc?.toFixed(1) || '-',
-        gordura: lastEvolution.gordura || '-',
-        massaMuscular: lastEvolution.massaMuscular || '-',
-        gorduraVisceral: lastEvolution.gorduraVisceral || '-',
+        imc: latestEvolution.imc?.toFixed(1) || '-',
+        gordura: latestEvolution.gordura || '-',
+        massaMuscular: latestEvolution.massaMuscular || '-',
+        gorduraVisceral: latestEvolution.gorduraVisceral || '-',
       });
     } else {
       setKpiValues({
@@ -329,7 +337,7 @@ export default function Dashboard() {
     return (
       <Box sx={{ flexGrow: 1, p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
         <Box sx={{ mb: 2, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>Resumo Nutricional</Typography>
+          <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>Resumo Nutricional {patientName && `de ${patientName}`}</Typography>
           <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center', width: '100%', alignItems: 'center' }}>
             <Button variant="outlined" color="primary" sx={{ height: 48, mr: 2 }} onClick={() => navigate(-1)}>
               Voltar

@@ -120,7 +120,79 @@ export default function ResumoCircunferencia() {
     const [noCircFound, setNoCircFound] = React.useState(false);
     useEffect(() => {
         async function fetchData() {
-            if (!selectedUser?.id) return;
+            if (!selectedUser?.id) {
+                console.log('Sem selectedUser.id');
+                return;
+            }
+            console.log('Buscando dados para usuário:', selectedUser.id);
+            try {
+                const today = new Date();
+                const manyYearsAgo = new Date(today);
+                manyYearsAgo.setFullYear(today.getFullYear() - 10); 
+                
+                const fromYear = manyYearsAgo.getFullYear();
+                const fromMonth = String(manyYearsAgo.getMonth() + 1).padStart(2, '0');
+                const fromDay = String(manyYearsAgo.getDate()).padStart(2, '0');
+                const startDate = `${fromYear}-${fromMonth}-${fromDay}`;
+                
+                const toYear = today.getFullYear();
+                const toMonth = String(today.getMonth() + 1).padStart(2, '0');
+                const toDay = String(today.getDate()).padStart(2, '0');
+                const endDate = `${toYear}-${toMonth}-${toDay}`;
+                
+                const historyRes = await api.get(`/patient-history/evolucao/${selectedUser.id}`, {
+                    params: { dataInicio: startDate, dataFim: endDate }
+                });
+                console.log('Resposta do histórico (evolução):', historyRes.data);
+                
+                const historyList = Array.isArray(historyRes.data) ? historyRes.data : [];
+                
+                const sorted = [...historyList].sort((a, b) => new Date(b.dataConsulta) - new Date(a.dataConsulta));
+                const latest = sorted.length ? sorted[0] : null;
+                console.log('Latest após sort:', latest);
+                
+                if (latest) {
+                    const anthropo = {
+                        peso: latest.peso,
+                        altura: latest.altura,
+                        imc: latest.imc,
+                        idadeMetabolica: latest.idadeMetabolica,
+                        massaMuscular: latest.massaMuscular,
+                        porcentagemGordura: latest.porcentagemGordura,
+                        gorduraVisceral: latest.gorduraVisceral,
+                    };
+                    
+                    const circ = {
+                        abdominal: latest.abdominal,
+                        cintura: latest.cintura,
+                        quadril: latest.quadril,
+                        pulso: latest.pulso,
+                        panturrilha: latest.panturrilha,
+                        braco: latest.braco,
+                        coxa: latest.coxa,
+                        pesoIdeal: latest.pesoIdeal,
+                    };
+                    
+                    console.log('Anthropo extraído:', anthropo);
+                    console.log('Circ extraído:', circ);
+                    
+                    const alturaServer = anthropo.altura !== undefined && anthropo.altura !== null ? Number(anthropo.altura) : null;
+                    const alturaCm = (alturaServer !== null && !Number.isNaN(alturaServer)) ? (alturaServer <= 10 ? alturaServer * 100 : alturaServer) : '';
+                    setAntropo({ ...anthropo, altura: alturaCm });
+                    setNoAntropoFound(false);
+                    
+                    const converted = {};
+                    ["abdominal","cintura","quadril","pulso","panturrilha","braco","coxa","pesoIdeal"].forEach(k => {
+                        if (circ[k] !== undefined && circ[k] !== null) converted[k] = String(circ[k]);
+                        else converted[k] = "";
+                    });
+                    setDadosCirc(converted);
+                    setNoCircFound(false);
+                    return;
+                }
+            } catch (err) {
+                console.error('Erro ao buscar histórico:', err);
+            }
             if (location.state?.antropoData || location.state?.dados) {
                 const a = location.state?.antropoData || {};
                 let alturaVal = a.altura;
@@ -175,69 +247,11 @@ export default function ResumoCircunferencia() {
             } catch (e) {
                 console.error('Falha ao ler questionario local:', e);
             }
-            try {
-                const antropoRes = await api.get(`/anthropometric-data/paciente/${selectedUser.id}`);
-                const lista = Array.isArray(antropoRes.data) ? antropoRes.data : [];
-                const server = lista[0] || null;
-                if (server) {
-                    const alturaServer = server.altura !== undefined && server.altura !== null ? Number(server.altura) : null;
-                    const alturaCm = (alturaServer !== null && !Number.isNaN(alturaServer)) ? (alturaServer <= 10 ? alturaServer * 100 : alturaServer) : '';
-                    setAntropo({ ...server, altura: alturaCm });
-                    setNoAntropoFound(false);
-                } else {
-                    setAntropo({});
-                    setNoAntropoFound(true);
-                }
-            } catch (err) {
-                setAntropo({});
-                setNoAntropoFound(true);
-                console.error('Erro ao buscar dados antropométricos:', err);
-            }
-            try {
-                const circRes = await api.get(`/data-circle/patient/${selectedUser.id}`);
-                const lista = Array.isArray(circRes.data) ? circRes.data : [];
-                const serverCirc = lista[0] || null;
-                if (serverCirc) {
-                    const converted = {};
-                    ["abdominal","cintura","quadril","pulso","panturrilha","braco","coxa","pesoIdeal"].forEach(k => {
-                        if (serverCirc[k] !== undefined && serverCirc[k] !== null) converted[k] = String(serverCirc[k]);
-                        else converted[k] = "";
-                    });
-                    setDadosCirc(converted);
-                    setNoCircFound(false);
-                } else {
-                    setDadosCirc({});
-                    setNoCircFound(true);
-                }
-            } catch (err) {
-                setDadosCirc({});
-                setNoCircFound(true);
-                console.error('Erro ao buscar dados de circunferência:', err);
-            }
-            try {
-                const shouldFetchHistory = (noAntropoFound || noCircFound);
-                if (!shouldFetchHistory) return;
-                const historyRes = await api.get(`/patient-history/${selectedUser.id}`);
-                const historyList = Array.isArray(historyRes.data) ? historyRes.data : [];
-                const latest = historyList.length ? historyList[historyList.length - 1] : null;
-                if (latest) {
-                    const anthropo = latest.anthropometricDataModel || {};
-                    const circ = latest.dataCircleModel || {};
-                    const alturaServer = anthropo.altura !== undefined && anthropo.altura !== null ? Number(anthropo.altura) : null;
-                    const alturaCm = (alturaServer !== null && !Number.isNaN(alturaServer)) ? (alturaServer <= 10 ? alturaServer * 100 : alturaServer) : '';
-                    setAntropo({ ...anthropo, altura: alturaCm });
-                    const converted = {};
-                    ["abdominal","cintura","quadril","pulso","panturrilha","braco","coxa","pesoIdeal"].forEach(k => {
-                        if (circ[k] !== undefined && circ[k] !== null) converted[k] = String(circ[k]);
-                        else converted[k] = "";
-                    });
-                    setDadosCirc(converted);
-                    setNoAntropoFound(false);
-                    setNoCircFound(false);
-                }
-            } catch (err) {
-                console.error('Erro ao buscar historico do paciente:', err);
-            }
+            console.log('Nenhum dado encontrado em lugar nenhum');
+            setAntropo({});
+            setDadosCirc({});
+            setNoAntropoFound(true);
+            setNoCircFound(true);
         }
         fetchData();
     }, [selectedUser?.id]);

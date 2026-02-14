@@ -227,6 +227,26 @@ export default function UserGestor() {
     setStartAppointment(null);
   };
 
+  const handleViewUserData = (user) => {
+    try { localStorage.setItem('lastUserId', String(user.id)); } catch {}
+    let target = '/questionario';
+    let state = { user };
+    try {
+      const raw = localStorage.getItem(`questionario_${user.id}`);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        const done = parsed?.completed?.antropo && parsed?.completed?.circ;
+        if (done) {
+          target = '/resumo-circunferencia';
+          state = { user, antropoData: parsed.antropoData || {}, dados: parsed.circData || {} };
+        } else {
+          state = { user, antropoData: parsed.antropoData || {}, dados: parsed.circData || {} };
+        }
+      }
+    } catch {}
+    navigate(target, { state });
+  };
+
   const openUpdateData = async () => {
     const patientId = resolveActivePatientId();
     if (!patientId) {
@@ -687,47 +707,24 @@ export default function UserGestor() {
                   >
                     {user?.name ? (
                       <>
-                        <ListItemAvatar>
+                        <ListItemAvatar onClick={() => handleViewUserData(user)} sx={{ cursor: 'pointer' }}>
                           <Avatar
                             src={user.avatar ? user.avatar : '/avatar-default.png'}
-                            sx={{ width: 50, height: 50, border: "2px solid #2e7d32" }}
+                            sx={{ width: 50, height: 50, border: "2px solid #2e7d32", transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.1)' } }}
                           >
                             {(!user.avatar && user.name) ? user.name.charAt(0) : null}
                           </Avatar>
                         </ListItemAvatar>
                         <ListItemText
                           primary={user.name}
-                          primaryTypographyProps={{ fontWeight: 'bold', width: '150px', flexShrink: 0 }}
+                          primaryTypographyProps={{ fontWeight: 'bold', width: '150px', flexShrink: 0, cursor: 'pointer', '&:hover': { textDecoration: 'underline', color: '#2e7d32' } }}
+                          onClick={() => handleViewUserData(user)}
+                          sx={{ cursor: 'pointer' }}
                         />
                         <ListItemText primary={user.email} sx={{ width: '250px', flexShrink: 0, mx: 2 }} />
                         <ListItemText primary={user.telefone || user.phone} sx={{ width: '150px', flexShrink: 0, mx: 2 }} />
                         <ListItemText primary={user.cidade} sx={{ width: '150px', flexShrink: 0, mx: 2 }} />
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 'auto' }}>
-                          <Button
-                            variant="contained"
-                            size="small"
-                            onClick={() => {
-                              try { localStorage.setItem('lastUserId', String(user.id)); } catch {}
-                              let target = '/questionario';
-                              let state = { user };
-                              try {
-                                const raw = localStorage.getItem(`questionario_${user.id}`);
-                                if (raw) {
-                                  const parsed = JSON.parse(raw);
-                                  const done = parsed?.completed?.antropo && parsed?.completed?.circ;
-                                  if (done) {
-                                    target = '/resumo-circunferencia';
-                                    state = { user, antropoData: parsed.antropoData || {}, dados: parsed.circData || {} };
-                                  } else {
-                                    state = { user, antropoData: parsed.antropoData || {}, dados: parsed.circData || {} };
-                                  }
-                                }
-                              } catch {}
-                              navigate(target, { state });
-                            }}
-                          >
-                            Ver Dados
-                          </Button>
                           <Button variant="outlined" size="small" onClick={() => openScheduleDialog(user)}>
                             AGENDAR CONSULTA
                           </Button>
