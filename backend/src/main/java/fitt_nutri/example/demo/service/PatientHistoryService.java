@@ -110,7 +110,8 @@ public class PatientHistoryService {
             dto.setGordura(h.getAnthropometricDataModel().getPorcentagemGordura());
             dto.setAltura(h.getAnthropometricDataModel().getAltura());
             dto.setGorduraVisceral(h.getAnthropometricDataModel().getGorduraVisceral());
-            dto.setIdadeMetabolica(h.getAnthropometricDataModel().getTaxaMetabolicaBasal());
+            dto.setIdadeMetabolica(h.getAnthropometricDataModel().getIdadeMetabolica().doubleValue());
+            dto.setTaxaMetabolicaBasal(h.getAnthropometricDataModel().getTaxaMetabolicaBasal());
 
             // 🔹 CIRCUNFERÊNCIA
             dto.setCintura(h.getDataCircleModel().getCintura());

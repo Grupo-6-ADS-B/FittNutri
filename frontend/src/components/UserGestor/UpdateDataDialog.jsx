@@ -72,6 +72,12 @@ export default function UpdateDataDialog({
           onChange={(e) => setUpdateForm(f => ({ ...f, gorduraVisceral: e.target.value }))} 
           fullWidth 
         />
+        <TextField 
+          label="Taxa Metabólica Basal (kcal)" 
+          value={updateForm.taxaMetabolicaBasal} 
+          onChange={(e) => setUpdateForm(f => ({ ...f, taxaMetabolicaBasal: e.target.value }))} 
+          fullWidth 
+        />
 
         <Box sx={{ gridColumn: "1 / -1", mt: 1 }}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>Circunferências</Typography>

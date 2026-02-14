@@ -59,6 +59,7 @@ export default function UserGestor() {
     massaMuscular: "",
     porcentagemGordura: "",
     gorduraVisceral: "",
+    taxaMetabolicaBasal: "",
     circ: { ...initialCirc },
     date: "" 
   });
@@ -243,6 +244,7 @@ export default function UserGestor() {
       massaMuscular: userFromList.massaMuscular ?? "",
       porcentagemGordura: userFromList.porcentagemGordura ?? "",
       gorduraVisceral: userFromList.gorduraVisceral ?? "",
+      taxaMetabolicaBasal: userFromList.taxaMetabolicaBasal ?? "",
       circ: { ...initialCirc, ...(userFromList.circ || {}) },
       date: startAppointment?.date || ""
     });
@@ -291,6 +293,7 @@ export default function UserGestor() {
             massaMuscular: anthropo.massaMuscular ?? prev.massaMuscular,
             porcentagemGordura: anthropo.porcentagemGordura ?? prev.porcentagemGordura,
             gorduraVisceral: anthropo.gorduraVisceral ?? prev.gorduraVisceral,
+            taxaMetabolicaBasal: anthropo.taxaMetabolicaBasal ?? prev.taxaMetabolicaBasal,
             circ: mergedCirc
           };
         });
@@ -343,6 +346,7 @@ export default function UserGestor() {
         massaMuscular: Number(updateForm.massaMuscular),
         gorduraVisceral: Number(updateForm.gorduraVisceral),
         porcentagemGordura: Number(updateForm.porcentagemGordura),
+        taxaMetabolicaBasal: Number(updateForm.taxaMetabolicaBasal),
       },
       circunferencia: {
         abdominal: Number(updateForm.circ["Circunferência Abdominal (cm)"]),

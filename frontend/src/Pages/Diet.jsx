@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Grid, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip
+  Box, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import MealModal from '../components/MealModal';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
@@ -131,6 +132,29 @@ console.log('Diet page - selectedUser:', selectedUser);
     }
   };
 
+  const handleClearDiet = async () => {
+    if (meals.length === 0) {
+      alert('Não há refeições para limpar.');
+      return;
+    }
+
+    const confirmacao = window.confirm(
+      `Tem certeza que deseja limpar TODAS as ${meals.length} refeições desta dieta?\n\nEsta ação não pode ser desfeita!`
+    );
+
+    if (!confirmacao) return;
+
+    try {
+      await Promise.all(meals.map(meal => api.delete(`/meals/${meal.id}`)));
+      setMeals([]);
+      alert('Todas as refeições foram removidas com sucesso!');
+    } catch (error) {
+      console.error('Erro ao limpar dieta:', error);
+      alert('Erro ao limpar algumas refeições. Verifique o console.');
+      loadMeals();
+    }
+  };
+
   const loadMeals = async () => {
     try {
       const response = await api.get(`/meals/${patientId}`);
@@ -201,6 +225,16 @@ console.log('Diet page - selectedUser:', selectedUser);
             sx={{ fontWeight: 600 }}
           >
             Imprimir
+          </Button>
+          <Button 
+            variant="outlined" 
+            color="error"
+            startIcon={<DeleteSweepIcon />} 
+            onClick={handleClearDiet}
+            disabled={meals.length === 0}
+            sx={{ fontWeight: 600 }}
+          >
+            Limpar Dieta
           </Button>
           <Button 
             variant="contained" 

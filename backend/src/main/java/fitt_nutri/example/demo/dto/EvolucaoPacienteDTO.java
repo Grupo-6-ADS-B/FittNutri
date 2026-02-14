@@ -16,6 +16,7 @@ public class EvolucaoPacienteDTO {
     private Double massaMuscular;
     private Double altura;
     private Double idadeMetabolica;
+    private Double taxaMetabolicaBasal;
 
     private Double cintura;
     private Double abdominal;

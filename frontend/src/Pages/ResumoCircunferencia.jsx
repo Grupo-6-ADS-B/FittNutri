@@ -171,6 +171,7 @@ export default function ResumoCircunferencia() {
                         massaMuscular: latest.massaMuscular,
                         porcentagemGordura: latest.porcentagemGordura,
                         gorduraVisceral: latest.gorduraVisceral,
+                        taxaMetabolicaBasal: latest.taxaMetabolicaBasal,
                     };
                     
                     const circ = {
