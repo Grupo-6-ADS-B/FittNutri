@@ -104,17 +104,28 @@ export default function UserGestor() {
   useEffect(() => {
     const loadAppointments = async () => {
       try {
+        let localAppointments = [];
+        try {
+          const stored = localStorage.getItem("appointments");
+          if (stored) localAppointments = JSON.parse(stored);
+        } catch {}
+        
         const res = await api.get('/schedulings');
         const list = Array.isArray(res.data) ? res.data : [];
-        const mapped = list.map((a) => ({
-          id: a.id,
-          userId: a.pacienteId ?? a.usuarioId ?? null,
-          userName: a.pacienteNome ?? "",
-          nutricionistaName: a.nutricionistaNome ?? "",
-          date: a.dataAgendada ?? "",
-          time: "09:00",
-          note: a.observacoes ?? "",
-        }));
+        const mapped = list.map((a) => {
+          const localAppt = localAppointments.find(la => la.id === a.id);
+          
+          return {
+            id: a.id,
+            userId: a.pacienteId ?? a.usuarioId ?? null,
+            userName: a.pacienteNome ?? "",
+            nutricionistaName: a.nutricionistaNome ?? "",
+            date: a.dataAgendada ?? "",
+            time: "09:00",
+            note: a.observacoes ?? "",
+            status: localAppt?.status || undefined
+          };
+        });
         setAppointments(mapped);
         try { localStorage.setItem("appointments", JSON.stringify(mapped)); } catch {}
       } catch (e) {
@@ -423,16 +434,17 @@ export default function UserGestor() {
       severity: 'success' 
     });
     
-    setAppointments(prev => prev.map(a => 
-      a.id === startAppointment.id ? { ...a, status: 'finalizada' } : a
-    ));
-    
-    try {
-      const updated = appointments.map(a => 
+    setAppointments(prev => {
+      const updated = prev.map(a => 
         a.id === startAppointment.id ? { ...a, status: 'finalizada' } : a
       );
-      localStorage.setItem("appointments", JSON.stringify(updated));
-    } catch {}
+      
+      try {
+        localStorage.setItem("appointments", JSON.stringify(updated));
+      } catch {}
+      
+      return updated;
+    });
     
     setStartDialogOpen(false);
     setStartAppointment(null);
