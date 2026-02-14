@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, CssBaseline, Grid, Card, Typography, Avatar, Button, Chip } from '@mui/material';
+import { Box, CssBaseline, Card, Typography, Button, Chip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import BalanceIcon from '@mui/icons-material/Balance';
@@ -13,9 +13,14 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [dateRange, setDateRange] = React.useState({
-    from: new Date(2025, 11, 11),
-    to: new Date(2025, 11, 12),
+  const [dateRange, setDateRange] = React.useState(() => {
+    const today = new Date();
+    today.setDate(today.getDate() + 1); 
+    sixtyDaysAgo.setDate(today.getDate() - 60);
+    return {
+      from: sixtyDaysAgo,
+      to: today,
+    };
   });
 
   const [startDate, setStartDate] = useState('');
@@ -37,8 +42,15 @@ export default function Dashboard() {
 
 
   React.useEffect(() => {
-    setStartDate(dateRange.from.toISOString().slice(0, 10));
-    setEndDate(dateRange.to.toISOString().slice(0, 10));
+    const fromYear = dateRange.from.getFullYear();
+    const fromMonth = String(dateRange.from.getMonth() + 1).padStart(2, '0');
+    const fromDay = String(dateRange.from.getDate()).padStart(2, '0');
+    setStartDate(`${fromYear}-${fromMonth}-${fromDay}`);
+
+    const toYear = dateRange.to.getFullYear();
+    const toMonth = String(dateRange.to.getMonth() + 1).padStart(2, '0');
+    const toDay = String(dateRange.to.getDate()).padStart(2, '0');
+    setEndDate(`${toYear}-${toMonth}-${toDay}`);
   }, [dateRange]);
 
   React.useEffect(() => {
@@ -128,37 +140,34 @@ export default function Dashboard() {
       pesoAtual = last.peso ?? '-';
       pesoIdeal = last.pesoIdeal ?? '-';
     }
-    // Se não houver dados, usa valores fictícios
-    if (pesoAtual === '-' && pesoIdeal === '-') {
-      pesoAtual = 78;
-      pesoIdeal = 72;
-    }
-    // Dados do gráfico
-    const pesoData = [pesoAtual, pesoIdeal];
-    let labels = ['1° consulta', '2° consulta'];
-    // Se houver dados de evolução, use as datas reais
-    let evoLabels = ['1° consulta', '2° consulta'];
-    let evoDates = ['', ''];
-    if (evoSorted.length) {
-      evoLabels = evoSorted.map((e, idx) => `${idx+1}° consulta`);
-      evoDates = evoSorted.map(e => {
-        const data = e.dataConsulta ? new Date(e.dataConsulta) : null;
-        return data && !isNaN(data) ? `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth()+1).padStart(2, '0')}` : '';
-      });
-      if (evoLabels.length === 1) evoLabels.push('2° consulta');
-      if (evoDates.length === 1) evoDates.push('');
-    }
+    const pesoData = evoSorted.length > 0 ? evoSorted.map(e => e.peso ?? 0) : [];
+    let evoLabels = evoSorted.length ? evoSorted.map((e, idx) => `${idx+1}° consulta`) : [];
+    let evoDates = evoSorted.length ? evoSorted.map(e => {
+      const data = e.dataConsulta ? new Date(e.dataConsulta) : null;
+      return data && !isNaN(data) ? `${String(data.getDate()).padStart(2, '0')}/${String(data.getMonth()+1).padStart(2, '0')}` : '';
+    }) : [];
+    
     const width = 1100;
     const height = 350;
     const padding = 50;
     const rightPadding = 100;
-    // Garante que ambos são números para o gráfico
     const numPesoData = pesoData.map(v => Number(v)).filter(v => !isNaN(v));
-    const minPeso = Math.min(...numPesoData) - 1;
-    const maxPeso = Math.max(...numPesoData) + 1;
-    const getY = (peso) => padding + ((maxPeso - peso) / (maxPeso - minPeso)) * (height - padding * 2);
-    const getX = (i) => padding + i * ((width - padding - rightPadding) / (pesoData.length - 1));
-    const points = pesoData.map((peso, i) => `${getX(i)},${getY(Number(peso))}`).join(' ');
+    const minPeso = numPesoData.length > 0 ? Math.min(...numPesoData) - 1 : 0;
+    const maxPeso = numPesoData.length > 0 ? Math.max(...numPesoData) + 1 : 100;
+    const getY = (peso) => maxPeso === minPeso ? height / 2 : padding + ((maxPeso - peso) / (maxPeso - minPeso)) * (height - padding * 2);
+    const getX = (i) => pesoData.length > 1 ? padding + i * ((width - padding - rightPadding) / (pesoData.length - 1)) : width / 2;
+    const points = pesoData.length > 0 ? pesoData.map((peso, i) => `${getX(i)},${getY(Number(peso))}`).join(' ') : '';
+    
+    if (pesoData.length === 0) {
+      return (
+        <Card sx={{ p: 2, boxShadow: 3, mb: 2}}>
+          <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8, mb: 2 }}>Evolução do Peso</Typography>
+          <Box sx={{ width: width, height: height + 40, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f5f5', borderRadius: 1 }}>
+            <Typography variant="body2" color="text.secondary">Nenhum dado de peso encontrado para o período selecionado. Selecione um intervalo com consultas registradas.</Typography>
+          </Box>
+        </Card>
+      );
+    }
     const [showSelect, setShowSelect] = React.useState(false);
     return (
       <Card sx={{ p: 2, boxShadow: 3, mb: 2}}>
@@ -176,34 +185,32 @@ export default function Dashboard() {
               <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#ff9800', color: 'white', px: 1.5, py: 0.5, borderRadius: 1.5, fontWeight: 'bold', fontSize: 14, boxShadow: 1 }}>
                 Peso Atual:&nbsp;{pesoAtual} kg
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#4caf50', color: 'white', px: 1.5, py: 0.5, borderRadius: 1.5, fontWeight: 'bold', fontSize: 14, boxShadow: 1 }}>
-                Peso Ideal:&nbsp;{pesoIdeal} kg
-              </Box>
+              {pesoIdeal !== '-' && (
+                <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#4caf50', color: 'white', px: 1.5, py: 0.5, borderRadius: 1.5, fontWeight: 'bold', fontSize: 14, boxShadow: 1 }}>
+                  Peso Ideal:&nbsp;{pesoIdeal} kg
+                </Box>
+              )}
               <Button size="small" variant="outlined" color="secondary" sx={{ ml: 1, minWidth: 0, px: 1, fontSize: 13, py: 0.2 }} onClick={() => setShowSelect(false)}>Fechar</Button>
             </Box>
           )}
         </Box>
         <Box sx={{ width: width, height: height + 40, position: 'relative' }}>
           <svg width={width} height={height} style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 4px #eee' }}>
-            {/* Eixos Y */}
             {numPesoData.map((val, idx) => (
               <g key={val}>
                 <text x={18} y={getY(val)+4} fontSize="13" fill="#888">{val}</text>
                 <line x1={padding-10} y1={getY(val)} x2={width-rightPadding+10} y2={getY(val)} stroke="#eee" strokeDasharray="2 2" />
               </g>
             ))}
-            {/* Linha do gráfico */}
             <polyline
               fill="none"
               stroke={primary}
               strokeWidth="4"
               points={points}
             />
-            {/* Pontos */}
             {pesoData.map((peso, i) => (
               <circle key={i} cx={getX(i)} cy={getY(Number(peso))} r={8} fill={secondary} />
             ))}
-            {/* Eixo X: Consulta dinâmica e data abaixo */}
             {evoLabels.map((label, i) => (
               <g key={label}>
                 <text x={getX(i)} y={height-30} fontSize="16" textAnchor="middle" fill="#888">{label}</text>
@@ -216,71 +223,34 @@ export default function Dashboard() {
     );
   };
 
-  // const DonutChartCard = () => {
-  //   const theme = useTheme();
-  //   const primary = theme.palette.primary.main;
-  //   const secondary = theme.palette.secondary.main;
-  //
-  //   const legendData = [
-  //     { label: 'Carboidratos', value: 40, color: secondary },
-  //     { label: 'Proteínas', value: 35, color: primary },
-  //     { label: 'Gorduras', value: 25, color: '#FFD700' },
-  //   ];
-  //
-  //   return (
-  //     <Card sx={{ p: 2, boxShadow: 3, height: 388, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-  //       <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8 }}>Distribuição de Macronutrientes</Typography>
-  //
-  //       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexGrow: 1 }}>
-  //         <Box sx={{ width: 170, height: 160, position: 'relative', my: 2 }}>
-  //           <Box sx={{
-  //             width: '100%',
-  //             height: '100%',
-  //             borderRadius: '50%',
-  //             background: `conic-gradient(${secondary} 0deg, ${secondary} 120deg, ${primary} 120deg, ${primary} 240deg, #FFD700 240deg, #FFD700 360deg)`,
-  //             display: 'flex',
-  //             alignItems: 'center',
-  //             justifyContent: 'center'
-  //           }} />
-  //           <Box sx={{
-  //             position: 'absolute',
-  //             top: '50%',
-  //             left: '50%',
-  //             transform: 'translate(-50%, -50%)',
-  //             width: 100,
-  //             height: 100,
-  //             borderRadius: '50%',
-  //             bgcolor: 'white'
-  //           }} />
-  //           <Typography variant="h4" sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 'bold', color: primary }}>100%</Typography>
-  //         </Box>
-  //
-  //         <Box sx={{ mt: 2 }}>
-  //           {legendData.map((item) => (
-  //             <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', mb: 1, gap: 1.5 }}>
-  //               <Box sx={{ width: 18, height: 18, borderRadius: '50%', bgcolor: item.color, mr: 1, border: '2px solid #eee' }} />
-  //               <Typography variant="body2" sx={{ minWidth: 90 }}>{item.label}</Typography>
-  //               <Typography variant="body2" fontWeight="bold" color="text.secondary">{item.value}%</Typography>
-  //             </Box>
-  //           ))}
-  //         </Box>
-  //       </Box>
-  //     </Card>
-  //   );
-  // };
-
   const ConsultasBarChart = () => {
-    const consultas = [
-      { data: '12/06', qtd: 2 },
-      { data: '15/06', qtd: 1 },
-      { data: '18/06', qtd: 3 },
-      { data: '22/06', qtd: 1 },
-      { data: '25/06', qtd: 2 },
-      { data: '28/06', qtd: 1 },
-      { data: '30/06', qtd: 4 },
-    ];
     const theme = useTheme();
     const green = theme.palette.primary.main;
+
+    const consultasPorData = {};
+    evolution.forEach(e => {
+      if (e.dataConsulta) {
+        const data = e.dataConsulta.slice(0, 10); 
+        const dataFormatada = new Date(data).toLocaleDateString('pt-BR');
+        consultasPorData[dataFormatada] = (consultasPorData[dataFormatada] || 0) + 1;
+      }
+    });
+
+    const consultas = Object.entries(consultasPorData).map(([data, qtd]) => ({
+      data,
+      qtd
+    })).sort((a, b) => new Date(a.data.split('/').reverse().join('-')) - new Date(b.data.split('/').reverse().join('-')));
+
+    if (consultas.length === 0) {
+      return (
+        <Box>
+          <Typography variant="h6" fontWeight="bold" mb={2}>Histórico de consultas</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 180, bgcolor: '#f8fff9', borderRadius: 2, boxShadow: 1 }}>
+            <Typography variant="body2" color="text.secondary">Nenhuma consulta no período selecionado</Typography>
+          </Box>
+        </Box>
+      );
+    }
 
     return (
       <Box>
@@ -307,7 +277,7 @@ export default function Dashboard() {
             <Typography variant="caption" color="text.secondary">Data Início</Typography>
             <input
               type="date"
-              value={dateRange.from.toISOString().slice(0, 10)}
+              value={`${dateRange.from.getFullYear()}-${String(dateRange.from.getMonth() + 1).padStart(2, '0')}-${String(dateRange.from.getDate()).padStart(2, '0')}`}
               onChange={e => {
                 const newFrom = new Date(e.target.value);
                 setDateRange({ 
@@ -323,7 +293,7 @@ export default function Dashboard() {
             <Typography variant="caption" color="text.secondary">Data Fim</Typography>
             <input
               type="date"
-              value={dateRange.to.toISOString().slice(0, 10)}
+              value={`${dateRange.to.getFullYear()}-${String(dateRange.to.getMonth() + 1).padStart(2, '0')}-${String(dateRange.to.getDate()).padStart(2, '0')}`}
               onChange={e => {
                 const newTo = new Date(e.target.value);
                 setDateRange({ 

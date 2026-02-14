@@ -328,8 +328,16 @@ export default function UserGestor() {
     return;
   }
 
+  const dateParts = updateForm.date.split('-');
+  const adjustDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+  adjustDate.setDate(adjustDate.getDate() + 1);
+  const year = adjustDate.getFullYear();
+  const month = String(adjustDate.getMonth() + 1).padStart(2, '0');
+  const day = String(adjustDate.getDate()).padStart(2, '0');
+  const adjustedDate = `${year}-${month}-${day}T00:00:00Z`;
+
   const payload = {
-    dataConsulta: updateForm.date,
+    dataConsulta: adjustedDate,
     antropometria: {
       peso: Number(updateForm.peso),
       altura: Number(updateForm.altura),

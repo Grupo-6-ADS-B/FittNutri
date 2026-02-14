@@ -275,7 +275,12 @@ const handleResumoClick = async () => {
       };
 
       try {
-        const today = new Date().toISOString().slice(0, 10);
+        const now = new Date();
+        now.setDate(now.getDate() + 1); 
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}T00:00:00Z`;
         const historyPayload = {
           dataConsulta: today,
           antropometria: {
