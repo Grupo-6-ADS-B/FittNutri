@@ -1,22 +1,48 @@
 import { Container, Typography, Box } from '@mui/material';
 import { Section } from "./Section";
 import { CardValues as Card } from './CardValues';
-import { useEffect, useState } from 'react';
-import api from '../utils/api';
+import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects';
+import AssessmentIcon from '@mui/icons-material/Assessment';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import BoltIcon from '@mui/icons-material/Bolt';
+
+const valores = [
+  {
+    id: 1,
+    title: "Inovação",
+    description:
+      "Usamos tecnologia e foco no usuário para aprimorar a prática clínica e gerar soluções escaláveis.",
+    color: "#2e7d32",
+    icon: EmojiObjectsIcon
+  },
+  {
+    id: 2,
+    title: "Precisão",
+    description:
+      "Baseamos decisões em dados confiáveis e métodos consistentes para garantir qualidade e segurança.",
+    color: "#1976d2",
+    icon: AssessmentIcon
+  },
+  {
+    id: 3,
+    title: "Humanização",
+    description:
+      "Cuidamos com empatia e personalização, respeitando o contexto e as preferências de cada paciente.",
+    color: "#8b5cf6",
+    icon: FavoriteIcon
+  },
+  {
+    id: 4,
+    title: "Eficiência",
+    description:
+      "Otimizamos processos para reduzir tarefas e permitir foco total no cuidado ao paciente.",
+    color: "#f59e0b",
+    icon: BoltIcon
+  }
+];
+
 
 function Values() {
-  const [valores, setValores] = useState([]);
-  useEffect(() => {
-    async function fetchValores() {
-      try {
-        const response = await api.get('/valores');
-        setValores(Array.isArray(response.data) ? response.data : []);
-      } catch {
-        setValores([]);
-      }
-    }
-    fetchValores();
-  }, []);
   return (
     <Section
       backgroundImage="/fundo-frutas.jpg"
