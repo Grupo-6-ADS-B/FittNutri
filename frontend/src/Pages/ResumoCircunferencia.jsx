@@ -2,18 +2,14 @@ import React, { useMemo, useEffect } from "react";
 import api from '../utils/api';
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-    Box, Typography, Paper, Card, CardMedia, CardContent,
-    IconButton, Tooltip, Button, Grid
+    Box, Typography, Paper, Card, CardMedia, CardContent, Button, Grid
 } from "@mui/material";
 import { useTheme, styled } from "@mui/material/styles";
-import MenuIcon from '@mui/icons-material/Menu';
 import ScaleIcon from '@mui/icons-material/Scale';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
-const minimalWidth = 80;
-const expandedWidth = 340;
 
 const KpiImageUrls = {
     pesoAtual: 'https://images.unsplash.com/photo-1542849800-47864f77894a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80',
@@ -69,7 +65,6 @@ export default function ResumoCircunferencia() {
     const lastUserId = localStorage.getItem('lastUserId');
     const preferredPatientId = storedPatientId || lastUserId;
     
-    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
     
     
@@ -97,7 +92,6 @@ export default function ResumoCircunferencia() {
                     }))
                     : [];
                 setUsersList(mapped);
-                // Prioriza usuário vindo do location.state
                 if (location.state?.user) {
                     setSelectedUser(location.state.user);
                 } else if (preferredPatientId) {
@@ -127,6 +121,8 @@ export default function ResumoCircunferencia() {
             console.log('Buscando dados para usuário:', selectedUser.id);
             try {
                 const today = new Date();
+                today.setDate(today.getDate() + 1);
+                
                 const manyYearsAgo = new Date(today);
                 manyYearsAgo.setFullYear(today.getFullYear() - 10); 
                 
@@ -140,16 +136,31 @@ export default function ResumoCircunferencia() {
                 const toDay = String(today.getDate()).padStart(2, '0');
                 const endDate = `${toYear}-${toMonth}-${toDay}`;
                 
+                console.log('Buscando com datas:', startDate, 'até', endDate);
+                
                 const historyRes = await api.get(`/patient-history/evolucao/${selectedUser.id}`, {
                     params: { dataInicio: startDate, dataFim: endDate }
                 });
                 console.log('Resposta do histórico (evolução):', historyRes.data);
                 
-                const historyList = Array.isArray(historyRes.data) ? historyRes.data : [];
+                let historyList = Array.isArray(historyRes.data) ? historyRes.data : [];
                 
-                const sorted = [...historyList].sort((a, b) => new Date(b.dataConsulta) - new Date(a.dataConsulta));
+                console.log('Lista consolidada:', historyList);
+                
+                const withIndex = historyList.map((item, index) => ({ ...item, _originalIndex: index }));
+                
+                const sorted = [...withIndex].sort((a, b) => {
+                    const dateA = new Date(a.dataConsulta);
+                    const dateB = new Date(b.dataConsulta);
+                    const comparison = dateB - dateA; 
+                    return comparison !== 0 ? comparison : (b._originalIndex - a._originalIndex);
+                });
+                
                 const latest = sorted.length ? sorted[0] : null;
-                console.log('Latest após sort:', latest);
+                console.log('Consulta MAIS RECENTE:', latest);
+                if (sorted.length > 1) {
+                    console.log('Há', sorted.length, 'consultas. A mais recente foi priorizada.');
+                }
                 
                 if (latest) {
                     const anthropo = {
