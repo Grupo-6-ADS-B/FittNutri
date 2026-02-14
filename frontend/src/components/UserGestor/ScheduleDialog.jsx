@@ -4,7 +4,10 @@ import {
   DialogContent,
   DialogActions,
   TextField,
-  Button
+  Button,
+  Box,
+  Typography,
+  Divider
 } from "@mui/material";
 
 export default function ScheduleDialog({ 
@@ -20,47 +23,96 @@ export default function ScheduleDialog({
   setApptNote
 }) {
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Agendar Consulta</DialogTitle>
-      <DialogContent 
-        sx={{ 
-          display: "flex", 
-          flexDirection: "column", 
-          gap: 2, 
-          minWidth: 320 
-        }}
-      >
-        <TextField 
-          label="Paciente" 
-          value={scheduleUser?.name || ""} 
-          sx={{ mt: 4 }} 
-          disabled 
-        />
-        <TextField 
-          type="date" 
-          label="Data" 
-          value={apptDate} 
-          onChange={(e) => setApptDate(e.target.value)} 
-          InputLabelProps={{ shrink: true }} 
-        />
-        <TextField 
-          type="time" 
-          label="Hora" 
-          value={apptTime} 
-          onChange={(e) => setApptTime(e.target.value)} 
-          InputLabelProps={{ shrink: true }} 
-        />
-        <TextField 
-          label="Observação" 
-          value={apptNote} 
-          onChange={(e) => setApptNote(e.target.value)} 
-          multiline 
-          minRows={2} 
-        />
+    <Dialog 
+      open={open} 
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      PaperProps={{
+        sx: {
+          borderRadius: 1,
+          boxShadow: 24
+        }
+      }}
+    >
+      <DialogTitle sx={{ pb: 1 }}>
+        <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+          Agendar Consulta
+        </Typography>
+      </DialogTitle>
+      <Divider />
+      
+      <DialogContent sx={{ pt: 3, pb: 2 }}>
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+          <TextField 
+            label="Paciente" 
+            value={scheduleUser?.name || ""} 
+            disabled 
+            fullWidth
+            variant="outlined"
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                backgroundColor: 'grey.50'
+              }
+            }}
+          />
+          
+          <TextField 
+            type="date" 
+            label="Data" 
+            value={apptDate} 
+            onChange={(e) => setApptDate(e.target.value)} 
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            variant="outlined"
+          />
+          
+          <TextField 
+            type="time" 
+            label="Hora" 
+            value={apptTime} 
+            onChange={(e) => setApptTime(e.target.value)} 
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+            variant="outlined"
+          />
+          
+          <TextField 
+            label="Observação" 
+            value={apptNote} 
+            onChange={(e) => setApptNote(e.target.value)} 
+            multiline 
+            minRows={3}
+            fullWidth
+            variant="outlined"
+            placeholder="Adicione observações sobre a consulta"
+          />
+        </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
-        <Button variant="contained" onClick={onSave}>Salvar</Button>
+      
+      <Divider />
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button 
+          onClick={onClose}
+          variant="text"
+          sx={{ 
+            color: 'text.secondary',
+            fontWeight: 600 
+          }}
+        >
+          Cancelar
+        </Button>
+        <Button 
+          variant="contained" 
+          onClick={onSave}
+          color="success"
+          sx={{ 
+            fontWeight: 600,
+            px: 3
+          }}
+        >
+          Salvar
+        </Button>
       </DialogActions>
     </Dialog>
   );
