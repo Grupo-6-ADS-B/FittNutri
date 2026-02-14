@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [dateRange, setDateRange] = React.useState(() => {
     const today = new Date();
     today.setDate(today.getDate() + 1); 
+    const sixtyDaysAgo = new Date(today);
     sixtyDaysAgo.setDate(today.getDate() - 60);
     return {
       from: sixtyDaysAgo,
