@@ -7,7 +7,9 @@ import {
   Typography,
   Paper,
   Chip,
-  Button
+  Button,
+  TextField,
+  Grid
 } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { formatDateHuman, getConsultationStatus } from '../../utils/userGestorUtils';
@@ -19,16 +21,46 @@ export default function WeeklyConsultationsDialog({
   users,
   onStartConsultation,
   persistActivePatient,
-  setSnackbar
+  setSnackbar,
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange
 }) {
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle sx={{ pb: 2 }}>📅 Consultas da Semana</DialogTitle>
+      <DialogTitle sx={{ pb: 2 }}>📅 Consultas</DialogTitle>
+      <Box sx={{ px: 3, pt: 2, pb: 1 }}>
+        <Grid container spacing={2}>
+          <Grid item xs={6}>
+            <TextField
+              label="Data Início"
+              type="date"
+              value={startDate}
+              onChange={(e) => onStartDateChange(e.target.value)}
+              fullWidth
+              size="small"
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+          <Grid item xs={6}>
+            <TextField
+              label="Data Fim"
+              type="date"
+              value={endDate}
+              onChange={(e) => onEndDateChange(e.target.value)}
+              fullWidth
+              size="small"
+              InputLabelProps={{ shrink: true }}
+            />
+          </Grid>
+        </Grid>
+      </Box>
       <DialogContent dividers sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
         {weeklyAppointments.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography variant="body2" color="text.secondary">
-              Nenhuma consulta agendada nesta semana.
+              Nenhuma consulta agendada no período selecionado.
             </Typography>
           </Box>
         ) : (

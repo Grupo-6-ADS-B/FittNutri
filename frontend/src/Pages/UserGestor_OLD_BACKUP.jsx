@@ -1005,12 +1005,12 @@ export default function UserGestor() {
       </Dialog>
 
       <Dialog open={weekDialogOpen} onClose={closeWeekDialog} fullWidth maxWidth="sm">
-        <DialogTitle sx={{ pb: 2 }}>📅 Consultas da Semana</DialogTitle>
+        <DialogTitle sx={{ pb: 2 }}>📅 Próximas Consultas</DialogTitle>
         <DialogContent dividers sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
           {weeklyAppointments.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Typography variant="body2" color="text.secondary">
-                Nenhuma consulta agendada nesta semana.
+                Nenhuma consulta agendada no período selecionado.
               </Typography>
             </Box>
           ) : (

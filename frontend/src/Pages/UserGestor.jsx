@@ -37,6 +37,18 @@ export default function UserGestor() {
   const [apptNote, setApptNote] = useState("");
   const [weekDialogOpen, setWeekDialogOpen] = useState(false);
   
+  const getTodayString = () => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  };
+  const getEndDateString = () => {
+    const end = new Date();
+    end.setDate(end.getDate() + 7);
+    return end.toISOString().split('T')[0];
+  };
+  const [filterStartDate, setFilterStartDate] = useState(getTodayString());
+  const [filterEndDate, setFilterEndDate] = useState(getEndDateString());
+  
   const location = useNavigate ? useLocation() : {};
   let userId = location?.state?.user?.id;
   if (!userId) {
@@ -465,12 +477,11 @@ export default function UserGestor() {
   const closeWeekDialog = () => setWeekDialogOpen(false);
 
   const weeklyAppointments = (() => {
-    const start = startOfWeek();
-    const end = new Date(start);
-    end.setDate(start.getDate() + 7);
+    const start = new Date(filterStartDate + 'T00:00:00');
+    const end = new Date(filterEndDate + 'T23:59:59');
     return appointments.filter(a => {
-      const d = new Date(a.date);
-      return d >= start && d < end;
+      const d = new Date(a.date + 'T00:00:00');
+      return d >= start && d <= end;
     }).sort((a,b) => (a.date + a.time).localeCompare(b.date + b.time));
   })();
 
@@ -751,6 +762,10 @@ export default function UserGestor() {
         onStartConsultation={handleStartConsultation}
         persistActivePatient={persistActivePatient}
         setSnackbar={setSnackbar}
+        startDate={filterStartDate}
+        endDate={filterEndDate}
+        onStartDateChange={setFilterStartDate}
+        onEndDateChange={setFilterEndDate}
       />
 
       <ConsultationDialog
