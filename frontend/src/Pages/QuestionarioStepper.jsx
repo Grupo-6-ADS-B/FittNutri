@@ -23,6 +23,7 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "../theme";
+import calcularTMB from '../utils/calcularTMB';
  
 
 const steps = ["Dados Antropométricos", "Circunferências"];
@@ -140,6 +141,24 @@ const [circData, setCircData] = useState(() => ({
     if (!Number.isFinite(peso) || !Number.isFinite(altura)) return '';
     return calculateIMC(peso, altura);
   }, [antropoData.peso, antropoData.altura]);
+
+  useEffect(() => {
+    const peso = parseFloat(String(antropoData.peso || '').replace(',', '.'));
+    const altura = parseFloat(String(antropoData.altura || '').replace(',', '.'));
+    const idade = parseFloat(String(antropoData.idade || '').replace(',', '.'));
+    const sexo = selectedUser?.sexo || 'feminino';
+    const atividade = selectedUser?.atividade || 'sedentario';
+
+    if (peso > 0 && altura > 0 && idade > 0) {
+      const tmbCalculada = calcularTMB(peso, altura, idade, sexo, atividade);
+      if (tmbCalculada && Number.isFinite(tmbCalculada)) {
+        setAntropoData(prev => ({
+          ...prev,
+          taxaMetabolicaBasal: Math.round(tmbCalculada).toString()
+        }));
+      }
+    }
+  }, [antropoData.peso, antropoData.altura, antropoData.idade, selectedUser?.sexo, selectedUser?.atividade]);
 
   const startEditUser = () => setIsEditingUser(true);
   const cancelEditUser = () => {
@@ -329,7 +348,7 @@ const handleResumoClick = async () => {
     { label: "Porcentagem de Gordura (%)", field: "porcentagemGordura" },
     { label: "Massa Muscular (%)", field: "massaMuscular" },
     { label: "Gordura Visceral (%)", field: "gorduraVisceral" },
-    { label: "Taxa Metabólica Basal (kcal)", field: "taxaMetabolicaBasal" },
+    { label: "Taxa Metabólica Basal (kcal)", field: "taxaMetabolicaBasal", isCalculated: true },
     { label: "Idade Metabólica (anos)", field: "idadeMetabolica" } 
   ];
 
@@ -458,13 +477,18 @@ const handleResumoClick = async () => {
                       key={item.field}
                       label={item.label} 
                       fullWidth
-                      value={item.isCalculated ? imc : antropoData[item.field]}
+                      value={
+                        item.field === 'imc' && item.isCalculated 
+                          ? imc 
+                          : antropoData[item.field] || ''
+                      }
                       disabled={item.isCalculated}
                       onChange={!item.isCalculated ? handleAntropoChange(item.field) : undefined}
                       type="text" 
                       inputProps={{
                         pattern: "[0-9]*[.,]?[0-9]*" 
                       }}
+                      helperText={item.field === 'taxaMetabolicaBasal' || item.field === 'imc' && item.isCalculated ? "Calculado automaticamente" : undefined}
                     />
                   ))}
                 <Grid container spacing={2} sx={{ justifyContent: 'flex-start', pl: -1, ml: -2 }}>
@@ -473,7 +497,7 @@ const handleResumoClick = async () => {
                       variant="outlined" 
                       color="primary" 
                       fullWidth
-                      onClick={() => navigate('/register')}
+                      onClick={() => navigate('/gestor')}
                     >
                       Voltar
                     </Button>

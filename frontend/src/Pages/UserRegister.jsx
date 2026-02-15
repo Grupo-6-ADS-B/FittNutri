@@ -378,11 +378,11 @@ export default function UserRegister() {
                 fullWidth
                 variant="outlined"
               >
-                <MenuItem value="sedentario">Sedentário</MenuItem>
-                <MenuItem value="levemente_ativo">Levemente ativo</MenuItem>
-                <MenuItem value="moderadamente_ativo">Moderadamente ativo</MenuItem>
-                <MenuItem value="muito_ativo">Muito ativo</MenuItem>
-                <MenuItem value="extremamente_ativo">Extremamente ativo</MenuItem>
+                <MenuItem value="sedentário">Sedentário</MenuItem>
+                <MenuItem value="levemente ativo">Levemente ativo</MenuItem>
+                <MenuItem value="moderadamente ativo">Moderadamente ativo</MenuItem>
+                <MenuItem value="muito ativo">Muito ativo</MenuItem>
+                <MenuItem value="extremamente ativo">Extremamente ativo</MenuItem>
               </TextField>
 
               <Divider sx={{ mt: 1 }} />

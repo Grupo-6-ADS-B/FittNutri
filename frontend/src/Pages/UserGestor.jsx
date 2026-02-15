@@ -60,6 +60,7 @@ export default function UserGestor() {
     porcentagemGordura: "",
     gorduraVisceral: "",
     taxaMetabolicaBasal: "",
+    atividade: "",
     circ: { ...initialCirc },
     date: "" 
   });
@@ -245,6 +246,7 @@ export default function UserGestor() {
       porcentagemGordura: userFromList.porcentagemGordura ?? "",
       gorduraVisceral: userFromList.gorduraVisceral ?? "",
       taxaMetabolicaBasal: userFromList.taxaMetabolicaBasal ?? "",
+      atividade: userFromList.atividade ?? "",
       circ: { ...initialCirc, ...(userFromList.circ || {}) },
       date: startAppointment?.date || ""
     });
@@ -381,6 +383,7 @@ export default function UserGestor() {
       massaMuscular: updateForm.massaMuscular,
       porcentagemGordura: updateForm.porcentagemGordura,
       gorduraVisceral: updateForm.gorduraVisceral,
+      atividade: updateForm.atividade,
       circ: updateForm.circ,
       imc: computeImc(updateForm.peso, updateForm.altura)
     };
@@ -768,6 +771,7 @@ export default function UserGestor() {
         onSave={saveUpdateData}
         updateForm={updateForm}
         setUpdateForm={setUpdateForm}
+        selectedUser={users.find(u => u.id === (updateForm.id || resolveActivePatientId()))}
       />
     </>
   );

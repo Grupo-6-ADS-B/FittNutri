@@ -6,17 +6,44 @@ import {
   TextField,
   Box,
   Typography,
-  Button
+  Button,
+  MenuItem
 } from "@mui/material";
 import { computeImc } from '../../utils/userGestorUtils';
+import calcularTMB from '../../utils/calcularTMB';
+import { useEffect } from 'react';
 
 export default function UpdateDataDialog({ 
   open, 
   onClose, 
   onSave,
   updateForm,
-  setUpdateForm
+  setUpdateForm,
+  selectedUser
 }) {
+  useEffect(() => {
+    if (!selectedUser || !open) return;
+
+    const peso = parseFloat(String(updateForm.peso || '').replace(',', '.'));
+    const altura = parseFloat(String(updateForm.altura || '').replace(',', '.'));
+    const idade = parseFloat(String(updateForm.idadeMetabolica || selectedUser?.idade || '').replace(',', '.'));
+    const sexo = selectedUser?.sexo || 'feminino';
+    const atividade = updateForm.atividade || selectedUser?.atividade || 'sedentário';
+
+    if (peso > 0 && altura > 0 && idade > 0) {
+      const tmbCalculada = calcularTMB(peso, altura, idade, sexo, atividade);
+      if (tmbCalculada && Number.isFinite(tmbCalculada)) {
+        const tmbArredondada = Math.round(tmbCalculada).toString();
+        if (updateForm.taxaMetabolicaBasal !== tmbArredondada) {
+          setUpdateForm(f => ({
+            ...f,
+            taxaMetabolicaBasal: tmbArredondada
+          }));
+        }
+      }
+    }
+  }, [updateForm.peso, updateForm.altura, updateForm.idadeMetabolica, updateForm.atividade, selectedUser, open]);
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>Atualizar Dados do Paciente</DialogTitle>
@@ -33,6 +60,7 @@ export default function UpdateDataDialog({
           label="IMC" 
           value={computeImc(updateForm.peso, updateForm.altura)} 
           disabled 
+          helperText="Calculado automaticamente"
           fullWidth 
         />
 
@@ -75,9 +103,24 @@ export default function UpdateDataDialog({
         <TextField 
           label="Taxa Metabólica Basal (kcal)" 
           value={updateForm.taxaMetabolicaBasal} 
-          onChange={(e) => setUpdateForm(f => ({ ...f, taxaMetabolicaBasal: e.target.value }))} 
+          disabled
           fullWidth 
+          helperText="Calculado automaticamente"
         />
+
+        <TextField
+          select
+          label="Nível de atividade física"
+          value={updateForm.atividade}
+          onChange={(e) => setUpdateForm(f => ({ ...f, atividade: e.target.value }))}
+          fullWidth
+        >
+          <MenuItem value="sedentário">Sedentário</MenuItem>
+          <MenuItem value="levemente ativo">Levemente ativo</MenuItem>
+          <MenuItem value="moderadamente ativo">Moderadamente ativo</MenuItem>
+          <MenuItem value="muito ativo">Muito ativo</MenuItem>
+          <MenuItem value="extremamente ativo">Extremamente ativo</MenuItem>
+        </TextField>
 
         <Box sx={{ gridColumn: "1 / -1", mt: 1 }}>
           <Typography variant="subtitle2" sx={{ mb: 1 }}>Circunferências</Typography>
