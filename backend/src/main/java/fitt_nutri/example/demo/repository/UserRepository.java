@@ -18,4 +18,6 @@ public interface UserRepository extends JpaRepository<UserModel, Integer> {
     Optional<UserModel> findByCpf(String cpf);
 
     Optional<UserModel> findByCrn(String crn);
+
+
 }

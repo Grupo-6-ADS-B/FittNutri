@@ -18,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 @Component
 @RequiredArgsConstructor
@@ -28,29 +29,48 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
     private final AutenticacaoService autenticacaoService;
     private final GerenciadorTokenJwt jwtTokenManager;
 
-    @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String username = null;
         String token = null;
+        String username = null;
 
-        String requestTokenHeader = request.getHeader("Authorization");
+        String header = request.getHeader("Authorization");
 
-        if (Objects.nonNull(requestTokenHeader) && requestTokenHeader.startsWith("Bearer ")) {
-            token = requestTokenHeader.substring(7);
+        if (header != null && header.startsWith("Bearer ")) {
+            token = header.substring(7);
+
             try {
                 username = jwtTokenManager.getUsernameFromToken(token);
-            } catch (ExpiredJwtException e) {
-                LOGGER.warn("[FALHA NA AUTENTICAÇÃO] - Token expirado. Usuário: {} - {}", e.getClaims().getSubject(), e.getMessage());
-                LOGGER.warn("[FALHA NA AUTENTICAÇÃO] - Stacktrace: {}", Arrays.toString(e.getStackTrace()));
 
+            } catch (ExpiredJwtException e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return; // 🔥 IMPORTANTE! PARA O FLUXO!
+            } catch (Exception e) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                return; // 🔥 Token inválido DERUBA AQUI
             }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            addUsernameInContext(request, username, token);
+
+            UserDetails userDetails = autenticacaoService.loadUserByUsername(username);
+
+            if (jwtTokenManager.validateToken(token, userDetails)) {
+
+                String role = jwtTokenManager.getRoleFromToken(token);
+
+                UsernamePasswordAuthenticationToken auth =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                List.of(() -> role)
+                        );
+
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                SecurityContextHolder.getContext().setAuthentication(auth);
+            }
         }
 
         filterChain.doFilter(request, response);

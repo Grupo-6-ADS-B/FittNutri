@@ -58,7 +58,6 @@ function Values() {
             Nossa missão é uma plataforma completa e intuitiva que facilite o trabalho de nutricionistas, promovendo mais eficiência no atendimento e saúde de qualidade para todos.
           </Typography>
         </Box>
-
         <Box
           sx={{
             display: 'grid',

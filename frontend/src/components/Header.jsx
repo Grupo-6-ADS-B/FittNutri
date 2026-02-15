@@ -94,7 +94,7 @@ function Header({
           </Button>
         </Stack>)}
 
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} alignItems="center">
           {showButtons ? (
             <>
               <Button variant="outlined" color="primary" onClick={() => onSwitchToLogin?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }}>
@@ -105,19 +105,19 @@ function Header({
                 Cadastrar
               </Button>
             </>
-          ) : <>
-          <Avatar 
-            alt="User Avatar" 
-            src='' // vou colocar futuramente a imagem do usuario!
-            sx={{ width: 40, height: 40, cursor: 'pointer' }} 
-            // onClick={() => navigate('/perfil')} vamos colocar futuramente a pagina de perfil!!
-          />
-          <Typography variant="body1" sx={{ alignSelf: 'center', fontWeight: 500 }}>Bem vindo, {userName}!</Typography>
-          <Button sx={{border: '1px solid rgba(46, 139, 87, 0.3)', borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }} onClick={() => { sessionStorage.removeItem('token'); sessionStorage.removeItem('nomeUsuario'); navigate('/login'); }}>Sair</Button>
-          </>
-        }
-
-      </Stack>
+          ) : (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Avatar 
+                alt="User Avatar" 
+                src='' // vou colocar futuramente a imagem do usuario!
+                sx={{ width: 40, height: 40, cursor: 'pointer' }} 
+                // onClick={() => navigate('/perfil')} vamos colocar futuramente a pagina de perfil!!
+              />
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>Bem vindo, {userName}!</Typography>
+              <Button sx={{border: '1px solid rgba(46, 139, 87, 0.3)', borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }} onClick={() => { sessionStorage.removeItem('token'); sessionStorage.removeItem('nomeUsuario'); navigate('/login'); }}>Sair</Button>
+            </Box>
+          )}
+        </Stack>
     </Toolbar>
   </AppBar>
   );

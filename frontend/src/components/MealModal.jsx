@@ -1,0 +1,322 @@
+import { useState, useEffect, useMemo, useRef } from 'react';
+import {
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  Grid, TextField, Button, IconButton, List, ListItem, ListItemText, Box, FormControl, InputLabel, Select, MenuItem,
+  Autocomplete, CircularProgress
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import api from '../utils/api';
+
+const units = ['g', 'kg', 'ml', 'L', 'unidade', 'colher de sopa', 'colher de chá', 'xícara'];
+
+export default function MealModal({ open, onClose, onSave, initial = null, patientId = null }) {
+  const [meal, setMeal] = useState({ horario: '', descricao: '', alimentos: [], observacao: '' });
+  const [error, setError] = useState('');
+  const [selectedFood, setSelectedFood] = useState(null);
+  const [selectedQuantity, setSelectedQuantity] = useState(100);
+  const [selectedUnit, setSelectedUnit] = useState('g');
+  const [loading, setLoading] = useState(false);
+
+ useEffect(() => {
+  if (initial) {
+    setMeal({
+      id: initial.id,
+      horario: initial.horario || '',
+      descricao: initial.descricao || '',
+      observacao: initial.observacao || '',
+      alimentos: (initial.alimentos || []).map(a => ({
+        id: a.id,
+        nome: a.nome || a.alimento, 
+        quantidade: a.quantidade,
+        unidade: a.unidade
+      }))
+    });
+  } else {
+    setMeal({ horario: '', descricao: '', alimentos: [], observacao: '' });
+  }
+
+  setError('');
+  setSelectedFood(null);
+}, [initial, open]);
+
+
+  const handleSave = () => {
+    if (!meal.descricao) {
+      setError('Por favor, selecione uma descrição de refeição.');
+      return;
+    }
+    if (!meal.horario) {
+      setError('Por favor, selecione um horário.');
+      return;
+    }
+    if (meal.alimentos.length === 0) {
+      setError('Por favor, adicione pelo menos um alimento.');
+      return;
+    }
+
+    setError('');
+    console.log('MealModal - handleSave - meal:', meal); 
+    
+    if (onSave) onSave(meal); 
+    onClose();
+  };
+
+  const [query, setQuery] = useState('');
+  const [options, setOptions] = useState([]);
+  const fetchController = useRef(null);
+
+  const fetchFoods = async (q) => {
+    const term = String(q || '').trim();
+    if (!term) return [];
+    try {
+      const resp = await api.get('/food-itens/search-part', { params: { nomeParte: term } });
+      return Array.isArray(resp.data) ? resp.data : [];
+    } catch (e) {
+      console.error('Erro buscando alimentos:', e);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    setLoading(true);
+    if (fetchController.current) {
+      fetchController.current = null;
+    }
+    const handler = setTimeout(() => {
+      if (!mounted) return;
+      if (!query || String(query).trim() === '') {
+        setOptions([]);
+        setLoading(false);
+        return;
+      }
+      fetchFoods(query).then(list => {
+        if (!mounted) return;
+        setOptions(list);
+        setLoading(false);
+      }).catch(() => {
+        if (!mounted) return;
+        setOptions([]);
+        setLoading(false);
+      });
+    }, 300);
+
+    return () => {
+      mounted = false;
+      clearTimeout(handler);
+    };
+  }, [query]);
+
+  const handleChange = (key) => (eventOrValue) => {
+    let value;
+
+    if (eventOrValue?.target) {
+      value = eventOrValue.target.value;
+    } 
+    else {
+      value = eventOrValue ?? '';
+    }
+
+    setMeal(prev => {
+      const updated = { ...prev, [key]: value };
+      // IMPORTANTE: preservar o id se existir
+      if (prev.id !== undefined) updated.id = prev.id;
+      return updated;
+    });
+  };
+
+  const removeFood = (id) => setMeal(prev => {
+    const updated = { ...prev, alimentos: prev.alimentos.filter(a => a.id !== id) };
+    if (prev.id !== undefined) updated.id = prev.id;
+    return updated;
+  });
+
+  const handleAddSelectedFood = () => {
+    if (!selectedFood || typeof selectedFood !== "object") {
+      setError("Selecione um alimento válido da lista.");
+      return;
+    }
+
+    const proximoAlimento = {
+      id: crypto.randomUUID(),
+      nome: selectedFood.nome,
+      quantidade: Number(selectedQuantity),
+      unidade: selectedUnit
+    };
+
+    setMeal(prev => {
+      const updated = {
+        ...prev,
+        alimentos: [...prev.alimentos, proximoAlimento]
+      };
+      if (prev.id !== undefined) updated.id = prev.id;
+      return updated;
+    });
+
+    setSelectedFood(null);
+    setQuery('');
+    setSelectedQuantity(100);
+    setSelectedUnit('g');
+  };
+
+  const times = useMemo(() => {
+    const out = [];
+    for (let h = 5; h < 24; h++) {
+      for (let m of [0, 30]) {
+        const hh = String(h).padStart(2, '0');
+        const mm = String(m).padStart(2, '0');
+        out.push(`${hh}:${mm}`);
+      }
+    }
+    return out;
+  }, []);
+
+  return (
+    <Dialog open={!!open} onClose={onClose} fullWidth maxWidth="md">
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        Adicionar refeição
+        <IconButton onClick={onClose}><CloseIcon /></IconButton>
+      </DialogTitle>
+
+      <DialogContent dividers>
+        {error && (
+          <Box sx={{ mb: 2, p: 2, bgcolor: '#ffebee', color: '#c62828', borderRadius: 1 }}>
+            {error}
+          </Box>
+        )}
+        
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={3}>
+            <FormControl fullWidth>
+              <InputLabel>Horário</InputLabel>
+              <Select
+                value={meal.horario ?? ''}
+                label="Horário"
+                onChange={(e) => setMeal(prev => {
+                  const updated = { ...prev, horario: e.target.value };
+                  if (prev.id !== undefined) updated.id = prev.id;
+                  return updated;
+                })}
+                displayEmpty
+              >
+                <MenuItem value=""></MenuItem>
+                {times.map(t => <MenuItem key={t} value={t}>{t}</MenuItem>)}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12} md={9}>
+            <FormControl fullWidth>
+              <InputLabel>Descrição</InputLabel>
+              <Select 
+                value={meal.descricao} 
+                label="Descrição" 
+                onChange={(e) => setMeal(prev => {
+                  const updated = { ...prev, descricao: e.target.value };
+                  if (prev.id !== undefined) updated.id = prev.id;
+                  return updated;
+                })}
+              >
+                <MenuItem value="Café da manhã">Café da manhã</MenuItem>
+                <MenuItem value="Colação">Colação</MenuItem>
+                <MenuItem value="Almoço">Almoço</MenuItem>
+                <MenuItem value="Lanche">Lanche</MenuItem>
+                <MenuItem value="Jantar">Jantar</MenuItem>
+                <MenuItem value="Ceia">Ceia</MenuItem>
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid item xs={12}>
+            <Box sx={{ mb: 1 }}>
+              <Grid container spacing={1} alignItems="center">
+                <Grid item xs={12} md={7}>
+                  <Autocomplete
+                    freeSolo
+                    options={options}
+                    getOptionLabel={(opt) => (typeof opt === 'string' ? opt : opt.nome)}
+                    inputValue={query}
+                    onInputChange={(e, value) => setQuery(value)}
+                    value={selectedFood}
+                    onChange={(e, value) => setSelectedFood(value)}
+                    loading={loading}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Pesquisar alimento"
+                        placeholder="Digite para buscar..."
+                        InputProps={{
+                          ...params.InputProps,
+                          endAdornment: (
+                            <>
+                              {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                              {params.InputProps.endAdornment}
+                            </>
+                          )
+                        }}
+                        fullWidth
+                      />
+                    )}
+                    sx={{ width: '100%' }}
+                  />
+                </Grid>
+
+                <Grid item xs={6} md={2}>
+                  <TextField
+                    label="Quantidade"
+                    type="number"
+                    value={selectedQuantity}
+                    onChange={(e) => setSelectedQuantity(e.target.value)}
+                    inputProps={{ min: 0 }}
+                    fullWidth
+                  />
+                </Grid>
+
+                <Grid item xs={6} md={3}>
+                  <FormControl fullWidth>
+                    <InputLabel>Unidade</InputLabel>
+                    <Select value={selectedUnit} label="Unidade" onChange={(e) => setSelectedUnit(e.target.value)}>
+                      {units.map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                <Button
+                  variant="contained"
+                  onClick={handleAddSelectedFood}
+                  disabled={!(selectedFood || query) || Number(selectedQuantity) <= 0}
+                >
+                  Adicionar alimento
+                </Button>
+              </Box>
+            </Box>
+
+        
+
+            <List dense>
+              {meal.alimentos.map(a => (
+                <ListItem key={a.id} secondaryAction={<Button size="small" color="error" onClick={() => removeFood(a.id)}>Remover</Button>}>
+                  <ListItemText primary={`${a.nome} — ${a.quantidade} ${a.unidade}`} />
+                </ListItem>
+              ))}
+            </List>
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField value={meal.observacao} onChange={handleChange('observacao')} fullWidth multiline minRows={3} label="Observação" />
+          </Grid>
+        </Grid>
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button onClick={onClose} color="inherit" disabled={loading}>Cancelar</Button>
+        <Box sx={{ flexGrow: 1 }} />
+        <Button onClick={handleSave} variant="contained" color="success" disabled={loading}>
+          {loading ? 'Salvando...' : 'Salvar e Fechar'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}

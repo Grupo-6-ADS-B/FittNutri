@@ -20,39 +20,24 @@ public class AnthropometricDataModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer idDadosAntropometricos;
 
-    @NotNull(message = "Altura não pode estar vazia")
-    @Column(nullable = false)
-    private Double altura;
-
-    @NotNull(message = "Peso não pode estar vazio")
-    @Column(nullable = false)
     private Double peso;
 
-    @NotNull(message = "IMC não pode estar vazio")
-    @Column(nullable = false)
+    private Double altura;
+
+    private Integer idade;
+
     private Double imc;
 
-    @NotNull(message = "Percentual de gordura não pode estar vazio")
-    @Column(nullable = false)
-    private Double percentualGordura;
+    private Double porcentagemGordura;
 
-    @NotNull(message = "Massa Muscular não pode estar vazia")
-    @Column(nullable = false)
     private Double massaMuscular;
 
-    @NotNull(message = "Taxa Metabolica não pode estar vazia")
-    @Column(nullable = false)
-    private Integer tmb;
+    private Double gorduraVisceral;
 
-    @NotNull(message = "IdadeMetabolica não pode estar vazia")
-    @Column(nullable = false)
+    private Double taxaMetabolicaBasal;
+
     private Integer idadeMetabolica;
 
-    @NotNull(message = "Gordura Visceral não pode estar vazia")
-    @Column(nullable = false)
-    private Integer gorduraVisceral;
-
-    @NotNull(message = "Paciente não pode ser nulo")
     @ManyToOne
     @JoinColumn(name = "patient_id", nullable = false)
     private PatientModel paciente;

@@ -1,136 +1,95 @@
 package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.dto.request.PatientRequestDTO;
-import fitt_nutri.example.demo.exceptions.InvalidDataException;
-import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.PatientModel;
+import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.PatientRepository;
+import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PatientService {
 
     private final PatientRepository repository;
+    private final UserRepository userRepository;
 
-    @Transactional
-    public PatientModel createPatient(PatientRequestDTO dto) {
-        if (!"Masculino".equals(dto.sexo()) && !"Feminino".equals(dto.sexo())) {
-            throw new InvalidDataException("Sexo inválido");
-        }
-
-        if (!"Solteiro".equals(dto.estadoCivil()) &&
-                !"Casado".equals(dto.estadoCivil()) &&
-                !"Divorciado".equals(dto.estadoCivil()) &&
-                !"Viúvo".equals(dto.estadoCivil())) {
-            throw new InvalidDataException("Estado civil inválido");
-        }
-
-        PatientModel patient = new PatientModel();
-        patient.setNome(dto.nome());
-        patient.setEmail(dto.email());
-        patient.setCpf(dto.cpf());
-        patient.setDataNascimento(dto.dataNascimento());
-        patient.setSexo(dto.sexo());
-        patient.setEstadoCivil(dto.estadoCivil());
-        patient.setDataConsulta(dto.dataConsulta());
-        patient.setMotivoConsulta(dto.motivoConsulta());
-        patient.setComorbidade(dto.comorbidade());
-        patient.setFrequenciaAtividadeFisica(dto.frequenciaAtividadeFisica());
-
-        return repository.save(patient);
+    // Retorna o nutricionista logado
+    private UserModel getNutricionistaLogado() {
+        String emailNutri = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(emailNutri)
+                .orElseThrow(() -> new RuntimeException("Nutricionista não encontrado"));
     }
 
-    public PatientModel getPatientById(Integer id) {
+    // Cria paciente e associa ao nutricionista logado
+    public PatientModel create(PatientRequestDTO dto) {
+        PatientModel p = new PatientModel();
+        p.setNome(dto.nome());
+        p.setEmail(dto.email());
+        p.setCpf(dto.cpf());
+        p.setTelefone(dto.telefone());
+        p.setEstado(dto.estado());
+        p.setCidade(dto.cidade());
+        p.setSexo(dto.sexo());
+        p.setEtnia(dto.etnia());
+        p.setAtividade(dto.atividade());
+        p.setNutricionista(getNutricionistaLogado());
+        return repository.save(p);
+    }
+
+    // Lista todos os pacientes do nutricionista logado
+    public List<PatientModel> findAllByNutricionista() {
+        return repository.findByNutricionista(getNutricionistaLogado());
+    }
+
+    // Busca paciente por ID e verifica se pertence ao nutricionista logado
+    public PatientModel findByIdAndNutricionista(Integer id) {
+        UserModel nutri = getNutricionistaLogado();
         return repository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Paciente não encontrado com ID: " + id));
+                .filter(p -> p.getNutricionista().equals(nutri))
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado ou não pertence ao nutricionista logado"));
     }
 
-    public List<PatientModel> getAllPatients() {
-        List<PatientModel> patients = repository.findAll();
-        if (patients.isEmpty()) {
-            throw new NotFoundException("Nenhum paciente cadastrado");
-        }
-        return patients;
+    public PatientModel update(Integer id, PatientRequestDTO dto) {
+        PatientModel p = findByIdAndNutricionista(id);
+        p.setNome(dto.nome());
+        p.setEmail(dto.email());
+        p.setCpf(dto.cpf());
+        p.setTelefone(dto.telefone());
+        p.setEstado(dto.estado());
+        p.setCidade(dto.cidade());
+        p.setSexo(dto.sexo());
+        p.setEtnia(dto.etnia());
+        p.setAtividade(dto.atividade());
+        return repository.save(p);
     }
 
-    @Transactional
-    public PatientModel updatePatient(Integer id, PatientRequestDTO dto) {
-        PatientModel patient = getPatientById(id);
-
-        if (!"Masculino".equals(dto.sexo()) && !"Feminino".equals(dto.sexo())) {
-            throw new InvalidDataException("Sexo inválido");
-        }
-
-        if (!"Solteiro".equals(dto.estadoCivil()) &&
-                !"Casado".equals(dto.estadoCivil()) &&
-                !"Divorciado".equals(dto.estadoCivil()) &&
-                !"Viúvo".equals(dto.estadoCivil())) {
-            throw new InvalidDataException("Estado civil inválido");
-        }
-
-        patient.setNome(dto.nome());
-        patient.setEmail(dto.email());
-        patient.setCpf(dto.cpf());
-        patient.setDataNascimento(dto.dataNascimento());
-        patient.setSexo(dto.sexo());
-        patient.setEstadoCivil(dto.estadoCivil());
-        patient.setDataConsulta(dto.dataConsulta());
-        patient.setMotivoConsulta(dto.motivoConsulta());
-        patient.setComorbidade(dto.comorbidade());
-        patient.setFrequenciaAtividadeFisica(dto.frequenciaAtividadeFisica());
-
-        return repository.save(patient);
+    public void delete(Integer id) {
+        PatientModel p = findByIdAndNutricionista(id);
+        repository.delete(p);
     }
 
-    @Transactional
     public PatientModel patchPatient(Integer id, Map<String, Object> updates) {
-        PatientModel patient = getPatientById(id);
-
-        for (String key : updates.keySet()) {
-            Object value = updates.get(key);
-
-            if ("sexo".equals(key)) {
-                String sexo = (String) value;
-                if (!"Masculino".equals(sexo) && !"Feminino".equals(sexo)) {
-                    throw new InvalidDataException("Sexo inválido");
-                }
-                patient.setSexo(sexo);
-            } else if ("estadoCivil".equals(key)) {
-                String estadoCivil = (String) value;
-                if (!"Solteiro".equals(estadoCivil) &&
-                        !"Casado".equals(estadoCivil) &&
-                        !"Divorciado".equals(estadoCivil) &&
-                        !"Viúvo".equals(estadoCivil)) {
-                    throw new InvalidDataException("Estado civil inválido");
-                }
-                patient.setEstadoCivil(estadoCivil);
-            } else if ("dataNascimento".equals(key)) {
-                patient.setDataNascimento(LocalDate.parse((String) value));
-            } else if ("dataConsulta".equals(key)) {
-                patient.setDataConsulta(LocalDate.parse((String) value));
-            } else if ("motivoConsulta".equals(key)) {
-                patient.setMotivoConsulta((String) value);
-            } else if ("comorbidade".equals(key)) {
-                patient.setComorbidade((String) value);
-            } else if ("frequenciaAtividadeFisica".equals(key)) {
-                patient.setFrequenciaAtividadeFisica((Integer) value);
+        PatientModel p = findByIdAndNutricionista(id);
+        updates.forEach((key, value) -> {
+            switch (key) {
+                case "nome" -> p.setNome(String.valueOf(value));
+                case "email" -> p.setEmail(String.valueOf(value));
+                case "cpf" -> p.setCpf(String.valueOf(value));
+                case "telefone" -> p.setTelefone(String.valueOf(value));
+                case "estado" -> p.setEstado(String.valueOf(value));
+                case "cidade" -> p.setCidade(String.valueOf(value));
+                case "sexo" -> p.setSexo(String.valueOf(value));
+                case "etnia" -> p.setEtnia(String.valueOf(value));
+                case "frequenciaAtividadeFisica" -> p.setAtividade(String.valueOf(value));
+                default -> throw new IllegalArgumentException("Campo inválido para PATCH: " + key);
             }
-        }
-
-        return repository.save(patient);
-    }
-
-    @Transactional
-    public void deletePatient(Integer id) {
-        if (!repository.existsById(id)) throw new NotFoundException("Paciente não encontrado com ID: " + id);
-        repository.deleteById(id);
+        });
+        return repository.save(p);
     }
 }

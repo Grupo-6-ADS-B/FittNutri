@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
+import api from '../utils/api';
 import {
   Box,
   Button,
@@ -22,6 +23,7 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "../theme";
+import calcularTMB from '../utils/calcularTMB';
  
 
 const steps = ["Dados Antropométricos", "Circunferências"];
@@ -46,7 +48,7 @@ const numericInputHandler = (value) => {
 
 export default function QuestionarioStepper() {
   const [activeStep, setActiveStep] = useState(0);
-  const [openModal, setOpenModal] = useState(false);
+  const [openModal, _setOpenModal] = useState(false);
   const [completed, setCompleted] = useState({ antropo: false, circ: false });
   const [saveToastOpen, setSaveToastOpen] = useState(false);
   const hydrationRef = React.useRef(false);
@@ -56,7 +58,7 @@ export default function QuestionarioStepper() {
     try {
       const payload = { antropoData: aData, circData: cData, completed: comp };
       localStorage.setItem(`questionario_${uid}`, JSON.stringify(payload));
-    } catch {}
+  } catch { /* ignore storage errors */ }
   }, []);
   const location = useLocation();
   const mockUsers = [
@@ -79,22 +81,26 @@ export default function QuestionarioStepper() {
     porcentagemGordura: location.state?.antropoData?.porcentagemGordura ?? "",
     massaMuscular: location.state?.antropoData?.massaMuscular ?? "",
     gorduraVisceral: location.state?.antropoData?.gorduraVisceral ?? "",
-    taxaMetabolicaBasal: location.state?.antropoData?.taxaMetabolicaBasal ?? ""
+    taxaMetabolicaBasal: location.state?.antropoData?.taxaMetabolicaBasal ?? "",
+    idadeMetabolica: location.state?.antropoData?.idadeMetabolica ?? ""
   }));
-  const [circData, setCircData] = useState(() => ({
-    "Circunferência Abdominal (cm)": location.state?.dados?.["Circunferência Abdominal (cm)"] ?? "",
-    "Circunferência Cintura (cm)": location.state?.dados?.["Circunferência Cintura (cm)"] ?? "",
-    "Circunferência Quadril (cm)": location.state?.dados?.["Circunferência Quadril (cm)"] ?? "",
-    "Circunferência Pulso (cm)": location.state?.dados?.["Circunferência Pulso (cm)"] ?? "",
-    "Circunferência Panturrilha (cm)": location.state?.dados?.["Circunferência Panturrilha (cm)"] ?? "",
-    "Circunferência Braço (cm)": location.state?.dados?.["Circunferência Braço (cm)"] ?? "",
-    "Circunferência Coxa (cm)": location.state?.dados?.["Circunferência Coxa (cm)"] ?? "",
-    "Peso Ideal (kg)": location.state?.dados?.["Peso Ideal (kg)"] ?? ""
-  }));
+const [circData, setCircData] = useState(() => ({
+  abdominal: location.state?.dados?.abdominal ?? "",
+  cintura: location.state?.dados?.cintura ?? "",
+  quadril: location.state?.dados?.quadril ?? "",
+  pulso: location.state?.dados?.pulso ?? "",
+  panturrilha: location.state?.dados?.panturrilha ?? "",
+  braco: location.state?.dados?.braco ?? "",
+  coxa: location.state?.dados?.coxa ?? "",
+  pesoIdeal: location.state?.dados?.pesoIdeal ?? ""
+}));
+
+
+  
   
   useEffect(() => {
     if (!selectedUser?.id) return;
-    try { localStorage.setItem('lastUserId', String(selectedUser.id)); } catch {}
+  try { localStorage.setItem('lastUserId', String(selectedUser.id)); } catch { /* ignore */ }
     const stored = localStorage.getItem(`questionario_${selectedUser.id}`);
     if (stored) {
       try {
@@ -102,9 +108,8 @@ export default function QuestionarioStepper() {
         if (parsed.antropoData) setAntropoData(prev => ({ ...prev, ...parsed.antropoData }));
         if (parsed.circData) setCircData(prev => ({ ...prev, ...parsed.circData }));
         if (parsed.completed) setCompleted(parsed.completed);
-      } catch {}
+  } catch { /* ignore parse errors */ }
     }
-    // Marcar hidratação como concluída após um pequeno delay (evita toast na restauração inicial)
     hydrationRef.current = false;
     const t = setTimeout(() => { hydrationRef.current = true; }, 800);
     return () => clearTimeout(t);
@@ -116,9 +121,8 @@ export default function QuestionarioStepper() {
     localStorage.setItem(`questionario_${selectedUser.id}`, JSON.stringify(payload));
   }, [selectedUser?.id, antropoData, circData, completed]);
 
-  // Exibe toast "Dados salvos" quando os dados mudarem (evita exibir na hidratação inicial)
   useEffect(() => {
-    if (!hydrationRef.current) return; // não mostrar na primeira carga
+    if (!hydrationRef.current) return; 
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => {
       setSaveToastOpen(true);
@@ -138,6 +142,24 @@ export default function QuestionarioStepper() {
     return calculateIMC(peso, altura);
   }, [antropoData.peso, antropoData.altura]);
 
+  useEffect(() => {
+    const peso = parseFloat(String(antropoData.peso || '').replace(',', '.'));
+    const altura = parseFloat(String(antropoData.altura || '').replace(',', '.'));
+    const idade = parseFloat(String(antropoData.idade || '').replace(',', '.'));
+    const sexo = selectedUser?.sexo || 'feminino';
+    const atividade = selectedUser?.atividade || 'sedentario';
+
+    if (peso > 0 && altura > 0 && idade > 0) {
+      const tmbCalculada = calcularTMB(peso, altura, idade, sexo, atividade);
+      if (tmbCalculada && Number.isFinite(tmbCalculada)) {
+        setAntropoData(prev => ({
+          ...prev,
+          taxaMetabolicaBasal: Math.round(tmbCalculada).toString()
+        }));
+      }
+    }
+  }, [antropoData.peso, antropoData.altura, antropoData.idade, selectedUser?.sexo, selectedUser?.atividade]);
+
   const startEditUser = () => setIsEditingUser(true);
   const cancelEditUser = () => {
     setIsEditingUser(false);
@@ -148,7 +170,7 @@ export default function QuestionarioStepper() {
       avatar: userInfo?.avatar || ''
     });
   };
-  const saveEditUser = () => {
+  const saveEditUser = async () => {
     const updated = {
       ...userInfo,
       name: userDraft.name,
@@ -160,6 +182,7 @@ export default function QuestionarioStepper() {
     setUserInfo(updated);
     setIsEditingUser(false);
     try {
+      await api.put(`/users/${updated.id}`, updated);
       const stored = localStorage.getItem('users');
       const arr = stored ? JSON.parse(stored) : [];
       if (Array.isArray(arr)) {
@@ -171,7 +194,9 @@ export default function QuestionarioStepper() {
         }
         localStorage.setItem('users', JSON.stringify(arr));
       }
-    } catch {}
+      sessionStorage.setItem('nomeUsuario', updated.name);
+    } catch (e) {
+    }
   };
   const onChangeDraft = (field) => (e) => {
     setUserDraft(prev => ({ ...prev, [field]: e.target.value }));
@@ -187,39 +212,36 @@ export default function QuestionarioStepper() {
     };
     reader.readAsDataURL(file);
   };
+  
 
-  const handleAntropoChange = (field) => (event) => {
-    const inputValue = event.target.value;
-    const numericFields = ['peso', 'altura', 'idade', 'porcentagemGordura', 'massaMuscular', 'gorduraVisceral', 'taxaMetabolicaBasal'];
-    if (numericFields.includes(field)) {
-      const sanitizedValue = numericInputHandler(inputValue);
-      if (sanitizedValue !== null) {
-        setAntropoData(d => {
-          const next = { ...d, [field]: sanitizedValue };
-          persistData(selectedUser?.id, next, circData, completed);
-          return next;
-        });
-      }
-    } else {
-      setAntropoData(d => {
-        const next = { ...d, [field]: inputValue };
-        persistData(selectedUser?.id, next, circData, completed);
-        return next;
-      });
-    }
-  };
+const handleAntropoChange = (field) => (event) => {
+  const inputValue = event.target.value;
+  const numericFields = ['peso', 'altura', 'idade', 'porcentagemGordura', 'massaMuscular', 'gorduraVisceral', 'taxaMetabolicaBasal'];
+  if (field === 'idadeMetabolica') numericFields.push('idadeMetabolica');
 
-  const handleCircChange = (field) => (event) => {
-    const inputValue = event.target.value;
+  let next;
+  if (numericFields.includes(field)) {
     const sanitizedValue = numericInputHandler(inputValue);
-    if (sanitizedValue !== null) {
-      setCircData(d => {
-        const next = { ...d, [field]: sanitizedValue };
-        persistData(selectedUser?.id, antropoData, next, completed);
-        return next;
-      });
-    }
-  };
+    next = { ...antropoData, [field]: sanitizedValue };
+  } else {
+    next = { ...antropoData, [field]: inputValue };
+  }
+
+  setAntropoData(next);
+};
+
+
+
+ const handleCircChange = (field) => (event) => {
+  const inputValue = event.target.value;
+  const sanitizedValue = numericInputHandler(inputValue);
+  if (sanitizedValue !== null) {
+    const next = { ...circData, [field]: sanitizedValue };
+    setCircData(next);
+  }
+};
+
+
   const handleNext = () => {
     setActiveStep((prev) => prev + 1);
   };
@@ -228,12 +250,95 @@ export default function QuestionarioStepper() {
     setActiveStep((prev) => prev - 1);
   };
   
-  const handleToggleModal = () => setOpenModal((prev) => !prev);
 
-  const handleResumoClick = () => {
-    setCompleted((prev) => ({ ...prev, circ: true }));
-    navigate('/resumo-circunferencia', { state: { dados: circData, antropoData, user: selectedUser } });
-  };
+const handleResumoClick = async () => {
+  setCompleted((prev) => ({ ...prev, circ: true }));
+
+  try {
+    if (selectedUser?.id) {
+      const parseOrNull = v => {
+        if (v === undefined || v === null || v === '') return null;
+        const n = Number(String(v).replace(',', '.'));
+        return isNaN(n) ? null : n;
+      };
+      const pStr = (antropoData.peso ?? '').toString();
+      const aStr = (antropoData.altura ?? '').toString();
+      const peso = parseOrNull(pStr);
+      const altura = parseOrNull(aStr);
+      const alturaMeters = (altura !== null && Number.isFinite(altura)) ? (altura > 10 ? altura / 100 : altura) : null;
+      let imcValue = null;
+      if (Number.isFinite(peso) && Number.isFinite(alturaMeters) && alturaMeters > 0) {
+        imcValue = peso / (alturaMeters * alturaMeters);
+      }
+      const antropoToSend = {
+        peso,
+        altura: alturaMeters,
+        idade: parseOrNull(antropoData.idade),
+        imc: imcValue !== null ? Number(imcValue.toFixed(2)) : null,
+        porcentagemGordura: parseOrNull(antropoData.porcentagemGordura),
+        massaMuscular: parseOrNull(antropoData.massaMuscular),
+        gorduraVisceral: parseOrNull(antropoData.gorduraVisceral),
+        taxaMetabolicaBasal: parseOrNull(antropoData.taxaMetabolicaBasal),
+        idadeMetabolica: parseOrNull(antropoData.idadeMetabolica)
+      };
+
+      const circToSend = {
+        abdominal: parseOrNull(circData.abdominal),
+        cintura: parseOrNull(circData.cintura),
+        quadril: parseOrNull(circData.quadril),
+        pulso: parseOrNull(circData.pulso),
+        panturrilha: parseOrNull(circData.panturrilha),
+        braco: parseOrNull(circData.braco),
+        coxa: parseOrNull(circData.coxa),
+        pesoIdeal: parseOrNull(circData.pesoIdeal)
+      };
+
+      try {
+        const now = new Date();
+        now.setDate(now.getDate() + 1); 
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}T00:00:00Z`;
+        const historyPayload = {
+          dataConsulta: today,
+          antropometria: {
+            peso,
+            altura: alturaMeters,
+            imc: imcValue !== null ? Number(imcValue.toFixed(2)) : null,
+            idadeMetabolica: parseOrNull(antropoData.idadeMetabolica),
+            massaMuscular: parseOrNull(antropoData.massaMuscular),
+            porcentagemGordura: parseOrNull(antropoData.porcentagemGordura),
+            gorduraVisceral: parseOrNull(antropoData.gorduraVisceral),
+            taxaMetabolicaBasal: parseOrNull(antropoData.taxaMetabolicaBasal)
+          },
+          circunferencia: { ...circToSend }
+        };
+        await api.post(`/patient-history/${selectedUser.id}`, historyPayload);
+      } catch (err) {
+        console.error('Erro ao salvar consulta no backend:', err);
+        throw err;
+      }
+
+      try {
+        const payload = { antropoData: antropoToSend, circData: circToSend, completed: { ...completed, circ: true } };
+        localStorage.setItem(`questionario_${selectedUser.id}`, JSON.stringify(payload));
+      } catch (e) {
+        // ignore
+      }
+
+      navigate('/resumo-circunferencia', { state: { dados: circData, antropoData: { ...antropoData, imc: imc }, user: selectedUser } });
+      return;
+    }
+
+    navigate('/resumo-circunferencia', { state: { dados: circData, antropoData: { ...antropoData, imc: imc }, user: selectedUser } });
+  } catch (e) {
+    console.error("Erro ao salvar dados:", e);
+    window.alert('Ocorreu um erro ao salvar os dados. Verifique sua conexão e tente novamente.');
+  }
+};
+
+
 
   const antropoFields = [
     { label: "Peso (kg)", field: "peso" },
@@ -241,28 +346,42 @@ export default function QuestionarioStepper() {
     { label: "IMC", field: "imc", isCalculated: true },
     { label: "Idade", field: "idade" },
     { label: "Porcentagem de Gordura (%)", field: "porcentagemGordura" },
-    { label: "Massa Muscular (kg)", field: "massaMuscular" },
+    { label: "Massa Muscular (%)", field: "massaMuscular" },
     { label: "Gordura Visceral (%)", field: "gorduraVisceral" },
-    { label: "Taxa Metabólica Basal (kcal)", field: "taxaMetabolicaBasal" },
+    { label: "Taxa Metabólica Basal (kcal)", field: "taxaMetabolicaBasal", isCalculated: true },
+    { label: "Idade Metabólica (anos)", field: "idadeMetabolica" } 
   ];
 
   const circFields = [
-    "Circunferência Abdominal (cm)",
-    "Circunferência Cintura (cm)",
-    "Circunferência Quadril (cm)",
-    "Circunferência Pulso (cm)",
-    "Circunferência Panturrilha (cm)",
-    "Circunferência Braço (cm)",
-    "Circunferência Coxa (cm)",
-    "Peso Ideal (kg)"
+    {label: "Circunferência Abdominal (cm)", field: "abdominal"},
+    {label:"Circunferência Cintura (cm)", field: "cintura"},
+    {label:"Circunferência Quadril (cm)", field: "quadril",},
+    {label:"Circunferência Pulso (cm)",field: "pulso",},
+    {label:"Circunferência Panturrilha (cm)",field: "panturrilha",},
+    {label:"Circunferência Braço (cm)",field: "braco",},
+    {label:"Circunferência Coxa (cm)",field: "coxa",},
+    {label:"Peso Ideal (kg)",field: "pesoIdeal",},
+    
   ];
+
+  const circFieldLabels = {
+    abdominal: 'Abdominal',
+    cintura: 'Cintura',
+    quadril: 'Quadril',
+    pulso: 'Pulso',
+    panturrilha: 'Panturrilha',
+    braco: 'Braço',
+    coxa: 'Coxa',
+    pesoIdeal: 'Peso Ideal'
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Box
         sx={{
           display: "flex",
           flexDirection: "column",
-          minHeight: "100vh",
+          minHeight: "88vh",
           background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
         }}
       >
@@ -331,9 +450,11 @@ export default function QuestionarioStepper() {
                   {!!antropoData.massaMuscular && <Typography variant="body2">Massa Muscular: {antropoData.massaMuscular} kg</Typography>}
                   {!!antropoData.gorduraVisceral && <Typography variant="body2">Gordura Visceral: {antropoData.gorduraVisceral} %</Typography>}
                   {!!antropoData.taxaMetabolicaBasal && <Typography variant="body2">TMB: {antropoData.taxaMetabolicaBasal} kcal</Typography>}
-                  {Object.entries(circData).map(([k,v]) => (
-                    v ? <Typography key={k} variant="body2">{k}: {v}</Typography> : null
-                  ))}
+                  {Object.entries(circData).map(([k,v]) => {
+                    if (k.startsWith('id')) return null;
+                    const label = circFieldLabels[k] || k;
+                    return v ? <Typography key={k} variant="body2">{label}: {v}</Typography> : null;
+                  })}
                 </Box>
                 <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
@@ -356,42 +477,47 @@ export default function QuestionarioStepper() {
                       key={item.field}
                       label={item.label} 
                       fullWidth
-                      value={item.isCalculated ? imc : antropoData[item.field]}
+                      value={
+                        item.field === 'imc' && item.isCalculated 
+                          ? imc 
+                          : antropoData[item.field] || ''
+                      }
                       disabled={item.isCalculated}
                       onChange={!item.isCalculated ? handleAntropoChange(item.field) : undefined}
                       type="text" 
                       inputProps={{
                         pattern: "[0-9]*[.,]?[0-9]*" 
                       }}
+                      helperText={item.field === 'taxaMetabolicaBasal' || item.field === 'imc' && item.isCalculated ? "Calculado automaticamente" : undefined}
                     />
                   ))}
-                  <Grid container spacing={2} sx={{ ml: 23, justifyContent: 'center' }}>
-                    <Grid item xs={6}>
-                      <Button 
-                        variant="outlined" 
-                        color="primary" 
-                        fullWidth
-                        onClick={() => navigate('/register')}
-                      >
-                        Voltar
-                      </Button>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <Button 
-                        variant="contained" 
-                        color="primary" 
-                        fullWidth
-                        onClick={() => {
-                          const newCompleted = { ...completed, antropo: true };
-                          setCompleted(newCompleted);
-                          persistData(selectedUser?.id, antropoData, circData, newCompleted);
-                          handleNext();
-                        }}
-                      >
-                        Próximo
-                      </Button>
-                    </Grid>
+                <Grid container spacing={2} sx={{ justifyContent: 'flex-start', pl: -1, ml: -2 }}>
+                  <Grid item xs={6} sx={{ pl: 0 }}>
+                    <Button 
+                      variant="outlined" 
+                      color="primary" 
+                      fullWidth
+                      onClick={() => navigate('/gestor')}
+                    >
+                      Voltar
+                    </Button>
                   </Grid>
+                  <Grid item xs={6} sx={{ pl: 0 }}>
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      fullWidth
+                      onClick={() => {
+                        const newCompleted = { ...completed, antropo: true };
+                        setCompleted(newCompleted);
+                        persistData(selectedUser?.id, antropoData, circData, newCompleted);
+                        handleNext();
+                      }}
+                    >
+                      Próximo
+                    </Button>
+                  </Grid>
+                </Grid>
                 </Box>
               </Paper>
               {openModal && (
@@ -461,9 +587,11 @@ export default function QuestionarioStepper() {
                   {!!antropoData.massaMuscular && <Typography variant="body2">Massa Muscular: {antropoData.massaMuscular} kg</Typography>}
                   {!!antropoData.gorduraVisceral && <Typography variant="body2">Gordura Visceral: {antropoData.gorduraVisceral} %</Typography>}
                   {!!antropoData.taxaMetabolicaBasal && <Typography variant="body2">TMB: {antropoData.taxaMetabolicaBasal} kcal</Typography>}
-                  {Object.entries(circData).map(([k,v]) => (
-                    v ? <Typography key={k} variant="body2">{k}: {v}</Typography> : null
-                  ))}
+                  {Object.entries(circData).map(([k,v]) => {
+                    if (k.startsWith('id')) return null;
+                    const label = circFieldLabels[k] || k;
+                    return v ? <Typography key={k} variant="body2">{label}: {v}</Typography> : null;
+                  })}
                 </Box>
                 <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
@@ -481,20 +609,20 @@ export default function QuestionarioStepper() {
                   <Typography variant="h6" gutterBottom sx={{ mb: 0 }}>Dados de Circunferência</Typography>
                 </Box>
                 <Box component="form" sx={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 2 }}>
-                  {circFields.map((label) => (
+                  {circFields.map(({ label, field }) => (
                     <TextField 
-                      key={label}
+                      key={field}
                       label={label} 
                       fullWidth 
-                      value={circData[label]} 
-                      onChange={handleCircChange(label)}
+                      value={circData[field]} 
+                      onChange={handleCircChange(field)}
                       type="text" 
                       inputProps={{
                         pattern: "[0-9]*[.,]?[0-9]*"
                       }}
                     />
                   ))}
-                  <Grid container spacing={2} sx={{ ml: 23, justifyContent: 'center' }}>
+                  <Grid container spacing={2} sx={{ ml: 22.2, justifyContent: 'center' }}>
                     <Grid item xs={6}>
                       <Button 
                         variant="outlined" 
