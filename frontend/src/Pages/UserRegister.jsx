@@ -10,7 +10,9 @@ import {
   CssBaseline,
   Snackbar,
   Alert,
-  MenuItem
+  MenuItem,
+  Divider,
+  Stack
 } from "@mui/material";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "../theme";
@@ -34,8 +36,40 @@ export default function UserRegister() {
     open: false,
     message: "",
   });
+  const [cidades, setCidades] = useState([]);
+  const [loadingCidades, setLoadingCidades] = useState(false);
 
   const navigate = useNavigate();
+
+  const estados = [
+    { uf: "AC", nome: "Acre" },
+    { uf: "AL", nome: "Alagoas" },
+    { uf: "AP", nome: "Amapá" },
+    { uf: "AM", nome: "Amazonas" },
+    { uf: "BA", nome: "Bahia" },
+    { uf: "CE", nome: "Ceará" },
+    { uf: "DF", nome: "Distrito Federal" },
+    { uf: "ES", nome: "Espírito Santo" },
+    { uf: "GO", nome: "Goiás" },
+    { uf: "MA", nome: "Maranhão" },
+    { uf: "MT", nome: "Mato Grosso" },
+    { uf: "MS", nome: "Mato Grosso do Sul" },
+    { uf: "MG", nome: "Minas Gerais" },
+    { uf: "PA", nome: "Pará" },
+    { uf: "PB", nome: "Paraíba" },
+    { uf: "PR", nome: "Paraná" },
+    { uf: "PE", nome: "Pernambuco" },
+    { uf: "PI", nome: "Piauí" },
+    { uf: "RJ", nome: "Rio de Janeiro" },
+    { uf: "RN", nome: "Rio Grande do Norte" },
+    { uf: "RS", nome: "Rio Grande do Sul" },
+    { uf: "RO", nome: "Rondônia" },
+    { uf: "RR", nome: "Roraima" },
+    { uf: "SC", nome: "Santa Catarina" },
+    { uf: "SP", nome: "São Paulo" },
+    { uf: "SE", nome: "Sergipe" },
+    { uf: "TO", nome: "Tocantins" }
+  ];
 
   const maskCPF = (val) => {
     const digits = val.replace(/\D/g, "").slice(0, 11);
@@ -60,6 +94,24 @@ export default function UserRegister() {
 
   const hasAtSign = (email) => email.includes("@");
 
+  const fetchCidades = async (uf) => {
+    setLoadingCidades(true);
+    try {
+      const response = await axios.get(
+        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
+      );
+      const cidadesOrdenadas = response.data
+        .map(cidade => cidade.nome)
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+      setCidades(cidadesOrdenadas);
+    } catch (error) {
+      console.error('Erro ao buscar cidades:', error);
+      setCidades([]);
+    } finally {
+      setLoadingCidades(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     let newValue = value;
@@ -70,10 +122,25 @@ export default function UserRegister() {
     } else if (name === "email") {
       newValue = value.trimStart();
     }
-    setFormData((prev) => ({
-      ...prev,
-      [name]: newValue,
-    }));
+    
+    if (name === "estado") {
+      setFormData((prev) => ({
+        ...prev,
+        estado: newValue,
+        cidade: ""
+      }));
+      if (newValue) {
+        fetchCidades(newValue);
+      } else {
+        setCidades([]);
+      }
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: newValue,
+      }));
+    }
+    
     if (name === "email") {
       setErrors((prev) => ({ ...prev, email: newValue && !hasAtSign(newValue) ? "Email deve conter @" : null }));
     } else if (errors[name]) {
@@ -161,18 +228,30 @@ export default function UserRegister() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            py: 2,
+            py: 4,
           }}
         >
-          <Paper elevation={4} sx={{ p: 4, maxWidth: 400, width: "100%" }}>
-            <Typography variant="h5" gutterBottom>
-              Cadastro de Usuário
+          <Paper 
+            elevation={12} 
+            sx={{ 
+              p: 4, 
+              maxWidth: 580, 
+              width: "100%",
+              borderRadius: 3
+            }}
+          >
+            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
+              Cadastro de Paciente
             </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              Preencha os dados do novo paciente
+            </Typography>
+            <Divider sx={{ mb: 3 }} />
             <Box
               component="form"
               onSubmit={handleSubmit}
               noValidate
-              sx={{ display: "flex", flexDirection: "column", gap: 2 }}
+              sx={{ display: "flex", flexDirection: "column", gap: 3 }}
             >
               <TextField
                 label="Nome"
@@ -180,6 +259,7 @@ export default function UserRegister() {
                 value={formData.name}
                 onChange={handleChange}
                 fullWidth
+                variant="outlined"
                 error={!!errors.name}
                 helperText={errors.name || ""}
               />
@@ -189,7 +269,9 @@ export default function UserRegister() {
                 value={formData.email}
                 onChange={handleChange}
                 fullWidth
+                variant="outlined"
                 error={!!errors.email}
+                helperText={errors.email || ""}
                 inputProps={{ inputMode: 'email' }}
               />
               <TextField
@@ -198,7 +280,9 @@ export default function UserRegister() {
                 value={formData.cpf}
                 onChange={handleChange}
                 fullWidth
+                variant="outlined"
                 error={!!errors.cpf}
+                helperText={errors.cpf || ""}
                 inputProps={{ inputMode: 'numeric' }}
               />
               <TextField
@@ -207,27 +291,52 @@ export default function UserRegister() {
                 value={formData.phone}
                 onChange={handleChange}
                 fullWidth
+                variant="outlined"
                 error={!!errors.phone}
+                helperText={errors.phone || ""}
                 inputProps={{ inputMode: 'tel' }}
               />
-              <TextField
-                label="Estado"
-                name="estado"
-                value={formData.estado}
-                onChange={handleChange}
-                fullWidth
-                error={!!errors.estado}
-                helperText={errors.estado || ""}
-              />
-              <TextField
-                label="Cidade"
-                name="cidade"
-                value={formData.cidade}
-                onChange={handleChange}
-                fullWidth
-                error={!!errors.cidade}
-                helperText={errors.cidade || ""}
-              />
+              <Box sx={{ display: 'flex', gap: 2 }}>
+                <TextField
+                  select
+                  label="Estado"
+                  name="estado"
+                  value={formData.estado}
+                  onChange={handleChange}
+                  fullWidth
+                  variant="outlined"
+                  error={!!errors.estado}
+                  helperText={errors.estado || "Selecione o estado"}
+                >
+                  {estados.map((estado) => (
+                    <MenuItem key={estado.uf} value={estado.uf}>
+                      {estado.uf} - {estado.nome}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  select
+                  label="Cidade"
+                  name="cidade"
+                  value={formData.cidade}
+                  onChange={handleChange}
+                  fullWidth
+                  variant="outlined"
+                  error={!!errors.cidade}
+                  helperText={
+                    loadingCidades 
+                      ? "Carregando cidades..." 
+                      : errors.cidade || "Selecione a cidade"
+                  }
+                  disabled={!formData.estado || loadingCidades}
+                >
+                  {cidades.map((cidade) => (
+                    <MenuItem key={cidade} value={cidade}>
+                      {cidade}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Box>
 
               <TextField
                 select
@@ -236,6 +345,7 @@ export default function UserRegister() {
                 value={formData.sexo}
                 onChange={handleChange}
                 fullWidth
+                variant="outlined"
               >
                 <MenuItem value="Masculino">Masculino</MenuItem>
                 <MenuItem value="Feminino">Feminino</MenuItem>
@@ -249,6 +359,7 @@ export default function UserRegister() {
                 value={formData.etnia}
                 onChange={handleChange}
                 fullWidth
+                variant="outlined"
               >
                 <MenuItem value="branca">Branca</MenuItem>
                 <MenuItem value="negra">Negra</MenuItem>
@@ -265,25 +376,35 @@ export default function UserRegister() {
                 value={formData.atividade}
                 onChange={handleChange}
                 fullWidth
+                variant="outlined"
               >
-                <MenuItem value="sedentario">Sedentário</MenuItem>
-                <MenuItem value="levemente_ativo">Levemente ativo</MenuItem>
-                <MenuItem value="moderadamente_ativo">Moderadamente ativo</MenuItem>
-                <MenuItem value="muito_ativo">Muito ativo</MenuItem>
-                <MenuItem value="extremamente_ativo">Extremamente ativo</MenuItem>
+                <MenuItem value="sedentário">Sedentário</MenuItem>
+                <MenuItem value="levemente ativo">Levemente ativo</MenuItem>
+                <MenuItem value="moderadamente ativo">Moderadamente ativo</MenuItem>
+                <MenuItem value="muito ativo">Muito ativo</MenuItem>
+                <MenuItem value="extremamente ativo">Extremamente ativo</MenuItem>
               </TextField>
 
-              <Button type="submit" variant="contained" color="primary">
-                Cadastrar
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<ArrowBackIcon />}
-                color="primary"
-                onClick={() => navigate("/gestor")}
-              >
-                Voltar
-              </Button>
+              <Divider sx={{ mt: 1 }} />
+              
+              <Stack direction="row" spacing={2} justifyContent="flex-end">
+                <Button
+                  variant="text"
+                  startIcon={<ArrowBackIcon />}
+                  onClick={() => navigate("/gestor")}
+                  sx={{ color: 'text.secondary', fontWeight: 600 }}
+                >
+                  Voltar
+                </Button>
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  color="success"
+                  sx={{ fontWeight: 600, px: 4 }}
+                >
+                  Cadastrar
+                </Button>
+              </Stack>
             </Box>
           </Paper>
         </Box>

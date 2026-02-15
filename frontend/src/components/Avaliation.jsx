@@ -1,22 +1,38 @@
 import { Box, Container, Typography } from '@mui/material';
 import { Section } from './Section';
 import { CardAvaliation } from './CardAvaliation';
-import { useEffect, useState } from 'react';
-import api from '../utils/api';
+
+const avaliacoes = [
+  {
+    id: 1,
+    title: 'Transformou minha rotina clínica',
+    description:
+      'A plataforma agilizou meus atendimentos e a criação de dietas. Os gráficos e históricos tornaram as decisões mais rápidas e precisas. Recomendo a qualquer nutricionista.',
+    name: 'Ana Silva',
+    date: 'Janeiro 2024',
+    avatar: '/avatar1.jpg',
+  },
+  {
+    id: 2,
+    title: 'Ferramenta essencial!',
+    description:
+      'Organiza prontuários, facilita consultas e gera relatórios em poucos cliques. Interface intuitiva e suporte ágil — virou parte do meu dia a dia.',
+    name: 'João Souza',
+    date: 'Fevereiro 2024',
+    avatar: '/avatar2.jpg',
+  },
+  {
+    id: 3,
+    title: 'Aumentou o engajamento',
+    description:
+      'Os recursos de acompanhamento e materiais educativos melhoraram a adesão dos pacientes e os resultados nas consultas de retorno.',
+    name: 'Maria Oliveira',
+    date: 'Março 2024',
+    avatar: '/avatar3.jpg',
+  },
+];
 
 function Avaliation() {
-	const [avaliacoes, setAvaliacoes] = useState([]);
-	useEffect(() => {
-		async function fetchAvaliacoes() {
-			try {
-				const response = await api.get('/avaliacoes');
-				setAvaliacoes(Array.isArray(response.data) ? response.data : []);
-			} catch {
-				setAvaliacoes([]);
-			}
-		}
-		fetchAvaliacoes();
-	}, []);
 
   return (
     <Section

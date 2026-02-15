@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Box, Grid, Paper, Typography, TextField, Button, Stack,
-  Divider, Chip, List, ListItem, ListItemText, Avatar, IconButton, Tooltip
+  Box, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import MealModal from '../components/MealModal';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
@@ -18,18 +18,25 @@ export default function Diet() {
     const navigate = useNavigate();
   const location = useLocation();
 
+  const storedPatientId = sessionStorage.getItem('pacienteId') || localStorage.getItem('pacienteId');
+  const parsedPatientId = storedPatientId ? parseInt(storedPatientId, 10) : null;
+  const storedPatientName = sessionStorage.getItem('pacienteNome') || localStorage.getItem('pacienteNome');
+
   const selectedUser = location.state?.user ?? (() => {
     try {
       const users = JSON.parse(localStorage.getItem('users') || '[]');
+      if (parsedPatientId) {
+        return users.find(u => String(u.id) === String(parsedPatientId)) || (users.length ? users[users.length - 1] : null);
+      }
       return users.length ? users[users.length - 1] : null;
     } catch {
       return null;
     }
   })();
 
-  const userName = location.state.patientName;
+  const userName = location.state?.patientName || storedPatientName || selectedUser?.name || 'Paciente';
   const userAge = selectedUser?.age ?? selectedUser?.idade ?? null;
-  const patientId = selectedUser?.id || null;
+  const patientId = selectedUser?.id || parsedPatientId || null;
 console.log('Diet page - selectedUser:', selectedUser);
   const initials = userName
     ? userName.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
@@ -110,7 +117,6 @@ console.log('Diet page - selectedUser:', selectedUser);
   };
 
   const handleEditMeal = (meal) => {
-    console.log('handleEditMeal - meal antes de abrir modal:', meal); // Debug
     setSelectedMeal(meal);
     setOpenMeal(true);
   };
@@ -126,14 +132,36 @@ console.log('Diet page - selectedUser:', selectedUser);
     }
   };
 
+  const handleClearDiet = async () => {
+    if (meals.length === 0) {
+      alert('Não há refeições para limpar.');
+      return;
+    }
+
+    const confirmacao = window.confirm(
+      `Tem certeza que deseja limpar TODAS as ${meals.length} refeições desta dieta?\n\nEsta ação não pode ser desfeita!`
+    );
+
+    if (!confirmacao) return;
+
+    try {
+      await Promise.all(meals.map(meal => api.delete(`/meals/${meal.id}`)));
+      setMeals([]);
+      alert('Todas as refeições foram removidas com sucesso!');
+    } catch (error) {
+      console.error('Erro ao limpar dieta:', error);
+      alert('Erro ao limpar algumas refeições. Verifique o console.');
+      loadMeals();
+    }
+  };
+
   const loadMeals = async () => {
     try {
       const response = await api.get(`/meals/${patientId}`);
       console.log("Refeições carregadas:", response.data);
 
       const refeicoes = response.data?.refeicoes ?? response.data;
-console.log("Refeições processadas:", refeicoes); // Debug
-      setMeals((refeicoes || []).map(r => ({
+      const mealsList = (refeicoes || []).map(r => ({
         id: r.id || r.mealId,
         descricao: r.descricao,
         horario: r.horario,
@@ -144,10 +172,9 @@ console.log("Refeições processadas:", refeicoes); // Debug
           quantidade: a.quantidade,
           unidade: a.unidade
         }))
-      })));
-      console.log("Meals mapeadas:", mealsList); // Debug
+      }));
       setMeals(mealsList);
-            console.log("Meals state atualizado"); 
+      console.log("Meals state atualizado"); 
 
     } catch (err) {
       console.error("Erro carregando refeições:", err);
@@ -161,124 +188,184 @@ console.log("Refeições processadas:", refeicoes); // Debug
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, background: '#f5f8fa', minHeight: '100vh' }}>
-            <Paper sx={{ p: 2, mb: 3 }}>
-        <Grid container alignItems="center" spacing={2}>
-          <Grid item>
-            <Avatar sx={{ width: 64, height: 64, bgcolor: 'grey.300' }}>
-              {initials}
-            </Avatar>
-          </Grid>
-          <Grid item xs>
-            <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {userName}
-              {userAge ? (
-                <Typography component="span" sx={{ color: 'text.secondary', fontWeight: 500 }}> - {userAge} anos</Typography>
-              ) : null}
-            </Typography>
-            <Box sx={{ mt: 1, display: 'flex', gap: 2, alignItems: 'center' }}>
-              <Button startIcon={<ArrowBackIcon />} size="small" onClick={() => navigate(-1)} variant="text">Voltar</Button>
-            </Box>
-          </Grid>
-          <Grid item>
-            <Stack direction="row" spacing={1}>
-              <Button variant="outlined" startIcon={<PrintIcon />} onClick={handlePrint}>
-                Imprimir Plano
-              </Button>
-              <Button variant="contained" color="success" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenMeal}>
-                Adicionar Refeição
-              </Button>
-            </Stack>
-          </Grid>
-        </Grid>
+      <Paper 
+        elevation={2} 
+        sx={{ 
+          p: 3, 
+          mb: 4, 
+          borderRadius: 2,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Button 
+            startIcon={<ArrowBackIcon />} 
+            size="small" 
+            onClick={() => navigate(-1)} 
+            variant="text"
+            sx={{ color: 'text.secondary' }}
+          >
+            Voltar
+          </Button>
+          <Box sx={{ borderLeft: '1px solid', borderColor: 'divider', height: 24 }} />
+          <Typography variant="h5" sx={{ fontWeight: 700, color: 'text.primary' }}>
+            Plano Alimentar — {userName}
+          </Typography>
+        </Box>
+        
+        <Stack direction="row" spacing={2}>
+          <Button 
+            variant="outlined" 
+            startIcon={<PrintIcon />} 
+            onClick={handlePrint}
+            sx={{ fontWeight: 600 }}
+          >
+            Imprimir
+          </Button>
+          <Button 
+            variant="outlined" 
+            color="error"
+            startIcon={<DeleteSweepIcon />} 
+            onClick={handleClearDiet}
+            disabled={meals.length === 0}
+            sx={{ fontWeight: 600 }}
+          >
+            Limpar Dieta
+          </Button>
+          <Button 
+            variant="contained" 
+            color="success" 
+            startIcon={<AddCircleOutlineIcon />} 
+            onClick={handleOpenMeal}
+            sx={{ fontWeight: 600 }}
+          >
+            Adicionar Refeição
+          </Button>
+        </Stack>
       </Paper>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={12}>
+
+      <Stack spacing={4}>
+        {meals.length > 0 ? (
           <Stack spacing={3}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="subtitle1" gutterBottom>Descrição <span style={{color:'#d32f2f'}}>*</span></Typography>
-              <TextField
-                multiline
-                minRows={3}
-                placeholder="Plano alimentar para ..."
-                fullWidth
-                variant="outlined"
-              />
-            </Paper>
+            {meals.map(m => (
+              <Paper 
+                key={m.id} 
+                elevation={3}
+                sx={{ 
+                  p: 3, 
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    boxShadow: 6,
+                    transform: 'translateY(-2px)'
+                  }
+                }}
+              >
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+                  <Box>
+                    <Typography variant="h6" sx={{ fontWeight: 700, display: 'inline-block' }}>
+                      {m.descricao || 'Refeição'}
+                    </Typography>
+                    {m.horario && (
+                      <Typography variant="body2" component="span" sx={{ color: 'text.secondary', ml: 2, fontWeight: 500 }}>
+                        {m.horario}
+                      </Typography>
+                    )}
+                  </Box>
 
-            <Paper sx={{ p: 4, textAlign: 'center', minHeight: 260, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-              
-                            {meals.length > 0 ? (
-              <Stack spacing={2} sx={{ mt: 2, width: '100%', mb: 2 }}>
-                {meals.map(m => (
-                  <Paper key={m.id} sx={{ p: 2, borderRadius: 2 }}>
-                    <Stack direction="row" alignItems="center" justifyContent="space-between">
-                      <Box>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'inline-block' }}>
-                          {m.descricao || 'Refeição'}
-                        </Typography>
-                        {m.horario && (
-                          <Typography variant="body2" component="span" sx={{ color: 'text.secondary', ml: 1 }}>
-                            {m.horario}
-                          </Typography>
-                        ) }
-                      </Box>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Tooltip title="Copiar alimentos">
+                      <IconButton size="small" onClick={() => handleCopyMeal(m)}>
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Editar">
+                      <IconButton size="small" onClick={() => handleEditMeal(m)}>
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Excluir">
+                      <IconButton size="small" color="error" onClick={() => handleDeleteMeal(m.id)}>
+                        <DeleteOutlineIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                </Stack>
 
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <Tooltip title="Copiar alimentos">
-                          <IconButton size="small" onClick={() => handleCopyMeal(m)}><ContentCopyIcon fontSize="small" /></IconButton>
-                        </Tooltip>
-                        <Tooltip title="Editar">
-                          <IconButton size="small" onClick={() => handleEditMeal(m)}><EditIcon fontSize="small" /></IconButton>
-                        </Tooltip>
-                        <Tooltip title="Excluir">
-                          <IconButton size="small" color="error" onClick={() => handleDeleteMeal(m.id)}><DeleteOutlineIcon fontSize="small" /></IconButton>
-                        </Tooltip>
-                      </Stack>
-                    </Stack>
-
-                    <Box sx={{ mt: 2 }}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        variant="outlined"
-                        value={m.alimentos && m.alimentos.length ? m.alimentos.map(a => `${a.nome} (${a.quantidade} ${a.unidade})`).join('\n') : ''}
-                        multiline
-                        InputProps={{ readOnly: true }}
-                      />
-                      {m.observacao && (
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                          Obs: {m.observacao}
-                        </Typography>
-                      )}
-                    </Box>
-                  </Paper>
-                ))}
-              </Stack>
-            ) : (
-                <>
-                <Avatar sx={{ bgcolor: '#e8f5e9', width: 88, height: 88, mb: 2 }}>
-                <AddCircleOutlineIcon color="success" sx={{ fontSize: 40 }} />
-              </Avatar>
-              <Typography variant="h6" sx={{ mb: 1 }}>Refeições</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Esse plano alimentar não possui refeições. Comece adicionando a esse paciente uma avaliação ou uma prescrição.
-              </Typography></>)}
-              <Button variant="contained" color="success" startIcon={<AddCircleOutlineIcon />} onClick={handleOpenMeal}>Adicionar Refeição</Button>
-            </Paper>
-
-            <Paper sx={{ p: 3, '@media print': { display: 'none' } }}>
-              <Typography variant="h6" gutterBottom>Quer agilizar a elaboração da dieta?</Typography>
-              <Typography variant="body2" color="text.secondary">Experimente visualizar e carregar um plano alimentar já salvo.</Typography>
-              <Button sx={{ mt: 2 }} variant="contained">Ver modelos</Button>
-            </Paper>
-
-
-            <MealModal open={openMeal} patientId={patientId} onClose={handleCloseMeal} onSave={handleSaveMeal} initial={selectedMeal} />
+                <Box>
+                  <TextField
+                    fullWidth
+                    size="medium"
+                    variant="outlined"
+                    value={m.alimentos && m.alimentos.length ? m.alimentos.map(a => `${a.nome} (${a.quantidade} ${a.unidade})`).join('\n') : ''}
+                    multiline
+                    InputProps={{ readOnly: true }}
+                    sx={{ 
+                      '& .MuiOutlinedInput-root': { 
+                        backgroundColor: '#f9fafb'
+                      }
+                    }}
+                  />
+                  {m.observacao && (
+                    <Typography variant="body2" color="text.secondary" sx={{ display: 'block', mt: 2, fontStyle: 'italic' }}>
+                      Obs: {m.observacao}
+                    </Typography>
+                  )}
+                </Box>
+              </Paper>
+            ))}
           </Stack>
-        </Grid>
+        ) : (
+          <Paper 
+            sx={{ 
+              p: 6, 
+              textAlign: 'center', 
+              minHeight: 300, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center',
+              borderRadius: 2,
+              border: '2px dashed',
+              borderColor: 'divider'
+            }}
+          >
+            <Avatar sx={{ bgcolor: '#e8f5e9', width: 96, height: 96, mb: 3 }}>
+              <AddCircleOutlineIcon color="success" sx={{ fontSize: 48 }} />
+            </Avatar>
+            <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
+              Nenhuma refeição cadastrada
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 500 }}>
+              Esse plano alimentar não possui refeições. Use o botão "Adicionar Refeição" no topo da página para começar.
+            </Typography>
+          </Paper>
+        )}
 
+        <Paper sx={{ p: 3, '@media print': { display: 'none' }, borderRadius: 2 }} elevation={1}>
+          <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
+            Quer agilizar a elaboração da dieta?
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Experimente visualizar e carregar um plano alimentar já salvo.
+          </Typography>
+          <Button variant="contained" color="primary">
+            Ver modelos
+          </Button>
+        </Paper>
+      </Stack>
 
-      </Grid>
+      <MealModal 
+        open={openMeal} 
+        patientId={patientId} 
+        onClose={handleCloseMeal} 
+        onSave={handleSaveMeal} 
+        initial={selectedMeal} 
+      />
     </Box>
   );
 }

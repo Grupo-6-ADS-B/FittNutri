@@ -75,13 +75,9 @@ function RegisterForm() {
       senha: data.password
     };
 
-    // Recupera o token do sessionStorage ou localStorage
-    const token = sessionStorage.getItem('token') || localStorage.getItem('token');
-
     try {
-      const resp = await api.post('/users', payload, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
-      });
+     
+      const resp = await api.post('/users', payload);
       sessionStorage.setItem('emailUsuario', data.email);
       sessionStorage.setItem('senhaUsuario', data.password);
       sessionStorage.setItem('nomeUsuario', data.name);

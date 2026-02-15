@@ -56,6 +56,11 @@ function LoginForm() {
   const onSubmit = async (data) => {
     setError('');
     setSuccess('');
+    
+    
+    sessionStorage.removeItem('token');
+    localStorage.removeItem('token');
+    
     try {
       const { data: body } = await api.post('/users/login', {
         email: data.email,
