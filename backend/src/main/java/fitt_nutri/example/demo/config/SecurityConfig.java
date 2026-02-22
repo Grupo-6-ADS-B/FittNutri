@@ -42,6 +42,7 @@ public class SecurityConfig {
             "/schedulings/**",
             "/h2-console/**",
             "/forms/**",
+	    "/error",
             "/data-circle/**",
             "/anthropometric-data/**",
             "/food-itens/**",
