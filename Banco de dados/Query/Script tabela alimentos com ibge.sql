@@ -6,7 +6,7 @@ CREATE TABLE alimentos (
     id INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(255),
     umidade DECIMAL(10,2),
-    energiaKcal DECIMAL(10,2),
+    energia_kcal DECIMAL(10,2),
     proteina DECIMAL(10,2),
     lipideos DECIMAL(10,2),
     colesterol DECIMAL(10,2),
@@ -27,10 +27,10 @@ CREATE TABLE alimentos (
     riboflavina DECIMAL(10,2),
     piridoxina DECIMAL(10,2),
     niacina DECIMAL(10,2),
-    vitaminaC DECIMAL(10,2)
+    vitaminac DECIMAL(10,2)
 );
 
-INSERT INTO alimentos (nome, umidade, energiaKcal, proteina, lipideos, colesterol, carboidrato, fibra, cinzas, calcio, magnesio, manganes, fosforo, ferro, sodio, potassio, cobre, zinco, retinol, tiamina, riboflavina, piridoxina, niacina, vitaminaC) VALUES
+INSERT INTO alimentos (nome, umidade, energia_kcal, proteina, lipideos, colesterol, carboidrato, fibra, cinzas, calcio, magnesio, manganes, fosforo, ferro, sodio, potassio, cobre, zinco, retinol, tiamina, riboflavina, piridoxina, niacina, vitaminac) VALUES
 ('Arroz, integral, cozido', 70.14, 123.53, 2.59, 1.00, NULL, 25.81, 2.75, 0.46, 5.20, 58.70, 0.63, 105.85, 0.26, 1.24, 75.15, 0.02, 0.68, NULL, 0.08, NULL, 0.08, NULL, NULL),
 ('Arroz, integral, cru', 12.18, 359.68, 7.32, 1.86, NULL, 77.45, 4.82, 1.18, 7.82, 109.71, 2.99, 250.87, 0.95, 1.65, 173.34, 0.07, 1.40, NULL, 0.26, NULL, 0.17, 4.18, NULL),
 ('Arroz, tipo 1, cozido', 69.11, 128.26, 2.52, 0.23, NULL, 28.06, 1.56, 0.08, 3.54, 2.25, 0.30, 17.95, 0.08, 1.20, 14.67, 0.01, 0.49, NULL, NULL, NULL, NULL, NULL, NULL),
