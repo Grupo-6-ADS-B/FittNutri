@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FittNutri — Arquitetura</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Sora:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --green: #22c55e;
+    --green-dim: #16a34a;
+    --blue: #3b82f6;
+    --blue-dim: #1d4ed8;
+    --orange: #f97316;
+    --purple: #a855f7;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --cyan: #06b6d4;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --text-mid: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Sora', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 24px;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .header .badge {
+    display: inline-block;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+
+  .header p {
+    color: var(--text-dim);
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Internet layer */
+  .internet-layer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0;
+  }
+
+  .internet-box {
+    background: linear-gradient(135deg, rgba(234,179,8,0.15), rgba(234,179,8,0.05));
+    border: 1px solid rgba(234,179,8,0.4);
+    border-radius: 12px;
+    padding: 16px 48px;
+    text-align: center;
+  }
+
+  .internet-box .icon { font-size: 28px; margin-bottom: 4px; }
+  .internet-box .label { font-size: 13px; font-weight: 600; color: var(--yellow); }
+  .internet-box .sub { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  /* Arrow */
+  .arrow-down {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 auto;
+    gap: 0;
+  }
+
+  .arrow-line {
+    width: 2px;
+    height: 32px;
+    background: linear-gradient(to bottom, var(--border), var(--blue));
+    position: relative;
+  }
+
+  .arrow-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    color: var(--blue);
+    background: var(--bg);
+    padding: 2px 8px;
+    border: 1px solid rgba(59,130,246,0.3);
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .arrow-tip {
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--blue);
+  }
+
+  /* Main layout */
+  .arch-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0;
+    align-items: start;
+  }
+
+  /* Nginx box */
+  .nginx-layer {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0;
+  }
+
+  .nginx-box {
+    background: linear-gradient(135deg, rgba(168,85,247,0.15), rgba(168,85,247,0.05));
+    border: 1px solid rgba(168,85,247,0.4);
+    border-radius: 12px;
+    padding: 20px 64px;
+    text-align: center;
+    position: relative;
+  }
+
+  .nginx-box::before {
+    content: 'GATEWAY';
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--purple);
+    background: var(--bg);
+    padding: 0 8px;
+  }
+
+  .nginx-box .icon { font-size: 28px; margin-bottom: 4px; }
+  .nginx-box .label { font-size: 14px; font-weight: 700; color: var(--purple); }
+  .nginx-box .sub { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  .badges-row {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 10px;
+  }
+
+  .mini-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: 600;
+  }
+
+  .badge-green { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .badge-blue { background: rgba(59,130,246,0.15); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+  .badge-orange { background: rgba(249,115,22,0.15); color: var(--orange); border: 1px solid rgba(249,115,22,0.3); }
+  .badge-purple { background: rgba(168,85,247,0.15); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+  .badge-cyan { background: rgba(6,182,212,0.15); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); }
+  .badge-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+
+  /* Split arrows */
+  .split-arrows {
+    display: flex;
+    justify-content: center;
+    gap: 160px;
+    position: relative;
+    height: 48px;
+    margin: 0 auto;
+  }
+
+  .split-arrows::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 2px;
+    background: var(--border);
+  }
+
+  .split-arrow-left, .split-arrow-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .split-arrow-line {
+    width: 2px;
+    flex: 1;
+  }
+
+  .split-arrow-line.green { background: var(--green); }
+  .split-arrow-line.blue { background: var(--blue); }
+
+  .split-arrow-tip-green {
+    width: 0; height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--green);
+  }
+
+  .split-arrow-tip-blue {
+    width: 0; height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 8px solid var(--blue);
+  }
+
+  /* Services row */
+  .services-row {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    margin-bottom: 0;
+  }
+
+  .service-box {
+    border-radius: 12px;
+    padding: 20px 24px;
+    text-align: center;
+    min-width: 200px;
+    position: relative;
+  }
+
+  .service-box.frontend {
+    background: linear-gradient(135deg, rgba(34,197,94,0.15), rgba(34,197,94,0.05));
+    border: 1px solid rgba(34,197,94,0.4);
+  }
+
+  .service-box.backend {
+    background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(59,130,246,0.05));
+    border: 1px solid rgba(59,130,246,0.4);
+  }
+
+  .service-box .icon { font-size: 28px; margin-bottom: 6px; }
+  .service-box .label { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .service-box.frontend .label { color: var(--green); }
+  .service-box.backend .label { color: var(--blue); }
+  .service-box .sub { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+  .service-box .detail { font-size: 11px; color: var(--text-mid); margin-top: 8px; line-height: 1.6; }
+
+  /* Data layer */
+  .data-layer {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+  }
+
+  .data-box {
+    border-radius: 12px;
+    padding: 20px 24px;
+    text-align: center;
+    min-width: 180px;
+    position: relative;
+  }
+
+  .data-box.mysql {
+    background: linear-gradient(135deg, rgba(249,115,22,0.15), rgba(249,115,22,0.05));
+    border: 1px solid rgba(249,115,22,0.4);
+  }
+
+  .data-box.rabbit {
+    background: linear-gradient(135deg, rgba(239,68,68,0.15), rgba(239,68,68,0.05));
+    border: 1px solid rgba(239,68,68,0.4);
+  }
+
+  .data-box.s3 {
+    background: linear-gradient(135deg, rgba(6,182,212,0.15), rgba(6,182,212,0.05));
+    border: 1px solid rgba(6,182,212,0.4);
+  }
+
+  .data-box .icon { font-size: 28px; margin-bottom: 6px; }
+  .data-box .label { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .data-box.mysql .label { color: var(--orange); }
+  .data-box.rabbit .label { color: var(--red); }
+  .data-box.s3 .label { color: var(--cyan); }
+  .data-box .sub { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+  .data-box .detail { font-size: 11px; color: var(--text-mid); margin-top: 8px; line-height: 1.6; }
+
+  /* Section labels */
+  .section-label {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin: 24px 0 12px;
+  }
+
+  /* Container group */
+  .container-group {
+    border: 1px dashed var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    margin-bottom: 0;
+  }
+
+  .container-group::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    background: var(--bg);
+    padding: 0 8px;
+    text-transform: uppercase;
+  }
+
+  /* External group */
+  .external-group {
+    border: 1px dashed rgba(6,182,212,0.3);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+  }
+
+  .external-group::before {
+    content: 'SERVIÇOS EXTERNOS';
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--cyan);
+    background: var(--bg);
+    padding: 0 8px;
+  }
+
+  /* Flow section */
+  .flow-section {
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+
+  .flow-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .flow-card h3 {
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .flow-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  .step-num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .step-text {
+    font-size: 12px;
+    color: var(--text-mid);
+    line-height: 1.6;
+  }
+
+  .step-text strong { color: var(--text); font-weight: 600; }
+
+  /* Legend */
+  .legend {
+    margin-top: 32px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    justify-content: center;
+    padding: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-mid);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+
+  /* Pulse animation */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .live-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+    display: inline-block;
+    margin-right: 6px;
+  }
+
+  .arrow-simple {
+    display: flex;
+    justify-content: center;
+    margin: 4px 0;
+  }
+
+  .arrow-simple-line {
+    width: 2px;
+    height: 24px;
+  }
+
+  .arrow-simple-tip {
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 768px) {
+    .services-row, .data-layer { flex-direction: column; align-items: center; }
+    .flow-section { grid-template-columns: 1fr; }
+    .split-arrows { gap: 80px; }
+    .split-arrows::before { width: 80px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">Arquitetura de Sistema</div>
+    <h1>FittNutri — Infrastructure Diagram</h1>
+    <p><span class="live-dot"></span>aws ec2 · us-east-1 · docker compose · nginx · ssl</p>
+  </div>
+
+  <!-- Internet -->
+  <div class="internet-layer">
+    <div class="internet-box">
+      <div class="icon">🌐</div>
+      <div class="label">Internet</div>
+      <div class="sub">fittnutri.duckdns.org</div>
+    </div>
+  </div>
+
+  <!-- Arrow down -->
+  <div class="arrow-down" style="width:2px;margin:0 auto;">
+    <div class="arrow-line" style="background:linear-gradient(to bottom,#1e2d45,#a855f7);"></div>
+  </div>
+  <div style="display:flex;justify-content:center;margin-bottom:2px;">
+    <div class="arrow-label">HTTPS :443 / HTTP :80</div>
+  </div>
+  <div style="display:flex;justify-content:center;margin-bottom:4px;">
+    <div class="arrow-tip" style="border-top-color:var(--purple);"></div>
+  </div>
+
+  <!-- EC2 Container Group -->
+  <div class="container-group" data-label="AWS EC2 — t2.micro · us-east-1 · Ubuntu 24 · Docker Compose">
+
+    <!-- Nginx -->
+    <div class="nginx-layer">
+      <div class="nginx-box">
+        <div class="icon">🔀</div>
+        <div class="label">Nginx</div>
+        <div class="sub">nginx:alpine · proxy reverso</div>
+        <div class="badges-row">
+          <span class="mini-badge badge-purple">:80 → :443</span>
+          <span class="mini-badge badge-green">/ → frontend:5173</span>
+          <span class="mini-badge badge-blue">/api/ → backend:8080</span>
+          <span class="mini-badge badge-cyan">SSL · Let's Encrypt</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Split arrows -->
+    <div style="display:flex;justify-content:center;position:relative;height:48px;">
+      <div style="position:absolute;top:0;left:calc(50% - 80px);width:160px;height:2px;background:var(--border);"></div>
+      <div style="position:absolute;top:0;left:calc(50% - 80px);display:flex;flex-direction:column;align-items:center;height:48px;">
+        <div style="width:2px;flex:1;background:var(--green);"></div>
+        <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--green);"></div>
+      </div>
+      <div style="position:absolute;top:0;right:calc(50% - 80px);display:flex;flex-direction:column;align-items:center;height:48px;">
+        <div style="width:2px;flex:1;background:var(--blue);"></div>
+        <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--blue);"></div>
+      </div>
+      <div style="position:absolute;top:50%;left:calc(50% - 116px);transform:translateY(-50%);">
+        <span class="arrow-label" style="border-color:rgba(34,197,94,0.3);color:var(--green);">GET /</span>
+      </div>
+      <div style="position:absolute;top:50%;right:calc(50% - 116px);transform:translateY(-50%);">
+        <span class="arrow-label" style="border-color:rgba(59,130,246,0.3);color:var(--blue);">GET /api/</span>
+      </div>
+    </div>
+
+    <!-- Services -->
+    <div class="services-row">
+      <div class="service-box frontend">
+        <div class="icon">⚛️</div>
+        <div class="label">Frontend</div>
+        <div class="sub">React + Vite · fittnutri-frontend</div>
+        <div class="detail">
+          Material UI · React Router<br>
+          Axios · port 5173
+        </div>
+        <div class="badges-row" style="margin-top:10px;">
+          <span class="mini-badge badge-green">container interno</span>
+        </div>
+      </div>
+
+      <div class="service-box backend">
+        <div class="icon">☕</div>
+        <div class="label">Backend</div>
+        <div class="sub">Spring Boot 3 · Java 21</div>
+        <div class="detail">
+          Spring Security · JWT<br>
+          JPA · Swagger · port 8080
+        </div>
+        <div class="badges-row" style="margin-top:10px;">
+          <span class="mini-badge badge-blue">container interno</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow to MySQL -->
+    <div style="display:flex;justify-content:center;margin:4px 0;">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div class="arrow-label" style="border-color:rgba(249,115,22,0.3);color:var(--orange);">JDBC · fittnutri-network</div>
+        <div style="width:2px;height:24px;background:var(--orange);margin-top:2px;"></div>
+        <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--orange);"></div>
+      </div>
+    </div>
+
+    <!-- MySQL -->
+    <div style="display:flex;justify-content:center;">
+      <div class="data-box mysql">
+        <div class="icon">🗄️</div>
+        <div class="label">MySQL 8.0</div>
+        <div class="sub">volume persistente · port 3306</div>
+        <div class="detail">
+          fittnutri_mysql_data<br>
+          paciente · refeicao · agendamento<br>
+          alimentos (5136 registros IBGE)
+        </div>
+        <div class="badges-row" style="margin-top:10px;">
+          <span class="mini-badge badge-orange">healthcheck</span>
+          <span class="mini-badge badge-orange">interno</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end EC2 group -->
+
+  <!-- Arrow to external -->
+  <div style="display:flex;justify-content:center;margin:4px 0;">
+    <div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="width:2px;height:24px;background:linear-gradient(to bottom,var(--border),var(--cyan));"></div>
+      <div class="arrow-label" style="border-color:rgba(6,182,212,0.3);color:var(--cyan);">AMQPS · HTTPS</div>
+      <div style="width:2px;height:24px;background:var(--cyan);margin-top:2px;"></div>
+      <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--cyan);"></div>
+    </div>
+  </div>
+
+  <!-- External services -->
+  <div class="external-group">
+    <div class="data-layer">
+      <div class="data-box rabbit">
+        <div class="icon">🐰</div>
+        <div class="label">RabbitMQ</div>
+        <div class="sub">CloudAMQP · Little Lemur Free</div>
+        <div class="detail">
+          fila: pdf.generation<br>
+          producer → consumer<br>
+          moose.rmq.cloudamqp.com
+        </div>
+        <div class="badges-row" style="margin-top:10px;">
+          <span class="mini-badge" style="background:rgba(239,68,68,0.15);color:var(--red);border:1px solid rgba(239,68,68,0.3);">AMQPS :5671</span>
+        </div>
+      </div>
+
+      <div class="data-box s3">
+        <div class="icon">🪣</div>
+        <div class="label">Amazon S3</div>
+        <div class="sub">fittnutri-dietas · us-east-1</div>
+        <div class="detail">
+          pacientes/{NOME}/<br>
+          consultas/{data}-{id}.pdf<br>
+          IAM: fittnutri-s3
+        </div>
+        <div class="badges-row" style="margin-top:10px;">
+          <span class="mini-badge badge-cyan">AWS SDK v2</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Flows -->
+  <div class="flow-section">
+
+    <div class="flow-card">
+      <h3><span style="color:var(--blue)">📄</span> Fluxo Síncrono — Imprimir PDF</h3>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(59,130,246,0.2);color:var(--blue);">1</div>
+        <div class="step-text"><strong>Usuário</strong> clica em "Imprimir" no frontend</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(59,130,246,0.2);color:var(--blue);">2</div>
+        <div class="step-text"><strong>GET /api/meals/patient/{id}/pdf</strong> via Nginx</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(59,130,246,0.2);color:var(--blue);">3</div>
+        <div class="step-text"><strong>Backend</strong> busca refeições no MySQL</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(59,130,246,0.2);color:var(--blue);">4</div>
+        <div class="step-text"><strong>OpenPDF</strong> gera o PDF com macros e tabelas</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(59,130,246,0.2);color:var(--blue);">5</div>
+        <div class="step-text"><strong>Download</strong> imediato no navegador do usuário</div>
+      </div>
+    </div>
+
+    <div class="flow-card">
+      <h3><span style="color:var(--cyan)">☁️</span> Fluxo Assíncrono — Enviar para S3</h3>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(6,182,212,0.2);color:var(--cyan);">1</div>
+        <div class="step-text"><strong>Usuário</strong> clica em "Enviar para S3"</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(6,182,212,0.2);color:var(--cyan);">2</div>
+        <div class="step-text"><strong>POST /api/meals/patient/{id}/pdf/request</strong></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(6,182,212,0.2);color:var(--cyan);">3</div>
+        <div class="step-text"><strong>PdfProducerService</strong> publica mensagem na fila RabbitMQ</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(6,182,212,0.2);color:var(--cyan);">4</div>
+        <div class="step-text"><strong>PdfConsumerService</strong> consome e gera o PDF</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(6,182,212,0.2);color:var(--cyan);">5</div>
+        <div class="step-text"><strong>S3Service</strong> faz upload para <code style="color:var(--cyan);font-size:11px;">pacientes/NOME/consultas/data-id.pdf</code></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Legend -->
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>Nginx Gateway</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>Frontend React</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>Backend Spring Boot</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>MySQL Database</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>RabbitMQ Queue</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div>Amazon S3</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>Internet / DNS</div>
+  </div>
+
+</div>
+</body>
+</html>
