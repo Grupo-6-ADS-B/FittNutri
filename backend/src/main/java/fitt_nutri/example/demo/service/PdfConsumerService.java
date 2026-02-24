@@ -20,7 +20,13 @@ public class PdfConsumerService {
 
             byte[] pdf = mealService.generateDietPdf(message.getPatientId());
 
-            String url = s3Service.uploadPdf(pdf, message.getPatientId());
+            String url = s3Service.uploadPdf(
+                pdf,
+                message.getPatientId(),
+                message.getPatientName(),
+                message.getAgendamentoId(),
+                message.getDataAgendamento()
+            );
 
             System.out.println("PDF gerado e enviado para S3: " + url);
 

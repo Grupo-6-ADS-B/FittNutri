@@ -19,8 +19,9 @@ public class S3Service {
     @Value("${aws.region}")
     private String region;
 
-    public String uploadPdf(byte[] pdfBytes, Integer patientId) {
-        String key = "pacientes/" + patientId + "/dieta.pdf";
+    public String uploadPdf(byte[] pdfBytes, Integer patientId, String patientName, Integer agendamentoId, String dataAgendamento) {
+        String nomeFormatado = patientName.toUpperCase().replace(" ", "-");
+        String key = "pacientes/" + nomeFormatado + "/consultas/" + dataAgendamento + "-" + agendamentoId + ".pdf";
 
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucket)

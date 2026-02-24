@@ -12,9 +12,9 @@ public class PdfProducerService {
 
     private final RabbitTemplate rabbitTemplate;
 
-    public void requestPdfGeneration(Integer patientId, String patientName) {
-        PdfGenerationMessageDTO message = new PdfGenerationMessageDTO(patientId, patientName);
+    public void requestPdfGeneration(Integer patientId, String patientName, Integer agendamentoId, String dataAgendamento) {
+        PdfGenerationMessageDTO message = new PdfGenerationMessageDTO(patientId, patientName, agendamentoId, dataAgendamento);
         rabbitTemplate.convertAndSend(RabbitMQConfig.PDF_QUEUE, message);
-        System.out.println("Mensagem publicada na fila para paciente: " + patientId);
+        System.out.println("Mensagem publicada na fila para paciente: " + patientId + " consulta: " + agendamentoId);
     }
 }
