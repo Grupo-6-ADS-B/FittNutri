@@ -1,5 +1,6 @@
 package fitt_nutri.example.demo.controller;
 
+import fitt_nutri.example.demo.service.PdfProducerService;
 import fitt_nutri.example.demo.dto.request.FullDietRequestDTO;
 import fitt_nutri.example.demo.dto.request.MealRequestDTO;
 import fitt_nutri.example.demo.dto.response.MealItemResponseDTO;
@@ -25,6 +26,15 @@ import java.util.stream.Collectors;
 public class MealController {
 
     private final MealService service;
+    private final PdfProducerService pdfProducerService;
+
+    @Operation(summary = "Solicita geração assíncrona do PDF via RabbitMQ")
+@ApiResponse(responseCode = "200", description = "Solicitação enviada para fila")
+@PostMapping("/patient/{patientId}/pdf/request")
+public ResponseEntity<String> requestPdf(@PathVariable Integer patientId) {
+    pdfProducerService.requestPdfGeneration(patientId, "Paciente " + patientId);
+    return ResponseEntity.ok("PDF sendo gerado e enviado para o S3!");
+}
 
     @Operation(summary = "Cria uma refeição (com vários alimentos) para um paciente")
     @ApiResponse(responseCode = "200", description = "Refeição criada com sucesso")

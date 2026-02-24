@@ -11,6 +11,7 @@ import MealModal from '../components/MealModal';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import api from '../utils/api';
 
 export default function Diet() {
@@ -61,6 +62,15 @@ console.log('Diet page - selectedUser:', selectedUser);
   } catch (error) {
     console.error('Erro ao baixar PDF:', error);
     alert('Erro ao baixar o PDF da dieta.');
+  }
+};
+const handleSendToS3 = async () => {
+  try {
+    await api.post(`/meals/patient/${patientId}/pdf/request`);
+    alert('PDF sendo gerado e enviado para o S3! Em breve estará disponível.');
+  } catch (error) {
+    console.error('Erro ao enviar para S3:', error);
+    alert('Erro ao solicitar envio para S3.');
   }
 };
   const [openMeal, setOpenMeal] = useState(false);
@@ -225,6 +235,15 @@ console.log('Diet page - selectedUser:', selectedUser);
             sx={{ fontWeight: 600 }}
           >
             Imprimir
+          </Button>
+          <Button 
+            variant="outlined" 
+            color="primary"
+            startIcon={<CloudUploadIcon />} 
+            onClick={handleSendToS3}
+            sx={{ fontWeight: 600 }}
+          >
+            Enviar para S3
           </Button>
           <Button 
             variant="outlined" 
