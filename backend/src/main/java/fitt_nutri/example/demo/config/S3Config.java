@@ -9,6 +9,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 
 @Configuration
+@org.springframework.context.annotation.Profile("prod")
 public class S3Config {
 
     @Value("${aws.access-key}")

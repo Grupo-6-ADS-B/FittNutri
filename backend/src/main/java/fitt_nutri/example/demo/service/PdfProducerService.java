@@ -7,6 +7,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
+@org.springframework.context.annotation.Profile("prod")
 @RequiredArgsConstructor
 public class PdfProducerService {
 

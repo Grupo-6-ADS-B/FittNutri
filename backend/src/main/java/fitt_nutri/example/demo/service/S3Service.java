@@ -8,6 +8,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 @Service
+@org.springframework.context.annotation.Profile("prod")
 @RequiredArgsConstructor
 public class S3Service {
 

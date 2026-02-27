@@ -25,6 +25,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=true
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_PROFILES_ACTIVE: prod
       JWT_SECRET: ${JWT_SECRET}
       JWT_VALIDITY: ${JWT_VALIDITY}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
