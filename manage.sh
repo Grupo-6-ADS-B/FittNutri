@@ -56,3 +56,20 @@ case $ACTION in
     echo "Uso: ./manage.sh {start|stop|restart|build|rebuild|logs [service]|status}"
     ;;
 esac
+
+# Limpa imagens antigas mantendo as 2 mais recentes de cada repositorio
+cleanup_images() {
+  echo "Limpando imagens antigas..."
+  docker image prune -f
+  
+  for repo in fittnutri-frontend fittnutri-backend; do
+    images=$(docker images $repo --format "{{.ID}}" | tail -n +3)
+    if [ ! -z "$images" ]; then
+      echo "Removendo imagens antigas de $repo..."
+      echo $images | xargs docker rmi -f 2>/dev/null || true
+    fi
+  done
+  
+  echo "Limpeza concluída!"
+  df -h
+}

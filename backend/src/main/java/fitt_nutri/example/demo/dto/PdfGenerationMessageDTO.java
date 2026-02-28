@@ -1,7 +1,9 @@
 package fitt_nutri.example.demo.dto;
 
 import java.io.Serializable;
+import org.springframework.context.annotation.Profile;
 
+@Profile({"prod", "dev"})
 public class PdfGenerationMessageDTO implements Serializable {
 
     private Integer patientId;
