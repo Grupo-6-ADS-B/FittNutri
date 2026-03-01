@@ -32,25 +32,16 @@ public class SecurityConfig {
     private final AutenticacaoFilter autenticacaoFilter;
 
         private static final String[] URLS_PUBLICAS = {
-            "/users/**",
             "/users/login",
-            "/swagger-ui/**",
-            "/swagger-ui.html",
-            "/v3/api-docs/**",
-            "/swagger-resources/**",
-            "/webjars/**",
-            "/schedulings/**",
-            "/h2-console/**",
-            "/forms/**",
-	    "/error",
-            "/data-circle/**",
-            "/anthropometric-data/**",
-            "/food-itens/**",
-            "/meals/**",
-            "/patients/**",
-            "/h2-console/**",
-            "/patient-history/**"
-    };
+            "/users", // apenas POST, se cadastro for aberto
+            "/swagger-ui/**", // apenas em dev
+            "/swagger-ui.html", // apenas em dev
+            "/v3/api-docs/**", // apenas em dev
+            "/swagger-resources/**", // apenas em dev
+            "/webjars/**", // apenas em dev
+            "/h2-console/**", // apenas em dev
+            "/error"
+        };
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -90,7 +81,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://fittnutri.duckdns.org"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

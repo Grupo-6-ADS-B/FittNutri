@@ -12,6 +12,6 @@ public class LoggingObserver implements Observer {
 
     @Override
     public void update(FormModel form) {
-        log.info("Form atualizado: id={} nome={} mensagem={}", form.getId(), form.getNome(), form.getMensagem());
+        // Log removido para evitar exposição de dados sensíveis
     }
 }

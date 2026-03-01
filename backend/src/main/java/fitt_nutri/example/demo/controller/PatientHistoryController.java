@@ -23,6 +23,7 @@ public class PatientHistoryController {
 
     @Operation(summary = "Buscar histórico de consultas de um paciente pelo ID do paciente")
     @ApiResponse(responseCode = "200", description = "Histórico de consultas retornado com sucesso")
+        @ApiResponse(responseCode = "200", description = "Histórico de consultas retornado")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @GetMapping("/{id}")
     public ResponseEntity<List<PatientHistoryModel>> buscarPorPaciente(@PathVariable Integer id) {
@@ -31,6 +32,7 @@ public class PatientHistoryController {
 
     @Operation(summary = "Salvar uma nova consulta para um paciente")
     @ApiResponse(responseCode = "200", description = "Consulta salva com sucesso")
+        @ApiResponse(responseCode = "200", description = "Consulta salva")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @PostMapping("/{pacienteId}")
     public ResponseEntity<Void> salvarConsulta(
@@ -43,6 +45,7 @@ public class PatientHistoryController {
 
     @Operation(summary = "Buscar evolução do paciente em um período específico")
     @ApiResponse(responseCode = "200", description = "Evolução do paciente retornada com sucesso")
+        @ApiResponse(responseCode = "200", description = "Evolução do paciente retornada")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @GetMapping("/evolucao/{pacienteId}")
     public ResponseEntity<List<EvolucaoPacienteDTO>> buscarEvolucaoPorPeriodo(

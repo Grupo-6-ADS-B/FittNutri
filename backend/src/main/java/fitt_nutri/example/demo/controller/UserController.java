@@ -91,33 +91,33 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Atualiza usuário por ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
+        @Operation(summary = "Atualiza usuário por ID")
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuário atualizado"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    })
+        })
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Integer id, @Valid @RequestBody UserRequestDTO dto) {
         return ResponseEntity.ok(adapter.updateUser(id, dto));
     }
 
     @PatchMapping("/{id}")
-    @Operation(summary = "Atualiza parcialmente um usuário por ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso"),
+        @Operation(summary = "Atualiza parcialmente um usuário por ID")
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Usuário atualizado"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    })
+        })
     public ResponseEntity<UserResponseDTO> patchUser(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
         return ResponseEntity.ok(adapter.patchUser(id, updates));
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Exclui usuário por ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso"),
+        @Operation(summary = "Exclui usuário por ID")
+        @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Usuário excluído"),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    })
+        })
     public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
         adapter.deleteUser(id);
         return ResponseEntity.noContent().build();

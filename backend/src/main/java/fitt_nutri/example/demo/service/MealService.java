@@ -182,7 +182,6 @@ public class MealService {
                 );
 
             } catch (Exception e) {
-                System.out.println("Erro ao calcular macros para " + item.getAlimento());
             }
         }
 
@@ -212,7 +211,6 @@ public class MealService {
         List<FoodItensModel> matches = foodItensRepository.findByNomeContainingIgnoreCase(item.getAlimento());
 
         if (matches.isEmpty()) {
-            System.out.println("⚠ Alimento não encontrado: " + item.getAlimento());
             return new MacrosDTO(0.0, 0.0, 0.0, 0.0, 0.0);
         }
 

@@ -33,7 +33,7 @@ public class S3Service {
         s3Client.putObject(request, RequestBody.fromBytes(pdfBytes));
 
         String url = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + key;
-        System.out.println("PDF enviado para S3: " + url);
+        // Log removido para evitar exposição de informações sensíveis
         return url;
     }
 }

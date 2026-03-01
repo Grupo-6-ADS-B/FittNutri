@@ -37,11 +37,11 @@ public class MealController {
             @RequestParam Integer agendamentoId,
             @RequestParam String dataAgendamento) {
         pdfProducerService.requestPdfGeneration(patientId, patientName, agendamentoId, dataAgendamento);
-        return ResponseEntity.ok("PDF sendo gerado e enviado para o S3!");
+        return ResponseEntity.accepted().build();
     }
 
     @Operation(summary = "Cria uma refeição (com vários alimentos) para um paciente")
-    @ApiResponse(responseCode = "200", description = "Refeição criada com sucesso")
+    @ApiResponse(responseCode = "200", description = "Refeição criada")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @PostMapping("/meal-by-type/{patientId}")
     public ResponseEntity<MealModel> addMealByType(
@@ -52,7 +52,7 @@ public class MealController {
     }
 
     @Operation(summary = "Lista todas as refeições de um paciente")
-    @ApiResponse(responseCode = "200", description = "Refeições retornadas com sucesso")
+    @ApiResponse(responseCode = "200", description = "Refeições retornadas")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @GetMapping("/{patientId}")
     public ResponseEntity<PatientMealsResponseDTO> getMealsByPatient(@PathVariable Integer patientId) {
@@ -81,7 +81,7 @@ public class MealController {
     }
 
     @Operation(summary = "Salva uma dieta completa para um paciente")
-    @ApiResponse(responseCode = "200", description = "Dieta salva com sucesso")
+    @ApiResponse(responseCode = "200", description = "Dieta salva")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @PostMapping("/full-diet/{patientId}")
     public ResponseEntity<List<MealModel>> saveFullDiet(
@@ -92,7 +92,7 @@ public class MealController {
     }
 
     @Operation(summary = "Atualiza uma refeição existente")
-    @ApiResponse(responseCode = "200", description = "Refeição atualizada com sucesso")
+    @ApiResponse(responseCode = "200", description = "Refeição atualizada")
     @ApiResponse(responseCode = "404", description = "Refeição não encontrada")
     @PutMapping("/{mealId}")
     public ResponseEntity<MealModel> updateMeal(@PathVariable Integer mealId, @RequestBody MealModel meal) {
@@ -101,7 +101,7 @@ public class MealController {
     }
 
     @Operation(summary = "Deleta uma refeição existente")
-    @ApiResponse(responseCode = "204", description = "Refeição deletada com sucesso")
+    @ApiResponse(responseCode = "204", description = "Refeição deletada")
     @ApiResponse(responseCode = "404", description = "Refeição não encontrada")
     @DeleteMapping("/{mealId}")
     public ResponseEntity<Void> deleteMeal(@PathVariable Integer mealId) {
@@ -110,7 +110,7 @@ public class MealController {
     }
 
     @Operation(summary = "Atualiza parcialmente uma refeição existente")
-    @ApiResponse(responseCode = "200", description = "Refeição atualizada com sucesso")
+    @ApiResponse(responseCode = "200", description = "Refeição atualizada")
     @ApiResponse(responseCode = "404", description = "Refeição não encontrada")
     @PatchMapping("/{mealId}")
     public ResponseEntity<MealModel> patchMeal(@PathVariable Integer mealId, @RequestBody MealModel mealPatch) {
@@ -119,7 +119,7 @@ public class MealController {
     }
 
     @Operation(summary = "Gera o PDF da dieta de um paciente")
-    @ApiResponse(responseCode = "200", description = "PDF gerado com sucesso")
+    @ApiResponse(responseCode = "200", description = "PDF gerado")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @GetMapping("/patient/{patientId}/pdf")
     public ResponseEntity<byte[]> getPdf(@PathVariable Integer patientId) throws Exception {

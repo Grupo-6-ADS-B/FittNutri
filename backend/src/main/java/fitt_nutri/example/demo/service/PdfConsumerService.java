@@ -17,7 +17,7 @@ public class PdfConsumerService {
     @RabbitListener(queues = RabbitMQConfig.PDF_QUEUE)
     public void consumePdfGeneration(PdfGenerationMessageDTO message) {
         try {
-            System.out.println("Consumindo mensagem para paciente: " + message.getPatientId());
+        
 
             byte[] pdf = mealService.generateDietPdf(message.getPatientId());
 
@@ -29,10 +29,9 @@ public class PdfConsumerService {
                 message.getDataAgendamento()
             );
 
-            System.out.println("PDF gerado e enviado para S3: " + url);
-
+          
         } catch (Exception e) {
-            System.err.println("Erro ao processar PDF: " + e.getMessage());
+         
         }
     }
 }

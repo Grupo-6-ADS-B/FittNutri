@@ -27,6 +27,7 @@ public class PatientController {
     @Operation(summary = "Cria um paciente")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Paciente criado com sucesso"),
+                @ApiResponse(responseCode = "201", description = "Paciente criado"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (Email, CPF ou Nome já cadastrado)")
     })
@@ -61,6 +62,8 @@ public class PatientController {
     @Operation(summary = "Atualiza um paciente (apenas se pertencer ao nutricionista logado)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Paciente atualizado com sucesso"),
+                @ApiResponse(responseCode = "200", description = "Paciente atualizado"),
+                @ApiResponse(responseCode = "200", description = "Paciente atualizado"),
             @ApiResponse(responseCode = "404", description = "Paciente não encontrado ou não pertence ao nutricionista logado"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (Email, CPF ou Nome já cadastrado)")
     })
@@ -87,6 +90,7 @@ public class PatientController {
     @Operation(summary = "Exclui um paciente (apenas se pertencer ao nutricionista logado)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Paciente excluído com sucesso"),
+                @ApiResponse(responseCode = "204", description = "Paciente excluído"),
             @ApiResponse(responseCode = "404", description = "Paciente não encontrado ou não pertence ao nutricionista logado")
     })
     public ResponseEntity<Void> deletePatient(@PathVariable Integer id) {

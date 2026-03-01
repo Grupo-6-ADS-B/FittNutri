@@ -23,6 +23,7 @@ public class FormController {
 
     @Operation(summary = "Cria um formulário")
     @ApiResponse(responseCode = "201", description = "Formulário criado com sucesso")
+        @ApiResponse(responseCode = "201", description = "Formulário criado")
     @ApiResponse(responseCode = "400", description = "Parâmetros inválidos")
     @PostMapping
     public ResponseEntity<FormResponseDTO> createForm(@Valid @RequestBody FormRequestDTO dto) {
@@ -32,6 +33,7 @@ public class FormController {
 
     @Operation(summary = "Lista todos os formulários")
     @ApiResponse(responseCode = "200", description = "Formulários retornados com sucesso")
+        @ApiResponse(responseCode = "200", description = "Formulários retornados")
     @ApiResponse(responseCode = "204", description = "Nenhum formulário encontrado")
     @GetMapping
     public ResponseEntity<List<FormResponseDTO>> getAllForms() {
@@ -44,6 +46,7 @@ public class FormController {
 
     @Operation(summary = "Busca um formulário por id")
     @ApiResponse(responseCode = "200", description = "Formulário encontrado com sucesso")
+        @ApiResponse(responseCode = "200", description = "Formulário encontrado")
     @ApiResponse(responseCode = "404", description = "Formulário não encontrado")
     @GetMapping("/{id}")
     public ResponseEntity<FormResponseDTO> getFormById(@PathVariable Integer id) {
@@ -57,6 +60,7 @@ public class FormController {
 
     @Operation(summary = "Atualiza um formulário por id")
     @ApiResponse(responseCode = "200", description = "Formulário atualizado com sucesso")
+        @ApiResponse(responseCode = "200", description = "Formulário atualizado")
     @ApiResponse(responseCode = "400", description = "Parâmetros inválidos")
     @ApiResponse(responseCode = "404", description = "Formulário não encontrado")
     @PutMapping("/{id}")
@@ -76,6 +80,7 @@ public class FormController {
 
     @Operation(summary = "Deleta um formulário por id")
     @ApiResponse(responseCode = "204", description = "Formulário deletado com sucesso")
+        @ApiResponse(responseCode = "204", description = "Formulário deletado")
     @ApiResponse(responseCode = "404", description = "Formulário não encontrado")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteForm(@PathVariable Integer id) {

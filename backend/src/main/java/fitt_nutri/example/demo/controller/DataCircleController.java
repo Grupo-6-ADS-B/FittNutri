@@ -28,6 +28,8 @@ public class DataCircleController {
     @Operation(summary = "Cria um novo registro de dados de circunferência")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Registro criado com sucesso"),
+                @ApiResponse(responseCode = "201", description = "Registro criado"),
+                @ApiResponse(responseCode = "201", description = "Registro criado"),
             @ApiResponse(responseCode = "400", description = "Requisição inválida"),
             @ApiResponse(responseCode = "409", description = "Conflito: Rótulo já existe")
     })
@@ -62,6 +64,7 @@ public class DataCircleController {
     @Operation(summary = "Recupera todos os registros de dados de circunferência")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Registros recuperados com sucesso"),
+                @ApiResponse(responseCode = "200", description = "Registros recuperados"),
             @ApiResponse(responseCode = "404", description = "Nenhum registro encontrado")
     })
     public ResponseEntity<List<DataCircleModel>> pegarTodos() {
@@ -73,6 +76,7 @@ public class DataCircleController {
     @Operation(summary = "Recupera um registro de dados de circunferência pelo ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Registro recuperado com sucesso"),
+                @ApiResponse(responseCode = "200", description = "Registro recuperado"),
             @ApiResponse(responseCode = "400", description = "ID inválido"),
             @ApiResponse(responseCode = "404", description = "Registro não encontrado")
     })
@@ -84,6 +88,7 @@ public class DataCircleController {
     @Operation(summary = "Atualiza um registro de dados de circunferência pelo ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Registro atualizado com sucesso"),
+                @ApiResponse(responseCode = "200", description = "Registro atualizado"),
             @ApiResponse(responseCode = "400", description = "ID inválido ou dados inválidos"),
             @ApiResponse(responseCode = "404", description = "Registro não encontrado"),
             @ApiResponse(responseCode = "409", description = "Conflito: Rótulo já existe")
@@ -97,6 +102,7 @@ public class DataCircleController {
     @Operation(summary = "Atualiza parcialmente um registro de dados de circunferência pelo ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Registro atualizado parcialmente com sucesso"),
+                @ApiResponse(responseCode = "200", description = "Registro atualizado parcialmente"),
             @ApiResponse(responseCode = "400", description = "ID inválido ou dados inválidos no corpo da requisição"),
             @ApiResponse(responseCode = "404", description = "Registro não encontrado"),
             @ApiResponse(responseCode = "409", description = "Conflito: Rótulo já existe")
@@ -110,6 +116,7 @@ public class DataCircleController {
     @Operation(summary = "Deleta um registro de dados de circunferência pelo ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Registro deletado com sucesso"),
+                @ApiResponse(responseCode = "204", description = "Registro deletado"),
             @ApiResponse(responseCode = "400", description = "ID inválido"),
             @ApiResponse(responseCode = "404", description = "Registro não encontrado")
     })
@@ -129,6 +136,7 @@ public class DataCircleController {
     @Operation(summary = "Lista registros de circunferência por paciente")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Registros retornados com sucesso"),
+                @ApiResponse(responseCode = "200", description = "Registros retornados"),
             @ApiResponse(responseCode = "400", description = "ID de paciente inválido"),
             @ApiResponse(responseCode = "404", description = "Nenhum registro encontrado para este paciente")
     })

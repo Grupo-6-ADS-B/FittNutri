@@ -28,6 +28,7 @@ public class SchedulingController {
     @Operation(summary = "Cria um agendamento")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Agendamento criado com sucesso"),
+                @ApiResponse(responseCode = "201", description = "Agendamento criado"),
             @ApiResponse(responseCode = "404", description = "Paciente ou nutricionista não encontrado")
     })
     public ResponseEntity<SchedulingResponseDTO> create(@Valid @RequestBody SchedulingRequestDTO dto) {
@@ -77,6 +78,7 @@ public class SchedulingController {
     @Operation(summary = "Atualiza agendamento por ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Agendamento atualizado com sucesso"),
+                @ApiResponse(responseCode = "200", description = "Agendamento atualizado"),
             @ApiResponse(responseCode = "404", description = "Agendamento não encontrado")
     })
     public ResponseEntity<SchedulingResponseDTO> update(@PathVariable Integer id, @Valid @RequestBody SchedulingRequestDTO dto) {
@@ -87,6 +89,7 @@ public class SchedulingController {
     @Operation(summary = "Atualiza apenas a data de um agendamento")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Data atualizada com sucesso"),
+                @ApiResponse(responseCode = "200", description = "Data atualizada"),
             @ApiResponse(responseCode = "404", description = "Agendamento não encontrado")
     })
     public ResponseEntity<SchedulingResponseDTO> updateDate(@PathVariable Integer id, @RequestBody LocalDate newDate) {
@@ -97,6 +100,7 @@ public class SchedulingController {
     @Operation(summary = "Atualiza apenas as observações de um agendamento")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Observações atualizadas com sucesso"),
+                @ApiResponse(responseCode = "200", description = "Observações atualizadas"),
             @ApiResponse(responseCode = "404", description = "Agendamento não encontrado")
     })
     public ResponseEntity<SchedulingResponseDTO> updateObservacoes(@PathVariable Integer id, @RequestBody String observacoes) {
@@ -107,6 +111,7 @@ public class SchedulingController {
     @Operation(summary = "Exclui agendamento por ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Agendamento excluído com sucesso"),
+                @ApiResponse(responseCode = "204", description = "Agendamento excluído"),
             @ApiResponse(responseCode = "404", description = "Agendamento não encontrado")
     })
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
