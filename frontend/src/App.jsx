@@ -5,6 +5,7 @@ import { theme } from './theme';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Outlet } from "react-router-dom";
 import { LoginForm } from './Pages/LoginForm';
 import { RegisterForm } from './Pages/RegisterForm';
+import ResetPassword from './Pages/ResetPassword';
 import { Header } from './components/Header';
 import { Main } from './Pages/Main';
 import UserGestor from "./Pages/UserGestor";
@@ -60,6 +61,7 @@ function App() {
               <Route path="/" element={<Main />} />
               <Route path="/login" element={<LoginForm />} />
               <Route path="/auth" element={<RegisterForm />} />
+              <Route path="/resetar-senha" element={<ResetPassword />} />
               <Route path="/register-patient" element={<PatientRegister />} />
               <Route path="/questionario" element={<QuestionarioStepper />} />
               <Route path="/resumo-circunferencia" element={<ResumoCircunferencia />} />

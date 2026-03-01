@@ -161,10 +161,16 @@ function LoginForm() {
       setRecoveryError('Digite um e-mail válido.');
       return;
     }
-    // Simula envio de email
-    setTimeout(() => {
-      setRecoverySuccess(`Um email para redefinir sua senha foi enviado para ${recoveryEmail}.`);
-    }, 1000);
+    try {
+      const { data } = await api.post('/users/recover-password', { email: recoveryEmail });
+      setRecoverySuccess('Um email para redefinir sua senha foi enviado para ' + recoveryEmail + '.');
+    } catch (err) {
+      let msg = err.response?.data?.error || err.message;
+      if (err.response?.status === 404) {
+        msg = 'E-mail não encontrado.';
+      }
+      setRecoveryError(msg || 'Erro ao enviar e-mail de recuperação.');
+    }
   };
 
   return (

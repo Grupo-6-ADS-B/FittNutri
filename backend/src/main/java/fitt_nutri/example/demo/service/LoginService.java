@@ -1,3 +1,8 @@
+    public void atualizarSenha(UserModel user, String novaSenha) {
+        String senhaCriptografada = passwordEncoder.encode(novaSenha);
+        user.setSenha(senhaCriptografada);
+        userRepository.save(user);
+    }
 package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.config.GerenciadorTokenJwt;
