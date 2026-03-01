@@ -19,7 +19,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 public class AutenticacaoFilter extends OncePerRequestFilter {
@@ -53,12 +52,21 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String path = request.getRequestURI();
+        String method = request.getMethod();
+
+        // Verifica se a rota é pública
         boolean isPublic = URLS_PUBLICAS.stream().anyMatch(publicUrl ->
             path.equals(publicUrl) || path.startsWith(publicUrl + "/")
         );
-        LOGGER.info("[AuthFilter] Path: {} | isPublic: {}", path, isPublic);
+
+        // Permite POST em /users (criação de usuário) e /users/google-login
+        if ((path.equals("/users") || path.equals("/users/google-login")) && method.equals("POST")) {
+            isPublic = true;
+        }
+
+        LOGGER.info("[AuthFilter] Path: {} | Method: {} | isPublic: {}", path, method, isPublic);
         if (isPublic) {
-            LOGGER.info("[AuthFilter] Liberando autenticação para {}", path);
+            LOGGER.info("[AuthFilter] Liberando autenticação para {} {}", method, path);
             filterChain.doFilter(request, response);
             return;
         }
@@ -98,17 +106,5 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
-    }
-
-    private void addUsernameInContext(HttpServletRequest request, String username, String token) {
-        UserDetails userDetails = autenticacaoService.loadUserByUsername(username);
-
-        if (jwtTokenManager.validateToken(token, userDetails)) {
-            UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-            authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-            SecurityContextHolder.getContext().setAuthentication(authToken);
-        }
     }
 }

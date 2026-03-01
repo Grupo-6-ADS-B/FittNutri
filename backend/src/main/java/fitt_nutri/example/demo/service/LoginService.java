@@ -1,15 +1,3 @@
-        public String gerarToken(UserModel user) {
-        org.springframework.security.core.userdetails.User springUser =
-            new org.springframework.security.core.userdetails.User(
-                user.getEmail(), "", java.util.List.of(() -> user.getRole()));
-        org.springframework.security.authentication.UsernamePasswordAuthenticationToken authentication =
-            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                springUser, null, springUser.getAuthorities());
-        return gerenciadorTokenJwt.generateToken(authentication);
-        }
-    public java.util.Optional<UserModel> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
 package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.config.GerenciadorTokenJwt;
@@ -38,9 +26,11 @@ public class LoginService {
     private final AuthenticationManager authenticationManager;
 
     public void criar(UserModel novoUser){
-
-        String senhaCriptografada = passwordEncoder.encode(novoUser.getSenha());
-        novoUser.setSenha(senhaCriptografada);
+        // Apenas criptografa a senha se ela não estiver vazia (usuários do Google têm senha vazia)
+        if (novoUser.getSenha() != null && !novoUser.getSenha().isEmpty()) {
+            String senhaCriptografada = passwordEncoder.encode(novoUser.getSenha());
+            novoUser.setSenha(senhaCriptografada);
+        }
 
         userRepository.save(novoUser);
     }
@@ -60,5 +50,19 @@ public class LoginService {
     public List<LoginListDTO> listarUsuarios(){
         List<UserModel> users = userRepository.findAll();
         return users.stream().map(LoginMapperDTO::of).toList();
+    }
+
+    public String gerarToken(UserModel user) {
+        org.springframework.security.core.userdetails.User springUser =
+            new org.springframework.security.core.userdetails.User(
+                user.getEmail(), "", java.util.List.of(() -> user.getRole()));
+        org.springframework.security.authentication.UsernamePasswordAuthenticationToken authentication =
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                springUser, null, springUser.getAuthorities());
+        return gerenciadorTokenJwt.generateToken(authentication);
+    }
+
+    public java.util.Optional<UserModel> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
     }
 }

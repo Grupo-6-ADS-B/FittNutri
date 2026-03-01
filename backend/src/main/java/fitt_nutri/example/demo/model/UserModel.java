@@ -1,5 +1,3 @@
-    @Column(nullable = true, length = 512)
-    private String foto;
 package fitt_nutri.example.demo.model;
 
 import jakarta.persistence.*;
@@ -31,19 +29,19 @@ public class UserModel {
     private String email;
 
     @Column(nullable = false, unique = true)
-    @CPF
     private String cpf;
-
 
     @Column(nullable = false)
     private String crn;
-
 
     @Column(nullable = false)
     private String senha;
 
     @Column(nullable = false)
     private String role = "NUTRI";
+
+    @Column(nullable = true, length = 512)
+    private String foto;
 
     @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL)
     private List<PatientModel> pacientes = new ArrayList<>();
