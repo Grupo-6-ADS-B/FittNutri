@@ -1,3 +1,15 @@
+        public String gerarToken(UserModel user) {
+        org.springframework.security.core.userdetails.User springUser =
+            new org.springframework.security.core.userdetails.User(
+                user.getEmail(), "", java.util.List.of(() -> user.getRole()));
+        org.springframework.security.authentication.UsernamePasswordAuthenticationToken authentication =
+            new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                springUser, null, springUser.getAuthorities());
+        return gerenciadorTokenJwt.generateToken(authentication);
+        }
+    public java.util.Optional<UserModel> getUserByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
 package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.config.GerenciadorTokenJwt;

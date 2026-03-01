@@ -30,6 +30,16 @@ function Header({
     navigate('/');
   };
 
+  const handleLogout = () => {
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('nomeUsuario');
+    sessionStorage.removeItem('fotoUsuario');
+    localStorage.removeItem('token');
+    localStorage.removeItem('nomeUsuario');
+    localStorage.removeItem('fotoUsuario');
+    navigate('/login');
+  };
+
   return (
     <AppBar 
       position="sticky" 
@@ -109,12 +119,12 @@ function Header({
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar 
                 alt="User Avatar" 
-                src='' // vou colocar futuramente a imagem do usuario!
+                src={userPhoto || ''}
                 sx={{ width: 40, height: 40, cursor: 'pointer' }} 
                 // onClick={() => navigate('/perfil')} vamos colocar futuramente a pagina de perfil!!
               />
               <Typography variant="body1" sx={{ fontWeight: 500 }}>Bem vindo, {userName}!</Typography>
-              <Button sx={{border: '1px solid rgba(46, 139, 87, 0.3)', borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }} onClick={() => { sessionStorage.removeItem('token'); sessionStorage.removeItem('nomeUsuario'); navigate('/login'); }}>Sair</Button>
+              <Button sx={{border: '1px solid rgba(46, 139, 87, 0.3)', borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }} onClick={handleLogout}>Sair</Button>
             </Box>
           )}
         </Stack>

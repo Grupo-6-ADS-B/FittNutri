@@ -23,6 +23,26 @@ import java.util.Objects;
 @Component
 @RequiredArgsConstructor
 public class AutenticacaoFilter extends OncePerRequestFilter {
+    // URLs públicas (mesmo array do SecurityConfig)
+    private static final List<String> URLS_PUBLICAS = Arrays.asList(
+        "/users/google-login",
+        "/users/login",
+        "/users",
+        "/swagger-ui",
+        "/swagger-ui.html",
+        "/v3/api-docs",
+        "/swagger-resources",
+        "/webjars",
+        "/schedulings",
+        "/h2-console",
+        "/forms",
+        "/data-circle",
+        "/anthropometric-data",
+        "/food-itens",
+        "/meals",
+        "/patients",
+        "/patient-history"
+    );
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutenticacaoFilter.class);
 
@@ -31,6 +51,17 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
 
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        String path = request.getRequestURI();
+        boolean isPublic = URLS_PUBLICAS.stream().anyMatch(publicUrl ->
+            path.equals(publicUrl) || path.startsWith(publicUrl + "/")
+        );
+        LOGGER.info("[AuthFilter] Path: {} | isPublic: {}", path, isPublic);
+        if (isPublic) {
+            LOGGER.info("[AuthFilter] Liberando autenticação para {}", path);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String token = null;
         String username = null;
@@ -45,34 +76,27 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
 
             } catch (ExpiredJwtException e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return; // 🔥 IMPORTANTE! PARA O FLUXO!
+                return;
             } catch (Exception e) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return; // 🔥 Token inválido DERUBA AQUI
+                return;
             }
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
             UserDetails userDetails = autenticacaoService.loadUserByUsername(username);
-
             if (jwtTokenManager.validateToken(token, userDetails)) {
-
                 String role = jwtTokenManager.getRoleFromToken(token);
-
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
                                 userDetails,
                                 null,
                                 List.of(() -> role)
                         );
-
                 auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
                 SecurityContextHolder.getContext().setAuthentication(auth);
             }
         }
-
         filterChain.doFilter(request, response);
     }
 

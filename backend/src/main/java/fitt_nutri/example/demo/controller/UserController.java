@@ -1,3 +1,43 @@
+    @PostMapping("/google-login")
+    public ResponseEntity<?> googleLogin(@RequestBody fitt_nutri.example.demo.dto.login.GoogleLoginDTO dto) {
+        try {
+            // Valida o token do Google
+            var payload = fitt_nutri.example.demo.util.GoogleTokenVerifierUtil.verify(dto.token);
+            String email = (String) payload.getEmail();
+            String name = (String) payload.get("name");
+            String picture = (String) payload.get("picture");
+            String sub = (String) payload.getSubject();
+
+            // Busca usuário por email
+            var userOpt = service.getUserByEmail(email);
+            fitt_nutri.example.demo.model.UserModel user;
+            if (userOpt.isPresent()) {
+                user = userOpt.get();
+            } else {
+                // Cria novo usuário Google
+                user = new fitt_nutri.example.demo.model.UserModel();
+                user.setNome(name);
+                user.setEmail(email);
+                user.setSenha(""); // senha vazia para Google
+                user.setCpf("GOOGLE-" + sub); // marca como Google
+                user.setCrn("GOOGLE");
+                user.setFoto(picture);
+                service.criar(user);
+            }
+
+            // Gera JWT próprio da aplicação
+            String jwt = service.gerarToken(user);
+            return ResponseEntity.ok(Map.of(
+                "token", jwt,
+                "id", user.getId(),
+                "nome", user.getNome(),
+                "email", user.getEmail(),
+                "foto", user.getFoto()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Token Google inválido ou erro de autenticação."));
+        }
+    }
 package fitt_nutri.example.demo.controller;
 
 import fitt_nutri.example.demo.adapter.UserAdapter;

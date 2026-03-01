@@ -1,3 +1,5 @@
+    @Column(nullable = true, length = 512)
+    private String foto;
 package fitt_nutri.example.demo.model;
 
 import jakarta.persistence.*;

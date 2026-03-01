@@ -32,8 +32,9 @@ public class SecurityConfig {
     private final AutenticacaoFilter autenticacaoFilter;
 
         private static final String[] URLS_PUBLICAS = {
-            "/users/**",
+            "/users/google-login",
             "/users/login",
+            "/users/**",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
@@ -72,6 +73,7 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, "/users/google-login").permitAll()
                 .requestMatchers(URLS_PUBLICAS).permitAll()
                 .anyRequest()
                 .authenticated()
