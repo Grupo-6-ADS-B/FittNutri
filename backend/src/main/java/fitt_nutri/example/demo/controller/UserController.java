@@ -1,34 +1,3 @@
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
-        String token = body.get("token");
-        String newPassword = body.get("password");
-        if (token == null || token.isBlank() || newPassword == null || newPassword.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Token e nova senha são obrigatórios"));
-        }
-        var tokenOpt = passwordResetTokenRepository.findByToken(token);
-        if (tokenOpt.isEmpty()) {
-            return ResponseEntity.status(400).body(Map.of("error", "Token inválido ou expirado"));
-        }
-        var resetToken = tokenOpt.get();
-        if (resetToken.getExpiryDate().isBefore(java.time.LocalDateTime.now())) {
-            passwordResetTokenRepository.delete(resetToken);
-            return ResponseEntity.status(400).body(Map.of("error", "Token expirado"));
-        }
-        var userOpt = service.getUserByEmail(resetToken.getEmail());
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.status(404).body(Map.of("error", "Usuário não encontrado"));
-        }
-        var user = userOpt.get();
-        service.atualizarSenha(user, newPassword);
-        passwordResetTokenRepository.delete(resetToken);
-        return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso!"));
-    }
-import fitt_nutri.example.demo.model.PasswordResetToken;
-import fitt_nutri.example.demo.repository.PasswordResetTokenRepository;
-import fitt_nutri.example.demo.service.EmailService;
-import org.springframework.mail.MailException;
-import java.time.LocalDateTime;
-import java.util.UUID;
 package fitt_nutri.example.demo.controller;
 
 import fitt_nutri.example.demo.adapter.UserAdapter;
@@ -37,7 +6,6 @@ import fitt_nutri.example.demo.dto.request.UserRequestDTO;
 import fitt_nutri.example.demo.dto.response.UserResponseDTO;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.service.LoginService;
-import fitt_nutri.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -50,6 +18,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import fitt_nutri.example.demo.model.PasswordResetToken;
+import fitt_nutri.example.demo.repository.PasswordResetTokenRepository;
+import fitt_nutri.example.demo.service.EmailService;
 
 @RestController
 @RequestMapping("/users")
@@ -60,9 +33,9 @@ public class UserController {
 
     private final UserAdapter adapter;
     private final LoginService service;
-
-    private final EmailService emailService;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
+
 
     @PostMapping("/recover-password")
     public ResponseEntity<?> recoverPassword(@RequestBody Map<String, String> body) {
@@ -86,7 +59,7 @@ public class UserController {
         passwordResetTokenRepository.save(resetToken);
         try {
             emailService.sendPasswordRecoveryEmail(email, token);
-        } catch (MailException | jakarta.mail.MessagingException e) {
+        } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Erro ao enviar e-mail: " + e.getMessage()));
         }
         return ResponseEntity.ok(Map.of("message", "E-mail de recuperação enviado!"));
@@ -229,6 +202,38 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity.status(401).body(Map.of("error", "Token Google inválido ou erro de autenticação: " + e.getMessage()));
         }
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Redefinir senha usando token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Senha redefinida com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Token inválido ou expirado"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        String newPassword = body.get("password");
+        if (token == null || token.isBlank() || newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Token e nova senha são obrigatórios"));
+        }
+        var tokenOpt = passwordResetTokenRepository.findByToken(token);
+        if (tokenOpt.isEmpty()) {
+            return ResponseEntity.status(400).body(Map.of("error", "Token inválido ou expirado"));
+        }
+        var resetToken = tokenOpt.get();
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            passwordResetTokenRepository.delete(resetToken);
+            return ResponseEntity.status(400).body(Map.of("error", "Token expirado"));
+        }
+        var userOpt = service.getUserByEmail(resetToken.getEmail());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Usuário não encontrado"));
+        }
+        var user = userOpt.get();
+        service.atualizarSenha(user, newPassword);
+        passwordResetTokenRepository.delete(resetToken);
+        return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso!"));
     }
 
 }
