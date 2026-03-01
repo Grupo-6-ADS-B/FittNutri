@@ -1,5 +1,6 @@
 package fitt_nutri.example.demo.controller;
 
+import fitt_nutri.example.demo.service.PdfProducerService;
 import fitt_nutri.example.demo.dto.request.FullDietRequestDTO;
 import fitt_nutri.example.demo.dto.request.MealRequestDTO;
 import fitt_nutri.example.demo.dto.response.MealItemResponseDTO;
@@ -25,6 +26,19 @@ import java.util.stream.Collectors;
 public class MealController {
 
     private final MealService service;
+    private final PdfProducerService pdfProducerService;
+
+    @Operation(summary = "Solicita geração assíncrona do PDF via RabbitMQ")
+    @ApiResponse(responseCode = "200", description = "Solicitação enviada para fila")
+    @PostMapping("/patient/{patientId}/pdf/request")
+    public ResponseEntity<String> requestPdf(
+            @PathVariable Integer patientId,
+            @RequestParam String patientName,
+            @RequestParam Integer agendamentoId,
+            @RequestParam String dataAgendamento) {
+        pdfProducerService.requestPdfGeneration(patientId, patientName, agendamentoId, dataAgendamento);
+        return ResponseEntity.ok("PDF sendo gerado e enviado para o S3!");
+    }
 
     @Operation(summary = "Cria uma refeição (com vários alimentos) para um paciente")
     @ApiResponse(responseCode = "200", description = "Refeição criada com sucesso")
@@ -33,7 +47,6 @@ public class MealController {
     public ResponseEntity<MealModel> addMealByType(
             @PathVariable Integer patientId,
             @RequestBody MealRequestDTO request) {
-
         MealModel saved = service.addMealFromDto(patientId, request);
         return ResponseEntity.ok(saved);
     }
@@ -43,20 +56,15 @@ public class MealController {
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @GetMapping("/{patientId}")
     public ResponseEntity<PatientMealsResponseDTO> getMealsByPatient(@PathVariable Integer patientId) {
-
         List<MealModel> meals = service.getAllMealsByPatient(patientId);
-
         PatientMealsResponseDTO response = new PatientMealsResponseDTO();
         response.setId(patientId);
-
         List<MealResponseDTO> refeicoesDTO = meals.stream().map(meal -> {
             MealResponseDTO dto = new MealResponseDTO();
-
             dto.setId(meal.getId());
             dto.setHorario(meal.getHorario());
             dto.setDescricao(meal.getDescricao());
             dto.setObservacao(meal.getObservacao());
-
             List<MealItemResponseDTO> itensDTO = meal.getAlimentos().stream().map(item -> {
                 MealItemResponseDTO i = new MealItemResponseDTO();
                 i.setId(item.getId());
@@ -65,14 +73,10 @@ public class MealController {
                 i.setUnidade(item.getUnidade());
                 return i;
             }).collect(Collectors.toList());
-
             dto.setAlimentos(itensDTO);
-
             return dto;
         }).collect(Collectors.toList());
-
         response.setRefeicoes(refeicoesDTO);
-
         return ResponseEntity.ok(response);
     }
 
@@ -83,7 +87,6 @@ public class MealController {
     public ResponseEntity<List<MealModel>> saveFullDiet(
             @PathVariable Integer patientId,
             @RequestBody FullDietRequestDTO request) {
-
         List<MealModel> savedMeals = service.saveFullDiet(patientId, request);
         return ResponseEntity.ok(savedMeals);
     }
@@ -121,7 +124,6 @@ public class MealController {
     @GetMapping("/patient/{patientId}/pdf")
     public ResponseEntity<byte[]> getPdf(@PathVariable Integer patientId) throws Exception {
         byte[] pdf = service.generateDietPdf(patientId);
-
         return ResponseEntity.ok()
                 .header("Content-Type", "application/pdf")
                 .header("Content-Disposition", "attachment; filename=dieta.pdf")

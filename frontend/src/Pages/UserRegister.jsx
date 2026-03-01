@@ -188,12 +188,12 @@ export default function UserRegister() {
     };
     (async () => {
       try {
-        const resp = await axios.post('http://localhost:8080/patients', {...payload, estadoCivil: 'Solteiro'}, {
-          headers: {
-            'Content-Type': 'application/json', 
-            Authorization: `Bearer ${sessionStorage.getItem('token')}`
-          }
-        });
+        const resp = await axios.post('/api/patients', {...payload, estadoCivil: 'Solteiro'}, {
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`
+  }
+});
         setNotification({
           open: true,
           message: `Sucesso! Novo usuário ${formData.name} registrado`,

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip
+  Box, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip, Snackbar, Alert, CircularProgress
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -11,6 +11,7 @@ import MealModal from '../components/MealModal';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import api from '../utils/api';
 
 export default function Diet() {
@@ -37,6 +38,9 @@ export default function Diet() {
   const userName = location.state?.patientName || storedPatientName || selectedUser?.name || 'Paciente';
   const userAge = selectedUser?.age ?? selectedUser?.idade ?? null;
   const patientId = selectedUser?.id || parsedPatientId || null;
+  const appointment = location.state?.appointment || null;
+  const agendamentoId = appointment?.id || appointment?.appointmentId || null;
+  const dataAgendamento = appointment?.date || appointment?.dataAgendada || new Date().toISOString().split("T")[0];
 console.log('Diet page - selectedUser:', selectedUser);
   const initials = userName
     ? userName.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
@@ -63,9 +67,25 @@ console.log('Diet page - selectedUser:', selectedUser);
     alert('Erro ao baixar o PDF da dieta.');
   }
 };
+const handleSendToS3 = async () => {
+  try {
+    await api.post(`/meals/patient/${patientId}/pdf/request`, null, {
+      params: {
+        patientName: userName,
+        agendamentoId: agendamentoId || 0,
+        dataAgendamento: dataAgendamento
+      }
+    });
+  } catch (error) {
+    console.error('Erro ao enviar para S3:', error);
+    alert('Erro ao solicitar envio para S3.');
+  }
+};
   const [openMeal, setOpenMeal] = useState(false);
   const [meals, setMeals] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState(null);
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+  const [sendingToS3, setSendingToS3] = useState(false);
 
   const handleOpenMeal = () => { setSelectedMeal(null); setOpenMeal(true); };
   const handleCloseMeal = () => setOpenMeal(false);
@@ -228,6 +248,16 @@ console.log('Diet page - selectedUser:', selectedUser);
           </Button>
           <Button 
             variant="outlined" 
+            color="primary"
+            startIcon={sendingToS3 ? <CircularProgress size={18} /> : <CloudUploadIcon />} 
+            onClick={handleSendToS3}
+            disabled={sendingToS3}
+            sx={{ fontWeight: 600 }}
+          >
+            {sendingToS3 ? "Enviando..." : "Enviar para S3"}
+          </Button>
+          <Button 
+            variant="outlined" 
             color="error"
             startIcon={<DeleteSweepIcon />} 
             onClick={handleClearDiet}
@@ -358,6 +388,17 @@ console.log('Diet page - selectedUser:', selectedUser);
           </Button>
         </Paper>
       </Stack>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={4000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar({ ...snackbar, open: false })}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
 
       <MealModal 
         open={openMeal} 
