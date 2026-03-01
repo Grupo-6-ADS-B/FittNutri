@@ -7,7 +7,6 @@ import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +19,7 @@ import java.util.ArrayList;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public UserModel createUser(UserRequestDTO dto) {
         if (userRepository.existsByEmail(dto.email())) {
@@ -35,7 +35,7 @@ public class UserService {
         user.setEmail(dto.email());
         user.setCpf(dto.cpf());
         user.setCrn(dto.crn());
-        user.setSenha(dto.senha());
+        user.setSenha(passwordEncoder.encode(dto.senha()));
         return userRepository.save(user);
     }
 
@@ -95,7 +95,7 @@ public class UserService {
         user.setEmail(dto.email());
         user.setCpf(dto.cpf());
         user.setCrn(dto.crn());
-        user.setSenha(dto.senha());
+        user.setSenha(passwordEncoder.encode(dto.senha()));
 
         return userRepository.save(user);
     }
@@ -131,7 +131,7 @@ public class UserService {
                 }
                 user.setCrn(crn);
             } else if ("senha".equals(key)) {
-                user.setSenha((String) value);
+                user.setSenha(passwordEncoder.encode((String) value));
             }
         }
 
@@ -149,7 +149,7 @@ public class UserService {
     public UserModel login(LoginRequestDTO dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
             UserModel user = userRepository.findByEmail(dto.getEmail()).get();
-            if (!user.getSenha().equals(dto.getSenha())) {
+            if (!passwordEncoder.matches(dto.getSenha(), user.getSenha())) {
                 throw new ConflictException("Senha incorreta");
             }
             return user;
