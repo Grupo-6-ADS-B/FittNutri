@@ -182,7 +182,11 @@ const [circData, setCircData] = useState(() => ({
     setUserInfo(updated);
     setIsEditingUser(false);
     try {
-      await api.put(`/users/${updated.id}`, updated);
+      const payload = {
+        nome: userDraft.name,
+        email: userDraft.email,
+      };
+      await api.patch(`/users/${updated.id}`, payload);
       const stored = localStorage.getItem('users');
       const arr = stored ? JSON.parse(stored) : [];
       if (Array.isArray(arr)) {
