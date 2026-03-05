@@ -1,13 +1,18 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.service.PdfProducerService;
 import fitt_nutri.example.demo.dto.request.FullDietRequestDTO;
 import fitt_nutri.example.demo.dto.request.MealRequestDTO;
 import fitt_nutri.example.demo.dto.response.MealItemResponseDTO;
 import fitt_nutri.example.demo.dto.response.MealResponseDTO;
 import fitt_nutri.example.demo.dto.response.PatientMealsResponseDTO;
 import fitt_nutri.example.demo.model.MealModel;
-import fitt_nutri.example.demo.service.MealService;
+import fitt_nutri.example.demo.domain.port.in.AddMealUseCase;
+import fitt_nutri.example.demo.domain.port.in.GetMealsByPatientUseCase;
+import fitt_nutri.example.demo.domain.port.in.CreateFullDietUseCase;
+import fitt_nutri.example.demo.domain.port.in.UpdateMealUseCase;
+import fitt_nutri.example.demo.domain.port.in.PatchMealUseCase;
+import fitt_nutri.example.demo.domain.port.in.DeleteMealUseCase;
+import fitt_nutri.example.demo.domain.port.in.GenerateDietPdfUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,20 +30,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class MealController {
 
-    private final MealService service;
-    private final PdfProducerService pdfProducerService;
-
-    @Operation(summary = "Solicita geração assíncrona do PDF via RabbitMQ")
-    @ApiResponse(responseCode = "200", description = "Solicitação enviada para fila")
-    @PostMapping("/patient/{patientId}/pdf/request")
-    public ResponseEntity<String> requestPdf(
-            @PathVariable Integer patientId,
-            @RequestParam String patientName,
-            @RequestParam Integer agendamentoId,
-            @RequestParam String dataAgendamento) {
-        pdfProducerService.requestPdfGeneration(patientId, patientName, agendamentoId, dataAgendamento);
-        return ResponseEntity.ok("PDF sendo gerado e enviado para o S3!");
-    }
+    private final AddMealUseCase addMealUseCase;
+    private final GetMealsByPatientUseCase getMealsUseCase;
+    private final CreateFullDietUseCase createFullDietUseCase;
+    private final UpdateMealUseCase updateMealUseCase;
+    private final PatchMealUseCase patchMealUseCase;
+    private final DeleteMealUseCase deleteMealUseCase;
+    private final GenerateDietPdfUseCase generateDietPdfUseCase;
 
     @Operation(summary = "Cria uma refeição (com vários alimentos) para um paciente")
     @ApiResponse(responseCode = "200", description = "Refeição criada com sucesso")
@@ -47,7 +45,7 @@ public class MealController {
     public ResponseEntity<MealModel> addMealByType(
             @PathVariable Integer patientId,
             @RequestBody MealRequestDTO request) {
-        MealModel saved = service.addMealFromDto(patientId, request);
+        MealModel saved = addMealUseCase.execute(patientId, request);
         return ResponseEntity.ok(saved);
     }
 
@@ -56,7 +54,7 @@ public class MealController {
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @GetMapping("/{patientId}")
     public ResponseEntity<PatientMealsResponseDTO> getMealsByPatient(@PathVariable Integer patientId) {
-        List<MealModel> meals = service.getAllMealsByPatient(patientId);
+        List<MealModel> meals = getMealsUseCase.execute(patientId);
         PatientMealsResponseDTO response = new PatientMealsResponseDTO();
         response.setId(patientId);
         List<MealResponseDTO> refeicoesDTO = meals.stream().map(meal -> {
@@ -87,7 +85,7 @@ public class MealController {
     public ResponseEntity<List<MealModel>> saveFullDiet(
             @PathVariable Integer patientId,
             @RequestBody FullDietRequestDTO request) {
-        List<MealModel> savedMeals = service.saveFullDiet(patientId, request);
+        List<MealModel> savedMeals = createFullDietUseCase.execute(patientId, request);
         return ResponseEntity.ok(savedMeals);
     }
 
@@ -96,7 +94,7 @@ public class MealController {
     @ApiResponse(responseCode = "404", description = "Refeição não encontrada")
     @PutMapping("/{mealId}")
     public ResponseEntity<MealModel> updateMeal(@PathVariable Integer mealId, @RequestBody MealModel meal) {
-        MealModel updatedMeal = service.updateMeal(mealId, meal);
+        MealModel updatedMeal = updateMealUseCase.execute(mealId, meal);
         return ResponseEntity.ok(updatedMeal);
     }
 
@@ -105,7 +103,7 @@ public class MealController {
     @ApiResponse(responseCode = "404", description = "Refeição não encontrada")
     @DeleteMapping("/{mealId}")
     public ResponseEntity<Void> deleteMeal(@PathVariable Integer mealId) {
-        service.deleteMeal(mealId);
+        deleteMealUseCase.execute(mealId);
         return ResponseEntity.noContent().build();
     }
 
@@ -114,7 +112,7 @@ public class MealController {
     @ApiResponse(responseCode = "404", description = "Refeição não encontrada")
     @PatchMapping("/{mealId}")
     public ResponseEntity<MealModel> patchMeal(@PathVariable Integer mealId, @RequestBody MealModel mealPatch) {
-        MealModel updatedMeal = service.patchMeal(mealId, mealPatch);
+        MealModel updatedMeal = patchMealUseCase.execute(mealId, mealPatch);
         return ResponseEntity.ok(updatedMeal);
     }
 
@@ -123,7 +121,7 @@ public class MealController {
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @GetMapping("/patient/{patientId}/pdf")
     public ResponseEntity<byte[]> getPdf(@PathVariable Integer patientId) throws Exception {
-        byte[] pdf = service.generateDietPdf(patientId);
+        byte[] pdf = generateDietPdfUseCase.execute(patientId);
         return ResponseEntity.ok()
                 .header("Content-Type", "application/pdf")
                 .header("Content-Disposition", "attachment; filename=dieta.pdf")

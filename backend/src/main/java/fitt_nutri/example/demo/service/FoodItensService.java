@@ -3,7 +3,7 @@ package fitt_nutri.example.demo.service;
 import fitt_nutri.example.demo.dto.MacrosDTO;
 import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.FoodItensModel;
-import fitt_nutri.example.demo.repository.FoodItensRepository;
+import fitt_nutri.example.demo.domain.port.out.FoodItensRepositoryPort;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FoodItensService {
 
-    private final FoodItensRepository foodItensRepository;
+    private final FoodItensRepositoryPort foodItensRepository;
 
     public FoodItensModel getFoodItemById(Integer id) {
         return foodItensRepository.findById(id)
@@ -62,7 +62,6 @@ public class FoodItensService {
         resultado.setNiacina(safe(item.getNiacina()) * quantidadeEmGramas);
         resultado.setVitaminaC(safe(item.getVitaminaC()) * quantidadeEmGramas);
 
-
         return resultado;
     }
 
@@ -91,7 +90,6 @@ public class FoodItensService {
         FoodItensModel item = foodItensRepository.findByNome(nome)
                 .orElseThrow(() -> new NotFoundException("Alimento não encontrado"));
 
-
         Double proteina = safe(item.getProteina()) * quantidadeEmGramas;
         Double carboidrato = safe(item.getCarboidrato()) * quantidadeEmGramas;
         Double lipideos = safe(item.getLipideos()) * quantidadeEmGramas;
@@ -111,11 +109,7 @@ public class FoodItensService {
         return itens;
     }
 
-
-
     private double safe(Double value) {
         return value == null ? 0.0 : value;
     }
-
-
 }
