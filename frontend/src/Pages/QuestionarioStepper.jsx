@@ -61,10 +61,7 @@ export default function QuestionarioStepper() {
   } catch { /* ignore storage errors */ }
   }, []);
   const location = useLocation();
-  const mockUsers = [
-    { id: 1, name: "André Goulart", email: "andre.goulart@example.com", phone: "(11) 98765-4321", avatar: "https://i.pravatar.cc/150?img=1" },
-    { id: 2, name: "Carlos Lima", email: "carlos.lima@example.com", phone: "(21) 91234-5678", avatar: "https://i.pravatar.cc/150?img=2" },
-  ];
+
   const selectedUser = location.state?.user || mockUsers[0];
   const [userInfo, setUserInfo] = useState(selectedUser);
   const [isEditingUser, setIsEditingUser] = useState(false);
