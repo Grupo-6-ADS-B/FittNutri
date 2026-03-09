@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, CssBaseline, Card, Typography, Button, Chip } from '@mui/material';
+import { Box, CssBaseline, Card, Typography, Button, Chip, Tabs, Tab } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import BalanceIcon from '@mui/icons-material/Balance';
@@ -8,6 +8,7 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../utils/api';
+import DataTable from '../components/DataTable';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -95,13 +96,11 @@ export default function Dashboard() {
       return;
     }
     try {
-      console.log(`Requisição: /patient-history/evolucao/${pacienteId}?dataInicio=${startDate}&dataFim=${endDate}`); // DEBUG
     
       const res = await api.get(`/patient-history/evolucao/${pacienteId}`, {
         params: { dataInicio: startDate, dataFim: endDate }
       });
     
-      console.log('Resposta recebida:', res.data); // DEBUG
       setEvolution(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Erro ao buscar evolução:', err);
@@ -140,6 +139,7 @@ export default function Dashboard() {
     const theme = useTheme();
     const primary = theme.palette.primary.main;
     const secondary = theme.palette.secondary.main;
+    const [showSelect, setShowSelect] = React.useState(false);
 
     const evoSorted = [...evolution].sort((a, b) => new Date(a.dataConsulta) - new Date(b.dataConsulta));
     let pesoAtual = '-';
@@ -177,7 +177,6 @@ export default function Dashboard() {
         </Card>
       );
     }
-    const [showSelect, setShowSelect] = React.useState(false);
     return (
       <Card sx={{ p: 2, boxShadow: 3, mb: 2}}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
@@ -232,46 +231,26 @@ export default function Dashboard() {
     );
   };
 
-  const ConsultasBarChart = () => {
+  const HistoricoDadosPaciente = () => {
     const theme = useTheme();
-    const green = theme.palette.primary.main;
-
-    const consultasPorData = {};
-    evolution.forEach(e => {
-      if (e.dataConsulta) {
-        const data = e.dataConsulta.slice(0, 10); 
-        const dataFormatada = new Date(data).toLocaleDateString('pt-BR');
-        consultasPorData[dataFormatada] = (consultasPorData[dataFormatada] || 0) + 1;
-      }
-    });
-
-    const consultas = Object.entries(consultasPorData).map(([data, qtd]) => ({
-      data,
-      qtd
-    })).sort((a, b) => new Date(a.data.split('/').reverse().join('-')) - new Date(b.data.split('/').reverse().join('-')));
-
-    if (consultas.length === 0) {
-      return (
-        <Box>
-          <Typography variant="h6" fontWeight="bold" mb={2}>Histórico de consultas</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 180, bgcolor: '#f8fff9', borderRadius: 2, boxShadow: 1 }}>
-            <Typography variant="body2" color="text.secondary">Nenhuma consulta no período selecionado</Typography>
-          </Box>
-        </Box>
-      );
-    }
+    const [tab, setTab] = useState(0);
 
     return (
       <Box>
-        <Typography variant="h6" fontWeight="bold" mb={2}>Histórico de consultas</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', height: 180, gap: 7, pl: 2, pr: 2, bgcolor: '#f8fff9', borderRadius: 2, boxShadow: 1 }}>
-          {consultas.map((c, i) => (
-            <Box key={i} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
-              <Typography variant="caption" sx={{ mb: 1, fontWeight: 'bold', color: '#333' }}>{c.data}</Typography>
-              <Box sx={{ width: 28, height: `${c.qtd * 32}px`, bgcolor: green, borderRadius: 2, boxShadow: 2, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: green, fontWeight: 'bold' }}>{c.qtd}</Typography>
-            </Box>
-          ))}
+        <Typography variant="h6" fontWeight="bold" mb={2}>
+        Histórico de dados do paciente
+        </Typography>
+
+        <Box sx={{ bgcolor: '#f8fff9', borderRadius: 2, boxShadow: 1, p: 2, maxWidth: 1100 }}>
+          <Tabs value={tab} onChange={(_, value) => setTab(value)}>
+            {evolution.map((_, idx) => (
+              <Tab key={idx} label={`Consulta ${idx + 1}`} sx={{ fontWeight: 'bold' }} />
+            ))}
+          </Tabs>
+
+          <Box sx={{ mt: 2 }}>
+            {evolution[tab] ? <DataTable data={evolution[tab]} /> : <Typography>Sem dados</Typography>}
+          </Box>
         </Box>
       </Box>
     );
@@ -357,8 +336,8 @@ export default function Dashboard() {
             <ResultChartCard />
           </Box>
         </Box>
-        <Box sx={{ width: '100%', maxWidth: 1400, mt: 2 }}>
-          <ConsultasBarChart />
+        <Box sx={{ width: '100%', ml: 10, mt: 2 }}>
+          <HistoricoDadosPaciente />
         </Box>
       </Box>
     );
