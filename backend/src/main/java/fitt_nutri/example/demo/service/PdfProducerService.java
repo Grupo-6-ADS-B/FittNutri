@@ -4,10 +4,11 @@ import fitt_nutri.example.demo.config.RabbitMQConfig;
 import fitt_nutri.example.demo.dto.PdfGenerationMessageDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
-@org.springframework.context.annotation.Profile("prod")
+@Profile({"prod", "dev"})
 @RequiredArgsConstructor
 public class PdfProducerService {
 
