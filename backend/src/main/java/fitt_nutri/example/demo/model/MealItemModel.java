@@ -3,11 +3,13 @@ package fitt_nutri.example.demo.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(name = "meal_item")
 @Data
-public class MealItemModel {
+@EqualsAndHashCode(callSuper = false)
+public class MealItemModel extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

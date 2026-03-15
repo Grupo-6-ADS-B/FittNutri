@@ -76,11 +76,18 @@ export default function UpdateDataDialog({
           onChange={(e) => setUpdateForm(f => ({ ...f, altura: e.target.value }))} 
           fullWidth 
         />
-        <TextField 
-          label="Idade Metabólica" 
-          value={updateForm.idadeMetabolica} 
-          onChange={(e) => setUpdateForm(f => ({ ...f, idadeMetabolica: e.target.value }))} 
-          fullWidth 
+        <TextField
+          label="Idade (anos)"
+          value={updateForm.idade}
+          onChange={(e) => setUpdateForm(f => ({ ...f, idade: e.target.value }))}
+          fullWidth
+          type="number"
+        />
+        <TextField
+          label="Idade Metabólica"
+          value={updateForm.idadeMetabolica}
+          onChange={(e) => setUpdateForm(f => ({ ...f, idadeMetabolica: e.target.value }))}
+          fullWidth
         />
         <TextField 
           label="Massa Muscular (kg)" 

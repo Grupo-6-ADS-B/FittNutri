@@ -1,9 +1,13 @@
 package fitt_nutri.example.demo.exceptions;
 
+import fitt_nutri.example.demo.config.SecurityAuditLogger;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -22,8 +26,11 @@ import java.util.stream.Collectors;
  * - Todas as respostas de erro sigam o mesmo formato JSON
  */
 @Slf4j
+@RequiredArgsConstructor
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final SecurityAuditLogger securityAuditLogger;
 
     // ------------------------------------------------------------------
     // 404 — recurso não encontrado
@@ -71,7 +78,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDenied(AccessDeniedException ex) {
-        log.warn("[SEGURANÇA] Acesso negado: {}", ex.getMessage());
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = (auth != null) ? auth.getName() : "anônimo";
+        securityAuditLogger.accessDenied(email, ex.getMessage());
         return build(HttpStatus.FORBIDDEN, "Acesso negado");
     }
 

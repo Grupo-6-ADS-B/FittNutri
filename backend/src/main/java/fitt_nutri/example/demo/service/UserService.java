@@ -137,8 +137,9 @@ public class UserService {
 
     public void deleteUser(Integer id) {
         verificarPropriedade(id);
-        userRepository.findById(id).orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
-        userRepository.deleteById(id);
+        UserModel user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
+        user.setDeletedAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
     }
 
     // -------------------------------------------------------------------------

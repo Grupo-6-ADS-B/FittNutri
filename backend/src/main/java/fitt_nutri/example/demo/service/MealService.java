@@ -148,7 +148,8 @@ public class MealService {
         MealModel meal = repository.findById(mealId)
                 .orElseThrow(() -> new NotFoundException("Refeição não encontrada"));
         verificarPropriedadeRefeicao(meal);
-        repository.delete(meal);
+        meal.setDeletedAt(java.time.LocalDateTime.now());
+        repository.save(meal);
     }
 
     // -------------------------------------------------------------------------

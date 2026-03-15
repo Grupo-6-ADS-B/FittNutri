@@ -35,6 +35,7 @@ public class SecurityConfig {
     // Em produção são desabilitados via application-prod.properties.
     private static final String[] URLS_PUBLICAS = {
             "/users/login",
+            "/users/refresh-token",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",

@@ -7,7 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -15,7 +17,8 @@ import java.time.LocalDate;
 @Setter
 @Entity
 @Table(name = "Agendamento")
-public class SchedulingModel {
+@SQLRestriction("deleted_at IS NULL")
+public class SchedulingModel extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,4 +37,7 @@ public class SchedulingModel {
     private LocalDate dataAgendada;
 
     private String observacoes;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

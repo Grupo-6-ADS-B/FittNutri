@@ -2,11 +2,13 @@ package fitt_nutri.example.demo.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "alimentos")
-public class FoodItensModel {
+public class FoodItensModel extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

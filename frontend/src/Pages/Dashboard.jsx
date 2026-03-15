@@ -7,6 +7,7 @@ import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../utils/api';
 import DataTable from '../components/DataTable';
@@ -61,6 +62,7 @@ export default function Dashboard() {
   const [patientName, setPatientName] = useState('');
   const [kpiValues, setKpiValues] = useState({ imc: '-', gordura: '-', massaMuscular: '-', gorduraVisceral: '-' });
   const [kpiTrends, setKpiTrends] = useState({ imc: null, gordura: null, massaMuscular: null, gorduraVisceral: null });
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   let userId = location.state?.user?.id || location.state?.pacienteId;
   if (!userId) {
@@ -114,6 +116,27 @@ export default function Dashboard() {
       setKpiTrends({ imc: null, gordura: null, massaMuscular: null, gorduraVisceral: null });
     }
   }, [evolution]);
+
+  const handleDownloadBioimpedance = async () => {
+    if (!userId) return;
+    setPdfLoading(true);
+    try {
+      const res = await api.get(`/reports/patient/${userId}/bioimpedance/pdf`, { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `relatorio-bioimpedancia-${patientName || userId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Erro ao gerar relatório:', err);
+      alert('Erro ao gerar relatório de bioimpedância. Verifique se o paciente possui dados de avaliação.');
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   const fetchEvolution = async (pacienteId) => {
     console.log('fetchEvolution chamado com:', pacienteId, startDate, endDate); // DEBUG
@@ -414,12 +437,22 @@ export default function Dashboard() {
           <Button variant="outlined" color="primary" startIcon={<ArrowBackIcon />} sx={{ height: 38 }} onClick={() => navigate(-1)}>
             Voltar
           </Button>
-          <Box>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="h5" fontWeight="bold" lineHeight={1.2}>
               {patientName || 'Paciente'}
             </Typography>
             <Typography variant="caption" color="text.secondary">Resumo Nutricional • {evolution.length} consulta{evolution.length !== 1 ? 's' : ''} no período</Typography>
           </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<PictureAsPdfIcon />}
+            onClick={handleDownloadBioimpedance}
+            disabled={pdfLoading}
+            sx={{ height: 38, whiteSpace: 'nowrap' }}
+          >
+            {pdfLoading ? 'Gerando...' : 'Relatório Bioimpedância'}
+          </Button>
         </Box>
 
         {/* KPI Grid — 4 colunas */}

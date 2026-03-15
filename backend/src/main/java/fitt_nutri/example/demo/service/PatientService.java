@@ -71,7 +71,8 @@ public class PatientService {
 
     public void delete(Integer id) {
         PatientModel p = findByIdAndNutricionista(id);
-        repository.delete(p);
+        p.setDeletedAt(java.time.LocalDateTime.now());
+        repository.save(p);
     }
 
     public PatientModel patchPatient(Integer id, Map<String, Object> updates) {

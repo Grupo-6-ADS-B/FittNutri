@@ -2,6 +2,7 @@ package fitt_nutri.example.demo.config;
 
 import io.github.bucket4j.Bandwidth;
 import io.github.bucket4j.Bucket;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ResponseStatusException;
@@ -16,16 +17,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * Se ultrapassado, lança 429 Too Many Requests.
  */
 @Component
+@RequiredArgsConstructor
 public class LoginRateLimiter {
 
     private static final int MAX_TENTATIVAS = 5;
     private static final Duration JANELA = Duration.ofMinutes(1);
 
     private final ConcurrentHashMap<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private final SecurityAuditLogger securityAuditLogger;
 
     public void verificar(String email) {
         Bucket bucket = buckets.computeIfAbsent(email, this::novoBucket);
         if (!bucket.tryConsume(1)) {
+            securityAuditLogger.rateLimited(email);
             throw new ResponseStatusException(
                     HttpStatus.TOO_MANY_REQUESTS,
                     "Muitas tentativas de login. Aguarde 1 minuto e tente novamente."

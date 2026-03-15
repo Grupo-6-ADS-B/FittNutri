@@ -41,6 +41,8 @@ services:
       APP_AES_KEY: ${APP_AES_KEY}
     ports:
       - "8080:8080"
+    volumes:
+      - backend_logs:/app/logs
     depends_on:
       mysql:
         condition: service_healthy
@@ -93,6 +95,7 @@ services:
 
 volumes:
   mysql_data:
+  backend_logs:
 
 networks:
   fittnutri-network:

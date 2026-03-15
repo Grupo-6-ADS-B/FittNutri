@@ -59,6 +59,7 @@ public class PatientHistoryService {
 
         antropo.setPeso(dto.getAntropometria().getPeso());
         antropo.setAltura(dto.getAntropometria().getAltura());
+        antropo.setIdade(dto.getAntropometria().getIdade());
         antropo.setImc(dto.getAntropometria().getImc());
         antropo.setGorduraVisceral(dto.getAntropometria().getGorduraVisceral());
         antropo.setPorcentagemGordura(dto.getAntropometria().getPorcentagemGordura());
@@ -126,7 +127,8 @@ public class PatientHistoryService {
             dto.setGordura(h.getAnthropometricDataModel().getPorcentagemGordura());
             dto.setAltura(h.getAnthropometricDataModel().getAltura());
             dto.setGorduraVisceral(h.getAnthropometricDataModel().getGorduraVisceral());
-            dto.setIdadeMetabolica(h.getAnthropometricDataModel().getIdadeMetabolica().doubleValue());
+            dto.setIdadeMetabolica(h.getAnthropometricDataModel().getIdadeMetabolica() != null
+                    ? h.getAnthropometricDataModel().getIdadeMetabolica().doubleValue() : null);
             dto.setTaxaMetabolicaBasal(h.getAnthropometricDataModel().getTaxaMetabolicaBasal());
             dto.setAtividade(h.getPatientModel().getAtividade());
 

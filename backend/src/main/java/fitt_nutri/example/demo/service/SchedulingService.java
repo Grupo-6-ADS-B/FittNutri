@@ -101,7 +101,8 @@ public class SchedulingService {
         SchedulingModel scheduling = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Agendamento não encontrado"));
         verificarPropriedadeAgendamento(scheduling);
-        repository.deleteById(id);
+        scheduling.setDeletedAt(java.time.LocalDateTime.now());
+        repository.save(scheduling);
     }
 
     @Transactional

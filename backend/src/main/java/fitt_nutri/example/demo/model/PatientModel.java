@@ -8,8 +8,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.validator.constraints.br.CPF;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,7 +20,8 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "Paciente")
-public class PatientModel {
+@SQLRestriction("deleted_at IS NULL")
+public class PatientModel extends AuditableEntity {
 
     public PatientModel(Integer id) {
         this.id = id;
@@ -93,4 +95,7 @@ public class PatientModel {
             m.setPaciente(null);
         }
     }
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }

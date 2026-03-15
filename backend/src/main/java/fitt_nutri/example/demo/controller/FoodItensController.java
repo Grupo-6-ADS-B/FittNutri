@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -86,6 +87,7 @@ public class FoodItensController {
     }
 
     @GetMapping("/search-part")
+    @PreAuthorize("hasRole('NUTRI')")
     @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Busca alimentos por parte do nome — retorna TACO + custom do nutricionista logado")
     @ApiResponse(responseCode = "200", description = "Dados encontrados com sucesso")
@@ -101,6 +103,7 @@ public class FoodItensController {
     // -------------------------------------------------------------------------
 
     @PostMapping("/custom")
+    @PreAuthorize("hasRole('NUTRI')")
     @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Cria um alimento personalizado para o nutricionista logado")
     @ApiResponse(responseCode = "201", description = "Alimento criado com sucesso")
@@ -112,6 +115,7 @@ public class FoodItensController {
     }
 
     @GetMapping("/custom")
+    @PreAuthorize("hasRole('NUTRI')")
     @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Lista os alimentos customizados do nutricionista logado")
     @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
@@ -125,6 +129,7 @@ public class FoodItensController {
     }
 
     @PutMapping("/custom/{id}")
+    @PreAuthorize("hasRole('NUTRI')")
     @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Atualiza completamente um alimento customizado do nutricionista logado")
     @ApiResponse(responseCode = "200", description = "Alimento atualizado com sucesso")
@@ -138,6 +143,7 @@ public class FoodItensController {
     }
 
     @PatchMapping("/custom/{id}")
+    @PreAuthorize("hasRole('NUTRI')")
     @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Atualiza parcialmente um alimento customizado do nutricionista logado")
     @ApiResponse(responseCode = "200", description = "Alimento atualizado com sucesso")
@@ -152,6 +158,7 @@ public class FoodItensController {
     }
 
     @DeleteMapping("/custom/{id}")
+    @PreAuthorize("hasRole('NUTRI')")
     @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Remove um alimento customizado do nutricionista logado")
     @ApiResponse(responseCode = "204", description = "Alimento removido com sucesso")
