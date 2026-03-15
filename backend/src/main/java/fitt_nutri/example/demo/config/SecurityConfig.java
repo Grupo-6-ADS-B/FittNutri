@@ -31,25 +31,18 @@ public class SecurityConfig {
     private final AutenticacaoEntryPoint autenticacaoEntryPoint;
     private final AutenticacaoFilter autenticacaoFilter;
 
-        private static final String[] URLS_PUBLICAS = {
-            "/users/**",
+    // Swagger e H2 console são permitidos apenas no perfil local/dev.
+    // Em produção são desabilitados via application-prod.properties.
+    private static final String[] URLS_PUBLICAS = {
             "/users/login",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
             "/swagger-resources/**",
             "/webjars/**",
-            "/schedulings/**",
             "/h2-console/**",
             "/forms/**",
-	    "/error",
-            "/data-circle/**",
-            "/anthropometric-data/**",
-            "/food-itens/**",
-            "/meals/**",
-            "/patients/**",
-            "/h2-console/**",
-            "/patient-history/**"
+            "/error"
     };
 
     @Bean
@@ -70,12 +63,13 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
+            // AVISO: frameOptions desabilitado apenas para H2 Console em dev — remover em produção
+            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(URLS_PUBLICAS).permitAll()
-                .anyRequest()
-                .authenticated()
+                .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                .anyRequest().authenticated()
             )
             .exceptionHandling(handling -> handling
                 .authenticationEntryPoint(autenticacaoEntryPoint))
@@ -92,7 +86,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("http://localhost:5173", "https://fittnutri.duckdns.org"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

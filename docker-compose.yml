@@ -11,6 +11,11 @@ services:
       - ./mysql/init:/docker-entrypoint-initdb.d
     networks:
       - fittnutri-network
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+          cpus: '0.5'
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
       interval: 10s
@@ -33,6 +38,7 @@ services:
       AWS_REGION: ${AWS_REGION}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
       RABBITMQ_URL: ${RABBITMQ_URL}
+      APP_AES_KEY: ${APP_AES_KEY}
     ports:
       - "8080:8080"
     depends_on:
@@ -40,6 +46,11 @@ services:
         condition: service_healthy
     networks:
       - fittnutri-network
+    deploy:
+      resources:
+        limits:
+          memory: 768m
+          cpus: '1.0'
 
   frontend:
     image: fittnutri-frontend
@@ -51,6 +62,11 @@ services:
       - backend
     networks:
       - fittnutri-network
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+          cpus: '0.25'
   nginx:
     image: nginx:alpine
     container_name: nginx

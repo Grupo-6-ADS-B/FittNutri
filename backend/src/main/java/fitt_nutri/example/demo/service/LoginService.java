@@ -1,6 +1,7 @@
 package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.config.GerenciadorTokenJwt;
+import fitt_nutri.example.demo.config.LoginRateLimiter;
 import fitt_nutri.example.demo.dto.login.LoginListDTO;
 import fitt_nutri.example.demo.dto.login.LoginMapperDTO;
 import fitt_nutri.example.demo.dto.login.LoginTokenDTO;
@@ -24,6 +25,7 @@ public class LoginService {
     private final UserRepository userRepository;
     private final GerenciadorTokenJwt gerenciadorTokenJwt;
     private final AuthenticationManager authenticationManager;
+    private final LoginRateLimiter loginRateLimiter;
 
     public void criar(UserModel novoUser){
 
@@ -34,6 +36,7 @@ public class LoginService {
     }
 
     public LoginTokenDTO autenticar(UserModel user){
+        loginRateLimiter.verificar(user.getEmail());
         final UsernamePasswordAuthenticationToken credentials = new UsernamePasswordAuthenticationToken(user.getEmail(), user.getSenha());
         final Authentication authentication = authenticationManager.authenticate(credentials);
 

@@ -6,7 +6,6 @@ import fitt_nutri.example.demo.dto.request.UserRequestDTO;
 import fitt_nutri.example.demo.dto.response.UserResponseDTO;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.service.LoginService;
-import fitt_nutri.example.demo.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -17,12 +16,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
-@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
 @Tag(name = "Usuários", description = "CRUD de usuários")
 public class UserController {
@@ -35,10 +32,8 @@ public class UserController {
         final UserModel user = LoginMapperDTO.of(dto);
         service.criar(user);
         return ResponseEntity.status(201).build();
-
     }
 
-    // java
     @PostMapping("/login")
     public ResponseEntity<LoginTokenDTO> loginUser(@Valid @RequestBody LoginRequestDTO dto) {
         if (dto.getSenha() == null || dto.getSenha().isBlank()) {
@@ -49,21 +44,12 @@ public class UserController {
         return ResponseEntity.ok(loginTokenDTO);
     }
 
-
-    @GetMapping
-    @SecurityRequirement(name = "Bearer")
-    public ResponseEntity<List<LoginListDTO>> getAllUsers() {
-        List<LoginListDTO> users = service.listarUsuarios();
-        if(users.isEmpty()){
-            return ResponseEntity.noContent().build();
-        }
-        return ResponseEntity.ok(users);
-    }
-
     @GetMapping("/{id}")
-    @Operation(summary = "Busca usuário por ID")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Busca dados do próprio usuário por ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado"),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Integer id) {
@@ -71,23 +57,15 @@ public class UserController {
     }
 
     @GetMapping("/email/{email}")
-    @Operation(summary = "Busca usuário por email")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Busca dados do próprio usuário por email")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
+            @ApiResponse(responseCode = "403", description = "Acesso negado"),
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable String email) {
         return ResponseEntity.ok(adapter.getUserByEmail(email));
-    }
-
-    @GetMapping("/cpf/{cpf}")
-    @Operation(summary = "Busca usuário por CPF")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Usuário encontrado"),
-            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
-    })
-    public ResponseEntity<UserResponseDTO> getUserByCpf(@PathVariable String cpf) {
-        return ResponseEntity.ok(adapter.getUserByCpf(cpf));
     }
 
     @PutMapping("/{id}")

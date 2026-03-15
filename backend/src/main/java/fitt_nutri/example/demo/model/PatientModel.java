@@ -1,6 +1,7 @@
 package fitt_nutri.example.demo.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import fitt_nutri.example.demo.config.CpfConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -41,6 +42,7 @@ public class PatientModel {
     @CPF
     @NotBlank(message = "CPF não pode estar vazio")
     @Column(nullable = false, unique = true)
+    @Convert(converter = CpfConverter.class)
     private String cpf;
 
     @Column(nullable = false)

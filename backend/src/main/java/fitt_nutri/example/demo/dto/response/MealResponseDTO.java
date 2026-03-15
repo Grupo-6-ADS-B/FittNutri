@@ -1,7 +1,6 @@
 package fitt_nutri.example.demo.dto.response;
 
 import lombok.Data;
-import lombok.Data;
 
 import java.util.List;
 

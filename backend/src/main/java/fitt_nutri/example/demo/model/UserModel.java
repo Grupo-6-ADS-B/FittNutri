@@ -1,5 +1,6 @@
 package fitt_nutri.example.demo.model;
 
+import fitt_nutri.example.demo.config.CpfConverter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -28,8 +29,9 @@ public class UserModel {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(nullable = false, unique = true)
     @CPF
+    @Column(nullable = false, unique = true)
+    @Convert(converter = CpfConverter.class)
     private String cpf;
 
 

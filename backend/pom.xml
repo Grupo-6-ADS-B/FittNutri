@@ -145,6 +145,13 @@
     <artifactId>s3</artifactId>
     <version>2.25.6</version>
 </dependency>
+
+	<!-- Rate limiting -->
+	<dependency>
+	    <groupId>com.bucket4j</groupId>
+	    <artifactId>bucket4j-core</artifactId>
+	    <version>8.10.1</version>
+	</dependency>
     </dependencies>
 
     <build>
@@ -209,6 +216,22 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- OWASP Dependency Check — detecta dependências com CVEs conhecidos -->
+            <!-- Executar com: mvn dependency-check:check -->
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>10.0.3</version>
+                <configuration>
+                    <failBuildOnCVSS>7</failBuildOnCVSS>
+                    <skipTestScope>true</skipTestScope>
+                    <formats>
+                        <format>HTML</format>
+                        <format>JSON</format>
+                    </formats>
+                </configuration>
             </plugin>
 
         </plugins>

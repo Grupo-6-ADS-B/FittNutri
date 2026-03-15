@@ -12,6 +12,8 @@ import fitt_nutri.example.demo.repository.PatientHistoryRepository;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,7 +30,17 @@ public class PatientHistoryService {
 
 
 
+    private void verificarPropriedadePaciente(PatientModel patient) {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (patient.getNutricionista() == null || !emailLogado.equals(patient.getNutricionista().getEmail())) {
+            throw new AccessDeniedException("Acesso negado: este paciente não pertence ao nutricionista logado");
+        }
+    }
+
     public List<PatientHistoryModel> listarPorPaciente(Integer pacienteId) {
+        PatientModel patient = pacienteRepository.findById(pacienteId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        verificarPropriedadePaciente(patient);
         return repository.findByPatientModelIdOrderByDataConsultaAsc(pacienteId);
     }
 
@@ -41,6 +53,7 @@ public class PatientHistoryService {
 
         PatientModel paciente = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        verificarPropriedadePaciente(paciente);
 
         AnthropometricDataModel antropo = new AnthropometricDataModel();
 
@@ -91,6 +104,9 @@ public class PatientHistoryService {
             String dataInicio,
             String dataFim
     ) {
+        PatientModel patient = pacienteRepository.findById(pacienteId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        verificarPropriedadePaciente(patient);
 
         LocalDate inicio = LocalDate.parse(dataInicio);
         LocalDate fim = LocalDate.parse(dataFim);

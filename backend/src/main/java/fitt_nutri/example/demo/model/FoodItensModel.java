@@ -12,6 +12,13 @@ public class FoodItensModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Column(name = "fonte", nullable = false, length = 10)
+    private String fonte = "TACO";
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nutricionista_id")
+    private UserModel nutricionista;
+
     @Column(name = "nome")
     private String nome;
 
