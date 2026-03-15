@@ -7,6 +7,22 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 
 export default function DataTable({ data }) {
+  const capitalizeFirstLetter = (text) => {
+    if (!text || typeof text !== 'string') return text;
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+
+  const formatHeight = (heightValue) => {
+    if (heightValue === null || heightValue === undefined || heightValue === '') return null;
+
+    const normalized = String(heightValue).replace(',', '.').trim();
+    const numericHeight = Number(normalized);
+    if (Number.isNaN(numericHeight)) return `${heightValue} cm`;
+
+    const heightInCm = numericHeight <= 3 ? numericHeight * 100 : numericHeight;
+    return `${Math.round(heightInCm)} cm`;
+  };
+
   const rows = [
     {label: 'Data da Consulta', value: data?.dataConsulta },
     { label: 'Peso', value: `${data?.peso} kg` },
@@ -14,10 +30,10 @@ export default function DataTable({ data }) {
     { label: 'Gordura', value: `${data?.gordura}%` },
     { label: 'Gordura Visceral', value: `${data?.gorduraVisceral}%` },
     { label: 'Massa Muscular', value: `${data?.massaMuscular} %` },
-    { label: 'Altura', value: `${data?.altura} cm` },
+    { label: 'Altura', value: formatHeight(data?.altura) },
     { label: 'Idade Metabólica', value: `${data?.idadeMetabolica} anos` },
     { label: 'Taxa Metabólica Basal', value: `${data?.taxaMetabolicaBasal} kcal` },
-    { label: 'Atividade', value: data?.atividade },
+    { label: 'Atividade', value: capitalizeFirstLetter(data?.atividade) },
     { label: 'Cintura', value: `${data?.cintura} cm` },
     { label: 'Abdominal', value: `${data?.abdominal} cm` },
     { label: 'Quadril', value: `${data?.quadril} cm` },
