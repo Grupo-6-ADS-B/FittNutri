@@ -1,11 +1,11 @@
 import React from 'react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, BarChart, Bar, Legend,
+  ResponsiveContainer, BarChart, Bar, Legend, ReferenceLine,
 } from 'recharts';
 import { Paper, Typography, Box } from '@mui/material';
 
-export function WeightEvolutionChart({ data }) {
+export function WeightEvolutionChart({ data, pesoIdeal }) {
   const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
     const current = payload[0].value;
@@ -60,6 +60,15 @@ export function WeightEvolutionChart({ data }) {
           activeDot={{ r: 7, fill: '#ff9800' }}
           name="Peso (kg)"
         />
+        {pesoIdeal && (
+          <ReferenceLine
+            y={pesoIdeal}
+            stroke="#ff9800"
+            strokeDasharray="6 3"
+            strokeWidth={2}
+            label={{ value: `Meta: ${pesoIdeal} kg`, position: 'insideTopRight', fill: '#e65100', fontSize: 12, fontWeight: 600 }}
+          />
+        )}
       </AreaChart>
     </ResponsiveContainer>
   );

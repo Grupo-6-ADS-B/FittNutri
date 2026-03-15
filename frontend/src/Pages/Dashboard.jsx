@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, CssBaseline, Card, Typography, Button, Chip, Tabs, Tab } from '@mui/material';
+import { Box, CssBaseline, Card, Typography, Button, Chip, Tabs, Tab, Divider, Tooltip as MuiTooltip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import BalanceIcon from '@mui/icons-material/Balance';
@@ -272,7 +272,7 @@ export default function Dashboard() {
             </Box>
           )}
         </Box>
-        <WeightEvolutionChart data={chartData} />
+        <WeightEvolutionChart data={chartData} pesoIdeal={pesoIdeal !== '-' ? Number(pesoIdeal) : undefined} />
       </Card>
     );
   };
@@ -356,6 +356,53 @@ export default function Dashboard() {
   }
 
   // ---------------------------------------------------------------------------
+  // Barra de progresso entre 1ª e última consulta
+  // ---------------------------------------------------------------------------
+  function ProgressSummary() {
+    if (evolution.length < 2) return null;
+    const sorted = [...evolution].sort((a, b) => new Date(a.dataConsulta) - new Date(b.dataConsulta));
+    const first = sorted[0];
+    const last = sorted[sorted.length - 1];
+
+    const delta = (a, b, unit = '', lowerIsBetter = false) => {
+      if (a == null || b == null) return null;
+      const diff = (Number(b) - Number(a)).toFixed(1);
+      const isGood = lowerIsBetter ? Number(diff) < 0 : Number(diff) > 0;
+      const isNeutral = Number(diff) === 0;
+      return { diff, unit, color: isNeutral ? '#888' : isGood ? '#2e7d32' : '#c62828', arrow: Number(diff) < 0 ? '↓' : Number(diff) > 0 ? '↑' : '=' };
+    };
+
+    const items = [
+      { label: 'Peso', d: delta(first.peso, last.peso, 'kg', true) },
+      { label: 'IMC', d: delta(first.imc, last.imc, '', true) },
+      { label: 'Gordura', d: delta(first.gordura, last.gordura, '%', true) },
+      { label: 'Gordura Visceral', d: delta(first.gorduraVisceral, last.gorduraVisceral, '', true) },
+      { label: 'Massa Muscular', d: delta(first.massaMuscular, last.massaMuscular, '%', false) },
+    ].filter(i => i.d !== null);
+
+    return (
+      <Card sx={{ px: 3, py: 1.5, mb: 2.5, boxShadow: 1, borderRadius: 2, bgcolor: '#f8fff9', border: '1px solid #c8e6c9' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
+          <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.68rem', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
+            Progresso ({sorted.length} consultas)
+          </Typography>
+          <Divider orientation="vertical" flexItem />
+          {items.map(({ label, d }) => (
+            <MuiTooltip key={label} title={`Variação desde a 1ª consulta`} placement="top">
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, cursor: 'default' }}>
+                <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.75rem' }}>{label}:</Typography>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: d.color, fontSize: '0.82rem' }}>
+                  {d.arrow} {Math.abs(d.diff)}{d.unit}
+                </Typography>
+              </Box>
+            </MuiTooltip>
+          ))}
+        </Box>
+      </Card>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
   // Layout principal
   // ---------------------------------------------------------------------------
   function MainContent() {
@@ -367,20 +414,26 @@ export default function Dashboard() {
           <Button variant="outlined" color="primary" startIcon={<ArrowBackIcon />} sx={{ height: 38 }} onClick={() => navigate(-1)}>
             Voltar
           </Button>
-          <Typography variant="h5" fontWeight="bold">
-            Resumo Nutricional{patientName && ` — ${patientName}`}
-          </Typography>
+          <Box>
+            <Typography variant="h5" fontWeight="bold" lineHeight={1.2}>
+              {patientName || 'Paciente'}
+            </Typography>
+            <Typography variant="caption" color="text.secondary">Resumo Nutricional • {evolution.length} consulta{evolution.length !== 1 ? 's' : ''} no período</Typography>
+          </Box>
         </Box>
 
         {/* KPI Grid — 4 colunas */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, mb: 3 }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 2, mb: 2 }}>
           {kpiData.map((kpi, index) => (
             <KPICard key={index} {...kpi} />
           ))}
         </Box>
 
+        {/* Barra de progresso */}
+        <ProgressSummary />
+
         {/* Filtro + Gráfico — 2 colunas */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 2.5, mb: 3, alignItems: 'start' }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '260px 1fr', gap: 2.5, mb: 3, alignItems: 'start' }}>
           <CalendarCard />
           <ResultChartCard />
         </Box>

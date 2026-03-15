@@ -41,8 +41,15 @@ function getClassificacao(type, value) {
 }
 
 export default function DataTable({ data }) {
+  const fmtDate = (iso) => {
+    if (!iso) return null;
+    const parts = String(iso).split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return iso;
+  };
+
   const rows = [
-    { label: 'Data da Consulta',     value: data?.dataConsulta,                           rawValue: null,                   type: null },
+    { label: 'Data da Consulta',     value: fmtDate(data?.dataConsulta),                  rawValue: null,                   type: null },
     { label: 'Peso',                 value: `${data?.peso} kg`,                           rawValue: data?.peso,             type: null },
     { label: 'Altura',               value: `${data?.altura} cm`,                         rawValue: null,                   type: null },
     { label: 'IMC',                  value: data?.imc,                                    rawValue: data?.imc,              type: 'imc' },
