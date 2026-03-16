@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.awt.Color;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.geom.Rectangle2D;
 import java.io.ByteArrayOutputStream;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -35,6 +38,10 @@ public class BioimpedancePdfService {
     private static final Color BODY_FILL = new Color(200, 215, 230);
     private static final Color BODY_OUTLINE = new Color(140, 160, 180);
     private static final Color LABEL_LINE = new Color(100, 100, 100);
+    private static final Color PIE_FAT = new Color(229, 115, 115);    // vermelho suave para gordura
+    private static final Color PIE_LEAN = new Color(100, 181, 246);   // azul para massa magra
+    private static final Color GREEN_GRADIENT_START = new Color(56, 142, 60);
+    private static final Color GREEN_GRADIENT_END = new Color(27, 94, 32);
 
     // === Fontes ===
     private static final Font TITLE_FONT = new Font(Font.HELVETICA, 18, Font.BOLD, Color.WHITE);
@@ -73,9 +80,11 @@ public class BioimpedancePdfService {
         PdfWriter writer = PdfWriter.getInstance(doc, out);
         doc.open();
 
-        // Página 1: Header + Boneco com circunferências + Classificações
-        addHeader(doc, patient, nutri, latest);
+        // Página 1: Header gradiente + Boneco com circunferências + Classificações
+        addGradientHeader(writer, doc);
+        addPatientInfo(doc, patient, nutri, latest);
         addBodySilhouetteSection(writer, doc, latest.getDataCircleModel(), latest.getAnthropometricDataModel(), patient.getSexo());
+        addCompositionPieChart(writer, doc, latest.getAnthropometricDataModel());
 
         // Página 2: Dados detalhados + Evolução + Conclusão
         doc.newPage();
@@ -278,49 +287,57 @@ public class BioimpedancePdfService {
         float panturrilhaY = shoulderY - 230f; // panturrilha
         float pulsoY = shoulderY - 120f;       // pulso
 
-        // Labels lado esquerdo
-        drawLabel(cb, cx, bracoY, cx - 130f, bracoY + 10f, "Braço",
+        // Labels lado esquerdo (com numeração)
+        drawLabel(cb, cx, bracoY, cx - 130f, bracoY + 10f, "1", "Braco",
                 c.getBraco() != null ? format(c.getBraco()) + " cm" : "-", true);
-        drawLabel(cb, cx, cinturaY, cx - 130f, cinturaY + 10f, "Cintura",
+        drawLabel(cb, cx, cinturaY, cx - 130f, cinturaY + 10f, "2", "Cintura",
                 c.getCintura() != null ? format(c.getCintura()) + " cm" : "-", true);
-        drawLabel(cb, cx, quadrilY, cx - 130f, quadrilY + 10f, "Quadril",
+        drawLabel(cb, cx, quadrilY, cx - 130f, quadrilY + 10f, "3", "Quadril",
                 c.getQuadril() != null ? format(c.getQuadril()) + " cm" : "-", true);
-        drawLabel(cb, cx, panturrilhaY, cx - 130f, panturrilhaY + 10f, "Panturrilha",
+        drawLabel(cb, cx, panturrilhaY, cx - 130f, panturrilhaY + 10f, "4", "Panturrilha",
                 c.getPanturrilha() != null ? format(c.getPanturrilha()) + " cm" : "-", true);
 
-        // Labels lado direito
-        drawLabel(cb, cx, abdominalY, cx + 130f, abdominalY + 10f, "Abdominal",
+        // Labels lado direito (com numeração)
+        drawLabel(cb, cx, abdominalY, cx + 130f, abdominalY + 10f, "5", "Abdominal",
                 c.getAbdominal() != null ? format(c.getAbdominal()) + " cm" : "-", false);
-        drawLabel(cb, cx, coxaY, cx + 130f, coxaY + 10f, "Coxa",
+        drawLabel(cb, cx, coxaY, cx + 130f, coxaY + 10f, "6", "Coxa",
                 c.getCoxa() != null ? format(c.getCoxa()) + " cm" : "-", false);
-        drawLabel(cb, cx, pulsoY, cx + 130f, pulsoY + 10f, "Pulso",
+        drawLabel(cb, cx, pulsoY, cx + 130f, pulsoY + 10f, "7", "Pulso",
                 c.getPulso() != null ? format(c.getPulso()) + " cm" : "-", false);
 
         cb.restoreState();
     }
 
     private void drawLabel(PdfContentByte cb, float bodyX, float bodyY,
-                            float labelX, float labelY, String label, String value, boolean isLeft) {
+                            float labelX, float labelY, String number, String label, String value, boolean isLeft) {
         // Linha guia
         float lineStartX = isLeft ? bodyX - 50f : bodyX + 50f;
         cb.moveTo(lineStartX, bodyY);
         cb.lineTo(labelX, labelY);
         cb.stroke();
 
-        // Ponto no corpo
+        // Ponto numerado no corpo
         cb.saveState();
         cb.setColorFill(GREEN_DARK);
         cb.setLineDash(0);
-        cb.circle(lineStartX, bodyY, 2.5f);
+        cb.circle(lineStartX, bodyY, 7f);
         cb.fill();
+
+        // Número dentro do círculo
+        cb.setColorFill(Color.WHITE);
+        ColumnText numCt = new ColumnText(cb);
+        numCt.setSimpleColumn(lineStartX - 4f, bodyY - 5f, lineStartX + 4f, bodyY + 5f);
+        Paragraph numP = new Paragraph(number, new Font(Font.HELVETICA, 7, Font.BOLD, Color.WHITE));
+        numP.setAlignment(Element.ALIGN_CENTER);
+        numCt.addElement(numP);
+        numCt.go();
         cb.restoreState();
 
         // Texto do label
         float textX = isLeft ? labelX - 70f : labelX + 5f;
         ColumnText ct = new ColumnText(cb);
 
-        // Nome da medida
-        Phrase labelPhrase = new Phrase(label + "\n", LABEL_FONT);
+        Phrase labelPhrase = new Phrase(number + ". " + label + "\n", LABEL_FONT);
         Phrase valuePhrase = new Phrase(value, VALUE_FONT);
 
         Paragraph p = new Paragraph();
@@ -328,12 +345,8 @@ public class BioimpedancePdfService {
         p.add(valuePhrase);
         p.setAlignment(isLeft ? Element.ALIGN_RIGHT : Element.ALIGN_LEFT);
 
-        float boxW = 75f;
-        if (isLeft) {
-            ct.setSimpleColumn(textX, labelY - 20f, textX + boxW, labelY + 15f);
-        } else {
-            ct.setSimpleColumn(textX, labelY - 20f, textX + boxW, labelY + 15f);
-        }
+        float boxW = 80f;
+        ct.setSimpleColumn(textX, labelY - 20f, textX + boxW, labelY + 15f);
         ct.addElement(p);
         ct.go();
     }
@@ -350,24 +363,24 @@ public class BioimpedancePdfService {
         Double imc = a != null ? a.getImc() : null;
         String imcClass = classifyImc(imc);
         drawClassCard(cb, cardX, cardY, cardW, cardH,
-                "Classificação IMC", imc != null ? format(imc) + " kg/m²" : "-", imcClass,
-                colorForClassification(imcClass));
+                "Classificacao IMC", imc != null ? format(imc) + " kg/m2" : "-",
+                statusIcon(imcClass) + " " + imcClass, colorForClassification(imcClass));
         cardY -= (cardH + gap);
 
         // Card Gordura
         Double gordura = a != null ? a.getPorcentagemGordura() : null;
         String gorduraClass = classifyGordura(gordura, sexo);
         drawClassCard(cb, cardX, cardY, cardW, cardH,
-                "Gordura Corporal", gordura != null ? format(gordura) + "%" : "-", gorduraClass,
-                colorForClassification(gorduraClass));
+                "Gordura Corporal", gordura != null ? format(gordura) + "%" : "-",
+                statusIcon(gorduraClass) + " " + gorduraClass, colorForClassification(gorduraClass));
         cardY -= (cardH + gap);
 
         // Card Gordura Visceral
         Double visceral = a != null ? a.getGorduraVisceral() : null;
         String visceralClass = classifyGorduraVisceral(visceral);
         drawClassCard(cb, cardX, cardY, cardW, cardH,
-                "Gordura Visceral", visceral != null ? format(visceral) : "-", visceralClass,
-                colorForClassification(visceralClass));
+                "Gordura Visceral", visceral != null ? format(visceral) : "-",
+                statusIcon(visceralClass) + " " + visceralClass, colorForClassification(visceralClass));
         cardY -= (cardH + gap);
 
         // Card Massa Muscular
@@ -421,18 +434,30 @@ public class BioimpedancePdfService {
     // Seções de tabela (página 2)
     // =========================================================================
 
-    private void addHeader(Document doc, PatientModel patient, UserModel nutri, PatientHistoryModel latest) throws DocumentException {
-        PdfPTable titleTable = new PdfPTable(1);
-        titleTable.setWidthPercentage(100);
-        PdfPCell titleCell = new PdfPCell(new Phrase("RELATÓRIO DE BIOIMPEDÂNCIA", TITLE_FONT));
-        titleCell.setBackgroundColor(GREEN_DARK);
-        titleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        titleCell.setPadding(14f);
-        titleCell.setBorder(PdfPCell.NO_BORDER);
-        titleTable.addCell(titleCell);
-        titleTable.setSpacingAfter(14f);
-        doc.add(titleTable);
+    private void addGradientHeader(PdfWriter writer, Document doc) throws DocumentException {
+        float pageW = doc.getPageSize().getWidth();
+        float headerH = 50f;
+        float headerY = doc.getPageSize().getHeight() - doc.topMargin();
 
+        PdfContentByte cb = writer.getDirectContentUnder();
+        PdfTemplate template = cb.createTemplate(pageW, headerH);
+        Graphics2D g2d = template.createGraphics(pageW, headerH);
+
+        GradientPaint gradient = new GradientPaint(0, 0, GREEN_GRADIENT_START, pageW, 0, GREEN_GRADIENT_END);
+        g2d.setPaint(gradient);
+        g2d.fill(new Rectangle2D.Float(0, 0, pageW, headerH));
+        g2d.dispose();
+
+        cb.addTemplate(template, 0, headerY - headerH);
+
+        // Título sobre o gradiente
+        Paragraph title = new Paragraph("RELATÓRIO DE BIOIMPEDÂNCIA", TITLE_FONT);
+        title.setAlignment(Element.ALIGN_CENTER);
+        title.setSpacingAfter(14f);
+        doc.add(title);
+    }
+
+    private void addPatientInfo(Document doc, PatientModel patient, UserModel nutri, PatientHistoryModel latest) throws DocumentException {
         PdfPTable infoTable = new PdfPTable(new float[]{1f, 1f});
         infoTable.setWidthPercentage(100);
         infoTable.setSpacingAfter(16f);
@@ -445,6 +470,76 @@ public class BioimpedancePdfService {
         addInfoCell(infoTable, "Nutricionista: " + safe(nutri.getNome()) + " - CRN: " + safe(nutri.getCrn()), false);
 
         doc.add(infoTable);
+    }
+
+    private void addCompositionPieChart(PdfWriter writer, Document doc, AnthropometricDataModel a) throws DocumentException {
+        if (a == null || a.getPorcentagemGordura() == null) return;
+
+        double gordura = a.getPorcentagemGordura();
+        double magra = 100.0 - gordura;
+
+        addSectionTitle(doc, "Composição Corporal Atual");
+
+        doc.add(new Paragraph(" "));
+        float startY = writer.getVerticalPosition(true);
+        float chartHeight = 100f;
+
+        Paragraph spacer = new Paragraph();
+        spacer.setSpacingBefore(chartHeight);
+        doc.add(spacer);
+
+        PdfContentByte cb = writer.getDirectContent();
+        float cx = doc.getPageSize().getWidth() / 2f - 60f;
+        float cy = startY - 50f;
+        float radius = 40f;
+
+        // Arco gordura (vermelho)
+        float gorduraAngle = (float) (gordura / 100.0 * 360.0);
+        cb.saveState();
+        cb.setColorFill(PIE_FAT);
+        cb.moveTo(cx, cy);
+        cb.arc(cx - radius, cy - radius, cx + radius, cy + radius, 90f, -gorduraAngle);
+        cb.lineTo(cx, cy);
+        cb.closePath();
+        cb.fill();
+
+        // Arco massa magra (azul)
+        cb.setColorFill(PIE_LEAN);
+        cb.moveTo(cx, cy);
+        cb.arc(cx - radius, cy - radius, cx + radius, cy + radius, 90f - gorduraAngle, -(360f - gorduraAngle));
+        cb.lineTo(cx, cy);
+        cb.closePath();
+        cb.fill();
+        cb.restoreState();
+
+        // Labels do gráfico
+        ColumnText ct = new ColumnText(cb);
+        float labelX = cx + radius + 20f;
+
+        // Legenda gordura
+        cb.saveState();
+        cb.setColorFill(PIE_FAT);
+        cb.rectangle(labelX, cy + 15f, 10f, 10f);
+        cb.fill();
+        cb.restoreState();
+
+        ct.setSimpleColumn(labelX + 14f, cy + 10f, labelX + 180f, cy + 30f);
+        ct.addElement(new Phrase("Gordura: " + format(gordura) + "%",
+                new Font(Font.HELVETICA, 9, Font.BOLD, PIE_FAT)));
+        ct.go();
+
+        // Legenda massa magra
+        cb.saveState();
+        cb.setColorFill(PIE_LEAN);
+        cb.rectangle(labelX, cy - 5f, 10f, 10f);
+        cb.fill();
+        cb.restoreState();
+
+        ct = new ColumnText(cb);
+        ct.setSimpleColumn(labelX + 14f, cy - 10f, labelX + 180f, cy + 10f);
+        ct.addElement(new Phrase("Massa Magra: " + format(magra) + "%",
+                new Font(Font.HELVETICA, 9, Font.BOLD, PIE_LEAN)));
+        ct.go();
     }
 
     private void addDadosCalculados(Document doc, AnthropometricDataModel a) throws DocumentException {
@@ -555,18 +650,64 @@ public class BioimpedancePdfService {
         addHeaderCellGreen(table, "M. Muscular");
         addHeaderCellGreen(table, "G. Visceral");
 
-        for (PatientHistoryModel h : historicos) {
-            AnthropometricDataModel a = h.getAnthropometricDataModel();
-            String data = h.getDataConsulta() != null ? h.getDataConsulta().format(DATE_FMT) : "-";
+        Color EVOLUCAO_MELHORA = new Color(220, 245, 220);   // verde claro
+        Color EVOLUCAO_PIORA = new Color(255, 225, 225);      // vermelho claro
+
+        for (int i = 0; i < historicos.size(); i++) {
+            AnthropometricDataModel a = historicos.get(i).getAnthropometricDataModel();
+            AnthropometricDataModel prev = i > 0 ? historicos.get(i - 1).getAnthropometricDataModel() : null;
+
+            String data = historicos.get(i).getDataConsulta() != null
+                    ? historicos.get(i).getDataConsulta().format(DATE_FMT) : "-";
             addCenteredCell(table, data);
-            addCenteredCell(table, a != null && a.getPeso() != null ? format(a.getPeso()) : "-");
-            addCenteredCell(table, a != null && a.getImc() != null ? format(a.getImc()) : "-");
-            addCenteredCell(table, a != null && a.getPorcentagemGordura() != null ? format(a.getPorcentagemGordura()) : "-");
-            addCenteredCell(table, a != null && a.getMassaMuscular() != null ? format(a.getMassaMuscular()) : "-");
-            addCenteredCell(table, a != null && a.getGorduraVisceral() != null ? format(a.getGorduraVisceral()) : "-");
+
+            // Peso — menor é melhor (simplificação)
+            addEvolucaoCell(table, a, prev,
+                    x -> x.getPeso(), true, EVOLUCAO_MELHORA, EVOLUCAO_PIORA);
+            // IMC — menor é melhor
+            addEvolucaoCell(table, a, prev,
+                    x -> x.getImc(), true, EVOLUCAO_MELHORA, EVOLUCAO_PIORA);
+            // Gordura — menor é melhor
+            addEvolucaoCell(table, a, prev,
+                    x -> x.getPorcentagemGordura(), true, EVOLUCAO_MELHORA, EVOLUCAO_PIORA);
+            // Massa muscular — maior é melhor
+            addEvolucaoCell(table, a, prev,
+                    x -> x.getMassaMuscular(), false, EVOLUCAO_MELHORA, EVOLUCAO_PIORA);
+            // Gordura visceral — menor é melhor
+            addEvolucaoCell(table, a, prev,
+                    x -> x.getGorduraVisceral(), true, EVOLUCAO_MELHORA, EVOLUCAO_PIORA);
         }
 
         doc.add(table);
+    }
+
+    @FunctionalInterface
+    private interface ValueExtractor {
+        Double extract(AnthropometricDataModel a);
+    }
+
+    private void addEvolucaoCell(PdfPTable table, AnthropometricDataModel current,
+                                  AnthropometricDataModel prev, ValueExtractor extractor,
+                                  boolean lowerIsBetter, Color melhora, Color piora) {
+        Double val = current != null ? extractor.extract(current) : null;
+        Double prevVal = prev != null ? extractor.extract(prev) : null;
+        String text = val != null ? format(val) : "-";
+
+        PdfPCell cell = new PdfPCell(new Phrase(text, SMALL_FONT));
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setPadding(5f);
+        cell.setBorder(PdfPCell.BOTTOM);
+        cell.setBorderColor(new Color(230, 230, 230));
+
+        if (val != null && prevVal != null) {
+            double diff = val - prevVal;
+            if (Math.abs(diff) > 0.01) {
+                boolean improved = lowerIsBetter ? diff < 0 : diff > 0;
+                cell.setBackgroundColor(improved ? melhora : piora);
+            }
+        }
+
+        table.addCell(cell);
     }
 
     private void addConclusao(Document doc, AnthropometricDataModel a, String sexo) throws DocumentException {
@@ -743,6 +884,19 @@ public class BioimpedancePdfService {
             case "Acima do normal", "Alto", "Muito Alto",
                  "Obesidade Grau I", "Obesidade Grau II", "Obesidade Grau III" -> RED_LIGHT;
             default -> WHITE;
+        };
+    }
+
+    private String statusIcon(String classification) {
+        if (classification == null) return "";
+        return switch (classification) {
+            case "Eutrofia", "Normal" -> "\u2713";          // ✓
+            case "Magreza", "Abaixo do normal", "Sobrepeso",
+                 "Alto" -> "\u26A0";                         // ⚠
+            case "Acima do normal", "Muito Alto",
+                 "Obesidade Grau I", "Obesidade Grau II",
+                 "Obesidade Grau III" -> "\u2717";           // ✗
+            default -> "";
         };
     }
 
