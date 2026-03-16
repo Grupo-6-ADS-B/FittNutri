@@ -56,7 +56,8 @@ public class AesEncryptorHolder {
             cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secretKey, "AES"), new IvParameterSpec(iv));
             return new String(cipher.doFinal(Base64.getDecoder().decode(encrypted)), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao descriptografar dado sensível", e);
+            // CPF ainda em texto puro no banco — retorna como está
+            return encrypted;
         }
     }
 }
