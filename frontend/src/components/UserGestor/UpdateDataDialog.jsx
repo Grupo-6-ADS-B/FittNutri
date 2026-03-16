@@ -78,10 +78,10 @@ export default function UpdateDataDialog({
         />
         <TextField
           label="Idade (anos)"
+          type="number"
           value={updateForm.idade}
           onChange={(e) => setUpdateForm(f => ({ ...f, idade: e.target.value }))}
           fullWidth
-          type="number"
         />
         <TextField
           label="Idade Metabólica"

@@ -121,7 +121,15 @@ export default function Dashboard() {
     if (!userId) return;
     setPdfLoading(true);
     try {
-      const res = await api.get(`/reports/patient/${userId}/bioimpedance/pdf`, { responseType: 'blob' });
+      const nutricionistaId = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
+      if (!nutricionistaId) {
+        alert('ID do nutricionista não encontrado. Faça login novamente.');
+        return;
+      }
+      const res = await api.get(`/patient-history/${userId}/pdf-bioimpedancia`, {
+        params: { nutricionistaId },
+        responseType: 'blob'
+      });
       const url = window.URL.createObjectURL(new Blob([res.data], { type: 'application/pdf' }));
       const link = document.createElement('a');
       link.href = url;

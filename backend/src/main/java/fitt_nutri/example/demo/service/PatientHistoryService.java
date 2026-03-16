@@ -59,13 +59,13 @@ public class PatientHistoryService {
 
         antropo.setPeso(dto.getAntropometria().getPeso());
         antropo.setAltura(dto.getAntropometria().getAltura());
-        antropo.setIdade(dto.getAntropometria().getIdade());
         antropo.setImc(dto.getAntropometria().getImc());
         antropo.setGorduraVisceral(dto.getAntropometria().getGorduraVisceral());
         antropo.setPorcentagemGordura(dto.getAntropometria().getPorcentagemGordura());
         antropo.setMassaMuscular(dto.getAntropometria().getMassaMuscular());
         antropo.setIdadeMetabolica(dto.getAntropometria().getIdadeMetabolica());
         antropo.setTaxaMetabolicaBasal(dto.getAntropometria().getTaxaMetabolicaBasal());
+        antropo.setIdade(dto.getAntropometria().getIdade());
 
         antropo.setPaciente(paciente);
 
@@ -120,27 +120,31 @@ public class PatientHistoryService {
             EvolucaoPacienteDTO dto = new EvolucaoPacienteDTO();
             dto.setDataConsulta(h.getDataConsulta());
 
-            // 🔹 ANTROPOMETRIA
-            dto.setPeso(h.getAnthropometricDataModel().getPeso());
-            dto.setImc(h.getAnthropometricDataModel().getImc());
-            dto.setMassaMuscular(h.getAnthropometricDataModel().getMassaMuscular());
-            dto.setGordura(h.getAnthropometricDataModel().getPorcentagemGordura());
-            dto.setAltura(h.getAnthropometricDataModel().getAltura());
-            dto.setGorduraVisceral(h.getAnthropometricDataModel().getGorduraVisceral());
-            dto.setIdadeMetabolica(h.getAnthropometricDataModel().getIdadeMetabolica() != null
-                    ? h.getAnthropometricDataModel().getIdadeMetabolica().doubleValue() : null);
-            dto.setTaxaMetabolicaBasal(h.getAnthropometricDataModel().getTaxaMetabolicaBasal());
-            dto.setAtividade(h.getPatientModel().getAtividade());
+            if (h.getAnthropometricDataModel() != null) {
+                AnthropometricDataModel a = h.getAnthropometricDataModel();
+                dto.setPeso(a.getPeso());
+                dto.setImc(a.getImc());
+                dto.setMassaMuscular(a.getMassaMuscular());
+                dto.setGordura(a.getPorcentagemGordura());
+                dto.setAltura(a.getAltura());
+                dto.setGorduraVisceral(a.getGorduraVisceral());
+                dto.setIdadeMetabolica(a.getIdadeMetabolica() != null ? a.getIdadeMetabolica().doubleValue() : null);
+                dto.setTaxaMetabolicaBasal(a.getTaxaMetabolicaBasal());
+                dto.setIdade(a.getIdade());
+            }
+            dto.setAtividade(h.getPatientModel() != null ? h.getPatientModel().getAtividade() : null);
 
-            // 🔹 CIRCUNFERÊNCIA
-            dto.setCintura(h.getDataCircleModel().getCintura());
-            dto.setAbdominal(h.getDataCircleModel().getAbdominal());
-            dto.setQuadril(h.getDataCircleModel().getQuadril());
-            dto.setBraco(h.getDataCircleModel().getBraco());
-            dto.setCoxa(h.getDataCircleModel().getCoxa());
-            dto.setPanturrilha(h.getDataCircleModel().getPanturrilha());
-            dto.setPulso(h.getDataCircleModel().getPulso());
-            dto.setPesoIdeal(h.getDataCircleModel().getPesoIdeal());
+            if (h.getDataCircleModel() != null) {
+                DataCircleModel c = h.getDataCircleModel();
+                dto.setCintura(c.getCintura());
+                dto.setAbdominal(c.getAbdominal());
+                dto.setQuadril(c.getQuadril());
+                dto.setBraco(c.getBraco());
+                dto.setCoxa(c.getCoxa());
+                dto.setPanturrilha(c.getPanturrilha());
+                dto.setPulso(c.getPulso());
+                dto.setPesoIdeal(c.getPesoIdeal());
+            }
 
             return dto;
 

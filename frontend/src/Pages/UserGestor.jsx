@@ -68,6 +68,7 @@ export default function UserGestor() {
     idade: "",
     peso: "",
     altura: "",
+    idade: "",
     idadeMetabolica: "",
     massaMuscular: "",
     porcentagemGordura: "",
