@@ -24,6 +24,7 @@ public class BioimpedancePdfService {
     private final PatientHistoryRepository historyRepository;
     private final UserRepository userRepository;
 
+    // === Cores ===
     private static final Color GREEN_DARK = new Color(46, 125, 50);
     private static final Color GREEN_LIGHT = new Color(232, 245, 233);
     private static final Color GREEN_HEADER = new Color(220, 245, 220);
@@ -31,7 +32,11 @@ public class BioimpedancePdfService {
     private static final Color RED_LIGHT = new Color(255, 205, 210);
     private static final Color YELLOW_LIGHT = new Color(255, 249, 196);
     private static final Color GREEN_STATUS = new Color(200, 230, 201);
+    private static final Color BODY_FILL = new Color(200, 215, 230);
+    private static final Color BODY_OUTLINE = new Color(140, 160, 180);
+    private static final Color LABEL_LINE = new Color(100, 100, 100);
 
+    // === Fontes ===
     private static final Font TITLE_FONT = new Font(Font.HELVETICA, 18, Font.BOLD, Color.WHITE);
     private static final Font SECTION_FONT = new Font(Font.HELVETICA, 13, Font.BOLD, new Color(46, 125, 50));
     private static final Font HEADER_FONT = new Font(Font.HELVETICA, 10, Font.BOLD);
@@ -40,6 +45,8 @@ public class BioimpedancePdfService {
     private static final Font BOLD_FONT = new Font(Font.HELVETICA, 10, Font.BOLD);
     private static final Font FOOTER_FONT = new Font(Font.HELVETICA, 11, Font.BOLD, new Color(80, 80, 80));
     private static final Font CONCLUSION_FONT = new Font(Font.HELVETICA, 10, Font.NORMAL, new Color(60, 60, 60));
+    private static final Font LABEL_FONT = new Font(Font.HELVETICA, 8, Font.BOLD, new Color(60, 60, 60));
+    private static final Font VALUE_FONT = new Font(Font.HELVETICA, 9, Font.BOLD, new Color(46, 125, 50));
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -63,12 +70,17 @@ public class BioimpedancePdfService {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         Document doc = new Document(PageSize.A4, 36, 36, 36, 36);
-        PdfWriter.getInstance(doc, out);
+        PdfWriter writer = PdfWriter.getInstance(doc, out);
         doc.open();
 
+        // Página 1: Header + Boneco com circunferências + Classificações
         addHeader(doc, patient, nutri, latest);
+        addBodySilhouetteSection(writer, doc, latest.getDataCircleModel(), latest.getAnthropometricDataModel(), patient.getSexo());
+
+        // Página 2: Dados detalhados + Evolução + Conclusão
+        doc.newPage();
         addDadosCalculados(doc, latest.getAnthropometricDataModel());
-        addCircunferencias(doc, latest.getDataCircleModel());
+        addCircunferenciasTable(doc, latest.getDataCircleModel());
         addClassificacoes(doc, latest.getAnthropometricDataModel(), patient.getSexo());
         addValoresReferencia(doc, patient.getSexo());
 
@@ -82,6 +94,332 @@ public class BioimpedancePdfService {
         doc.close();
         return out.toByteArray();
     }
+
+    // =========================================================================
+    // Seção do boneco anatômico com circunferências
+    // =========================================================================
+
+    private void addBodySilhouetteSection(PdfWriter writer, Document doc, DataCircleModel circ,
+                                           AnthropometricDataModel antro, String sexo) throws DocumentException {
+        addSectionTitle(doc, "Mapa Corporal de Circunferências");
+
+        // Reservar espaço no documento para o desenho
+        doc.add(new Paragraph(" ")); // pequeno espaço
+        float startY = writer.getVerticalPosition(true);
+
+        // A silhueta ocupa ~400pt de altura
+        float silhouetteHeight = 380f;
+
+        // Adicionar espaço no documento
+        Paragraph spacer = new Paragraph();
+        spacer.setSpacingBefore(silhouetteHeight);
+        doc.add(spacer);
+
+        PdfContentByte cb = writer.getDirectContent();
+
+        // Centro da silhueta na página
+        float centerX = doc.getPageSize().getWidth() / 2f;
+        float topY = startY - 10f;
+
+        // Desenhar silhueta
+        drawBodySilhouette(cb, centerX, topY, sexo);
+
+        // Desenhar labels com linhas guia
+        drawCircumferenceLabels(cb, centerX, topY, circ);
+
+        // Adicionar mini-cards de classificação ao lado
+        drawClassificationCards(cb, centerX, topY, antro, sexo);
+    }
+
+    private void drawBodySilhouette(PdfContentByte cb, float cx, float topY, String sexo) {
+        boolean isFem = sexo != null && sexo.toLowerCase().contains("fem");
+
+        cb.saveState();
+
+        // Escala do boneco
+        float scale = 1.0f;
+        float headR = 18f * scale;
+        float headY = topY - headR;
+
+        // === CABEÇA (círculo) ===
+        cb.setColorFill(BODY_FILL);
+        cb.setColorStroke(BODY_OUTLINE);
+        cb.setLineWidth(1.5f);
+        cb.circle(cx, headY, headR);
+        cb.fillStroke();
+
+        // === PESCOÇO ===
+        float neckTop = headY - headR;
+        float neckBot = neckTop - 12f * scale;
+        float neckW = 8f * scale;
+        cb.moveTo(cx - neckW, neckTop);
+        cb.lineTo(cx - neckW, neckBot);
+        cb.lineTo(cx + neckW, neckBot);
+        cb.lineTo(cx + neckW, neckTop);
+        cb.closePath();
+        cb.fillStroke();
+
+        // === TORSO ===
+        float shoulderW = isFem ? 48f * scale : 55f * scale;
+        float waistW = isFem ? 35f * scale : 42f * scale;
+        float hipW = isFem ? 50f * scale : 44f * scale;
+        float shoulderY = neckBot;
+        float waistY = shoulderY - 70f * scale;
+        float hipY = waistY - 35f * scale;
+
+        cb.moveTo(cx - shoulderW, shoulderY);
+        cb.curveTo(cx - shoulderW, shoulderY - 20f * scale,
+                   cx - waistW, waistY + 10f * scale,
+                   cx - waistW, waistY);
+        cb.curveTo(cx - waistW, waistY - 10f * scale,
+                   cx - hipW, hipY + 10f * scale,
+                   cx - hipW, hipY);
+        cb.lineTo(cx + hipW, hipY);
+        cb.curveTo(cx + hipW, hipY + 10f * scale,
+                   cx + waistW, waistY - 10f * scale,
+                   cx + waistW, waistY);
+        cb.curveTo(cx + waistW, waistY + 10f * scale,
+                   cx + shoulderW, shoulderY - 20f * scale,
+                   cx + shoulderW, shoulderY);
+        cb.closePath();
+        cb.fillStroke();
+
+        // === BRAÇOS ===
+        float armTopW = 12f * scale;
+        float armBotW = 9f * scale;
+        float armLength = 110f * scale;
+        float elbowY = shoulderY - 55f * scale;
+        float handY = shoulderY - armLength;
+
+        // Braço esquerdo
+        drawArm(cb, cx - shoulderW, shoulderY, cx - shoulderW - 30f * scale, elbowY,
+                cx - shoulderW - 35f * scale, handY, armTopW, armBotW, scale);
+        // Braço direito
+        drawArm(cb, cx + shoulderW, shoulderY, cx + shoulderW + 30f * scale, elbowY,
+                cx + shoulderW + 35f * scale, handY, armTopW, armBotW, scale);
+
+        // === PERNAS ===
+        float legTopW = isFem ? 22f * scale : 20f * scale;
+        float kneeW = 14f * scale;
+        float ankleW = 9f * scale;
+        float legGap = 4f * scale;
+        float kneeY = hipY - 90f * scale;
+        float ankleY = hipY - 170f * scale;
+        float footY = ankleY - 10f * scale;
+
+        // Perna esquerda
+        drawLeg(cb, cx - legGap - legTopW, cx - legGap, hipY, kneeY, ankleY, footY, legTopW, kneeW, ankleW, true);
+        // Perna direita
+        drawLeg(cb, cx + legGap, cx + legGap + legTopW, hipY, kneeY, ankleY, footY, legTopW, kneeW, ankleW, false);
+
+        cb.restoreState();
+    }
+
+    private void drawArm(PdfContentByte cb, float shoulderX, float shoulderY,
+                          float elbowX, float elbowY, float handX, float handY,
+                          float topW, float botW, float scale) {
+        cb.setColorFill(BODY_FILL);
+        cb.setColorStroke(BODY_OUTLINE);
+        cb.setLineWidth(1.5f);
+
+        float dir = shoulderX < handX ? -1f : 1f;
+
+        // Contorno do braço usando linhas
+        cb.moveTo(shoulderX, shoulderY);
+        cb.lineTo(elbowX - botW * dir * 0.5f, elbowY);
+        cb.lineTo(handX - botW * dir * 0.3f, handY);
+        // Mão (pequeno círculo)
+        cb.lineTo(handX + botW * dir * 0.3f, handY - 5f * scale);
+        cb.lineTo(handX + botW * dir * 0.3f, handY);
+        cb.lineTo(elbowX + botW * dir * 0.5f, elbowY);
+        cb.lineTo(shoulderX, shoulderY - 5f);
+        cb.closePath();
+        cb.fillStroke();
+    }
+
+    private void drawLeg(PdfContentByte cb, float leftX, float rightX, float hipY,
+                          float kneeY, float ankleY, float footY,
+                          float topW, float kneeW, float ankleW, boolean isLeft) {
+        cb.setColorFill(BODY_FILL);
+        cb.setColorStroke(BODY_OUTLINE);
+        cb.setLineWidth(1.5f);
+
+        float midX = (leftX + rightX) / 2f;
+
+        cb.moveTo(leftX, hipY);
+        cb.curveTo(leftX - 2f, hipY - 30f, midX - kneeW, kneeY + 20f, midX - kneeW, kneeY);
+        cb.curveTo(midX - kneeW, kneeY - 20f, midX - ankleW, ankleY + 20f, midX - ankleW, ankleY);
+        cb.lineTo(midX - ankleW - 5f, footY); // pé
+        cb.lineTo(midX + ankleW + 5f, footY);
+        cb.lineTo(midX + ankleW, ankleY);
+        cb.curveTo(midX + ankleW, ankleY + 20f, midX + kneeW, kneeY - 20f, midX + kneeW, kneeY);
+        cb.curveTo(midX + kneeW, kneeY + 20f, rightX + 2f, hipY - 30f, rightX, hipY);
+        cb.closePath();
+        cb.fillStroke();
+    }
+
+    private void drawCircumferenceLabels(PdfContentByte cb, float cx, float topY, DataCircleModel c) {
+        if (c == null) return;
+
+        cb.saveState();
+        cb.setColorStroke(LABEL_LINE);
+        cb.setLineDash(3f, 2f);
+        cb.setLineWidth(0.8f);
+
+        float headR = 18f;
+        float shoulderY = topY - headR - headR - 12f;
+
+        // Posições Y dos pontos de medida no corpo
+        float bracoY = shoulderY - 45f;       // braço
+        float cinturaY = shoulderY - 70f;      // cintura
+        float abdominalY = shoulderY - 85f;    // abdominal
+        float quadrilY = shoulderY - 105f;     // quadril
+        float coxaY = shoulderY - 155f;        // coxa
+        float panturrilhaY = shoulderY - 230f; // panturrilha
+        float pulsoY = shoulderY - 120f;       // pulso
+
+        // Labels lado esquerdo
+        drawLabel(cb, cx, bracoY, cx - 130f, bracoY + 10f, "Braço",
+                c.getBraco() != null ? format(c.getBraco()) + " cm" : "-", true);
+        drawLabel(cb, cx, cinturaY, cx - 130f, cinturaY + 10f, "Cintura",
+                c.getCintura() != null ? format(c.getCintura()) + " cm" : "-", true);
+        drawLabel(cb, cx, quadrilY, cx - 130f, quadrilY + 10f, "Quadril",
+                c.getQuadril() != null ? format(c.getQuadril()) + " cm" : "-", true);
+        drawLabel(cb, cx, panturrilhaY, cx - 130f, panturrilhaY + 10f, "Panturrilha",
+                c.getPanturrilha() != null ? format(c.getPanturrilha()) + " cm" : "-", true);
+
+        // Labels lado direito
+        drawLabel(cb, cx, abdominalY, cx + 130f, abdominalY + 10f, "Abdominal",
+                c.getAbdominal() != null ? format(c.getAbdominal()) + " cm" : "-", false);
+        drawLabel(cb, cx, coxaY, cx + 130f, coxaY + 10f, "Coxa",
+                c.getCoxa() != null ? format(c.getCoxa()) + " cm" : "-", false);
+        drawLabel(cb, cx, pulsoY, cx + 130f, pulsoY + 10f, "Pulso",
+                c.getPulso() != null ? format(c.getPulso()) + " cm" : "-", false);
+
+        cb.restoreState();
+    }
+
+    private void drawLabel(PdfContentByte cb, float bodyX, float bodyY,
+                            float labelX, float labelY, String label, String value, boolean isLeft) {
+        // Linha guia
+        float lineStartX = isLeft ? bodyX - 50f : bodyX + 50f;
+        cb.moveTo(lineStartX, bodyY);
+        cb.lineTo(labelX, labelY);
+        cb.stroke();
+
+        // Ponto no corpo
+        cb.saveState();
+        cb.setColorFill(GREEN_DARK);
+        cb.setLineDash(0);
+        cb.circle(lineStartX, bodyY, 2.5f);
+        cb.fill();
+        cb.restoreState();
+
+        // Texto do label
+        float textX = isLeft ? labelX - 70f : labelX + 5f;
+        ColumnText ct = new ColumnText(cb);
+
+        // Nome da medida
+        Phrase labelPhrase = new Phrase(label + "\n", LABEL_FONT);
+        Phrase valuePhrase = new Phrase(value, VALUE_FONT);
+
+        Paragraph p = new Paragraph();
+        p.add(labelPhrase);
+        p.add(valuePhrase);
+        p.setAlignment(isLeft ? Element.ALIGN_RIGHT : Element.ALIGN_LEFT);
+
+        float boxW = 75f;
+        if (isLeft) {
+            ct.setSimpleColumn(textX, labelY - 20f, textX + boxW, labelY + 15f);
+        } else {
+            ct.setSimpleColumn(textX, labelY - 20f, textX + boxW, labelY + 15f);
+        }
+        ct.addElement(p);
+        ct.go();
+    }
+
+    private void drawClassificationCards(PdfContentByte cb, float cx, float topY,
+                                          AnthropometricDataModel a, String sexo) {
+        float cardX = cx + 145f;
+        float cardY = topY - 20f;
+        float cardW = 130f;
+        float cardH = 45f;
+        float gap = 8f;
+
+        // Card IMC
+        Double imc = a != null ? a.getImc() : null;
+        String imcClass = classifyImc(imc);
+        drawClassCard(cb, cardX, cardY, cardW, cardH,
+                "Classificação IMC", imc != null ? format(imc) + " kg/m²" : "-", imcClass,
+                colorForClassification(imcClass));
+        cardY -= (cardH + gap);
+
+        // Card Gordura
+        Double gordura = a != null ? a.getPorcentagemGordura() : null;
+        String gorduraClass = classifyGordura(gordura, sexo);
+        drawClassCard(cb, cardX, cardY, cardW, cardH,
+                "Gordura Corporal", gordura != null ? format(gordura) + "%" : "-", gorduraClass,
+                colorForClassification(gorduraClass));
+        cardY -= (cardH + gap);
+
+        // Card Gordura Visceral
+        Double visceral = a != null ? a.getGorduraVisceral() : null;
+        String visceralClass = classifyGorduraVisceral(visceral);
+        drawClassCard(cb, cardX, cardY, cardW, cardH,
+                "Gordura Visceral", visceral != null ? format(visceral) : "-", visceralClass,
+                colorForClassification(visceralClass));
+        cardY -= (cardH + gap);
+
+        // Card Massa Muscular
+        Double massa = a != null ? a.getMassaMuscular() : null;
+        drawClassCard(cb, cardX, cardY, cardW, cardH,
+                "Massa Muscular", massa != null ? format(massa) + "%" : "-", "",
+                GREEN_LIGHT);
+    }
+
+    private void drawClassCard(PdfContentByte cb, float x, float y, float w, float h,
+                                String title, String value, String classification, Color bgColor) {
+        cb.saveState();
+
+        // Fundo do card
+        cb.setColorFill(new Color(248, 248, 248));
+        cb.setColorStroke(new Color(220, 220, 220));
+        cb.setLineWidth(0.5f);
+        cb.setLineDash(0);
+        cb.roundRectangle(x, y - h, w, h, 4f);
+        cb.fillStroke();
+
+        // Barra lateral colorida
+        cb.setColorFill(bgColor);
+        cb.rectangle(x, y - h, 4f, h);
+        cb.fill();
+
+        // Título
+        ColumnText ct = new ColumnText(cb);
+        ct.setSimpleColumn(x + 8f, y - 14f, x + w - 4f, y);
+        ct.addElement(new Phrase(title, new Font(Font.HELVETICA, 7, Font.BOLD, new Color(100, 100, 100))));
+        ct.go();
+
+        // Valor
+        ct = new ColumnText(cb);
+        ct.setSimpleColumn(x + 8f, y - 28f, x + w - 4f, y - 12f);
+        ct.addElement(new Phrase(value, new Font(Font.HELVETICA, 11, Font.BOLD, new Color(40, 40, 40))));
+        ct.go();
+
+        // Classificação
+        if (classification != null && !classification.isEmpty()) {
+            ct = new ColumnText(cb);
+            ct.setSimpleColumn(x + 8f, y - h, x + w - 4f, y - 26f);
+            ct.addElement(new Phrase(classification, new Font(Font.HELVETICA, 8, Font.BOLD, GREEN_DARK)));
+            ct.go();
+        }
+
+        cb.restoreState();
+    }
+
+    // =========================================================================
+    // Seções de tabela (página 2)
+    // =========================================================================
 
     private void addHeader(Document doc, PatientModel patient, UserModel nutri, PatientHistoryModel latest) throws DocumentException {
         PdfPTable titleTable = new PdfPTable(1);
@@ -129,8 +467,8 @@ public class BioimpedancePdfService {
         doc.add(table);
     }
 
-    private void addCircunferencias(Document doc, DataCircleModel c) throws DocumentException {
-        addSectionTitle(doc, "Circunferências");
+    private void addCircunferenciasTable(Document doc, DataCircleModel c) throws DocumentException {
+        addSectionTitle(doc, "Circunferências (Detalhado)");
 
         PdfPTable table = new PdfPTable(new float[]{1.5f, 1f});
         table.setWidthPercentage(100);
@@ -286,7 +624,7 @@ public class BioimpedancePdfService {
         doc.add(titulo);
     }
 
-    // === Helpers ===
+    // === Helpers de tabela ===
 
     private void addSectionTitle(Document doc, String title) throws DocumentException {
         PdfPTable t = new PdfPTable(1);
