@@ -55,7 +55,6 @@ public class MealController {
         return ResponseEntity.ok(macros);
     }
 
-    // --- demais endpoints mantidos como estavam (usando MealService) ---
 
     @Operation(summary = "Lista todas as refeições de um paciente")
     @ApiResponse(responseCode = "200", description = "Refeições retornadas com sucesso")
