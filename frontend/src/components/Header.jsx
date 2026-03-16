@@ -25,6 +25,11 @@ function Header({
   const showLinks = location?.pathname === '/';
   const showButtons = location?.pathname === '/login' || location?.pathname === '/auth' || location?.pathname === '/';
   const userName = sessionStorage.getItem('nomeUsuario');
+  const handleLogout = () => {
+    sessionStorage.clear();
+    localStorage.clear();
+    navigate('/login', { replace: true });
+  };
   const userPhoto = sessionStorage.getItem('fotoUsuario');
   const handleBack = () => {
     if (onBackToHome) return onBackToHome();

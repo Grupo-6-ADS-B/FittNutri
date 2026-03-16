@@ -71,6 +71,36 @@ export default function UserRegister() {
     { uf: "TO", nome: "Tocantins" }
   ];
 
+  const capitaisPorUf = {
+    AC: 'Rio Branco',
+    AL: 'Maceió',
+    AP: 'Macapá',
+    AM: 'Manaus',
+    BA: 'Salvador',
+    CE: 'Fortaleza',
+    DF: 'Brasília',
+    ES: 'Vitória',
+    GO: 'Goiânia',
+    MA: 'São Luís',
+    MT: 'Cuiabá',
+    MS: 'Campo Grande',
+    MG: 'Belo Horizonte',
+    PA: 'Belém',
+    PB: 'João Pessoa',
+    PR: 'Curitiba',
+    PE: 'Recife',
+    PI: 'Teresina',
+    RJ: 'Rio de Janeiro',
+    RN: 'Natal',
+    RS: 'Porto Alegre',
+    RO: 'Porto Velho',
+    RR: 'Boa Vista',
+    SC: 'Florianópolis',
+    SP: 'São Paulo',
+    SE: 'Aracaju',
+    TO: 'Palmas'
+  };
+
   const maskCPF = (val) => {
     const digits = val.replace(/\D/g, "").slice(0, 11);
     if (digits.length <= 3) return digits;
@@ -100,9 +130,16 @@ export default function UserRegister() {
       const response = await axios.get(
         `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
       );
-      const cidadesOrdenadas = response.data
+      let cidadesOrdenadas = response.data
         .map(cidade => cidade.nome)
         .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+      const cidadePrincipal = capitaisPorUf[uf];
+      if (cidadePrincipal) {
+        cidadesOrdenadas = cidadesOrdenadas.filter(cidade => cidade !== cidadePrincipal);
+        cidadesOrdenadas.unshift(cidadePrincipal);
+      }
+
       setCidades(cidadesOrdenadas);
     } catch (error) {
       console.error('Erro ao buscar cidades:', error);
@@ -188,12 +225,12 @@ export default function UserRegister() {
     };
     (async () => {
       try {
-        const resp = await axios.post('http://localhost:8080/patients', {...payload, estadoCivil: 'Solteiro'}, {
-          headers: {
-            'Content-Type': 'application/json', 
-            Authorization: `Bearer ${sessionStorage.getItem('token')}`
-          }
-        });
+        const resp = await axios.post('/api/patients', {...payload, estadoCivil: 'Solteiro'}, {
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`
+  }
+});
         setNotification({
           open: true,
           message: `Sucesso! Novo usuário ${formData.name} registrado`,
