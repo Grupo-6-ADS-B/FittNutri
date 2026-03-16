@@ -3,4 +3,4 @@ function validarEmail(email){
     return regex.test(email);
 }
 
-console.log(validarEmail("teste@exemplo.com")) 
+export default  validarEmail 

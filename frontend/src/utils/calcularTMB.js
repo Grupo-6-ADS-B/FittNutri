@@ -30,4 +30,4 @@ function calcularTMB(peso, altura, idade, sexo, atividade) {
     return tmb;
 }
 
-console.log(calcularTMB(70, 175, 25, "feminino", "sedentário"));
+export default calcularTMB;

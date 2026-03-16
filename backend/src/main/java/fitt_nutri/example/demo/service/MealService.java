@@ -2,6 +2,7 @@ package fitt_nutri.example.demo.service;
 
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.draw.LineSeparator;
+import org.springframework.transaction.annotation.Transactional;
 import fitt_nutri.example.demo.dto.MacrosDTO;
 import fitt_nutri.example.demo.dto.request.FullDietRequestDTO;
 import fitt_nutri.example.demo.dto.request.MealRequestDTO;
@@ -235,7 +236,7 @@ public class MealService {
     }
 
 
-
+    @Transactional
     public byte[] generateDietPdf(Integer patientId) throws Exception {
 
         PatientModel patient = patientRepository.findById(patientId)

@@ -2,25 +2,14 @@ import React, { useMemo, useEffect } from "react";
 import api from '../utils/api';
 import { useNavigate, useLocation } from "react-router-dom";
 import {
-    Box, Typography, Paper, Card, CardMedia, CardContent,
-    IconButton, Tooltip, Button, FormControl, InputLabel,
-    Select, MenuItem, Collapse, Drawer, Avatar, Grid
+    Box, Typography, Paper, Card, CardMedia, CardContent, Button, Grid
 } from "@mui/material";
 import { useTheme, styled } from "@mui/material/styles";
-import EditIcon from '@mui/icons-material/Edit';
-import MenuOpenIcon from '@mui/icons-material/MenuOpen';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import MenuIcon from '@mui/icons-material/Menu';
 import ScaleIcon from '@mui/icons-material/Scale';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
-const minimalWidth = 80;
-const expandedWidth = 340;
 
 const KpiImageUrls = {
     pesoAtual: 'https://images.unsplash.com/photo-1542849800-47864f77894a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=150&q=80',
@@ -67,53 +56,17 @@ const KpiCarouselCard = ({ title, value, unit, description, icon: Icon, imageId,
 
 
 export default function ResumoCircunferencia() {
-        const [consultas, setConsultas] = React.useState([]);
-        const [selectedConsulta, setSelectedConsulta] = React.useState(null);
-        const [evolucaoData, setEvolucaoData] = React.useState(null);
-
-        React.useEffect(() => {
-            async function fetchConsultas() {
-                try {
-                    const stored = localStorage.getItem("appointments");
-                    let list = [];
-                    if (stored) list = JSON.parse(stored);
-                    if (!list.length) {
-                        const res = await api.get('/schedulings');
-                        list = Array.isArray(res.data) ? res.data : [];
-                    }
-                    setConsultas(list);
-                    if (list.length) setSelectedConsulta(list[0]);
-                } catch {
-                    setConsultas([]);
-                }
-            }
-            fetchConsultas();
-        }, []);
-
-        React.useEffect(() => {
-            async function fetchEvolucao() {
-                if (!selectedConsulta?.userId || !selectedConsulta?.date) return;
-                try {
-                    const res = await api.get(`/anthropometric-data/paciente/${selectedConsulta.userId}?date=${selectedConsulta.date}`);
-                    setEvolucaoData(res.data);
-                    // backend retorna altura em metros; manter como está para evolução (service pode usar metros)
-                } catch {
-                    setEvolucaoData(null);
-                }
-            }
-            fetchEvolucao();
-        }, [selectedConsulta]);
     const theme = useTheme();
     const primary = theme.palette.primary.main;
     const success = theme.palette.success.main;
     const navigate = useNavigate();
     const location = useLocation();
+    const storedPatientId = sessionStorage.getItem('pacienteId') || localStorage.getItem('pacienteId');
+    const lastUserId = localStorage.getItem('lastUserId');
+    const preferredPatientId = storedPatientId || lastUserId;
     
-    const [isCardOpen, setIsCardOpen] = React.useState(false); 
-    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
     
-    // Removido array mocado, agora os dados vêm do backend
     
     const [usersList, setUsersList] = React.useState([]);
     const [selectedUser, setSelectedUser] = React.useState(null);
@@ -125,13 +78,26 @@ export default function ResumoCircunferencia() {
         async function fetchUsers() {
             setLoadingUsers(true);
             try {
-                const response = await api.get('/users');
-                setUsersList(Array.isArray(response.data) ? response.data : []);
-                // Prioriza usuário vindo do location.state
+                const response = await api.get('/patients');
+                const mapped = Array.isArray(response.data)
+                    ? response.data.map((p) => ({
+                        id: p.id ?? p.ID ?? p.idUsuario ?? p.codigo ?? undefined,
+                        name: p.nome ?? p.name ?? '',
+                        email: p.email ?? '',
+                        telefone: p.telefone ?? p.phone ?? '',
+                        cidade: p.cidade ?? p.city ?? '',
+                        sexo: p.sexo ?? '',
+                        atividade: p.atividade ?? '',
+                        avatar: p.avatar ?? ''
+                    }))
+                    : [];
+                setUsersList(mapped);
                 if (location.state?.user) {
                     setSelectedUser(location.state.user);
+                } else if (preferredPatientId) {
+                    setSelectedUser(mapped.find(u => String(u.id) === String(preferredPatientId)) || mapped[0] || null);
                 } else {
-                    setSelectedUser(response.data?.[0] || null);
+                    setSelectedUser(mapped[0] || null);
                 }
             } catch {
                 setUsersList([]);
@@ -140,7 +106,7 @@ export default function ResumoCircunferencia() {
             setLoadingUsers(false);
         }
         fetchUsers();
-    }, [location.state?.user]);
+    }, [location.state?.user, preferredPatientId]);
 
     const [antropo, setAntropo] = React.useState({});
     const [dadosCirc, setDadosCirc] = React.useState({});
@@ -148,14 +114,126 @@ export default function ResumoCircunferencia() {
     const [noCircFound, setNoCircFound] = React.useState(false);
     useEffect(() => {
         async function fetchData() {
-            if (!selectedUser?.id) return;
+            if (!selectedUser?.id) {
+                console.log('Sem selectedUser.id');
+                return;
+            }
+            console.log('Buscando dados para usuário:', selectedUser.id);
+            try {
+                const today = new Date();
+                today.setDate(today.getDate() + 1);
+                
+                const manyYearsAgo = new Date(today);
+                manyYearsAgo.setFullYear(today.getFullYear() - 10); 
+                
+                const fromYear = manyYearsAgo.getFullYear();
+                const fromMonth = String(manyYearsAgo.getMonth() + 1).padStart(2, '0');
+                const fromDay = String(manyYearsAgo.getDate()).padStart(2, '0');
+                const startDate = `${fromYear}-${fromMonth}-${fromDay}`;
+                
+                const toYear = today.getFullYear();
+                const toMonth = String(today.getMonth() + 1).padStart(2, '0');
+                const toDay = String(today.getDate()).padStart(2, '0');
+                const endDate = `${toYear}-${toMonth}-${toDay}`;
+                
+                console.log('Buscando com datas:', startDate, 'até', endDate);
+                
+                const historyRes = await api.get(`/patient-history/evolucao/${selectedUser.id}`, {
+                    params: { dataInicio: startDate, dataFim: endDate }
+                });
+                console.log('Resposta do histórico (evolução):', historyRes.data);
+                
+                let historyList = Array.isArray(historyRes.data) ? historyRes.data : [];
+                
+                console.log('Lista consolidada:', historyList);
+                
+                const withIndex = historyList.map((item, index) => ({ ...item, _originalIndex: index }));
+                
+                const sorted = [...withIndex].sort((a, b) => {
+                    const dateA = new Date(a.dataConsulta);
+                    const dateB = new Date(b.dataConsulta);
+                    const comparison = dateB - dateA; 
+                    return comparison !== 0 ? comparison : (b._originalIndex - a._originalIndex);
+                });
+                
+                const latest = sorted.length ? sorted[0] : null;
+                console.log('Consulta MAIS RECENTE:', latest);
+                if (sorted.length > 1) {
+                    console.log('Há', sorted.length, 'consultas. A mais recente foi priorizada.');
+                }
+                
+                if (latest) {
+                    const anthropo = {
+                        peso: latest.peso,
+                        altura: latest.altura,
+                        imc: latest.imc,
+                        idadeMetabolica: latest.idadeMetabolica,
+                        massaMuscular: latest.massaMuscular,
+                        porcentagemGordura: latest.porcentagemGordura,
+                        gorduraVisceral: latest.gorduraVisceral,
+                        taxaMetabolicaBasal: latest.taxaMetabolicaBasal,
+                    };
+                    
+                    const circ = {
+                        abdominal: latest.abdominal,
+                        cintura: latest.cintura,
+                        quadril: latest.quadril,
+                        pulso: latest.pulso,
+                        panturrilha: latest.panturrilha,
+                        braco: latest.braco,
+                        coxa: latest.coxa,
+                        pesoIdeal: latest.pesoIdeal,
+                    };
+                    
+                    console.log('Anthropo extraído:', anthropo);
+                    console.log('Circ extraído:', circ);
+                    
+                    const alturaServer = anthropo.altura !== undefined && anthropo.altura !== null ? Number(anthropo.altura) : null;
+                    const alturaCm = (alturaServer !== null && !Number.isNaN(alturaServer)) ? (alturaServer <= 10 ? alturaServer * 100 : alturaServer) : '';
+                    setAntropo({ ...anthropo, altura: alturaCm });
+                    setNoAntropoFound(false);
+                    
+                    const converted = {};
+                    ["abdominal","cintura","quadril","pulso","panturrilha","braco","coxa","pesoIdeal"].forEach(k => {
+                        if (circ[k] !== undefined && circ[k] !== null) converted[k] = String(circ[k]);
+                        else converted[k] = "";
+                    });
+                    setDadosCirc(converted);
+                    setNoCircFound(false);
+                    return;
+                }
+            } catch (err) {
+                console.error('Erro ao buscar histórico:', err);
+            }
+            if (location.state?.antropoData || location.state?.dados) {
+                const a = location.state?.antropoData || {};
+                let alturaVal = a.altura;
+                if (alturaVal !== undefined && alturaVal !== null && alturaVal !== '') {
+                    const num = Number(String(alturaVal).replace(',', '.'));
+                    if (!Number.isNaN(num)) {
+                        alturaVal = num <= 10 ? num * 100 : num;
+                    }
+                } else {
+                    alturaVal = '';
+                }
+                setAntropo({ ...a, altura: alturaVal });
+                const c = location.state?.dados || {};
+                const converted = {};
+                ["abdominal","cintura","quadril","pulso","panturrilha","braco","coxa","pesoIdeal"].forEach(k => {
+                    if (c[k] !== undefined && c[k] !== null) converted[k] = String(c[k]);
+                    else converted[k] = "";
+                });
+                setDadosCirc(converted);
+                setNoAntropoFound(false);
+                setNoCircFound(false);
+                return;
+            }
             try {
                 const stored = localStorage.getItem(`questionario_${selectedUser.id}`);
                 if (stored) {
                     const parsed = JSON.parse(stored);
                     if (parsed?.antropoData) {
                         const a = parsed.antropoData;
-                        // normaliza altura: se estiver em metros (<=10) converte para cm, se já estiver em cm mantém
                         let alturaVal = a.altura;
                         if (alturaVal !== undefined && alturaVal !== null && alturaVal !== '') {
                             const num = Number(String(alturaVal).replace(',', '.'));
@@ -181,60 +259,15 @@ export default function ResumoCircunferencia() {
             } catch (e) {
                 console.error('Falha ao ler questionario local:', e);
             }
-            try {
-                const antropoRes = await api.get(`/anthropometric-data/paciente/${selectedUser.id}`);
-                const lista = Array.isArray(antropoRes.data) ? antropoRes.data : [];
-                const server = lista[0] || null;
-                if (server) {
-                    // converter altura de metros (backend) para cm (frontend espera cm)
-                    const alturaServer = server.altura !== undefined && server.altura !== null ? Number(server.altura) : null;
-                    // servidor guarda altura em metros (ex: 1.70). Se o valor retornado for <= 10 assume-se metros, converte para cm.
-                    const alturaCm = (alturaServer !== null && !Number.isNaN(alturaServer)) ? (alturaServer <= 10 ? alturaServer * 100 : alturaServer) : '';
-                    setAntropo({ ...server, altura: alturaCm });
-                    setNoAntropoFound(false);
-                } else {
-                    setAntropo({});
-                    setNoAntropoFound(true);
-                }
-            } catch (err) {
-                setAntropo({});
-                setNoAntropoFound(true);
-                console.error('Erro ao buscar dados antropométricos:', err);
-            }
-            try {
-                const circRes = await api.get(`/data-circle/patient/${selectedUser.id}`);
-                const lista = Array.isArray(circRes.data) ? circRes.data : [];
-                const serverCirc = lista[0] || null;
-                if (serverCirc) {
-                    // converte valores para string para exibição consistente
-                    const converted = {};
-                    ["abdominal","cintura","quadril","pulso","panturrilha","braco","coxa","pesoIdeal"].forEach(k => {
-                        if (serverCirc[k] !== undefined && serverCirc[k] !== null) converted[k] = String(serverCirc[k]);
-                        else converted[k] = "";
-                    });
-                    setDadosCirc(converted);
-                    setNoCircFound(false);
-                } else {
-                    setDadosCirc({});
-                    setNoCircFound(true);
-                }
-            } catch (err) {
-                setDadosCirc({});
-                setNoCircFound(true);
-                console.error('Erro ao buscar dados de circunferência:', err);
-            }
+            console.log('Nenhum dado encontrado em lugar nenhum');
+            setAntropo({});
+            setDadosCirc({});
+            setNoAntropoFound(true);
+            setNoCircFound(true);
         }
         fetchData();
     }, [selectedUser?.id]);
 
-    const handleChangeUser = (e) => {
-        const uid = e.target.value;
-        const found = (usersList || []).find(u => String(u.id) === String(uid));
-        if (found) {
-            setSelectedUser(found);
-            setIsCardOpen(false);
-        }
-    };
     const calcularIMC = (peso, alturaM) => {
         if (!peso || !alturaM) return null;
         const v = peso / (alturaM * alturaM);
@@ -268,9 +301,9 @@ export default function ResumoCircunferencia() {
     };
 
     const imcValue = useMemo(() => {
-        // Prioriza o IMC retornado pelo servidor quando disponível
         if (antropo && (antropo.imc !== undefined && antropo.imc !== null)) {
-            const n = Number(antropo.imc);
+            const raw = typeof antropo.imc === 'string' ? antropo.imc.replace(',', '.') : antropo.imc;
+            const n = Number(raw);
             return Number.isFinite(n) ? n.toFixed(2) : null;
         }
         const peso = parseFloat(String(antropo.peso || '').replace(',', '.'));
@@ -287,7 +320,6 @@ export default function ResumoCircunferencia() {
     }, [imcValue]);
 
     const tmbValue = useMemo(() => {
-        // Prioriza valor retornado pelo servidor (taxaMetabolicaBasal)
         if (antropo && (antropo.taxaMetabolicaBasal !== undefined && antropo.taxaMetabolicaBasal !== null)) {
             const n = Number(antropo.taxaMetabolicaBasal);
             return Number.isFinite(n) ? Math.round(n) : null;
@@ -307,10 +339,8 @@ export default function ResumoCircunferencia() {
     }, [antropo.peso]);
 
     const pesoMeta = useMemo(() => {
-        // Sempre prioriza o valor salvo no backend (dadosCirc.pesoIdeal)
         let metaValor = dadosCirc?.pesoIdeal;
         if (metaValor === undefined || metaValor === null || metaValor === '') return '-';
-        // Se vier string, tenta converter
         if (typeof metaValor === 'string') {
             metaValor = metaValor.replace(',', '.').replace(/[^\d.\-]/g, '');
         }
@@ -326,75 +356,6 @@ export default function ResumoCircunferencia() {
     ];
 
   
-  const massaMuscular =
-    dadosCirc['Massa Muscular (kg)'] ||
-    dadosCirc['massaMuscular'] ||
-    dadosCirc['massa_muscular'] ||
-    antropo['Massa Muscular (kg)'] ||
-    antropo['massaMuscular'] ||
-    antropo['massa_muscular'] ||
-    '-';
-
-  const gorduraVisceral =
-    antropo['Gordura Visceral (%)'] ||
-    antropo['gorduraVisceral'] ||
-    antropo['gordura_visceral'] ||
-    dadosCirc['Gordura Visceral (%)'] ||
-    dadosCirc['gorduraVisceral'] ||
-    dadosCirc['gordura_visceral'] ||
-    '-';
-
-  
-
-    const UserSidebarContent = (
-        <Paper elevation={3} sx={{ width: expandedWidth, p: 2, borderRadius: 3, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 120 }}>
-            <Button
-                variant="outlined"
-                color="primary"
-                size="large"
-                sx={{ mt: 2, fontWeight: 'bold', fontSize: 18, px: 3 }}
-                onClick={() => navigate('/gestor')}
-            >
-                Voltar para gerenciamento de pacientes
-            </Button>
-        </Paper>
-    );
-
-const minimalAvatarSize = 40;
-
-function MinimalSidebar() {
-    return (
-        <Box
-            sx={{
-                width: minimalWidth,
-                minWidth: minimalWidth,
-                bgcolor: 'grey.100',
-                borderRight: '1px solid #e0e0e0',
-                p: 2,
-                position: 'sticky',
-                top: 0,
-                height: '15vh',
-                flexShrink: 0,
-                zIndex: 1000,
-                borderRadius: 2,
-                overflowX: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-            }}
-        >
-            <Tooltip title="Expandir Menu" placement="right">
-                <IconButton color="primary">
-                    <MenuIcon />
-                </IconButton>
-            </Tooltip>
-        </Box>
-    );
-}
-
-function UserDetailDrawer() {
-    return null;
-}
 
 function KpiLayout() {
     return (
@@ -403,7 +364,7 @@ function KpiLayout() {
                 title="Peso Atual"
                 value={pesoAtual ?? '-'}
                 unit="kg"
-                description="Seu peso atual"
+                description="Peso atual"
                 icon={ScaleIcon}
                 imageId="pesoAtual"
                 valueColor={primary}
@@ -474,37 +435,6 @@ if (!selectedUser && !loadingUsers) {
                                 <Button
                                     variant="outlined"
                                     color="primary"
-                                    size="large"
-                                    sx={{ ml: 2, fontWeight: 'bold', fontSize: 18, px: 3, height: 56, textTransform: 'none' }}
-                                    aria-label="Selecionar data de consulta"
-                                    endIcon={<MenuOpenIcon />}
-                                    onClick={() => setIsCardOpen(true)}
-                                    id="select-consulta-btn"
-                                >
-                                    {selectedConsulta?.date ? new Date(selectedConsulta.date).toLocaleDateString() : 'Selecionar data de consulta'}
-                                </Button>
-                                <Dialog open={isCardOpen} onClose={() => setIsCardOpen(false)} aria-labelledby="select-consulta-dialog" maxWidth="xs" fullWidth anchorEl={document.getElementById('select-consulta-btn')}>
-                                    <DialogTitle id="select-consulta-dialog" sx={{ fontWeight: 'bold', fontSize: 18 }}>Selecione a data da consulta</DialogTitle>
-                                    <DialogContent>
-                                        {consultas.map(c => (
-                                            <Button
-                                                key={c.id}
-                                                variant={selectedConsulta?.id === c.id ? 'contained' : 'outlined'}
-                                                color="primary"
-                                                sx={{ mb: 1, width: '100%', textTransform: 'none', fontSize: 16 }}
-                                                onClick={() => { setSelectedConsulta(c); setIsCardOpen(false); }}
-                                            >
-                                                {c.date ? new Date(c.date).toLocaleDateString() : 'Sem data'}
-                                            </Button>
-                                        ))}
-                                    </DialogContent>
-                                    <DialogActions>
-                                        <Button onClick={() => setIsCardOpen(false)} sx={{ width: '100%' }}>Fechar</Button>
-                                    </DialogActions>
-                                </Dialog>
-                                <Button
-                                    variant="outlined"
-                                    color="primary"
                                     size="medium"
                                     sx={{ ml: 2, fontWeight: 'bold', fontSize: 16, px: 2 }}
                                     onClick={() => navigate('/gestor')}
@@ -512,7 +442,6 @@ if (!selectedUser && !loadingUsers) {
                                     Voltar para gerenciamento de pacientes
                                 </Button>
                             </Box>
-                            {/* Removido JSON bruto de evolução. Exiba apenas dados relevantes, se necessário. */}
                             <Typography variant="body1" sx={{ mb: 4 }}>
                                 Aqui está um resumo dos dados mais importantes para sua avaliação nutricional.
                             </Typography>

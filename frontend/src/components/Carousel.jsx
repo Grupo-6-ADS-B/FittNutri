@@ -13,31 +13,26 @@ import {
   ArrowForwardIos
 } from '@mui/icons-material';
 
-
-function getCardsToShow() {
-  if (typeof window !== 'undefined') {
-    if (window.innerWidth < 600) return 1;
-    if (window.innerWidth < 960) return 2;
-  }
-  return 3;
-}
+const funcionalidades = [
+  { id: 1, title: "Dietas Personalizadas", description: "Crie planos alimentares únicos baseados nas necessidades específicas de cada paciente com banco de alimentos completo e cálculos nutricionais automáticos.", icon: DietIcon, image: "/dieta.jpg", color: 'primary' },
+  { id: 2, title: "Acompanhamento da Evolução", description: "Monitore o progresso dos seus pacientes com gráficos detalhados, métricas de evolução em tempo real.", icon: ProgressIcon, image: "/nutri-paciente.jpg", color: 'secondary' },
+  { id: 3, title: "Relatórios Avançados", description: "Gere relatórios profissionais com análises nutricionais completas, recomendações personalizadas e exportação em PDF.", icon: ReportsIcon, image: "/relatorios.png", color: 'primary' },
+  { id: 4, title: "Agendamento Pessoal", description: "Cadastre e organize sua agenda de consultas de forma simples e prática, com controle total dos seus horários e disponibilidade.", icon: PlanningIcon, image: "/agendamento.jpg", color: 'secondary' },
+  { id: 5, title: "Gestão de Pacientes", description: "Centralize todas as informações dos pacientes com histórico completo, fichas nutricionais e acesso rápido aos dados importantes.", icon: PatientsIcon, image: "/nutri-paciente2.jpg", color: 'primary' },
+  { id: 6, title: "Tabela TACO Integrada", description: "Acesso completo à Tabela Brasileira de Composição de Alimentos com dados nutricionais precisos de mais de 600 alimentos nacionais.", icon: TacoIcon, image: "/piramide.jpg", color: 'secondary' }
+];
 
 function Carousel() {
-  const [funcionalidades, setFuncionalidades] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cardsToShow, setCardsToShow] = useState(getCardsToShow());
 
-  useEffect(() => {
-    async function fetchFuncionalidades() {
-      try {
-        const response = await api.get('/funcionalidades');
-        setFuncionalidades(Array.isArray(response.data) ? response.data : []);
-      } catch {
-        setFuncionalidades([]);
-      }
+  function getCardsToShow() {
+    if (typeof window !== 'undefined') {
+      if (window.innerWidth < 600) return 1;
+      if (window.innerWidth < 960) return 2;
     }
-    fetchFuncionalidades();
-  }, []);
+    return 3;
+  }
 
   useEffect(() => {
     const handleResize = () => setCardsToShow(getCardsToShow());

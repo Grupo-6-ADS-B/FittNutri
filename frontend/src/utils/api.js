@@ -8,13 +8,15 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  // Não envia o token para cadastro de usuário
-  if (!(config.url === '/users' && config.method === 'post')) {
+  const isPublicEndpoint = 
+    (config.url === '/users' && config.method?.toLowerCase() === 'post') ||
+    (config.url === '/users/login' && config.method?.toLowerCase() === 'post');
+  
+  if (!isPublicEndpoint) {
     const token = sessionStorage.getItem('token') || localStorage.getItem('token');
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
-
 
 export default api;

@@ -8,5 +8,5 @@ function formatarCPF(cpf) {
     return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
 }
 
-console.log(formatarCPF("12345678909"));
+export default formatarCPF;
 

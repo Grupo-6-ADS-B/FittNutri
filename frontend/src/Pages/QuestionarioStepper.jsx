@@ -23,6 +23,7 @@ import PhotoCamera from '@mui/icons-material/PhotoCamera';
 import { useNavigate, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@mui/material/styles";
 import { theme } from "../theme";
+import calcularTMB from '../utils/calcularTMB';
  
 
 const steps = ["Dados Antropométricos", "Circunferências"];
@@ -60,10 +61,7 @@ export default function QuestionarioStepper() {
   } catch { /* ignore storage errors */ }
   }, []);
   const location = useLocation();
-  const mockUsers = [
-    { id: 1, name: "André Goulart", email: "andre.goulart@example.com", phone: "(11) 98765-4321", avatar: "https://i.pravatar.cc/150?img=1" },
-    { id: 2, name: "Carlos Lima", email: "carlos.lima@example.com", phone: "(21) 91234-5678", avatar: "https://i.pravatar.cc/150?img=2" },
-  ];
+
   const selectedUser = location.state?.user || mockUsers[0];
   const [userInfo, setUserInfo] = useState(selectedUser);
   const [isEditingUser, setIsEditingUser] = useState(false);
@@ -141,6 +139,24 @@ const [circData, setCircData] = useState(() => ({
     return calculateIMC(peso, altura);
   }, [antropoData.peso, antropoData.altura]);
 
+  useEffect(() => {
+    const peso = parseFloat(String(antropoData.peso || '').replace(',', '.'));
+    const altura = parseFloat(String(antropoData.altura || '').replace(',', '.'));
+    const idade = parseFloat(String(antropoData.idade || '').replace(',', '.'));
+    const sexo = selectedUser?.sexo || 'feminino';
+    const atividade = selectedUser?.atividade || 'sedentario';
+
+    if (peso > 0 && altura > 0 && idade > 0) {
+      const tmbCalculada = calcularTMB(peso, altura, idade, sexo, atividade);
+      if (tmbCalculada && Number.isFinite(tmbCalculada)) {
+        setAntropoData(prev => ({
+          ...prev,
+          taxaMetabolicaBasal: Math.round(tmbCalculada).toString()
+        }));
+      }
+    }
+  }, [antropoData.peso, antropoData.altura, antropoData.idade, selectedUser?.sexo, selectedUser?.atividade]);
+
   const startEditUser = () => setIsEditingUser(true);
   const cancelEditUser = () => {
     setIsEditingUser(false);
@@ -163,7 +179,11 @@ const [circData, setCircData] = useState(() => ({
     setUserInfo(updated);
     setIsEditingUser(false);
     try {
-      await api.put(`/users/${updated.id}`, updated);
+      const payload = {
+        nome: userDraft.name,
+        email: userDraft.email,
+      };
+      await api.patch(`/users/${updated.id}`, payload);
       const stored = localStorage.getItem('users');
       const arr = stored ? JSON.parse(stored) : [];
       if (Array.isArray(arr)) {
@@ -231,7 +251,6 @@ const handleAntropoChange = (field) => (event) => {
     setActiveStep((prev) => prev - 1);
   };
   
-  // removed unused handler to satisfy linter
 
 const handleResumoClick = async () => {
   setCompleted((prev) => ({ ...prev, circ: true }));
@@ -247,7 +266,6 @@ const handleResumoClick = async () => {
       const aStr = (antropoData.altura ?? '').toString();
       const peso = parseOrNull(pStr);
       const altura = parseOrNull(aStr);
-      // Converte altura do formulário (cm) para metros para o backend
       const alturaMeters = (altura !== null && Number.isFinite(altura)) ? (altura > 10 ? altura / 100 : altura) : null;
       let imcValue = null;
       if (Number.isFinite(peso) && Number.isFinite(alturaMeters) && alturaMeters > 0) {
@@ -265,16 +283,6 @@ const handleResumoClick = async () => {
         idadeMetabolica: parseOrNull(antropoData.idadeMetabolica)
       };
 
-      // Envia para o backend e captura a resposta (salva o objeto retornado)
-      let savedAntropo = null;
-      try {
-        const res = await api.post(`/anthropometric-data/patient/${selectedUser.id}`, antropoToSend);
-        savedAntropo = res.data ?? null;
-      } catch (err) {
-        console.error('Erro ao salvar dados antropométricos no backend:', err);
-        throw err;
-      }
-
       const circToSend = {
         abdominal: parseOrNull(circData.abdominal),
         cintura: parseOrNull(circData.cintura),
@@ -286,33 +294,47 @@ const handleResumoClick = async () => {
         pesoIdeal: parseOrNull(circData.pesoIdeal)
       };
 
-      let savedCirc = null;
       try {
-        const res2 = await api.post(`/data-circle/patient/${selectedUser.id}`, circToSend);
-        savedCirc = res2.data ?? null;
+        const now = new Date();
+        now.setDate(now.getDate() + 1); 
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}T00:00:00Z`;
+        const historyPayload = {
+          dataConsulta: today,
+          antropometria: {
+            peso,
+            altura: alturaMeters,
+            imc: imcValue !== null ? Number(imcValue.toFixed(2)) : null,
+            idadeMetabolica: parseOrNull(antropoData.idadeMetabolica),
+            massaMuscular: parseOrNull(antropoData.massaMuscular),
+            porcentagemGordura: parseOrNull(antropoData.porcentagemGordura),
+            gorduraVisceral: parseOrNull(antropoData.gorduraVisceral),
+            taxaMetabolicaBasal: parseOrNull(antropoData.taxaMetabolicaBasal)
+          },
+          circunferencia: { ...circToSend }
+        };
+        await api.post(`/patient-history/${selectedUser.id}`, historyPayload);
       } catch (err) {
-        console.error('Erro ao salvar dados de circunferência no backend:', err);
+        console.error('Erro ao salvar consulta no backend:', err);
         throw err;
       }
 
-      // Atualiza o armazenamento local com os dados retornados pelo servidor
       try {
-        const payload = { antropoData: savedAntropo || antropoToSend, circData: savedCirc || circToSend, completed: { ...completed, circ: true } };
+        const payload = { antropoData: antropoToSend, circData: circToSend, completed: { ...completed, circ: true } };
         localStorage.setItem(`questionario_${selectedUser.id}`, JSON.stringify(payload));
       } catch (e) {
         // ignore
       }
 
-      // Navega para o resumo enviando os dados retornados pelo servidor (prioriza servidor)
-      navigate('/resumo-circunferencia', { state: { dados: savedCirc || circData, antropoData: savedAntropo || { ...antropoData, imc: imc }, user: selectedUser } });
+      navigate('/resumo-circunferencia', { state: { dados: circData, antropoData: { ...antropoData, imc: imc }, user: selectedUser } });
       return;
     }
 
-    // se não há selectedUser, apenas navega com estado local
     navigate('/resumo-circunferencia', { state: { dados: circData, antropoData: { ...antropoData, imc: imc }, user: selectedUser } });
   } catch (e) {
     console.error("Erro ao salvar dados:", e);
-    // exibe alerta simples
     window.alert('Ocorreu um erro ao salvar os dados. Verifique sua conexão e tente novamente.');
   }
 };
@@ -327,7 +349,7 @@ const handleResumoClick = async () => {
     { label: "Porcentagem de Gordura (%)", field: "porcentagemGordura" },
     { label: "Massa Muscular (%)", field: "massaMuscular" },
     { label: "Gordura Visceral (%)", field: "gorduraVisceral" },
-    { label: "Taxa Metabólica Basal (kcal)", field: "taxaMetabolicaBasal" },
+    { label: "Taxa Metabólica Basal (kcal)", field: "taxaMetabolicaBasal", isCalculated: true },
     { label: "Idade Metabólica (anos)", field: "idadeMetabolica" } 
   ];
 
@@ -342,6 +364,18 @@ const handleResumoClick = async () => {
     {label:"Peso Ideal (kg)",field: "pesoIdeal",},
     
   ];
+
+  const circFieldLabels = {
+    abdominal: 'Abdominal',
+    cintura: 'Cintura',
+    quadril: 'Quadril',
+    pulso: 'Pulso',
+    panturrilha: 'Panturrilha',
+    braco: 'Braço',
+    coxa: 'Coxa',
+    pesoIdeal: 'Peso Ideal'
+  };
+
   return (
     <ThemeProvider theme={theme}>
       <Box
@@ -417,9 +451,11 @@ const handleResumoClick = async () => {
                   {!!antropoData.massaMuscular && <Typography variant="body2">Massa Muscular: {antropoData.massaMuscular} kg</Typography>}
                   {!!antropoData.gorduraVisceral && <Typography variant="body2">Gordura Visceral: {antropoData.gorduraVisceral} %</Typography>}
                   {!!antropoData.taxaMetabolicaBasal && <Typography variant="body2">TMB: {antropoData.taxaMetabolicaBasal} kcal</Typography>}
-                  {Object.entries(circData).map(([k,v]) => (
-                    v ? <Typography key={k} variant="body2">{k}: {v}</Typography> : null
-                  ))}
+                  {Object.entries(circData).map(([k,v]) => {
+                    if (k.startsWith('id')) return null;
+                    const label = circFieldLabels[k] || k;
+                    return v ? <Typography key={k} variant="body2">{label}: {v}</Typography> : null;
+                  })}
                 </Box>
                 <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
@@ -442,13 +478,18 @@ const handleResumoClick = async () => {
                       key={item.field}
                       label={item.label} 
                       fullWidth
-                      value={item.isCalculated ? imc : antropoData[item.field]}
+                      value={
+                        item.field === 'imc' && item.isCalculated 
+                          ? imc 
+                          : antropoData[item.field] || ''
+                      }
                       disabled={item.isCalculated}
                       onChange={!item.isCalculated ? handleAntropoChange(item.field) : undefined}
                       type="text" 
                       inputProps={{
                         pattern: "[0-9]*[.,]?[0-9]*" 
                       }}
+                      helperText={item.field === 'taxaMetabolicaBasal' || item.field === 'imc' && item.isCalculated ? "Calculado automaticamente" : undefined}
                     />
                   ))}
                 <Grid container spacing={2} sx={{ justifyContent: 'flex-start', pl: -1, ml: -2 }}>
@@ -457,7 +498,7 @@ const handleResumoClick = async () => {
                       variant="outlined" 
                       color="primary" 
                       fullWidth
-                      onClick={() => navigate('/register')}
+                      onClick={() => navigate('/gestor')}
                     >
                       Voltar
                     </Button>
@@ -547,9 +588,11 @@ const handleResumoClick = async () => {
                   {!!antropoData.massaMuscular && <Typography variant="body2">Massa Muscular: {antropoData.massaMuscular} kg</Typography>}
                   {!!antropoData.gorduraVisceral && <Typography variant="body2">Gordura Visceral: {antropoData.gorduraVisceral} %</Typography>}
                   {!!antropoData.taxaMetabolicaBasal && <Typography variant="body2">TMB: {antropoData.taxaMetabolicaBasal} kcal</Typography>}
-                  {Object.entries(circData).map(([k,v]) => (
-                    v ? <Typography key={k} variant="body2">{k}: {v}</Typography> : null
-                  ))}
+                  {Object.entries(circData).map(([k,v]) => {
+                    if (k.startsWith('id')) return null;
+                    const label = circFieldLabels[k] || k;
+                    return v ? <Typography key={k} variant="body2">{label}: {v}</Typography> : null;
+                  })}
                 </Box>
                 <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 1, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>

@@ -14,4 +14,4 @@ function classificarIMC(imc) {
     }
 }
 
-console.log(classificarIMC(40));
+export default classificarIMC;

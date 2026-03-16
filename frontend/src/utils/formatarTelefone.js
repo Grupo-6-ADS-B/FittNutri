@@ -10,5 +10,4 @@ function formatarTelefone(telefone) {
     }
 }
 
-console.log(formatarTelefone("12934567890"));   
-console.log(formatarTelefone("1234567890"));    
+export default formatarTelefone;   

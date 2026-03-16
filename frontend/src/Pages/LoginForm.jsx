@@ -17,45 +17,44 @@ import {
   Login as LoginIcon,
   Google as GoogleIcon 
 } from '@mui/icons-material';
-import { BrowserRouter as Router, Routes, Route, useNavigate, Outlet } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import InstagramIcon from '@mui/icons-material/Instagram';
 import api from '../utils/api';
 
 
 function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [showRecovery, setShowRecovery] = useState(false);
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoverySuccess, setRecoverySuccess] = useState('');
   const [recoveryError, setRecoveryError] = useState('');
+  const from = location.state?.from?.pathname || '/gestor';
 
-  // Recupera email/senha do sessionStorage se existirem
+  // Recupera email do sessionStorage se existir
   const emailSession = sessionStorage.getItem('emailUsuario') || '';
-  const senhaSession = sessionStorage.getItem('senhaUsuario') || '';
 
   const {
     control,
     handleSubmit,
-    formState: { errors },
-    setValue
+    formState: { errors }
   } = useForm({
     defaultValues: {
       email: emailSession,
-      password: senhaSession
+      password: ''
     }
   });
-
-  // Limpa email/senha do sessionStorage após preencher
-  useState(() => {
-    if (emailSession) sessionStorage.removeItem('emailUsuario');
-    if (senhaSession) sessionStorage.removeItem('senhaUsuario');
-  }, []);
 
   const onSubmit = async (data) => {
     setError('');
     setSuccess('');
+    
+    
+    sessionStorage.removeItem('token');
+    localStorage.removeItem('token');
+    
     try {
       const { data: body } = await api.post('/users/login', {
         email: data.email,
@@ -78,7 +77,7 @@ function LoginForm() {
       }
       const nome = body?.nome;
       setSuccess(`Login realizado com sucesso${nome ? `! Bem-vindo(a), ${nome}` : '!'}`);
-      navigate('/gestor');
+      navigate(from, { replace: true });
     } catch (err) {
       let msg = err.response?.data?.message || err.message;
       if (msg.includes('Unexpected end of JSON input')) {
