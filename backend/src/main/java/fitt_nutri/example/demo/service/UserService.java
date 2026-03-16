@@ -71,6 +71,16 @@ public class UserService {
                 .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
     }
 
+    public UserModel getUserByCpf(String cpf) {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userRepository.findByCpf(cpf)
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
+        if (!emailLogado.equals(user.getEmail())) {
+            throw new AccessDeniedException("Acesso negado: você só pode consultar seus próprios dados");
+        }
+        return user;
+    }
+
     public UserModel updateUser(Integer id, UserRequestDTO dto) {
         verificarPropriedade(id);
         if (!userRepository.existsById(id)) {
