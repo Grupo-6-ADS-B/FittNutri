@@ -1,12 +1,18 @@
 package fitt_nutri.example.demo.controller;
 
+import fitt_nutri.example.demo.domain.entity.Meal;
+import fitt_nutri.example.demo.domain.entity.MealItem;
+import fitt_nutri.example.demo.dto.MacrosDTO;
 import fitt_nutri.example.demo.dto.request.FullDietRequestDTO;
+import fitt_nutri.example.demo.dto.request.MealItemDTO;
 import fitt_nutri.example.demo.dto.request.MealRequestDTO;
 import fitt_nutri.example.demo.dto.response.MealItemResponseDTO;
 import fitt_nutri.example.demo.dto.response.MealResponseDTO;
 import fitt_nutri.example.demo.dto.response.PatientMealsResponseDTO;
 import fitt_nutri.example.demo.model.MealModel;
 import fitt_nutri.example.demo.service.MealService;
+import fitt_nutri.example.demo.usecase.CreateMealUseCase;
+import fitt_nutri.example.demo.usecase.CalculateMealMacrosUseCase;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,18 +31,31 @@ import java.util.stream.Collectors;
 public class MealController {
 
     private final MealService service;
+    private final CreateMealUseCase createMealUseCase;
+    private final CalculateMealMacrosUseCase calculateMealMacrosUseCase;
 
     @Operation(summary = "Cria uma refeição (com vários alimentos) para um paciente")
     @ApiResponse(responseCode = "200", description = "Refeição criada com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @PostMapping("/meal-by-type/{patientId}")
-    public ResponseEntity<MealModel> addMealByType(
+    public ResponseEntity<Void> addMealByType(
             @PathVariable Integer patientId,
             @RequestBody MealRequestDTO request) {
 
-        MealModel saved = service.addMealFromDto(patientId, request);
-        return ResponseEntity.ok(saved);
+        Meal domainMeal = toDomain(request);
+        createMealUseCase.execute(patientId, domainMeal);
+        return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "Calcula os macros totais de uma refeição (sem persistir)")
+    @ApiResponse(responseCode = "200", description = "Macros calculados com sucesso")
+    @PostMapping("/calculate-macros")
+    public ResponseEntity<MacrosDTO> calculateMealMacros(@RequestBody MealModel meal) {
+        MacrosDTO macros = calculateMealMacrosUseCase.execute(meal);
+        return ResponseEntity.ok(macros);
+    }
+
+    // --- demais endpoints mantidos como estavam (usando MealService) ---
 
     @Operation(summary = "Lista todas as refeições de um paciente")
     @ApiResponse(responseCode = "200", description = "Refeições retornadas com sucesso")
@@ -126,5 +145,27 @@ public class MealController {
                 .header("Content-Type", "application/pdf")
                 .header("Content-Disposition", "attachment; filename=dieta.pdf")
                 .body(pdf);
+    }
+
+    private Meal toDomain(MealRequestDTO dto) {
+        Meal m = new Meal();
+        m.setDescricao(dto.getDescricao());
+        m.setHorario(dto.getHorario());
+        m.setObservacao(dto.getObservacao());
+        if (dto.getAlimentos() != null) {
+            List<MealItem> items = dto.getAlimentos().stream()
+                    .map(this::toDomainItem)
+                    .collect(Collectors.toList());
+            m.setAlimentos(items);
+        }
+        return m;
+    }
+
+    private MealItem toDomainItem(MealItemDTO dto) {
+        MealItem i = new MealItem();
+        i.setAlimento(dto.getAlimento());
+        i.setQuantidade(dto.getQuantidade());
+        i.setUnidade(dto.getUnidade());
+        return i;
     }
 }
