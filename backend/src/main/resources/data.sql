@@ -622,3 +622,6 @@ SET
     piridoxina = piridoxina / 100,
     niacina = niacina / 100,
     vitaminaC = vitaminaC / 100;
+
+-- Marca todos os alimentos existentes como pertencentes à base TACO
+UPDATE alimentos SET fonte = 'TACO' WHERE fonte IS NULL;

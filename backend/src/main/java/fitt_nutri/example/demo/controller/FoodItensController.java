@@ -1,68 +1,65 @@
 package fitt_nutri.example.demo.controller;
 
 import fitt_nutri.example.demo.dto.MacrosDTO;
-import fitt_nutri.example.demo.exceptions.NotFoundException;
+import fitt_nutri.example.demo.dto.request.FoodItensRequestDTO;
+import fitt_nutri.example.demo.dto.response.FoodItensResponseDTO;
 import fitt_nutri.example.demo.model.FoodItensModel;
 import fitt_nutri.example.demo.service.FoodItensService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/food-itens")
 @RequiredArgsConstructor
-@Tag(name = "Alimentos", description = "CRUD para gerenciar os alimentos")
+@Tag(name = "Alimentos", description = "Consulta de alimentos TACO e gerenciamento de alimentos customizados")
 public class FoodItensController {
 
     private final FoodItensService service;
 
+    // -------------------------------------------------------------------------
+    // Leitura — alimentos TACO (banco público)
+    // -------------------------------------------------------------------------
+
     @GetMapping
-    @Operation(summary = "Lista todos os alimentos")
+    @Operation(summary = "Lista todos os alimentos (TACO + custom do nutricionista logado)")
     @ApiResponse(responseCode = "200", description = "Dados retornados com sucesso")
-    @ApiResponse(responseCode = "404", description = "Nenhum dado encontrado")
+    @ApiResponse(responseCode = "204", description = "Nenhum alimento cadastrado")
     public ResponseEntity<List<FoodItensModel>> getAllFoodItems() {
         List<FoodItensModel> foodItems = service.getAllFoodItems();
-        if (foodItems.isEmpty()){
-            return ResponseEntity.notFound().build();
+        if (foodItems.isEmpty()) {
+            return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(foodItems);
     }
 
     @GetMapping("/search")
-    @Operation(summary = "Busca alimento por nome e quantidade em gramas")
+    @Operation(summary = "Busca alimento por nome e retorna valores escalados pela quantidade em gramas")
     @ApiResponse(responseCode = "200", description = "Dado encontrado com sucesso")
-    @ApiResponse(responseCode = "404", description = "Dado com o nome fornecido não encontrado")
+    @ApiResponse(responseCode = "404", description = "Alimento não encontrado")
     public ResponseEntity<FoodItensModel> getFoodItemByNameAndAmount(
             @RequestParam String nome,
             @RequestParam double quantidadeEmGramas
     ) throws BadRequestException {
-        FoodItensModel foodItem = service.findByName(nome, quantidadeEmGramas);
-        if (foodItem == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(foodItem);
+        return ResponseEntity.ok(service.findByName(nome, quantidadeEmGramas));
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Busca alimento por ID")
     @ApiResponse(responseCode = "200", description = "Dado encontrado com sucesso")
-    @ApiResponse(responseCode = "404", description = "Dado com o ID fornecido não encontrado")
+    @ApiResponse(responseCode = "404", description = "Alimento não encontrado")
     public ResponseEntity<FoodItensModel> getFoodItemById(@PathVariable Integer id) {
-        FoodItensModel foodItem = service.getFoodItemById(id);
-        if (foodItem == null || foodItem.getId() == 0){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(foodItem);
+        return ResponseEntity.ok(service.getFoodItemById(id));
     }
 
     @GetMapping("/calorias/{nome}")
@@ -74,14 +71,11 @@ public class FoodItensController {
             @PathVariable String nome,
             @RequestParam Double gramas
     ) throws BadRequestException {
-
-        Double calorias = service.getCaloriasByNomeAndGramas(nome, gramas);
-
-        return ResponseEntity.ok(calorias);
+        return ResponseEntity.ok(service.getCaloriasByNomeAndGramas(nome, gramas));
     }
 
     @GetMapping("/macros/{nome}")
-    @Operation(summary = "Retorna apenas os macros de um alimento pela quantidade em gramas")
+    @Operation(summary = "Retorna os macros de um alimento pela quantidade em gramas")
     @ApiResponse(responseCode = "200", description = "Macros retornados com sucesso")
     @ApiResponse(responseCode = "400", description = "Quantidade inválida")
     @ApiResponse(responseCode = "404", description = "Alimento não encontrado")
@@ -89,30 +83,89 @@ public class FoodItensController {
             @PathVariable String nome,
             @RequestParam Double gramas
     ) throws BadRequestException {
-
-        MacrosDTO macros = service.getMacrosByNome(nome, gramas);
-
-        return ResponseEntity.ok(macros);
+        return ResponseEntity.ok(service.getMacrosByNome(nome, gramas));
     }
 
     @GetMapping("/search-part")
-    @Operation(summary = "Busca alimentos por parte do nome")
+    @PreAuthorize("hasRole('NUTRI')")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Busca alimentos por parte do nome — retorna TACO + custom do nutricionista logado")
     @ApiResponse(responseCode = "200", description = "Dados encontrados com sucesso")
     @ApiResponse(responseCode = "404", description = "Nenhum alimento encontrado")
-    public ResponseEntity<List<FoodItensModel>> getFoodItemsByNamePart(
+    public ResponseEntity<List<FoodItensResponseDTO>> getFoodItemsByNamePart(
             @RequestParam String nomeParte
     ) {
-        try {
-            List<FoodItensModel> resultados = service.findFoodsByNamePart(nomeParte);
-            return ResponseEntity.ok(resultados);
-        } catch (NotFoundException e) {
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(service.findFoodsByNamePart(nomeParte));
     }
 
+    // -------------------------------------------------------------------------
+    // CRUD de alimentos customizados (Fase 2)
+    // -------------------------------------------------------------------------
 
+    @PostMapping("/custom")
+    @PreAuthorize("hasRole('NUTRI')")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Cria um alimento personalizado para o nutricionista logado")
+    @ApiResponse(responseCode = "201", description = "Alimento criado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos")
+    public ResponseEntity<FoodItensResponseDTO> criarCustom(
+            @Valid @RequestBody FoodItensRequestDTO dto
+    ) {
+        return ResponseEntity.status(201).body(service.criarCustom(dto));
+    }
 
+    @GetMapping("/custom")
+    @PreAuthorize("hasRole('NUTRI')")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Lista os alimentos customizados do nutricionista logado")
+    @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
+    @ApiResponse(responseCode = "204", description = "Nenhum alimento customizado cadastrado")
+    public ResponseEntity<List<FoodItensResponseDTO>> listarMeusAlimentos() {
+        List<FoodItensResponseDTO> lista = service.listarMeusAlimentos();
+        if (lista.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(lista);
+    }
 
+    @PutMapping("/custom/{id}")
+    @PreAuthorize("hasRole('NUTRI')")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Atualiza completamente um alimento customizado do nutricionista logado")
+    @ApiResponse(responseCode = "200", description = "Alimento atualizado com sucesso")
+    @ApiResponse(responseCode = "403", description = "Sem permissão para editar este alimento")
+    @ApiResponse(responseCode = "404", description = "Alimento não encontrado")
+    public ResponseEntity<FoodItensResponseDTO> atualizarCustom(
+            @PathVariable Integer id,
+            @Valid @RequestBody FoodItensRequestDTO dto
+    ) {
+        return ResponseEntity.ok(service.atualizarCustom(id, dto));
+    }
 
+    @PatchMapping("/custom/{id}")
+    @PreAuthorize("hasRole('NUTRI')")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Atualiza parcialmente um alimento customizado do nutricionista logado")
+    @ApiResponse(responseCode = "200", description = "Alimento atualizado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Campo inválido")
+    @ApiResponse(responseCode = "403", description = "Sem permissão para editar este alimento")
+    @ApiResponse(responseCode = "404", description = "Alimento não encontrado")
+    public ResponseEntity<FoodItensResponseDTO> atualizarParcialCustom(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Object> campos
+    ) {
+        return ResponseEntity.ok(service.atualizarParcialCustom(id, campos));
+    }
 
+    @DeleteMapping("/custom/{id}")
+    @PreAuthorize("hasRole('NUTRI')")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Remove um alimento customizado do nutricionista logado")
+    @ApiResponse(responseCode = "204", description = "Alimento removido com sucesso")
+    @ApiResponse(responseCode = "403", description = "Sem permissão para remover este alimento")
+    @ApiResponse(responseCode = "404", description = "Alimento não encontrado")
+    public ResponseEntity<Void> deletarCustom(@PathVariable Integer id) {
+        service.deletarCustom(id);
+        return ResponseEntity.noContent().build();
+    }
 }

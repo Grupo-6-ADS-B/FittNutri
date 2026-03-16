@@ -58,12 +58,14 @@ function Header({
               borderRadius: '50%',
               objectFit: 'cover'
             }}
+            onClick={handleBack}
             style={{ cursor: 'pointer' }}
           />
           <Box>
             <Typography 
               variant="h4" 
               component="div" 
+              onClick={handleBack}
               sx={{ 
                 fontWeight: 'bold',
                 color: 'primary.main',

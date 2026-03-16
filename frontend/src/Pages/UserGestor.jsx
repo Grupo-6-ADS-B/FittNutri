@@ -46,15 +46,6 @@ export default function UserGestor() {
     end.setDate(end.getDate() + 7);
     return end.toISOString().split('T')[0];
   };
-  const isPastAppointmentDate = (dateValue) => {
-    if (!dateValue) return false;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const selectedDate = new Date(`${dateValue}T00:00:00`);
-    return selectedDate < today;
-  };
   const [filterStartDate, setFilterStartDate] = useState(getTodayString());
   const [filterEndDate, setFilterEndDate] = useState(getEndDateString());
   
@@ -74,8 +65,10 @@ export default function UserGestor() {
   const [updateForm, setUpdateForm] = useState({
     id: null,
     name: "",
+    idade: "",
     peso: "",
     altura: "",
+    idade: "",
     idadeMetabolica: "",
     massaMuscular: "",
     porcentagemGordura: "",
@@ -83,7 +76,7 @@ export default function UserGestor() {
     taxaMetabolicaBasal: "",
     atividade: "",
     circ: { ...initialCirc },
-    date: "" 
+    date: ""
   });
 
   const navigate = useNavigate();
@@ -260,6 +253,7 @@ export default function UserGestor() {
     setUpdateForm({
       id: patientId,
       name: name,
+      idade: userFromList.idade ?? "",
       peso: userFromList.peso ?? "",
       altura: userFromList.altura ?? "",
       idadeMetabolica: userFromList.idadeMetabolica ?? "",
@@ -310,6 +304,7 @@ export default function UserGestor() {
           return {
             ...prev,
             date: dateValue || prev.date,
+            idade: anthropo.idade ?? prev.idade,
             peso: anthropo.peso ?? prev.peso,
             altura: anthropo.altura ?? prev.altura,
             idadeMetabolica: anthropo.idadeMetabolica ?? prev.idadeMetabolica,
@@ -364,6 +359,7 @@ export default function UserGestor() {
       antropometria: {
         peso: Number(updateForm.peso),
         altura: Number(updateForm.altura),
+        idade: updateForm.idade ? Number(updateForm.idade) : null,
         imc: Number(computeImc(updateForm.peso, updateForm.altura)),
         idadeMetabolica: Number(updateForm.idadeMetabolica),
         massaMuscular: Number(updateForm.massaMuscular),
@@ -398,6 +394,7 @@ export default function UserGestor() {
     const updatedUser = {
       id: updateForm.id,
       name: updateForm.name,
+      idade: updateForm.idade,
       peso: updateForm.peso,
       altura: updateForm.altura,
       idadeMetabolica: updateForm.idadeMetabolica,
@@ -593,11 +590,6 @@ export default function UserGestor() {
   const saveAppointment = async () => {
     if (!scheduleUser || !apptDate) {
       alert('Preencha todos os campos obrigatórios.');
-      return;
-    }
-
-    if (isPastAppointmentDate(apptDate)) {
-      setSnackbar({ open: true, message: 'Não é permitido agendar consulta em data passada.', severity: 'error' });
       return;
     }
   

@@ -12,6 +12,8 @@ import fitt_nutri.example.demo.repository.PatientHistoryRepository;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -28,7 +30,17 @@ public class PatientHistoryService {
 
 
 
+    private void verificarPropriedadePaciente(PatientModel patient) {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (patient.getNutricionista() == null || !emailLogado.equals(patient.getNutricionista().getEmail())) {
+            throw new AccessDeniedException("Acesso negado: este paciente não pertence ao nutricionista logado");
+        }
+    }
+
     public List<PatientHistoryModel> listarPorPaciente(Integer pacienteId) {
+        PatientModel patient = pacienteRepository.findById(pacienteId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        verificarPropriedadePaciente(patient);
         return repository.findByPatientModelIdOrderByDataConsultaAsc(pacienteId);
     }
 
@@ -41,6 +53,7 @@ public class PatientHistoryService {
 
         PatientModel paciente = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        verificarPropriedadePaciente(paciente);
 
         AnthropometricDataModel antropo = new AnthropometricDataModel();
 
@@ -52,6 +65,7 @@ public class PatientHistoryService {
         antropo.setMassaMuscular(dto.getAntropometria().getMassaMuscular());
         antropo.setIdadeMetabolica(dto.getAntropometria().getIdadeMetabolica());
         antropo.setTaxaMetabolicaBasal(dto.getAntropometria().getTaxaMetabolicaBasal());
+        antropo.setIdade(dto.getAntropometria().getIdade());
 
         antropo.setPaciente(paciente);
 
@@ -91,6 +105,9 @@ public class PatientHistoryService {
             String dataInicio,
             String dataFim
     ) {
+        PatientModel patient = pacienteRepository.findById(pacienteId)
+                .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
+        verificarPropriedadePaciente(patient);
 
         LocalDate inicio = LocalDate.parse(dataInicio);
         LocalDate fim = LocalDate.parse(dataFim);
@@ -103,26 +120,31 @@ public class PatientHistoryService {
             EvolucaoPacienteDTO dto = new EvolucaoPacienteDTO();
             dto.setDataConsulta(h.getDataConsulta());
 
-            // 🔹 ANTROPOMETRIA
-            dto.setPeso(h.getAnthropometricDataModel().getPeso());
-            dto.setImc(h.getAnthropometricDataModel().getImc());
-            dto.setMassaMuscular(h.getAnthropometricDataModel().getMassaMuscular());
-            dto.setGordura(h.getAnthropometricDataModel().getPorcentagemGordura());
-            dto.setAltura(h.getAnthropometricDataModel().getAltura());
-            dto.setGorduraVisceral(h.getAnthropometricDataModel().getGorduraVisceral());
-            dto.setIdadeMetabolica(h.getAnthropometricDataModel().getIdadeMetabolica().doubleValue());
-            dto.setTaxaMetabolicaBasal(h.getAnthropometricDataModel().getTaxaMetabolicaBasal());
-            dto.setAtividade(h.getPatientModel().getAtividade());
+            if (h.getAnthropometricDataModel() != null) {
+                AnthropometricDataModel a = h.getAnthropometricDataModel();
+                dto.setPeso(a.getPeso());
+                dto.setImc(a.getImc());
+                dto.setMassaMuscular(a.getMassaMuscular());
+                dto.setGordura(a.getPorcentagemGordura());
+                dto.setAltura(a.getAltura());
+                dto.setGorduraVisceral(a.getGorduraVisceral());
+                dto.setIdadeMetabolica(a.getIdadeMetabolica() != null ? a.getIdadeMetabolica().doubleValue() : null);
+                dto.setTaxaMetabolicaBasal(a.getTaxaMetabolicaBasal());
+                dto.setIdade(a.getIdade());
+            }
+            dto.setAtividade(h.getPatientModel() != null ? h.getPatientModel().getAtividade() : null);
 
-            // 🔹 CIRCUNFERÊNCIA
-            dto.setCintura(h.getDataCircleModel().getCintura());
-            dto.setAbdominal(h.getDataCircleModel().getAbdominal());
-            dto.setQuadril(h.getDataCircleModel().getQuadril());
-            dto.setBraco(h.getDataCircleModel().getBraco());
-            dto.setCoxa(h.getDataCircleModel().getCoxa());
-            dto.setPanturrilha(h.getDataCircleModel().getPanturrilha());
-            dto.setPulso(h.getDataCircleModel().getPulso());
-            dto.setPesoIdeal(h.getDataCircleModel().getPesoIdeal());
+            if (h.getDataCircleModel() != null) {
+                DataCircleModel c = h.getDataCircleModel();
+                dto.setCintura(c.getCintura());
+                dto.setAbdominal(c.getAbdominal());
+                dto.setQuadril(c.getQuadril());
+                dto.setBraco(c.getBraco());
+                dto.setCoxa(c.getCoxa());
+                dto.setPanturrilha(c.getPanturrilha());
+                dto.setPulso(c.getPulso());
+                dto.setPesoIdeal(c.getPesoIdeal());
+            }
 
             return dto;
 

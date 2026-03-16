@@ -68,13 +68,6 @@ console.log('Diet page - selectedUser:', selectedUser);
   }
 };
 const handleSendToS3 = async () => {
-  setSendingToS3(true);
-  setSnackbar({
-    open: true,
-    message: 'Enviando dieta para a nuvem. Aguarde...',
-    severity: 'info'
-  });
-
   try {
     await api.post(`/meals/patient/${patientId}/pdf/request`, null, {
       params: {
@@ -83,21 +76,9 @@ const handleSendToS3 = async () => {
         dataAgendamento: dataAgendamento
       }
     });
-
-    setSnackbar({
-      open: true,
-      message: 'Dieta enviada para a nuvem com sucesso.',
-      severity: 'success'
-    });
   } catch (error) {
     console.error('Erro ao enviar para S3:', error);
-    setSnackbar({
-      open: true,
-      message: 'Erro ao enviar dieta para a nuvem.',
-      severity: 'error'
-    });
-  } finally {
-    setSendingToS3(false);
+    alert('Erro ao solicitar envio para S3.');
   }
 };
   const [openMeal, setOpenMeal] = useState(false);
@@ -273,7 +254,7 @@ const handleSendToS3 = async () => {
             disabled={sendingToS3}
             sx={{ fontWeight: 600 }}
           >
-            {sendingToS3 ? "Enviando..." : "Salvar dieta na nuvem"}
+            {sendingToS3 ? "Enviando..." : "Enviar para S3"}
           </Button>
           <Button 
             variant="outlined" 

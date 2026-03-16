@@ -1,12 +1,14 @@
 package fitt_nutri.example.demo.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
+@Slf4j
 @Service
 @org.springframework.context.annotation.Profile("prod")
 @RequiredArgsConstructor
@@ -33,7 +35,7 @@ public class S3Service {
         s3Client.putObject(request, RequestBody.fromBytes(pdfBytes));
 
         String url = "https://" + bucket + ".s3." + region + ".amazonaws.com/" + key;
-        System.out.println("PDF enviado para S3: " + url);
+        log.info("PDF enviado para S3 — agendamentoId={} key={}", agendamentoId, key);
         return url;
     }
 }
