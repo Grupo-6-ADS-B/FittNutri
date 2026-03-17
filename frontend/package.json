@@ -21,6 +21,7 @@
     "react-dom": "^19.1.1",
     "react-hook-form": "^7.65.0",
     "react-router-dom": "^7.9.1",
+    "recharts": "^2.15.3",
     "tailwindcss": "^4.1.13"
   },
   "devDependencies": {
