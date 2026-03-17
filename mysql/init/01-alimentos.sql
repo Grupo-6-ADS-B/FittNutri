@@ -27,7 +27,8 @@ CREATE TABLE alimentos (
     riboflavina DECIMAL(10,2),
     piridoxina DECIMAL(10,2),
     niacina DECIMAL(10,2),
-    vitaminac DECIMAL(10,2)
+    vitaminac DECIMAL(10,2),
+    fonte VARCHAR(50) DEFAULT 'TACO'
 );
 
 INSERT INTO alimentos (nome, umidade, energia_kcal, proteina, lipideos, colesterol, carboidrato, fibra, cinzas, calcio, magnesio, manganes, fosforo, ferro, sodio, potassio, cobre, zinco, retinol, tiamina, riboflavina, piridoxina, niacina, vitaminac) VALUES
