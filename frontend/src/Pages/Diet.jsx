@@ -92,8 +92,13 @@ const handleSendToS3 = async () => {
   const handleSaveMeal = async (meal) => {
     console.log('handleSaveMeal recebeu:', meal);
     console.log('meal.id:', meal.id);
-    console.log('alimentos:', meal.alimentos); 
-    
+    console.log('alimentos:', meal.alimentos);
+
+    if (!patientId) {
+      alert('Erro: ID do paciente não encontrado. Volte e selecione o paciente novamente.');
+      return;
+    }
+
     try {
       const payload = {
         descricao: meal.descricao,
