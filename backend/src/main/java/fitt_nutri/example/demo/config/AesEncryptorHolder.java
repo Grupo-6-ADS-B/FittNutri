@@ -1,6 +1,8 @@
 package fitt_nutri.example.demo.config;
 
 import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +25,8 @@ import java.util.Base64;
  */
 @Component
 public class AesEncryptorHolder {
+
+    private static final Logger log = LoggerFactory.getLogger(AesEncryptorHolder.class);
 
     private static byte[] secretKey;
     private static byte[] iv;
@@ -56,7 +60,7 @@ public class AesEncryptorHolder {
             cipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(secretKey, "AES"), new IvParameterSpec(iv));
             return new String(cipher.doFinal(Base64.getDecoder().decode(encrypted)), StandardCharsets.UTF_8);
         } catch (Exception e) {
-            // CPF ainda em texto puro no banco — retorna como está
+            log.warn("Falha ao descriptografar valor — pode ser texto puro (migração pendente)");
             return encrypted;
         }
     }

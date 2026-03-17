@@ -50,10 +50,9 @@ public class PatientHistoryController {
     @ApiResponse(responseCode = "404", description = "Paciente ou dados não encontrados")
     @GetMapping("/{pacienteId}/pdf-bioimpedancia")
     public ResponseEntity<byte[]> getBioimpedancePdf(
-            @PathVariable Integer pacienteId,
-            @RequestParam Integer nutricionistaId
+            @PathVariable Integer pacienteId
     ) throws Exception {
-        byte[] pdf = bioimpedancePdfService.generateBioimpedancePdf(pacienteId, nutricionistaId);
+        byte[] pdf = bioimpedancePdfService.generateBioimpedancePdf(pacienteId);
         return ResponseEntity.ok()
                 .header("Content-Type", "application/pdf")
                 .header("Content-Disposition", "attachment; filename=bioimpedancia.pdf")

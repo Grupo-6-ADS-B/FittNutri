@@ -3,6 +3,7 @@ package fitt_nutri.example.demo.service;
 import fitt_nutri.example.demo.config.RabbitMQConfig;
 import fitt_nutri.example.demo.dto.PdfGenerationMessageDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 
+@Slf4j
 @Service
 @Profile("prod")
 @RequiredArgsConstructor
@@ -22,7 +24,7 @@ public class PdfConsumerService {
     @RabbitListener(queues = RabbitMQConfig.PDF_QUEUE)
     public void consumePdfGeneration(PdfGenerationMessageDTO message) {
         try {
-            System.out.println("Consumindo mensagem para paciente: " + message.getPatientId());
+            log.info("Consumindo mensagem da fila para agendamento: {}", message.getAgendamentoId());
 
             UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 message.getNutricionistaEmail(), null, Collections.emptyList()
@@ -31,7 +33,7 @@ public class PdfConsumerService {
 
             byte[] pdf = mealService.generateDietPdf(message.getPatientId());
 
-            String url = s3Service.uploadPdf(
+            s3Service.uploadPdf(
                 pdf,
                 message.getPatientId(),
                 message.getPatientName(),
@@ -39,10 +41,10 @@ public class PdfConsumerService {
                 message.getDataAgendamento()
             );
 
-            System.out.println("PDF gerado e enviado para S3: " + url);
+            log.info("PDF gerado e enviado para S3 com sucesso. Agendamento: {}", message.getAgendamentoId());
 
         } catch (Exception e) {
-            System.err.println("Erro ao processar PDF: " + e.getMessage());
+            log.error("Erro ao processar PDF para agendamento: {}", message.getAgendamentoId(), e);
         } finally {
             SecurityContextHolder.clearContext();
         }

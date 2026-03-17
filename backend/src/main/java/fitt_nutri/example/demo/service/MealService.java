@@ -89,6 +89,7 @@ public class MealService {
         return repository.findByPatient(patient);
     }
 
+    @Transactional
     public List<MealResponseDTO> saveFullDiet(Integer patientId, FullDietRequestDTO request) {
         PatientModel patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));

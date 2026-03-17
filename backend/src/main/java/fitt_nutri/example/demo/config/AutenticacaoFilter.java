@@ -44,11 +44,15 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
                 username = jwtTokenManager.getUsernameFromToken(token);
 
             } catch (ExpiredJwtException e) {
+                response.setContentType("application/json");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return; // 🔥 IMPORTANTE! PARA O FLUXO!
+                response.getWriter().write("{\"error\":\"Token expirado. Faça login novamente.\"}");
+                return;
             } catch (Exception e) {
+                response.setContentType("application/json");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                return; // 🔥 Token inválido DERUBA AQUI
+                response.getWriter().write("{\"error\":\"Token inválido.\"}");
+                return;
             }
         }
 

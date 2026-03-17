@@ -8,6 +8,8 @@ import fitt_nutri.example.demo.repository.PatientHistoryRepository;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,13 +60,19 @@ public class BioimpedancePdfService {
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @Transactional
-    public byte[] generateBioimpedancePdf(Integer patientId, Integer nutricionistaId) throws Exception {
+    public byte[] generateBioimpedancePdf(Integer patientId) throws Exception {
+
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel nutri = userRepository.findByEmail(emailLogado)
+                .orElseThrow(() -> new NotFoundException("Nutricionista não encontrado"));
 
         PatientModel patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
 
-        UserModel nutri = userRepository.findById(nutricionistaId)
-                .orElseThrow(() -> new NotFoundException("Nutricionista não encontrado"));
+        if (patient.getNutricionista() == null ||
+                !patient.getNutricionista().getId().equals(nutri.getId())) {
+            throw new AccessDeniedException("Acesso negado: este paciente não pertence ao nutricionista logado");
+        }
 
         List<PatientHistoryModel> historicos =
                 historyRepository.findByPatientModelIdOrderByDataConsultaAsc(patientId);
