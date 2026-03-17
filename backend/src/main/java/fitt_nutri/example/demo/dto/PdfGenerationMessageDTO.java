@@ -10,14 +10,16 @@ public class PdfGenerationMessageDTO implements Serializable {
     private String patientName;
     private Integer agendamentoId;
     private String dataAgendamento;
+    private String nutricionistaEmail;
 
     public PdfGenerationMessageDTO() {}
 
-    public PdfGenerationMessageDTO(Integer patientId, String patientName, Integer agendamentoId, String dataAgendamento) {
+    public PdfGenerationMessageDTO(Integer patientId, String patientName, Integer agendamentoId, String dataAgendamento, String nutricionistaEmail) {
         this.patientId = patientId;
         this.patientName = patientName;
         this.agendamentoId = agendamentoId;
         this.dataAgendamento = dataAgendamento;
+        this.nutricionistaEmail = nutricionistaEmail;
     }
 
     public Integer getPatientId() { return patientId; }
@@ -31,4 +33,7 @@ public class PdfGenerationMessageDTO implements Serializable {
 
     public String getDataAgendamento() { return dataAgendamento; }
     public void setDataAgendamento(String dataAgendamento) { this.dataAgendamento = dataAgendamento; }
+
+    public String getNutricionistaEmail() { return nutricionistaEmail; }
+    public void setNutricionistaEmail(String nutricionistaEmail) { this.nutricionistaEmail = nutricionistaEmail; }
 }
