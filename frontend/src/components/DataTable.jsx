@@ -48,17 +48,31 @@ export default function DataTable({ data }) {
     return iso;
   };
 
+  const capitalizeFirstLetter = (text) => {
+    if (!text || typeof text !== 'string') return text;
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  };
+
+  const formatHeight = (heightValue) => {
+    if (heightValue === null || heightValue === undefined || heightValue === '') return null;
+    const normalized = String(heightValue).replace(',', '.').trim();
+    const numericHeight = Number(normalized);
+    if (Number.isNaN(numericHeight)) return `${heightValue} cm`;
+    const heightInCm = numericHeight <= 3 ? numericHeight * 100 : numericHeight;
+    return `${Math.round(heightInCm)} cm`;
+  };
+
   const rows = [
     { label: 'Data da Consulta',     value: fmtDate(data?.dataConsulta),                  rawValue: null,                   type: null },
     { label: 'Peso',                 value: `${data?.peso} kg`,                           rawValue: data?.peso,             type: null },
-    { label: 'Altura',               value: `${data?.altura} cm`,                         rawValue: null,                   type: null },
+    { label: 'Altura',               value: formatHeight(data?.altura),                   rawValue: null,                   type: null },
     { label: 'IMC',                  value: data?.imc,                                    rawValue: data?.imc,              type: 'imc' },
     { label: 'Gordura',              value: `${data?.gordura}%`,                          rawValue: data?.gordura,          type: 'gordura' },
     { label: 'Gordura Visceral',     value: `${data?.gorduraVisceral}%`,                  rawValue: data?.gorduraVisceral,  type: 'gorduraVisceral' },
     { label: 'Massa Muscular',       value: `${data?.massaMuscular} %`,                   rawValue: data?.massaMuscular,    type: 'massaMuscular' },
     { label: 'Idade Metabólica',     value: `${data?.idadeMetabolica} anos`,              rawValue: null,                   type: null },
     { label: 'Taxa Metabólica Basal',value: `${data?.taxaMetabolicaBasal} kcal`,          rawValue: null,                   type: null },
-    { label: 'Atividade',            value: data?.atividade,                              rawValue: null,                   type: null },
+    { label: 'Atividade',            value: capitalizeFirstLetter(data?.atividade),       rawValue: null,                   type: null },
     { label: 'Cintura',              value: `${data?.cintura} cm`,                        rawValue: null,                   type: null },
     { label: 'Abdominal',            value: `${data?.abdominal} cm`,                      rawValue: null,                   type: null },
     { label: 'Quadril',              value: `${data?.quadril} cm`,                        rawValue: null,                   type: null },
