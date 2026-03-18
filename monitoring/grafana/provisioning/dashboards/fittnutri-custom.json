@@ -23,7 +23,7 @@
       "type": "timeseries",
       "title": "Taxa de requisições por endpoint (req/s)",
       "gridPos": { "x": 0, "y": 1, "w": 16, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
@@ -44,7 +44,7 @@
       "type": "stat",
       "title": "Total de requisições (última hora)",
       "gridPos": { "x": 16, "y": 1, "w": 4, "h": 4 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background",
@@ -72,7 +72,7 @@
       "type": "stat",
       "title": "Endpoints ativos",
       "gridPos": { "x": 20, "y": 1, "w": 4, "h": 4 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background"
@@ -93,7 +93,7 @@
       "type": "bargauge",
       "title": "Top endpoints — volume total (última hora)",
       "gridPos": { "x": 16, "y": 5, "w": 8, "h": 4 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "orientation": "horizontal",
         "reduceOptions": { "calcs": ["lastNotNull"] },
@@ -129,7 +129,7 @@
       "type": "timeseries",
       "title": "Taxa de erros por endpoint",
       "gridPos": { "x": 0, "y": 10, "w": 16, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
@@ -166,7 +166,7 @@
       "type": "stat",
       "title": "Taxa de sucesso (última hora)",
       "gridPos": { "x": 16, "y": 10, "w": 4, "h": 4 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background"
@@ -194,7 +194,7 @@
       "type": "stat",
       "title": "Erros 5xx (última hora)",
       "gridPos": { "x": 20, "y": 10, "w": 4, "h": 4 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background"
@@ -222,7 +222,7 @@
       "type": "bargauge",
       "title": "Erros por endpoint (última hora)",
       "gridPos": { "x": 16, "y": 14, "w": 8, "h": 4 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "orientation": "horizontal",
         "reduceOptions": { "calcs": ["lastNotNull"] },
@@ -259,7 +259,7 @@
       "type": "timeseries",
       "title": "Latência P95 por endpoint",
       "gridPos": { "x": 0, "y": 19, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
@@ -280,7 +280,7 @@
       "type": "timeseries",
       "title": "Latência média por endpoint",
       "gridPos": { "x": 12, "y": 19, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "tooltip": { "mode": "multi", "sort": "desc" },
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
@@ -309,7 +309,7 @@
       "type": "timeseries",
       "title": "Conexões do pool (ativas / idle / pendentes)",
       "gridPos": { "x": 0, "y": 28, "w": 16, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "tooltip": { "mode": "multi" },
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "last"] }
@@ -361,7 +361,7 @@
       "type": "stat",
       "title": "Utilização do pool (%)",
       "gridPos": { "x": 16, "y": 28, "w": 4, "h": 4 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background"
@@ -389,7 +389,7 @@
       "type": "stat",
       "title": "Conexões ativas agora",
       "gridPos": { "x": 20, "y": 28, "w": 4, "h": 4 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "reduceOptions": { "calcs": ["lastNotNull"] },
         "colorMode": "background"
@@ -417,7 +417,7 @@
       "type": "timeseries",
       "title": "Tempo de aquisição de conexão (P95)",
       "gridPos": { "x": 16, "y": 32, "w": 8, "h": 4 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": { "legend": { "displayMode": "list" } },
       "fieldConfig": {
         "defaults": { "unit": "s",
@@ -450,7 +450,7 @@
       "type": "timeseries",
       "title": "Taxa de tentativas de login",
       "gridPos": { "x": 0, "y": 37, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "tooltip": { "mode": "multi" },
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
@@ -492,7 +492,7 @@
       "type": "timeseries",
       "title": "Requisições bloqueadas (4xx) por endpoint",
       "gridPos": { "x": 12, "y": 37, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "${DS_PROMETHEUS}" },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
       "options": {
         "tooltip": { "mode": "multi" },
         "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max"] }
