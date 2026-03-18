@@ -59,13 +59,12 @@ export default function ScheduleDialog({
             }}
           />
           
-          <TextField 
-            type="date" 
-            label="Data" 
-            value={apptDate} 
-            onChange={(e) => setApptDate(e.target.value)} 
-            InputLabelProps={{ shrink: true }}
-            inputProps={{ min: minAppointmentDate }}
+          <TextField
+            type="date"
+            label="Data"
+            value={apptDate}
+            onChange={(e) => setApptDate(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: minAppointmentDate } }}
             fullWidth
             variant="outlined"
           />
