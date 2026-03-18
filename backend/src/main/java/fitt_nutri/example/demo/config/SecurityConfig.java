@@ -43,7 +43,9 @@ public class SecurityConfig {
             "/webjars/**",
             "/h2-console/**",
             "/forms/**",
-            "/error"
+            "/error",
+            "/actuator/health",
+            "/actuator/prometheus"
     };
 
     @Bean
