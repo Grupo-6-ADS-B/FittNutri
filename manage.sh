@@ -30,8 +30,8 @@ case $ACTION in
   rebuild)
     echo "Rebuild completo e reiniciando..."
     docker-compose down
-    docker build -t fittnutri-backend:1.0 ./backend
-    docker build -t fittnutri-frontend ./frontend
+    docker build --no-cache -t fittnutri-backend:1.0 ./backend
+    docker build --no-cache -t fittnutri-frontend ./frontend
     docker-compose --env-file .env up -d
     echo "Rebuild e restart concluidos!"
     docker ps
