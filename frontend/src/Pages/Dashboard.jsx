@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, CssBaseline, Card, Typography, Button, Chip } from '@mui/material';
+import { Box, Container, CssBaseline, Card, Typography, Button, Chip, Tabs, Tab, Grid } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import BalanceIcon from '@mui/icons-material/Balance';
@@ -8,6 +8,7 @@ import ManageAccountsIcon from '@mui/icons-material/ManageAccounts';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../utils/api';
+import DataTable from '../components/DataTable';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -95,13 +96,11 @@ export default function Dashboard() {
       return;
     }
     try {
-      console.log(`Requisição: /patient-history/evolucao/${pacienteId}?dataInicio=${startDate}&dataFim=${endDate}`); // DEBUG
     
       const res = await api.get(`/patient-history/evolucao/${pacienteId}`, {
         params: { dataInicio: startDate, dataFim: endDate }
       });
     
-      console.log('Resposta recebida:', res.data); // DEBUG
       setEvolution(Array.isArray(res.data) ? res.data : []);
     } catch (err) {
       console.error('Erro ao buscar evolução:', err);
@@ -117,7 +116,19 @@ export default function Dashboard() {
     const accent = theme.palette.secondary?.main || theme.palette.secondary;
 
     return (
-      <Card sx={{ height: 110, minWidth: 230, maxWidth: 260, display: 'flex', flexDirection: 'column', justifyContent: 'center', boxShadow: 3, p: 2 }}>
+      <Card
+        sx={{
+          height: 110,
+          width: '100%',
+          minWidth: { xs: 0, sm: 220 },
+          maxWidth: { xs: '100%', sm: 260 },
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          boxShadow: 3,
+          p: 2
+        }}
+      >
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
           <Typography variant="h6" fontWeight="bold" sx={{ textAlign: 'center', fontSize: '1.3rem', mb: 1 }}>{title}</Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
@@ -140,6 +151,7 @@ export default function Dashboard() {
     const theme = useTheme();
     const primary = theme.palette.primary.main;
     const secondary = theme.palette.secondary.main;
+    const [showSelect, setShowSelect] = React.useState(false);
 
     const evoSorted = [...evolution].sort((a, b) => new Date(a.dataConsulta) - new Date(b.dataConsulta));
     let pesoAtual = '-';
@@ -169,18 +181,17 @@ export default function Dashboard() {
     
     if (pesoData.length === 0) {
       return (
-        <Card sx={{ p: 2, boxShadow: 3, mb: 2}}>
+        <Card sx={{ p: 2, boxShadow: 3, mb: 2 }}>
           <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8, mb: 2 }}>Evolução do Peso</Typography>
-          <Box sx={{ width: width, height: height + 40, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f5f5', borderRadius: 1 }}>
+          <Box sx={{ width: '100%', minHeight: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f5f5', borderRadius: 1, px: 2 }}>
             <Typography variant="body2" color="text.secondary">Nenhum dado de peso encontrado para o período selecionado. Selecione um intervalo com consultas registradas.</Typography>
           </Box>
         </Card>
       );
     }
-    const [showSelect, setShowSelect] = React.useState(false);
     return (
-      <Card sx={{ p: 2, boxShadow: 3, mb: 2}}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+      <Card sx={{ p: { xs: 1.5, md: 2 }, boxShadow: 3, mb: 2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, flexDirection: { xs: 'column', sm: 'row' }, gap: 1, mb: 1 }}>
           <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8 }}>Evolução do Peso</Typography>
           {!showSelect ? (
             <Chip
@@ -190,7 +201,7 @@ export default function Dashboard() {
               sx={{ bgcolor: secondary, color: 'white', fontWeight: 'bold', cursor: 'pointer' }}
             />
           ) : (
-            <Box sx={{ display: 'flex', gap: 1.2 }}>
+            <Box sx={{ display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#ff9800', color: 'white', px: 1.5, py: 0.5, borderRadius: 1.5, fontWeight: 'bold', fontSize: 14, boxShadow: 1 }}>
                 Peso Atual:&nbsp;{pesoAtual} kg
               </Box>
@@ -203,8 +214,23 @@ export default function Dashboard() {
             </Box>
           )}
         </Box>
-        <Box sx={{ width: width, height: height + 40, position: 'relative' }}>
-          <svg width={width} height={height} style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 4px #eee' }}>
+        <Box sx={{ width: '100%', overflow: 'hidden' }}>
+          <Box
+            sx={{
+              width: '100%',
+              minHeight: { xs: 240, sm: 280 },
+              aspectRatio: '1100 / 350',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+          <svg
+            width="100%"
+            height="100%"
+            viewBox={`0 0 ${width} ${height}`}
+            preserveAspectRatio="xMidYMid meet"
+            style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 4px #eee', display: 'block', overflow: 'hidden' }}
+          >
             {numPesoData.map((val, idx) => (
               <g key={val}>
                 <text x={18} y={getY(val)+4} fontSize="13" fill="#888">{val}</text>
@@ -227,51 +253,38 @@ export default function Dashboard() {
               </g>
             ))}
           </svg>
+          </Box>
         </Box>
       </Card>
     );
   };
 
-  const ConsultasBarChart = () => {
+  const HistoricoDadosPaciente = () => {
     const theme = useTheme();
-    const green = theme.palette.primary.main;
-
-    const consultasPorData = {};
-    evolution.forEach(e => {
-      if (e.dataConsulta) {
-        const data = e.dataConsulta.slice(0, 10); 
-        const dataFormatada = new Date(data).toLocaleDateString('pt-BR');
-        consultasPorData[dataFormatada] = (consultasPorData[dataFormatada] || 0) + 1;
-      }
-    });
-
-    const consultas = Object.entries(consultasPorData).map(([data, qtd]) => ({
-      data,
-      qtd
-    })).sort((a, b) => new Date(a.data.split('/').reverse().join('-')) - new Date(b.data.split('/').reverse().join('-')));
-
-    if (consultas.length === 0) {
-      return (
-        <Box>
-          <Typography variant="h6" fontWeight="bold" mb={2}>Histórico de consultas</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 180, bgcolor: '#f8fff9', borderRadius: 2, boxShadow: 1 }}>
-            <Typography variant="body2" color="text.secondary">Nenhuma consulta no período selecionado</Typography>
-          </Box>
-        </Box>
-      );
-    }
+    const [tab, setTab] = useState(0);
 
     return (
       <Box>
-        <Typography variant="h6" fontWeight="bold" mb={2}>Histórico de consultas</Typography>
-        <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', height: 180, gap: 7, pl: 2, pr: 2, bgcolor: '#f8fff9', borderRadius: 2, boxShadow: 1 }}>
-          {consultas.map((c, i) => (
-            <Box key={i} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%' }}>
-              <Typography variant="caption" sx={{ mb: 1, fontWeight: 'bold', color: '#333' }}>{c.data}</Typography>
-              <Box sx={{ width: 28, height: `${c.qtd * 32}px`, bgcolor: green, borderRadius: 2, boxShadow: 2, mb: 0.5 }} />
-              <Typography variant="caption" sx={{ color: green, fontWeight: 'bold' }}>{c.qtd}</Typography>
-            </Box>
-          ))}
+        <Typography variant="h6" fontWeight="bold" mb={2}>
+        Histórico de dados do paciente
+        </Typography>
+
+        <Box sx={{ bgcolor: '#f8fff9', borderRadius: 2, boxShadow: 1, p: 2, width: '100%' }}>
+          <Tabs
+            value={tab}
+            onChange={(_, value) => setTab(value)}
+            variant="scrollable"
+            scrollButtons="auto"
+            allowScrollButtonsMobile
+          >
+            {evolution.map((_, idx) => (
+              <Tab key={idx} label={`Consulta ${idx + 1}`} sx={{ fontWeight: 'bold' }} />
+            ))}
+          </Tabs>
+
+          <Box sx={{ mt: 2, width: '100%', overflowX: 'auto' }}>
+            {evolution[tab] ? <DataTable data={evolution[tab]} /> : <Typography>Sem dados</Typography>}
+          </Box>
         </Box>
       </Box>
     );
@@ -279,7 +292,7 @@ export default function Dashboard() {
 
   function CalendarCard() {
     return (
-      <Box sx={{ width: 540 }}>
+      <Box sx={{ width: '100%' }}>
         <Typography variant="h6" fontWeight="bold" mb={2}>Calendário</Typography>
         <Box sx={{ border: '1px solid #e0e0e0', borderRadius: 2, p: 2, bgcolor: '#f8fff9', boxShadow: 1 }}>
           <Box sx={{ mb: 2 }}>
@@ -335,32 +348,36 @@ export default function Dashboard() {
 
   function MainContent() {
     return (
-      <Box sx={{ flexGrow: 1, p: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <Box sx={{ mb: 2, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <Typography variant="h5" fontWeight="bold" sx={{ mb: 2 }}>Resumo Nutricional {patientName && `de ${patientName}`}</Typography>
-          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap', justifyContent: 'center', width: '100%', alignItems: 'center' }}>
-            <Button variant="outlined" color="primary" sx={{ height: 48, mr: 2 }} onClick={() => navigate(-1)}>
-              Voltar
-            </Button>
-            {kpiData.map((kpi, index) => (
-              <Box key={index} sx={{ minWidth: 230, maxWidth: 260, flex: '0 0 auto' }}>
-                <KPICard {...kpi} />
-              </Box>
-            ))}
+      <Container maxWidth="xl" sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
+          <Box sx={{ mb: 2, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <Typography variant="h4" fontWeight="bold" sx={{ mb: 2, padding: 3, textAlign: 'center' }}>Resumo Nutricional {patientName && `de ${patientName}`}</Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', width: '100%', alignItems: 'center' }}>
+              <Button variant="outlined" color="primary" sx={{ height: 48 }} onClick={() => navigate(-1)}>
+                Voltar
+              </Button>
+              {kpiData.map((kpi, index) => (
+                <Box key={index} sx={{ width: { xs: '100%', sm: 240, md: 250 }, maxWidth: 260 }}>
+                  <KPICard {...kpi} />
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          <Grid container spacing={2} sx={{ mt: 1, width: '100%' }}>
+            <Grid item xs={12} lg={4}>
+              <CalendarCard />
+            </Grid>
+            <Grid item xs={12} lg={8} sx={{ mt: { xs: 0, lg: 5 } }}>
+              <ResultChartCard />
+            </Grid>
+          </Grid>
+
+          <Box sx={{ width: '100%', mt: 2 }}>
+            <HistoricoDadosPaciente />
           </Box>
         </Box>
-        <Box sx={{ width: '100%', maxWidth: 1400, display: 'flex', flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'flex-start', mt: 2 }}>
-          <Box sx={{ flex: 1, minWidth: 320, maxWidth: 640, mr: 2, ml: -22 }}>
-            <CalendarCard />
-          </Box>
-          <Box sx={{ flex: 2, minWidth: 1200, maxWidth: 1100, ml: 30, pl: 0 }}>
-            <ResultChartCard />
-          </Box>
-        </Box>
-        <Box sx={{ width: '100%', maxWidth: 1400, mt: 2 }}>
-          <ConsultasBarChart />
-        </Box>
-      </Box>
+      </Container>
     );
   }
 

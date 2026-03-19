@@ -25,6 +25,11 @@ function Header({
   const showLinks = location?.pathname === '/';
   const showButtons = location?.pathname === '/login' || location?.pathname === '/auth' || location?.pathname === '/';
   const userName = sessionStorage.getItem('nomeUsuario');
+  const handleLogout = () => {
+    sessionStorage.clear();
+    localStorage.clear();
+    navigate('/login', { replace: true });
+  };
   const handleBack = () => {
     if (onBackToHome) return onBackToHome();
     navigate('/');
@@ -53,14 +58,12 @@ function Header({
               borderRadius: '50%',
               objectFit: 'cover'
             }}
-            onClick={handleBack}
             style={{ cursor: 'pointer' }}
           />
           <Box>
             <Typography 
               variant="h4" 
               component="div" 
-              onClick={handleBack}
               sx={{ 
                 fontWeight: 'bold',
                 color: 'primary.main',
@@ -114,7 +117,7 @@ function Header({
                 // onClick={() => navigate('/perfil')} vamos colocar futuramente a pagina de perfil!!
               />
               <Typography variant="body1" sx={{ fontWeight: 500 }}>Bem vindo, {userName}!</Typography>
-              <Button sx={{border: '1px solid rgba(46, 139, 87, 0.3)', borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }} onClick={() => { sessionStorage.removeItem('token'); sessionStorage.removeItem('nomeUsuario'); navigate('/login'); }}>Sair</Button>
+              <Button sx={{border: '1px solid rgba(46, 139, 87, 0.3)', borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }} onClick={handleLogout}>Sair</Button>
             </Box>
           )}
         </Stack>

@@ -22,6 +22,8 @@ export default function ScheduleDialog({
   apptNote,
   setApptNote
 }) {
+  const minAppointmentDate = new Date().toLocaleDateString('en-CA');
+
   return (
     <Dialog 
       open={open} 
@@ -63,6 +65,7 @@ export default function ScheduleDialog({
             value={apptDate} 
             onChange={(e) => setApptDate(e.target.value)} 
             InputLabelProps={{ shrink: true }}
+            inputProps={{ min: minAppointmentDate }}
             fullWidth
             variant="outlined"
           />

@@ -138,7 +138,7 @@ export default function MealModal({ open, onClose, onSave, initial = null, patie
     }
 
     const proximoAlimento = {
-      id: crypto.randomUUID(),
+      id: Math.random().toString(36).substr(2, 9),
       nome: selectedFood.nome,
       quantidade: Number(selectedQuantity),
       unidade: selectedUnit
