@@ -405,6 +405,7 @@
     .compare-table td:first-child { color: #64748b; font-size: 12px; }
     .compare-table .old-score { color: #f97316; }
     .compare-table .new-score { color: #4ade80; font-weight: 700; }
+    .compare-table .updated-row { background: #14532d11; }
 
     /* Navigation */
     .nav {
@@ -450,7 +451,7 @@
     .dot.active { background: #6366f1; width: 18px; }
 
     /* Remaining items */
-    .remaining-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; width: 100%; }
+    .remaining-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
     .remaining-card {
       background: #1e293b;
       border: 1px solid #334155;
@@ -498,16 +499,16 @@
       </div>
       <div class="evolution-arrow">&#10132;</div>
       <div class="evolution-score">
-        <div class="number" style="color:#22c55e">8.4</div>
+        <div class="number" style="color:#22c55e">8.6</div>
         <div class="label">Score Atual</div>
       </div>
     </div>
     <div class="chips">
       <div class="chip"><strong>Stack:</strong> Spring Boot 3 + React + MySQL</div>
-      <div class="chip"><strong>Infra:</strong> AWS + Docker + Nginx</div>
-      <div class="chip highlight"><strong>Score:</strong> 6.6 &#10132; 8.4 / 10</div>
-      <div class="chip highlight"><strong>Status:</strong> Bom</div>
-      <div class="chip"><strong>Fases:</strong> 7 implementadas</div>
+      <div class="chip"><strong>Infra:</strong> AWS + Docker + Nginx + Prometheus/Grafana</div>
+      <div class="chip highlight"><strong>Score:</strong> 6.6 &#10132; 8.6 / 10</div>
+      <div class="chip highlight"><strong>Status:</strong> Muito Bom</div>
+      <div class="chip"><strong>Fases:</strong> 9 implementadas</div>
     </div>
   </div>
 
@@ -566,13 +567,13 @@
             <td><span class="delta up">+1</span></td>
             <td><span class="pill bom">Bom</span></td>
           </tr>
-          <tr>
+          <tr class="updated-row">
             <td>A05</td>
             <td>Security Misconfiguration</td>
             <td class="old-score">7/10</td>
-            <td class="new-score">8/10</td>
-            <td><span class="delta up">+1</span></td>
-            <td><span class="pill bom">Bom</span></td>
+            <td class="new-score">9/10</td>
+            <td><span class="delta up">+2 &#9650;</span></td>
+            <td><span class="pill excelente">Excelente</span></td>
           </tr>
           <tr>
             <td>A06</td>
@@ -598,13 +599,13 @@
             <td><span class="delta up">+4</span></td>
             <td><span class="pill excelente">Excelente</span></td>
           </tr>
-          <tr>
+          <tr class="updated-row">
             <td>A09</td>
-            <td>Logging & Monitoring</td>
+            <td>Logging &amp; Monitoring</td>
             <td class="old-score">5/10</td>
-            <td class="new-score">8/10</td>
-            <td><span class="delta up">+3</span></td>
-            <td><span class="pill bom">Bom</span></td>
+            <td class="new-score">9/10</td>
+            <td><span class="delta up">+4 &#9650;</span></td>
+            <td><span class="pill excelente">Excelente</span></td>
           </tr>
           <tr>
             <td>A10</td>
@@ -618,9 +619,9 @@
             <td></td>
             <td style="color:#f8fafc">Media Geral</td>
             <td class="old-score">6.6</td>
-            <td class="new-score">8.4</td>
-            <td><span class="delta up">+1.8</span></td>
-            <td><span class="pill bom">Bom</span></td>
+            <td class="new-score">8.6</td>
+            <td><span class="delta up">+2.0</span></td>
+            <td><span class="pill excelente">Muito Bom</span></td>
           </tr>
         </tbody>
       </table>
@@ -695,7 +696,7 @@
           <h4><span class="phase-tag">Fase 5</span> CI/CD Dependency-Check — A06</h4>
           <p>
             GitHub Actions workflow executando <code>dependency-check:check</code> a cada push/PR.<br>
-            Falha automatica no build se CVE com CVSS >= 7.<br>
+            Falha automatica no build se CVE com CVSS &gt;= 7.<br>
             Execucao semanal agendada para deteccao proativa.<br>
             Relatorio HTML publicado como artifact no GitHub.
           </p>
@@ -719,7 +720,7 @@
           </p>
         </div>
         <div class="phase-card done">
-          <h4><span class="phase-tag">Resumo</span> Arquivos Modificados</h4>
+          <h4><span class="phase-tag">Resumo</span> Arquivos Modificados (Fases 1-7)</h4>
           <p>
             <strong>15 arquivos criados:</strong> SecurityAuditLogger, RequestIdFilter, logback-spring.xml, AuditableEntity, RefreshTokenModel, RefreshTokenRepository, RefreshTokenService, 4 migrations SQL, dependency-check.yml, e mais.<br>
             <strong>~25 arquivos editados:</strong> 8 controllers, 4 services, 10 entidades, SecurityConfig, pom.xml, docker-compose.yml, application properties.
@@ -729,13 +730,72 @@
     </div>
   </div>
 
-  <!-- SLIDE 4 - PONTOS FORTES ATUAIS -->
+  <!-- SLIDE 4 - FASES 8-9 (NOVAS) -->
   <div class="slide" id="slide-4">
+    <div class="slide-header">
+      <div>
+        <span class="badge green-bg">NOVAS FASES</span>
+        <h1>Fases 8 e 9 — Infra de Seguranca</h1>
+        <div class="sub">Headers de seguranca no Nginx e monitoramento em tempo real</div>
+      </div>
+      <div class="logo">FittNutri</div>
+    </div>
+    <div class="content">
+      <div class="phases-grid">
+        <div class="phase-card done">
+          <h4><span class="phase-tag">Fase 8</span> Nginx — Security Headers — A05</h4>
+          <p>
+            <strong>Rate Limiting:</strong> <code>limit_req_zone</code> com 30 req/min por IP; burst=10.<br>
+            <strong>TLS:</strong> apenas TLSv1.2 e TLSv1.3 com ciphers ECDHE-ECDSA/RSA.<br>
+            <strong>HSTS:</strong> <code>max-age=31536000; includeSubDomains</code>.<br>
+            <strong>CSP:</strong> <code>default-src 'self'</code> com whitelist de scripts externos.<br>
+            <strong>Headers:</strong> X-Content-Type-Options, X-Frame-Options DENY, Referrer-Policy, Permissions-Policy.<br>
+            <strong>Redirect:</strong> HTTP 80 → HTTPS 443 automatico.<br>
+            <strong>Swagger:</strong> desabilitado em producao (<code>application-prod.properties</code>).
+          </p>
+        </div>
+        <div class="phase-card done">
+          <h4><span class="phase-tag">Fase 9</span> Prometheus + Grafana — A09</h4>
+          <p>
+            <strong>Prometheus:</strong> scraping de <code>/actuator/prometheus</code> a cada 15s.<br>
+            Retencao de metricas: 15 dias (<code>--storage.tsdb.retention.time=15d</code>).<br>
+            <strong>Grafana:</strong> dashboard pre-configurado com provisioning automatico.<br>
+            Acesso via <code>/grafana</code> com proxy reverso no Nginx.<br>
+            Metricas: JVM, HTTP requests, rate limiting, conexoes DB.<br>
+            <code>GF_ANALYTICS_REPORTING_ENABLED=false</code> — telemetria desabilitada.<br>
+            <strong>Spring Actuator:</strong> endpoint <code>/actuator/health</code> publico para healthcheck.
+          </p>
+        </div>
+        <div class="phase-card done">
+          <h4><span class="phase-tag">Infra</span> Docker Compose — Todos os Servicos</h4>
+          <p>
+            <strong>7 servicos:</strong> MySQL, Backend, Frontend, Nginx, Certbot (Let's Encrypt), Prometheus e Grafana.<br>
+            <strong>Limites de recursos:</strong> cada container com CPU e RAM definidos.<br>
+            <strong>Health checks:</strong> MySQL com <code>mysqladmin ping</code> antes de subir backend.<br>
+            <strong>Volumes:</strong> persistencia de dados, logs e certificados SSL.
+          </p>
+        </div>
+        <div class="phase-card done">
+          <h4><span class="phase-tag">AWS</span> Secrets Manager — A02/A05</h4>
+          <p>
+            Segredos em producao gerenciados via <strong>AWS Secrets Manager</strong>.<br>
+            Variaveis sensiveis (<code>JWT_SECRET</code>, <code>APP_AES_KEY</code>, credenciais RDS) nunca em disco.<br>
+            <strong>AWS ALB</strong> + <strong>ASG</strong> para alta disponibilidade.<br>
+            <strong>Amazon ECR</strong> para imagens Docker versionadas.<br>
+            <strong>Amazon MQ</strong> para processamento assincrono de PDFs (RabbitMQ managed).
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5 - PONTOS FORTES ATUAIS -->
+  <div class="slide" id="slide-5">
     <div class="slide-header">
       <div>
         <span class="badge green-bg">PONTOS FORTES</span>
         <h1>Seguranca consolidada</h1>
-        <div class="sub">Implementacoes que elevaram o score de 6.6 para 8.4</div>
+        <div class="sub">Implementacoes que elevaram o score de 6.6 para 8.6</div>
       </div>
       <div class="logo">FittNutri</div>
     </div>
@@ -748,77 +808,37 @@
             <li>CORS unificado no SecurityConfig — sem duplicacao</li>
             <li>Auditoria automatica de acessos negados via GlobalExceptionHandler</li>
             <li>Endpoints publicos explicitamente declarados no SecurityConfig</li>
+            <li>Isolamento de dados: nutricionista so acessa seus proprios pacientes</li>
           </ul>
         </div>
         <div class="card green">
           <h3><span class="icon">&#128274;</span> A02/A07 — Autenticacao (9/10)</h3>
           <ul>
-            <li>BCrypt + AES-256 + JWT HMAC-SHA256 (mantido)</li>
+            <li>BCrypt + AES-256-CBC + JWT HMAC-SHA256</li>
             <li>Refresh tokens com rotacao automatica e revogacao</li>
-            <li>Rate limiter: 5 tentativas/email/minuto com logging</li>
-            <li>Logout efetivo com blacklist de tokens</li>
-            <li>Senha forte obrigatoria (maiuscula + numero + especial)</li>
+            <li>Rate limiter: 5 tentativas/email/minuto via Bucket4j (429)</li>
+            <li>Logout efetivo com revogacao de todos os tokens ativos</li>
+            <li>Segredos gerenciados via AWS Secrets Manager em producao</li>
           </ul>
         </div>
         <div class="card green">
-          <h3><span class="icon">&#128203;</span> A08 — Integridade de Dados (9/10)</h3>
+          <h3><span class="icon">&#128421;</span> A05 — Configuracao Segura (9/10)</h3>
           <ul>
-            <li>Flyway com 4 migrations versionadas (rollback possivel)</li>
-            <li>Campos <code>created_at</code> e <code>updated_at</code> em todas as entidades</li>
-            <li>Soft-delete em entidades sensiveis (usuario, paciente, refeicao, agendamento)</li>
-            <li><code>ddl-auto=validate</code> em producao (schema imutavel sem migration)</li>
+            <li>HSTS, X-Content-Type-Options, X-Frame-Options DENY, Referrer-Policy</li>
+            <li>Content Security Policy (CSP) com <code>default-src 'self'</code></li>
+            <li>Rate limiting no Nginx: 30 req/min por IP com burst de 10</li>
+            <li>TLS 1.2+ com ciphers ECDHE — sem versoes legadas</li>
+            <li>Swagger desabilitado em producao; H2 console desabilitado</li>
           </ul>
         </div>
         <div class="card green">
-          <h3><span class="icon">&#128202;</span> A09 — Logging (8/10)</h3>
+          <h3><span class="icon">&#128202;</span> A09 — Logging + Monitoramento (9/10)</h3>
           <ul>
-            <li>SecurityAuditLogger com 4 tipos de evento de seguranca</li>
+            <li>SecurityAuditLogger: LOGIN_SUCCESS, LOGIN_FAILURE, ACCESS_DENIED, RATE_LIMITED</li>
             <li>MDC com requestId, userId e IP em cada log</li>
-            <li>Logs rotativos em producao (90 dias retencao, 2GB cap)</li>
-            <li>Formato JSON em prod para integracao com ELK/CloudWatch</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLIDE 5 - PROXIMOS PASSOS -->
-  <div class="slide" id="slide-5">
-    <div class="slide-header">
-      <div>
-        <span class="badge">ROADMAP</span>
-        <h1>Proximas evolucoes</h1>
-        <div class="sub">Melhorias futuras para elevar o score para 9+/10</div>
-      </div>
-      <div class="logo">FittNutri</div>
-    </div>
-    <div class="content">
-      <div class="remaining-grid">
-        <div class="remaining-card">
-          <h4>A04 — Design Seguro (7 &#10132; 9)</h4>
-          <ul>
-            <li>Implementar MFA (TOTP ou SMS)</li>
-            <li>Confirmacao de e-mail no cadastro</li>
-            <li>Threat modeling documentado</li>
-            <li>Testes de seguranca automatizados</li>
-          </ul>
-        </div>
-        <div class="remaining-card">
-          <h4>A09 — Monitoramento (8 &#10132; 9)</h4>
-          <ul>
-            <li>Integracao com CloudWatch / ELK Stack</li>
-            <li>Alertas automaticos para eventos criticos</li>
-            <li>Dashboard de seguranca em tempo real</li>
-            <li>Metricas de rate limiting exportadas</li>
-          </ul>
-        </div>
-        <div class="remaining-card">
-          <h4>A05 — Configuracao (8 &#10132; 9)</h4>
-          <ul>
-            <li>Security headers (CSP, HSTS preload)</li>
-            <li>Desabilitar H2 console e Swagger em prod</li>
-            <li>Container rodando como non-root</li>
-            <li>Network policies no Docker Compose</li>
+            <li>Logs rotativos em producao (90 dias retencao)</li>
+            <li>Prometheus scraping /actuator/prometheus a cada 15s</li>
+            <li>Grafana com dashboard de metricas JVM, HTTP e rate limiting</li>
           </ul>
         </div>
       </div>
@@ -831,35 +851,35 @@
       <div>
         <span class="badge green-bg">CONCLUSAO</span>
         <h1>Resumo Executivo</h1>
-        <div class="sub">Score geral: 6.6 &#10132; 8.4/10 — Status: Bom</div>
+        <div class="sub">Score geral: 6.6 &#10132; 8.6/10 — Status: Muito Bom</div>
       </div>
       <div class="logo">FittNutri</div>
     </div>
     <div class="content">
       <div class="highlight-grid">
         <div class="highlight-card">
-          <div class="score-big" style="color:#22c55e">8.4</div>
+          <div class="score-big" style="color:#22c55e">8.6</div>
           <div class="score-label">Score medio OWASP Top 10 (antes: 6.6)</div>
-          <div class="item-name">Evolucao de +1.8 pontos</div>
-          <p>7 fases de melhoria implementadas com sucesso, elevando todas as categorias criticas para score >= 8. O projeto agora possui maturidade de seguranca adequada para producao com dados sensiveis de saude.</p>
+          <div class="item-name">Evolucao de +2.0 pontos</div>
+          <p>9 fases de melhoria implementadas com sucesso, elevando 8 das 10 categorias para score >= 8. O projeto possui maturidade de seguranca adequada para producao com dados sensiveis de saude (LGPD).</p>
         </div>
         <div class="highlight-card">
-          <div class="score-big" style="color:#4ade80">7</div>
+          <div class="score-big" style="color:#4ade80">8</div>
           <div class="score-label">Categorias com score >= 8 (Bom/Excelente)</div>
-          <div class="item-name">De 3 para 7 categorias aprovadas</div>
-          <p><strong>A01 (9)</strong> @PreAuthorize &bull; <strong>A02 (9)</strong> Refresh tokens &bull; <strong>A03 (9)</strong> Injection &bull; <strong>A07 (9)</strong> Autenticacao &bull; <strong>A08 (9)</strong> Flyway + soft-delete &bull; <strong>A05 (8)</strong> Config &bull; <strong>A06 (8)</strong> CI/CD</p>
+          <div class="item-name">De 3 para 8 categorias aprovadas</div>
+          <p><strong>A01 (9)</strong> @PreAuthorize &bull; <strong>A02 (9)</strong> Refresh tokens &bull; <strong>A03 (9)</strong> Injection &bull; <strong>A05 (9)</strong> Nginx headers + CSP &bull; <strong>A07 (9)</strong> Autenticacao &bull; <strong>A08 (9)</strong> Flyway + soft-delete &bull; <strong>A09 (9)</strong> Prometheus/Grafana &bull; <strong>A06 (8)</strong> CI/CD</p>
         </div>
         <div class="highlight-card">
-          <div class="score-big" style="color:#a78bfa">7</div>
+          <div class="score-big" style="color:#a78bfa">9</div>
           <div class="score-label">Fases implementadas com sucesso</div>
-          <div class="item-name">~40 arquivos criados ou modificados</div>
-          <p>PreAuthorize nos controllers, logging estruturado com MDC, campos de auditoria, Flyway migrations, CI/CD com Dependency-Check, soft-delete e refresh tokens com blacklist de logout.</p>
+          <div class="item-name">~50 arquivos criados ou modificados</div>
+          <p>PreAuthorize, logging estruturado MDC, campos de auditoria, Flyway migrations, CI/CD Dependency-Check, soft-delete, refresh tokens com blacklist, Nginx security headers + CSP/HSTS, Prometheus + Grafana.</p>
         </div>
         <div class="highlight-card">
           <div class="score-big" style="color:#60a5fa">0</div>
           <div class="score-label">Funcionalidades quebradas</div>
           <div class="item-name">Zero breaking changes</div>
-          <p>Todas as melhorias foram aplicadas de forma incremental e nao-destrutiva. Endpoints publicos mantidos, testes unitarios compativeis, perfil de desenvolvimento inalterado. O frontend nao requer alteracoes obrigatorias.</p>
+          <p>Todas as melhorias foram aplicadas de forma incremental e nao-destrutiva. Endpoints publicos mantidos, perfil de desenvolvimento inalterado, frontend sem alteracoes obrigatorias. LGPD: CPF criptografado em AES-256, soft-delete preserva historico.</p>
         </div>
       </div>
     </div>
