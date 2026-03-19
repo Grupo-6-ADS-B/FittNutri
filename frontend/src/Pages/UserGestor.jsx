@@ -46,6 +46,15 @@ export default function UserGestor() {
     end.setDate(end.getDate() + 7);
     return end.toISOString().split('T')[0];
   };
+  const isPastAppointmentDate = (dateValue) => {
+    if (!dateValue) return false;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const selectedDate = new Date(`${dateValue}T00:00:00`);
+    return selectedDate < today;
+  };
   const [filterStartDate, setFilterStartDate] = useState(getTodayString());
   const [filterEndDate, setFilterEndDate] = useState(getEndDateString());
   
@@ -590,6 +599,11 @@ export default function UserGestor() {
   const saveAppointment = async () => {
     if (!scheduleUser || !apptDate) {
       alert('Preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    if (isPastAppointmentDate(apptDate)) {
+      setSnackbar({ open: true, message: 'Não é permitido agendar consulta em data passada.', severity: 'error' });
       return;
     }
   
