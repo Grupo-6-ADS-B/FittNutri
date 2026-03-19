@@ -20,6 +20,8 @@
     --red: #f85149;
     --cyan: #39d353;
     --teal: #2dd4bf;
+    --prometheus: #e6522c;
+    --grafana: #f46800;
     --text: #c9d1d9;
     --text-dim: #484f58;
     --text-mid: #8b949e;
@@ -248,6 +250,24 @@
   .badge-teal { background: rgba(45,212,191,0.15); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
   .badge-yellow { background: rgba(227,179,65,0.15); color: var(--yellow); border: 1px solid rgba(227,179,65,0.3); }
   .badge-red { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .badge-prometheus { background: rgba(230,82,44,0.15); color: var(--prometheus); border: 1px solid rgba(230,82,44,0.3); }
+  .badge-grafana { background: rgba(244,104,0,0.15); color: var(--grafana); border: 1px solid rgba(244,104,0,0.3); }
+
+  .box-prometheus { background: rgba(230,82,44,0.08); border: 1px solid rgba(230,82,44,0.25); }
+  .box-prometheus .box-name { color: var(--prometheus); }
+
+  .box-grafana { background: rgba(244,104,0,0.08); border: 1px solid rgba(244,104,0,0.25); }
+  .box-grafana .box-name { color: var(--grafana); }
+
+  .zone-monitoring {
+    border: 1px dashed rgba(230,82,44,0.25);
+    background: rgba(230,82,44,0.01);
+  }
+  .zone-monitoring .zone-label { color: rgba(230,82,44,0.7); }
+
+  .arr-prometheus .arrow-line { background: var(--prometheus); }
+  .arr-prometheus .arrow-tip { border-top: 7px solid var(--prometheus); }
+  .arr-prometheus .arrow-label-pill { background: rgba(230,82,44,0.1); color: var(--prometheus); border: 1px solid rgba(230,82,44,0.3); }
 
   /* ─── ARROWS ─── */
   .arrow { display: flex; flex-direction: column; align-items: center; margin: 4px 0; }
@@ -408,7 +428,7 @@
   <div class="header">
     <div class="tag"><span class="tag-dot"></span>Arquitetura Final</div>
     <h1>FittNutri <span>AWS</span></h1>
-    <p>vpc · alb · auto scaling · rds · amazon mq · s3 · ecr · secrets manager · acm · route 53</p>
+    <p>vpc · alb · auto scaling · rds · amazon mq · s3 · ecr · secrets manager · acm · route 53 · prometheus · grafana</p>
   </div>
 
   <div class="diagram">
@@ -460,6 +480,7 @@
           <div style="display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
             <span class="badge badge-blue">:80 → :443</span>
             <span class="badge badge-blue">health: /actuator/health</span>
+            <span class="badge badge-grafana">/grafana/ → grafana:3000</span>
           </div>
         </div>
       </div>
@@ -566,6 +587,59 @@
                   <span class="badge badge-red">single-instance</span>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- ARROW TO MONITORING EC2 -->
+          <div class="arrow arr-prometheus" style="margin:4px 0;">
+            <div class="arrow-line"></div>
+            <div class="arrow-label-pill">scrape :8080/actuator/prometheus · fittnutri-monitoring-sg</div>
+            <div class="arrow-line"></div>
+            <div class="arrow-tip"></div>
+          </div>
+
+          <!-- MONITORING ZONE — dedicated EC2 -->
+          <div class="zone zone-monitoring">
+            <div class="zone-label">Subnet Privada — Monitoring · 10.0.30.0/24 · us-east-1a</div>
+            <div class="boxes-row" style="align-items:flex-start;gap:20px;">
+
+              <!-- EC2 Monitoring box -->
+              <div class="box box-prometheus box-wide" style="min-width:260px;">
+                <div class="box-icon">🖥️</div>
+                <div class="box-name">EC2 t3.micro — Monitoring</div>
+                <div class="box-sub" style="margin-bottom:10px;">instância dedicada · fora do ASG<br>Docker Compose · volume persistente</div>
+
+                <!-- inner containers -->
+                <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                  <div style="background:rgba(230,82,44,0.12);border:1px solid rgba(230,82,44,0.35);border-radius:8px;padding:10px 14px;text-align:center;min-width:100px;">
+                    <div style="font-size:20px;margin-bottom:4px;">🔥</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--prometheus);">Prometheus</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:2px;">:9090 · 15s scrape<br>volume: prom_data</div>
+                  </div>
+
+                  <div style="display:flex;align-items:center;">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--grafana);">datasource</span>
+                      <div style="display:flex;align-items:center;">
+                        <div style="width:20px;height:2px;background:var(--grafana);"></div>
+                        <div style="width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid var(--grafana);"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="background:rgba(244,104,0,0.12);border:1px solid rgba(244,104,0,0.35);border-radius:8px;padding:10px 14px;text-align:center;min-width:100px;">
+                    <div style="font-size:20px;margin-bottom:4px;">📊</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--grafana);">Grafana</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:2px;">:3000 · via ALB<br>volume: graf_data</div>
+                  </div>
+                </div>
+
+                <div style="margin-top:12px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                  <span class="badge badge-prometheus">fora do ASG</span>
+                  <span class="badge badge-grafana">ALB → /grafana/ → :3000</span>
+                </div>
+              </div>
+
             </div>
           </div>
 
