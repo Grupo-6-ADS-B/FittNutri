@@ -430,30 +430,31 @@ export default function UserRegister() {
                 sx={{
                   px: 1,
                   py: 1.5,
-                  borderColor: errors.autorizaCadastro ? 'error.main' : 'divider',
+                  borderRadius: 1,
                   backgroundColor: errors.autorizaCadastro ? 'rgba(211, 47, 47, 0.04)' : 'transparent'
                 }}
               >
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      name="autorizaCadastro"
-                      checked={formData.autorizaCadastro}
-                      onChange={handleChange}
-                      color="success"
-                    />
-                  }
-                  label="O paciente autoriza o cadastro das informações no sistema."
-                  sx={{
-                    alignItems: 'center',
-                    m: 0,
-                    '& .MuiFormControlLabel-label': {
-                      lineHeight: 1.4
-                    }
-                  }}
-                />
+                <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    name="autorizaCadastro"
+                    checked={formData.autorizaCadastro}
+                    onChange={handleChange}
+                    style={{
+                      width: 20,
+                      height: 20,
+                      accentColor: '#2e7d32',
+                      cursor: 'pointer',
+                      flexShrink: 0,
+                      border: '2px solid #2e7d32',
+                    }}
+                  />
+                  <Typography variant="body2" sx={{ lineHeight: 1.4, color: 'text.primary' }}>
+                    O paciente autoriza o cadastro das informações no sistema.
+                  </Typography>
+                </label>
                 {errors.autorizaCadastro && (
-                  <Typography variant="caption" color="error" sx={{ display: 'block', mt: 0.5, ml: 4.5 }}>
+                  <Typography variant="caption" color="error" sx={{ display: 'block', mt: 0.5, ml: '30px' }}>
                     {errors.autorizaCadastro}
                   </Typography>
                 )}

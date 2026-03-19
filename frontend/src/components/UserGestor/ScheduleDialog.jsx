@@ -7,12 +7,13 @@ import {
   Button,
   Box,
   Typography,
-  Divider
+  Divider,
+  Alert
 } from "@mui/material";
 
-export default function ScheduleDialog({ 
-  open, 
-  onClose, 
+export default function ScheduleDialog({
+  open,
+  onClose,
   onSave,
   scheduleUser,
   apptDate,
@@ -22,11 +23,17 @@ export default function ScheduleDialog({
   apptNote,
   setApptNote
 }) {
-  const minAppointmentDate = new Date().toLocaleDateString('en-CA');
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const minAppointmentDate = today.toLocaleDateString('en-CA');
+
+  const isPastDate = apptDate
+    ? new Date(`${apptDate}T00:00:00`) < today
+    : false;
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
@@ -43,13 +50,13 @@ export default function ScheduleDialog({
         </Typography>
       </DialogTitle>
       <Divider />
-      
+
       <DialogContent sx={{ pt: 3, pb: 2 }}>
         <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <TextField 
-            label="Paciente" 
-            value={scheduleUser?.name || ""} 
-            disabled 
+          <TextField
+            label="Paciente"
+            value={scheduleUser?.name || ""}
+            disabled
             fullWidth
             variant="outlined"
             sx={{
@@ -58,32 +65,51 @@ export default function ScheduleDialog({
               }
             }}
           />
-          
+
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+              Data
+            </Typography>
+            <input
+              type="date"
+              value={apptDate}
+              min={minAppointmentDate}
+              onChange={(e) => setApptDate(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '14px 12px',
+                fontSize: 16,
+                borderRadius: 8,
+                border: isPastDate ? '2px solid #d32f2f' : '1px solid #c4c4c4',
+                outline: 'none',
+                fontFamily: 'inherit',
+                color: '#333',
+                backgroundColor: '#fff',
+                boxSizing: 'border-box',
+              }}
+            />
+            {isPastDate && (
+              <Alert severity="error" sx={{ mt: 1, py: 0.5 }}>
+                Não é permitido agendar consulta em data passada.
+              </Alert>
+            )}
+          </Box>
+
           <TextField
-            type="date"
-            label="Data"
-            value={apptDate}
-            onChange={(e) => setApptDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: minAppointmentDate } }}
+            type="time"
+            label="Hora"
+            value={apptTime}
+            onChange={(e) => setApptTime(e.target.value)}
+            slotProps={{ inputLabel: { shrink: true } }}
             fullWidth
             variant="outlined"
           />
-          
-          <TextField 
-            type="time" 
-            label="Hora" 
-            value={apptTime} 
-            onChange={(e) => setApptTime(e.target.value)} 
-            InputLabelProps={{ shrink: true }}
-            fullWidth
-            variant="outlined"
-          />
-          
-          <TextField 
-            label="Observação" 
-            value={apptNote} 
-            onChange={(e) => setApptNote(e.target.value)} 
-            multiline 
+
+          <TextField
+            label="Observação"
+            value={apptNote}
+            onChange={(e) => setApptNote(e.target.value)}
+            multiline
             minRows={3}
             fullWidth
             variant="outlined"
@@ -91,24 +117,25 @@ export default function ScheduleDialog({
           />
         </Box>
       </DialogContent>
-      
+
       <Divider />
       <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button 
+        <Button
           onClick={onClose}
           variant="text"
-          sx={{ 
+          sx={{
             color: 'text.secondary',
-            fontWeight: 600 
+            fontWeight: 600
           }}
         >
           Cancelar
         </Button>
-        <Button 
-          variant="contained" 
-          onClick={onSave}
+        <Button
+          variant="contained"
+          onClick={isPastDate ? undefined : onSave}
           color="success"
-          sx={{ 
+          disabled={isPastDate}
+          sx={{
             fontWeight: 600,
             px: 3
           }}
