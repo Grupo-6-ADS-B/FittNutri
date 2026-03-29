@@ -79,6 +79,7 @@ public class PatientHistoryService {
         historico.setAnthropometricDataModel(antropoSalvo);
         historico.setDataCircleModel(circSalvo);
         historico.setDataConsulta(dto.getDataConsulta());
+        historico.setMotivoConsulta(dto.getMotivoConsulta());
 
         repository.save(historico);
     }
@@ -113,6 +114,11 @@ public class PatientHistoryService {
             dto.setIdadeMetabolica(h.getAnthropometricDataModel().getIdadeMetabolica().doubleValue());
             dto.setTaxaMetabolicaBasal(h.getAnthropometricDataModel().getTaxaMetabolicaBasal());
             dto.setAtividade(h.getPatientModel().getAtividade());
+                dto.setMotivoConsulta(
+                    h.getMotivoConsulta() != null && !h.getMotivoConsulta().isBlank()
+                        ? h.getMotivoConsulta()
+                        : h.getPatientModel().getMotivoConsulta()
+                );
 
             // 🔹 CIRCUNFERÊNCIA
             dto.setCintura(h.getDataCircleModel().getCintura());

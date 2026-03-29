@@ -12,6 +12,8 @@ public interface PatientHistoryRepository extends JpaRepository<PatientHistoryMo
 
     List<PatientHistoryModel> findByPatientModelIdOrderByDataConsultaAsc(Integer pacienteId);
 
+    PatientHistoryModel findTopByPatientModelIdOrderByDataConsultaDesc(Integer pacienteId);
+
     @Query("""
     SELECT h FROM PatientHistoryModel h
     WHERE h.patientModel.id = :pacienteId

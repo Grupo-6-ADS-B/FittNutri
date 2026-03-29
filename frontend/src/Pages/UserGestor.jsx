@@ -74,6 +74,7 @@ export default function UserGestor() {
   const [updateForm, setUpdateForm] = useState({
     id: null,
     name: "",
+    motivoConsulta: "",
     peso: "",
     altura: "",
     idadeMetabolica: "",
@@ -172,6 +173,7 @@ export default function UserGestor() {
             email: u.email ?? '',
             telefone: u.telefone ?? u.phone ?? '',
             cidade: u.cidade ?? u.city ?? '',
+            motivoConsulta: u.motivoConsulta ?? '',
             avatar: u.avatar ?? '',
             cpf: u.cpf ?? '',
             crn: u.crn ?? '',
@@ -260,6 +262,7 @@ export default function UserGestor() {
     setUpdateForm({
       id: patientId,
       name: name,
+      motivoConsulta: userFromList.motivoConsulta ?? startAppointment?.note ?? "",
       peso: userFromList.peso ?? "",
       altura: userFromList.altura ?? "",
       idadeMetabolica: userFromList.idadeMetabolica ?? "",
@@ -310,6 +313,7 @@ export default function UserGestor() {
           return {
             ...prev,
             date: dateValue || prev.date,
+            motivoConsulta: latest.motivoConsulta ?? latest.motivo_consulta ?? prev.motivoConsulta,
             peso: anthropo.peso ?? prev.peso,
             altura: anthropo.altura ?? prev.altura,
             idadeMetabolica: anthropo.idadeMetabolica ?? prev.idadeMetabolica,
@@ -361,6 +365,7 @@ export default function UserGestor() {
 
     const payload = {
       dataConsulta: adjustedDate,
+      motivoConsulta: (updateForm.motivoConsulta || '').trim(),
       antropometria: {
         peso: Number(updateForm.peso),
         altura: Number(updateForm.altura),
@@ -398,6 +403,7 @@ export default function UserGestor() {
     const updatedUser = {
       id: updateForm.id,
       name: updateForm.name,
+      motivoConsulta: updateForm.motivoConsulta,
       peso: updateForm.peso,
       altura: updateForm.altura,
       idadeMetabolica: updateForm.idadeMetabolica,

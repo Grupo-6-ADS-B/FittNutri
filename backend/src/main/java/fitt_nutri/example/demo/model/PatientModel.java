@@ -65,6 +65,9 @@ public class PatientModel {
     @Column(nullable = false)
     private String atividade;
 
+    @Column(name = "motivo_consulta")
+    private String motivoConsulta;
+
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.ALL)
     private List<SchedulingModel> agendamentos = new ArrayList<>();
 

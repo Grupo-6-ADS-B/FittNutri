@@ -38,6 +38,7 @@ public class PatientService {
         p.setSexo(dto.sexo());
         p.setEtnia(dto.etnia());
         p.setAtividade(dto.atividade());
+        p.setMotivoConsulta(dto.motivoConsulta());
         p.setNutricionista(getNutricionistaLogado());
         return repository.save(p);
     }
@@ -66,6 +67,7 @@ public class PatientService {
         p.setSexo(dto.sexo());
         p.setEtnia(dto.etnia());
         p.setAtividade(dto.atividade());
+        p.setMotivoConsulta(dto.motivoConsulta());
         return repository.save(p);
     }
 
@@ -87,6 +89,7 @@ public class PatientService {
                 case "sexo" -> p.setSexo(String.valueOf(value));
                 case "etnia" -> p.setEtnia(String.valueOf(value));
                 case "frequenciaAtividadeFisica" -> p.setAtividade(String.valueOf(value));
+                case "motivoConsulta" -> p.setMotivoConsulta(String.valueOf(value));
                 default -> throw new IllegalArgumentException("Campo inválido para PATCH: " + key);
             }
         });
