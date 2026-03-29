@@ -9,6 +9,8 @@ import fitt_nutri.example.demo.repository.PatientRepository;
 import fitt_nutri.example.demo.repository.SchedulingRepository;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +63,14 @@ public class SchedulingService {
         }
         return repository.findByNutricionistaId(usuarioId);
     }
+
+    public Page<SchedulingModel> getByNutritionist(Integer usuarioId, Pageable pageable) {
+        if (!userRepository.existsById(usuarioId)) {
+            throw new NotFoundException("Nutricionista não encontrado");
+        }
+        return repository.findByNutricionistaId(usuarioId, pageable);
+    }
+
 
     @Transactional
     public SchedulingModel updateScheduling(Integer id, SchedulingRequestDTO dto) {
