@@ -10,6 +10,9 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Map;
@@ -40,7 +43,7 @@ class PatientControllerTest {
 
         ResponseEntity<PatientResponseDTO> response = controller.createPatient(request);
 
-        assertEquals(201, response.getStatusCodeValue());
+        assertEquals(201, response.getStatusCode().value());
         assertEquals(responseDTO, response.getBody());
         verify(adapter).create(request);
     }
@@ -48,16 +51,17 @@ class PatientControllerTest {
     // ---------- GET /patients ----------
 
     @Test
-    @DisplayName("getAllPatients - deve retornar 200 e lista de pacientes")
+    @DisplayName("getAllPatients - deve retornar 200 e lista de pacientes paginada")
     void getAllPatients_DeveRetornar200ELista() {
         List<PatientResponseDTO> lista = List.of(mock(PatientResponseDTO.class));
-        when(adapter.getAll()).thenReturn(lista);
+        Page<PatientResponseDTO> page = new PageImpl<>(lista);
+        when(adapter.getAll(any(Pageable.class))).thenReturn(page);
 
-        ResponseEntity<List<PatientResponseDTO>> response = controller.getAllPatients();
+        ResponseEntity<Page<PatientResponseDTO>> response = controller.getAllPatients(0);
 
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(lista, response.getBody());
-        verify(adapter).getAll();
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(page, response.getBody());
+        verify(adapter).getAll(any(Pageable.class));
     }
 
     // ---------- GET /patients/{id} ----------
@@ -71,7 +75,7 @@ class PatientControllerTest {
 
         ResponseEntity<PatientResponseDTO> response = controller.getPatientById(id);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(dto, response.getBody());
         verify(adapter).getById(id);
     }
@@ -89,7 +93,7 @@ class PatientControllerTest {
 
         ResponseEntity<PatientResponseDTO> response = controller.updatePatient(id, request);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(responseDTO, response.getBody());
         verify(adapter).update(id, request);
     }
@@ -107,7 +111,7 @@ class PatientControllerTest {
 
         ResponseEntity<PatientResponseDTO> response = controller.patchPatient(id, updates);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(responseDTO, response.getBody());
         verify(adapter).patch(id, updates);
     }
@@ -121,7 +125,7 @@ class PatientControllerTest {
 
         ResponseEntity<Void> response = controller.deletePatient(id);
 
-        assertEquals(204, response.getStatusCodeValue());
+        assertEquals(204, response.getStatusCode().value());
         assertNull(response.getBody());
         verify(adapter).delete(id);
     }

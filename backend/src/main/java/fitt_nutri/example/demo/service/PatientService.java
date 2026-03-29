@@ -6,6 +6,8 @@ import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +47,10 @@ public class PatientService {
     // Lista todos os pacientes do nutricionista logado
     public List<PatientModel> findAllByNutricionista() {
         return repository.findByNutricionista(getNutricionistaLogado());
+    }
+
+    public Page<PatientModel> findAllByNutricionista(Pageable pageable) {
+        return repository.findByNutricionista(getNutricionistaLogado(), pageable);
     }
 
     // Busca paciente por ID e verifica se pertence ao nutricionista logado

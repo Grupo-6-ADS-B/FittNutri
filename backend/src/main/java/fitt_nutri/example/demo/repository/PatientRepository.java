@@ -5,6 +5,8 @@ import fitt_nutri.example.demo.model.UserModel;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import org.hibernate.validator.constraints.br.CPF;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -17,5 +19,7 @@ public interface PatientRepository extends JpaRepository<PatientModel, Integer> 
     boolean existsByNome(@NotBlank(message = "Nome não pode estar vazio") String nome);
 
     List<PatientModel> findByNutricionista(UserModel nutricionista);
+
+    Page<PatientModel> findByNutricionista(UserModel nutricionista, Pageable pageable);
 
 }

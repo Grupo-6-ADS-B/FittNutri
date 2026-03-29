@@ -5,6 +5,8 @@ import fitt_nutri.example.demo.dto.response.PatientResponseDTO;
 import fitt_nutri.example.demo.model.PatientModel;
 import fitt_nutri.example.demo.service.PatientService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -27,6 +29,11 @@ public class PatientAdapter {
         return patients.stream()
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
+    }
+
+    public Page<PatientResponseDTO> getAll(Pageable pageable) {
+        Page<PatientModel> patients = service.findAllByNutricionista(pageable);
+        return patients.map(this::mapToDTO);
     }
 
     public PatientResponseDTO getById(Integer id) {

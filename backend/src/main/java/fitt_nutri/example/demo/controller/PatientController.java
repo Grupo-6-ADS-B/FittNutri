@@ -8,11 +8,12 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -36,13 +37,14 @@ public class PatientController {
     }
 
     @GetMapping
-    @Operation(summary = "Lista todos os pacientes do nutricionista logado")
+    @Operation(summary = "Lista todos os pacientes do nutricionista logado (paginação)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de pacientes retornada"),
             @ApiResponse(responseCode = "404", description = "Nenhum paciente cadastrado")
     })
-    public ResponseEntity<List<PatientResponseDTO>> getAllPatients() {
-        List<PatientResponseDTO> response = adapter.getAll();
+    public ResponseEntity<Page<PatientResponseDTO>> getAllPatients(@RequestParam(defaultValue = "0") int page) {
+        PageRequest pageRequest = PageRequest.of(page, 15);
+        Page<PatientResponseDTO> response = adapter.getAll(pageRequest);
         return ResponseEntity.ok(response);
     }
 
