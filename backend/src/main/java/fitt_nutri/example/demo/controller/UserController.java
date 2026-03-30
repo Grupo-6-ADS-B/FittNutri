@@ -46,6 +46,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -122,7 +123,43 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
+    @GetMapping("/me")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Retorna dados do usuário autenticado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dados do usuário"),
+            @ApiResponse(responseCode = "401", description = "Não autenticado")
+    })
+    public ResponseEntity<?> getCurrentUser() {
+        try {
+            // Extrai o ID do token JWT
+            var auth = org.springframework.security.core.context.SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()) {
+                String namePrincipal = auth.getName();
+                // Tenta extrair ID do principal (pode ser email ou ID)
+                Integer userId = null;
+                try {
+                    userId = Integer.parseInt(namePrincipal);
+                } catch (NumberFormatException e) {
+                    // Se for email, busca o usuário
+                    var userOpt = service.getUserByEmail(namePrincipal);
+                    if (userOpt.isPresent()) {
+                        return ResponseEntity.ok(adapter.mapToResponse(userOpt.get()));
+                    }
+                }
+                
+                if (userId != null) {
+                    return ResponseEntity.ok(adapter.getUserById(userId));
+                }
+            }
+            return ResponseEntity.status(401).body(Map.of("error", "Não autenticado"));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Erro ao obter usuário: " + e.getMessage()));
+        }
+    }
+
     @GetMapping("/{id}")
+    @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Busca usuário por ID")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Usuário encontrado"),

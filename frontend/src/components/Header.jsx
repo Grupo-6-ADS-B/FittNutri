@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   AppBar, 
@@ -9,7 +9,8 @@ import {
   Stack,
   Avatar
 } from '@mui/material';
-import logo from '/logo.jpg'; 
+import logo from '/logo.jpg';
+import api from '../utils/api'; 
 
 function Header({
   onSwitchToLogin,
@@ -25,12 +26,44 @@ function Header({
   const showLinks = location?.pathname === '/';
   const showButtons = location?.pathname === '/login' || location?.pathname === '/auth' || location?.pathname === '/';
   const userName = sessionStorage.getItem('nomeUsuario');
-  const handleLogout = () => {
-    sessionStorage.clear();
-    localStorage.clear();
-    navigate('/login', { replace: true });
-  };
-  const userPhoto = sessionStorage.getItem('fotoUsuario');
+  const userId = sessionStorage.getItem('idUsuario');
+  const [userPhoto, setUserPhoto] = useState(sessionStorage.getItem('fotoUsuario') || localStorage.getItem('fotoUsuario'));
+
+  useEffect(() => {
+    const loadUserPhoto = async () => {
+      try {
+        const res = await api.get('/users/me');
+        if (res.data?.foto) {
+          console.log('✓ Foto carregada de /users/me:', res.data.foto);
+          setUserPhoto(res.data.foto);
+          sessionStorage.setItem('fotoUsuario', res.data.foto);
+          localStorage.setItem('fotoUsuario', res.data.foto);
+          return;
+        }
+      } catch (err) {
+        console.warn('Erro ao carregar de /users/me:', err.message);
+      }
+
+      if (userId) {
+        try {
+          const res = await api.get(`/users/${userId}`);
+          if (res.data?.foto) {
+            console.log('✓ Foto carregada de /users/{id}:', res.data.foto);
+            setUserPhoto(res.data.foto);
+            sessionStorage.setItem('fotoUsuario', res.data.foto);
+            localStorage.setItem('fotoUsuario', res.data.foto);
+          }
+        } catch (err) {
+          console.warn('Erro ao carregar foto com ID:', err.message);
+        }
+      }
+    };
+
+    if (userId) {
+      loadUserPhoto();
+    }
+  }, [userId]);
+  
   const handleBack = () => {
     if (onBackToHome) return onBackToHome();
     navigate('/');
@@ -40,10 +73,12 @@ function Header({
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('nomeUsuario');
     sessionStorage.removeItem('fotoUsuario');
+    sessionStorage.removeItem('idUsuario');
     localStorage.removeItem('token');
     localStorage.removeItem('nomeUsuario');
     localStorage.removeItem('fotoUsuario');
-    navigate('/login');
+    localStorage.removeItem('idUsuario');
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -126,9 +161,22 @@ function Header({
               <Avatar 
                 alt="User Avatar" 
                 src={userPhoto || ''}
-                sx={{ width: 40, height: 40, cursor: 'pointer' }} 
-                // onClick={() => navigate('/perfil')} vamos colocar futuramente a pagina de perfil!!
-              />
+                sx={{ 
+                  width: 40, 
+                  height: 40, 
+                  cursor: 'pointer', 
+                  backgroundColor: '#2e7d32',
+                  img: {
+                    referrerPolicy: 'no-referrer'
+                  }
+                }}
+                crossOrigin="anonymous"
+                onError={(e) => {
+                  console.warn('Erro ao carregar foto do usuário. URL:', userPhoto);
+                }}
+              >
+                {userName ? userName.charAt(0).toUpperCase() : 'U'}
+              </Avatar>
               <Typography variant="body1" sx={{ fontWeight: 500 }}>Bem vindo, {userName}!</Typography>
               <Button sx={{border: '1px solid rgba(46, 139, 87, 0.3)', borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }} onClick={handleLogout}>Sair</Button>
             </Box>

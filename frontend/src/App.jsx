@@ -13,8 +13,8 @@ import QuestionarioStepper from "./Pages/QuestionarioStepper";
 import ResumoCircunferencia from "./Pages/ResumoCircunferencia";
 import Diet from "./Pages/Diet";
 import Dashboard from "./Pages/Dashboard";
-
 import PatientRegister from './Pages/PatientRegister';
+import { restoreUserDataFromBackend } from './utils/userDataRestorer';
 
 function isAuthenticated() {
   return Boolean(localStorage.getItem('token') || sessionStorage.getItem('token'));
@@ -72,6 +72,13 @@ function Layout() {
 }
 
 function App() {
+  React.useEffect(() => {
+    // Restaura dados do usuário ao recarregar a página
+    if (localStorage.getItem('token') || sessionStorage.getItem('token')) {
+      restoreUserDataFromBackend();
+    }
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />

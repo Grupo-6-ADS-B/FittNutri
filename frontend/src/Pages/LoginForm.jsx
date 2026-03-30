@@ -101,7 +101,6 @@ function LoginForm() {
     }
   };
 
-  // Função de login com Google
   const handleGoogleLogin = async (credentialResponse) => {
     console.log('Google credentialResponse:', credentialResponse);
     setError('');
@@ -110,41 +109,61 @@ function LoginForm() {
     try {
       decoded = jwtDecode(credentialResponse.credential);
       console.log('Google decoded:', decoded);
+      console.log('Google picture URL:', decoded.picture);
+      console.log('Todos os campos:', Object.keys(decoded));
     } catch (decodeErr) {
       console.error('Erro ao decodificar JWT do Google:', decodeErr);
       setError('Erro ao decodificar dados do Google.');
       return;
     }
     try {
-      // Salva nome e foto do Google
       sessionStorage.setItem('token', credentialResponse.credential);
       localStorage.setItem('token', credentialResponse.credential);
       sessionStorage.setItem('nomeUsuario', decoded.name || 'Google User');
       localStorage.setItem('nomeUsuario', decoded.name || 'Google User');
-      if (decoded.picture) {
-        sessionStorage.setItem('fotoUsuario', decoded.picture);
-        localStorage.setItem('fotoUsuario', decoded.picture);
+      
+      const photoUrl = decoded.picture;
+      if (photoUrl && photoUrl.trim()) {
+        console.log('✓ Salvando foto do Google:', photoUrl);
+        sessionStorage.setItem('fotoUsuario', photoUrl);
+        localStorage.setItem('fotoUsuario', photoUrl);
+      } else {
+        console.warn('✗ Foto não encontrada no JWT do Google ou está vazia');
       }
-      // Envia para o backend para salvar no banco
+      
       console.log('Enviando para backend /users/google-login:', {
         name: decoded.name,
         email: decoded.email,
-        picture: decoded.picture,
+        picture: photoUrl,
         sub: decoded.sub,
-        token: credentialResponse.credential
       });
-      await api.post('/users/google-login', {
+      const response = await api.post('/users/google-login', {
         name: decoded.name,
         email: decoded.email,
-        picture: decoded.picture,
+        picture: photoUrl,
         sub: decoded.sub,
         token: credentialResponse.credential
       });
+      
+      console.log('Resposta do backend:', response.data);
+      
+      if (response.data?.foto) {
+        console.log('✓ Foto retornada do backend:', response.data.foto);
+        sessionStorage.setItem('fotoUsuario', response.data.foto);
+        localStorage.setItem('fotoUsuario', response.data.foto);
+      }
+      if (response.data?.id) {
+        sessionStorage.setItem('idUsuario', response.data.id);
+        localStorage.setItem('idUsuario', response.data.id);
+      }
+      
       setSuccess(`Login Google realizado com sucesso! Bem-vindo(a), ${decoded.name || ''}`);
-      navigate('/gestor');
+      setTimeout(() => {
+        navigate('/gestor', { replace: true });
+      }, 500);
     } catch (err) {
       console.error('Erro ao salvar usuário Google ou redirecionar:', err);
-      setError('Erro ao autenticar com o Google.');
+      setError('Erro ao autenticar com o Google. ' + (err.response?.data?.error || err.message));
     }
   };
 
