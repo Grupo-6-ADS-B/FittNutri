@@ -10,6 +10,8 @@ import {
   CssBaseline,
   Snackbar,
   Alert,
+  Checkbox,
+  FormControlLabel,
   MenuItem,
   Divider,
   Stack
@@ -29,7 +31,8 @@ export default function UserRegister() {
     cidade: "",
     sexo: "",
     etnia: "",
-    atividade: ""
+    atividade: "",
+    autorizaCadastro: false
   });
   const [errors, setErrors] = useState({});
   const [notification, setNotification] = useState({
@@ -150,8 +153,8 @@ export default function UserRegister() {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    let newValue = value;
+    const { name, value, type, checked } = e.target;
+    let newValue = type === "checkbox" ? checked : value;
     if (name === "cpf") {
       newValue = maskCPF(value);
     } else if (name === "phone") {
@@ -202,6 +205,7 @@ export default function UserRegister() {
     }
     if (!formData.estado) newErrors.estado = "Campo obrigatório";
     if (!formData.cidade) newErrors.cidade = "Campo obrigatório";
+    if (!formData.autorizaCadastro) newErrors.autorizaCadastro = "É necessário autorizar o cadastro das informações no sistema";
     return newErrors;
   };
 
@@ -421,6 +425,39 @@ export default function UserRegister() {
                 <MenuItem value="muito ativo">Muito ativo</MenuItem>
                 <MenuItem value="extremamente ativo">Extremamente ativo</MenuItem>
               </TextField>
+
+              <Box
+                sx={{
+                  px: 1,
+                  py: 1.5,
+                  borderColor: errors.autorizaCadastro ? 'error.main' : 'divider',
+                  backgroundColor: errors.autorizaCadastro ? 'rgba(211, 47, 47, 0.04)' : 'transparent'
+                }}
+              >
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      name="autorizaCadastro"
+                      checked={formData.autorizaCadastro}
+                      onChange={handleChange}
+                      color="success"
+                    />
+                  }
+                  label="O paciente autoriza o cadastro das informações no sistema."
+                  sx={{
+                    alignItems: 'center',
+                    m: 0,
+                    '& .MuiFormControlLabel-label': {
+                      lineHeight: 1.4
+                    }
+                  }}
+                />
+                {errors.autorizaCadastro && (
+                  <Typography variant="caption" color="error" sx={{ display: 'block', mt: 0.5, ml: 4.5 }}>
+                    {errors.autorizaCadastro}
+                  </Typography>
+                )}
+              </Box>
 
               <Divider sx={{ mt: 1 }} />
               
