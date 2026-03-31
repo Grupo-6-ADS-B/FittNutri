@@ -9,6 +9,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,12 +33,13 @@ public class FoodItensController {
     @Operation(summary = "Lista todos os alimentos")
     @ApiResponse(responseCode = "200", description = "Dados retornados com sucesso")
     @ApiResponse(responseCode = "404", description = "Nenhum dado encontrado")
-    public ResponseEntity<List<FoodItensModel>> getAllFoodItems() {
-        List<FoodItensModel> foodItems = service.getAllFoodItems();
-        if (foodItems.isEmpty()){
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(foodItems);
+    public ResponseEntity<Page<FoodItensModel>> getFoodItems(
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+
+        Pageable pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1));
+        Page<FoodItensModel> result = service.findAll(pageable);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/search")
