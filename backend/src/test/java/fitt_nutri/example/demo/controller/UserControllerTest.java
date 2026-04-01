@@ -1,6 +1,5 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.adapter.UserAdapter;
 import fitt_nutri.example.demo.dto.login.LoginListDTO;
 import fitt_nutri.example.demo.dto.login.LoginRequestDTO;
 import fitt_nutri.example.demo.dto.login.LoginTokenDTO;
@@ -8,6 +7,7 @@ import fitt_nutri.example.demo.dto.request.UserRequestDTO;
 import fitt_nutri.example.demo.dto.response.UserResponseDTO;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.service.LoginService;
+import fitt_nutri.example.demo.service.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -31,7 +31,7 @@ class UserControllerTest {
     private UserController controller;
 
     @Mock
-    private UserAdapter adapter;
+    private UserService userService;
 
     @Mock
     private LoginService service;
@@ -63,7 +63,7 @@ class UserControllerTest {
 
         ResponseEntity<LoginTokenDTO> response = controller.loginUser(dto);
 
-        assertEquals(400, response.getStatusCodeValue());
+        assertEquals(400, response.getStatusCode().value());
         assertNull(response.getBody());
         verify(service, never()).autenticar(any());
     }
@@ -102,13 +102,13 @@ class UserControllerTest {
     void getUserById_DeveRetornar200EUsuario() {
         Integer id = 1;
         UserResponseDTO dto = mock(UserResponseDTO.class);
-        when(adapter.getUserById(id)).thenReturn(dto);
+        when(userService.getUserByIdAndReturn(id)).thenReturn(dto);
 
         ResponseEntity<UserResponseDTO> response = controller.getUserById(id);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(dto, response.getBody());
-        verify(adapter).getUserById(id);
+        verify(userService).getUserByIdAndReturn(id);
     }
 
     // ---------- PUT /users/{id} ----------
@@ -120,13 +120,13 @@ class UserControllerTest {
         UserRequestDTO request = mock(UserRequestDTO.class);
         UserResponseDTO responseDTO = mock(UserResponseDTO.class);
 
-        when(adapter.updateUser(id, request)).thenReturn(responseDTO);
+        when(userService.updateUserAndReturn(id, request)).thenReturn(responseDTO);
 
         ResponseEntity<UserResponseDTO> response = controller.updateUser(id, request);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(responseDTO, response.getBody());
-        verify(adapter).updateUser(id, request);
+        verify(userService).updateUserAndReturn(id, request);
     }
 
     // ---------- PATCH /users/{id} ----------
@@ -138,13 +138,13 @@ class UserControllerTest {
         Map<String, Object> updates = Map.of("nome", "Novo Nome");
         UserResponseDTO responseDTO = mock(UserResponseDTO.class);
 
-        when(adapter.patchUser(id, updates)).thenReturn(responseDTO);
+        when(userService.patchUserAndReturn(id, updates)).thenReturn(responseDTO);
 
         ResponseEntity<UserResponseDTO> response = controller.patchUser(id, updates);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(responseDTO, response.getBody());
-        verify(adapter).patchUser(id, updates);
+        verify(userService).patchUserAndReturn(id, updates);
     }
 
     // ---------- DELETE /users/{id} ----------
@@ -154,11 +154,11 @@ class UserControllerTest {
     void deleteUser_DeveRetornar204() {
         Integer id = 1;
 
-        // adapter.deleteUser não retorna nada, só verificamos a chamada
+        // userService.deleteUser não retorna nada, só verificamos a chamada
         ResponseEntity<Void> response = controller.deleteUser(id);
 
-        assertEquals(204, response.getStatusCodeValue());
+        assertEquals(204, response.getStatusCode().value());
         assertNull(response.getBody());
-        verify(adapter).deleteUser(id);
+        verify(userService).deleteUser(id);
     }
 }

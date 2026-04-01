@@ -1,8 +1,8 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.adapter.SchedulingAdapter;
 import fitt_nutri.example.demo.dto.request.SchedulingRequestDTO;
 import fitt_nutri.example.demo.dto.response.SchedulingResponseDTO;
+import fitt_nutri.example.demo.service.SchedulingService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -24,7 +24,7 @@ import java.util.List;
 @Tag(name = "Agendamentos", description = "CRUD de agendamentos")
 public class SchedulingController {
 
-    private final SchedulingAdapter adapter;
+    private final SchedulingService service;
 
     @PostMapping
     @Operation(summary = "Cria um agendamento")
@@ -33,7 +33,7 @@ public class SchedulingController {
             @ApiResponse(responseCode = "404", description = "Paciente ou nutricionista não encontrado")
     })
     public ResponseEntity<SchedulingResponseDTO> create(@Valid @RequestBody SchedulingRequestDTO dto) {
-        return ResponseEntity.status(201).body(adapter.create(dto));
+        return ResponseEntity.status(201).body(service.createAndReturn(dto));
     }
 
     @GetMapping
@@ -42,7 +42,7 @@ public class SchedulingController {
             @ApiResponse(responseCode = "200", description = "Lista de agendamentos retornada")
     })
     public ResponseEntity<List<SchedulingResponseDTO>> getAll() {
-        return ResponseEntity.ok(adapter.getAll());
+        return ResponseEntity.ok(service.getAllAndReturn());
     }
 
     @GetMapping("/{id}")
@@ -52,7 +52,7 @@ public class SchedulingController {
             @ApiResponse(responseCode = "404", description = "Agendamento não encontrado")
     })
     public ResponseEntity<SchedulingResponseDTO> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(adapter.getById(id));
+        return ResponseEntity.ok(service.getByIdAndReturn(id));
     }
 
     @GetMapping("/patient/{pacienteId}")
@@ -62,7 +62,7 @@ public class SchedulingController {
             @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     })
     public ResponseEntity<List<SchedulingResponseDTO>> getByPatient(@PathVariable Integer pacienteId) {
-        return ResponseEntity.ok(adapter.getByPatient(pacienteId));
+        return ResponseEntity.ok(service.getByPatientAndReturn(pacienteId));
     }
 
     @GetMapping("/nutritionist/{usuarioId}")
@@ -77,7 +77,7 @@ public class SchedulingController {
             @RequestParam(name = "size", defaultValue = "20") int size) {
 
         var pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1));
-        return ResponseEntity.ok(adapter.getByNutritionist(usuarioId, pageable));
+        return ResponseEntity.ok(service.getByNutritionistAndReturn(usuarioId, pageable));
     }
 
     @PutMapping("/{id}")
@@ -87,7 +87,7 @@ public class SchedulingController {
             @ApiResponse(responseCode = "404", description = "Agendamento não encontrado")
     })
     public ResponseEntity<SchedulingResponseDTO> update(@PathVariable Integer id, @Valid @RequestBody SchedulingRequestDTO dto) {
-        return ResponseEntity.ok(adapter.update(id, dto));
+        return ResponseEntity.ok(service.updateAndReturn(id, dto));
     }
 
     @PatchMapping("/{id}/date")
@@ -97,7 +97,7 @@ public class SchedulingController {
             @ApiResponse(responseCode = "404", description = "Agendamento não encontrado")
     })
     public ResponseEntity<SchedulingResponseDTO> updateDate(@PathVariable Integer id, @RequestBody LocalDate newDate) {
-        return ResponseEntity.ok(adapter.updateDate(id, newDate));
+        return ResponseEntity.ok(service.updateDateAndReturn(id, newDate));
     }
 
     @PatchMapping("/{id}/observacoes")
@@ -107,7 +107,7 @@ public class SchedulingController {
             @ApiResponse(responseCode = "404", description = "Agendamento não encontrado")
     })
     public ResponseEntity<SchedulingResponseDTO> updateObservacoes(@PathVariable Integer id, @RequestBody String observacoes) {
-        return ResponseEntity.ok(adapter.updateObservacoes(id, observacoes));
+        return ResponseEntity.ok(service.updateObservacoeseAndReturn(id, observacoes));
     }
 
     @DeleteMapping("/{id}")
@@ -117,7 +117,7 @@ public class SchedulingController {
             @ApiResponse(responseCode = "404", description = "Agendamento não encontrado")
     })
     public ResponseEntity<Void> delete(@PathVariable Integer id) {
-        adapter.delete(id);
+        service.deleteScheduling(id);
         return ResponseEntity.noContent().build();
     }
 }

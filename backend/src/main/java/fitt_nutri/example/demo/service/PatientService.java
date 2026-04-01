@@ -1,6 +1,7 @@
 package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.dto.request.PatientRequestDTO;
+import fitt_nutri.example.demo.dto.response.PatientResponseDTO;
 import fitt_nutri.example.demo.model.PatientModel;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.PatientRepository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -94,5 +96,48 @@ public class PatientService {
             }
         });
         return repository.save(p);
+    }
+
+    // ===== MÉTODOS COM RETORNO DTO (para Controller) =====
+
+    public PatientResponseDTO createAndReturn(PatientRequestDTO dto) {
+        PatientModel p = create(dto);
+        return mapToResponseDTO(p);
+    }
+
+    public Page<PatientResponseDTO> getAllAndReturn(Pageable pageable) {
+        Page<PatientModel> patients = findAllByNutricionista(pageable);
+        return patients.map(this::mapToResponseDTO);
+    }
+
+    public PatientResponseDTO getByIdAndReturn(Integer id) {
+        PatientModel p = findByIdAndNutricionista(id);
+        return mapToResponseDTO(p);
+    }
+
+    public PatientResponseDTO updateAndReturn(Integer id, PatientRequestDTO dto) {
+        PatientModel p = update(id, dto);
+        return mapToResponseDTO(p);
+    }
+
+    public PatientResponseDTO patchAndReturn(Integer id, Map<String, Object> updates) {
+        PatientModel p = patchPatient(id, updates);
+        return mapToResponseDTO(p);
+    }
+
+    private PatientResponseDTO mapToResponseDTO(PatientModel p) {
+        return new PatientResponseDTO(
+                p.getId(),
+                p.getNome(),
+                p.getEmail(),
+                p.getCpf(),
+                p.getTelefone(),
+                p.getEstado(),
+                p.getCidade(),
+                p.getSexo(),
+                p.getEtnia(),
+                p.getAtividade(),
+                p.getNutricionista().getId()
+        );
     }
 }

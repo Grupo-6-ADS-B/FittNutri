@@ -39,11 +39,11 @@ class AnthropometricDataControllerTest {
         model.setAltura(1.75);
         model.setPeso(70.0);
         model.setImc(22.86);
-        model.setPercentualGordura(15.0);
+        model.setPorcentagemGordura(15.0);
         model.setMassaMuscular(50.0);
-        model.setTmb(1600);
+        model.setTaxaMetabolicaBasal(1600.0);
         model.setIdadeMetabolica(25);
-        model.setGorduraVisceral(5);
+        model.setGorduraVisceral(5.0);
     }
 
     @Test
@@ -54,7 +54,7 @@ class AnthropometricDataControllerTest {
 
         ResponseEntity<List<AnthropometricDataModel>> response = controller.getAll();
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(1, response.getBody().size());
         assertEquals(model, response.getBody().get(0));
     }
@@ -66,7 +66,7 @@ class AnthropometricDataControllerTest {
         when(service.getById(1)).thenReturn(model);
         ResponseEntity<AnthropometricDataModel> response = controller.getById(1);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(1, response.getBody().getIdDadosAntropometricos());
         assertEquals(model, response.getBody());
     }
@@ -77,7 +77,7 @@ class AnthropometricDataControllerTest {
         when(service.create(model)).thenReturn(model);
         ResponseEntity<AnthropometricDataModel> response = controller.create(model);
 
-        assertEquals(201, response.getStatusCodeValue());
+        assertEquals(201, response.getStatusCode().value());
         assertEquals(model, response.getBody());
     }
 
@@ -90,7 +90,7 @@ class AnthropometricDataControllerTest {
 
         ResponseEntity<AnthropometricDataModel> response = controller.update(id, model);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(id, response.getBody().getIdDadosAntropometricos());
         assertEquals(model, response.getBody());
     }
@@ -106,7 +106,7 @@ class AnthropometricDataControllerTest {
 
         ResponseEntity<AnthropometricDataModel> response = controller.partialUpdate(id, fields);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(model, response.getBody());
     }
 
@@ -117,7 +117,7 @@ class AnthropometricDataControllerTest {
 
         ResponseEntity<Void> response = controller.delete(id);
 
-        assertEquals(204, response.getStatusCodeValue());
+        assertEquals(204, response.getStatusCode().value());
         verify(service).deleteById(id);
     }
 
@@ -132,7 +132,7 @@ class AnthropometricDataControllerTest {
 
         ResponseEntity<?> response = controller.partialUpdateByPaciente(pacienteId, fields);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(model, response.getBody());
     }
 
@@ -146,7 +146,7 @@ class AnthropometricDataControllerTest {
 
         ResponseEntity<?> response = controller.getByPaciente(pacienteId);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(lista, response.getBody());
     }
 }

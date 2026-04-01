@@ -1,8 +1,8 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.adapter.FormAdapter;
 import fitt_nutri.example.demo.dto.request.FormRequestDTO;
 import fitt_nutri.example.demo.dto.response.FormResponseDTO;
+import fitt_nutri.example.demo.service.FormService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -19,14 +19,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FormController {
 
-    private final FormAdapter formAdapter;
+    private final FormService formService;
 
     @Operation(summary = "Cria um formulário")
     @ApiResponse(responseCode = "201", description = "Formulário criado com sucesso")
     @ApiResponse(responseCode = "400", description = "Parâmetros inválidos")
     @PostMapping
     public ResponseEntity<FormResponseDTO> createForm(@Valid @RequestBody FormRequestDTO dto) {
-        FormResponseDTO created = formAdapter.create(dto);
+        FormResponseDTO created = formService.createFormAndReturn(dto);
         return ResponseEntity.status(201).body(created);
     }
 
@@ -35,7 +35,7 @@ public class FormController {
     @ApiResponse(responseCode = "204", description = "Nenhum formulário encontrado")
     @GetMapping
     public ResponseEntity<List<FormResponseDTO>> getAllForms() {
-        List<FormResponseDTO> forms = formAdapter.getAll();
+        List<FormResponseDTO> forms = formService.getAllFormsAndReturn();
         if (forms.isEmpty()) {
             return ResponseEntity.noContent().build();
         }
@@ -48,7 +48,7 @@ public class FormController {
     @GetMapping("/{id}")
     public ResponseEntity<FormResponseDTO> getFormById(@PathVariable Integer id) {
         try {
-            FormResponseDTO form = formAdapter.getById(id);
+            FormResponseDTO form = formService.getFormByIdAndReturn(id);
             return ResponseEntity.ok(form);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
@@ -63,7 +63,7 @@ public class FormController {
     public ResponseEntity<FormResponseDTO> updateForm(@PathVariable Integer id,
                                                       @Valid @RequestBody FormRequestDTO dto) {
         try {
-            FormResponseDTO updated = formAdapter.update(id, dto);
+            FormResponseDTO updated = formService.updateFormAndReturn(id, dto);
             return ResponseEntity.ok(updated);
         } catch (IllegalArgumentException e) {
             if (e.getMessage().contains("não encontrado")) {
@@ -80,7 +80,7 @@ public class FormController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteForm(@PathVariable Integer id) {
         try {
-            formAdapter.delete(id);
+            formService.deleteForm(id);
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();

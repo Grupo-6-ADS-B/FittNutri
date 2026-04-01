@@ -2,6 +2,7 @@ package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.dto.login.LoginRequestDTO;
 import fitt_nutri.example.demo.dto.request.UserRequestDTO;
+import fitt_nutri.example.demo.dto.response.UserResponseDTO;
 import fitt_nutri.example.demo.exceptions.ConflictException;
 import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.UserModel;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -156,5 +158,53 @@ public class UserService {
         } else {
             throw new NotFoundException("Usuário não encontrado");
         }
+    }
+
+    // ===== MÉTODOS COM RETORNO DTO (para Controller) =====
+
+    public UserResponseDTO createUserAndReturn(UserRequestDTO dto) {
+        UserModel user = createUser(dto);
+        return mapToResponseDTO(user);
+    }
+
+    public UserResponseDTO getUserByIdAndReturn(Integer id) {
+        UserModel user = getUserById(id);
+        return mapToResponseDTO(user);
+    }
+
+    public UserResponseDTO getUserByEmailAndReturn(String email) {
+        UserModel user = getUserByEmail(email);
+        return mapToResponseDTO(user);
+    }
+
+    public UserResponseDTO getUserByCpfAndReturn(String cpf) {
+        UserModel user = getUserByCpf(cpf);
+        return mapToResponseDTO(user);
+    }
+
+    public UserResponseDTO updateUserAndReturn(Integer id, UserRequestDTO dto) {
+        UserModel user = updateUser(id, dto);
+        return mapToResponseDTO(user);
+    }
+
+    public UserResponseDTO patchUserAndReturn(Integer id, Map<String, Object> updates) {
+        UserModel user = patchUser(id, updates);
+        return mapToResponseDTO(user);
+    }
+
+    public UserResponseDTO loginAndReturn(LoginRequestDTO dto) {
+        UserModel user = login(dto);
+        return mapToResponseDTO(user);
+    }
+
+    public List<UserResponseDTO> getAllUsersAndReturn() {
+        return getAllUsers()
+                .stream()
+                .map(this::mapToResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    private UserResponseDTO mapToResponseDTO(UserModel user) {
+        return new UserResponseDTO(user.getId(), user.getNome(), user.getEmail(), user.getCpf(), user.getCrn());
     }
 }

@@ -1,6 +1,7 @@
 package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.dto.request.FormRequestDTO;
+import fitt_nutri.example.demo.dto.response.FormResponseDTO;
 import fitt_nutri.example.demo.model.FormModel;
 import fitt_nutri.example.demo.repository.FormRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -61,5 +63,37 @@ public class FormService {
             throw new IllegalArgumentException("Formulário não encontrado");
         }
         formRepository.deleteById(id);
+    }
+
+    // ===== MÉTODOS COM RETORNO DTO (para Controller) =====
+
+    public FormResponseDTO createFormAndReturn(FormRequestDTO dto) {
+        FormModel form = createForm(dto);
+        return toResponseDTO(form);
+    }
+
+    public FormResponseDTO getFormByIdAndReturn(Integer id) {
+        FormModel form = getFormById(id);
+        return toResponseDTO(form);
+    }
+
+    public List<FormResponseDTO> getAllFormsAndReturn() {
+        return getAllForms()
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public FormResponseDTO updateFormAndReturn(Integer id, FormRequestDTO dto) {
+        FormModel form = updateForm(id, dto);
+        return toResponseDTO(form);
+    }
+
+    private FormResponseDTO toResponseDTO(FormModel form) {
+        return new FormResponseDTO(
+                form.getId(),
+                form.getNome(),
+                form.getMensagem()
+        );
     }
 }

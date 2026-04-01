@@ -1,8 +1,8 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.adapter.SchedulingAdapter;
 import fitt_nutri.example.demo.dto.request.SchedulingRequestDTO;
 import fitt_nutri.example.demo.dto.response.SchedulingResponseDTO;
+import fitt_nutri.example.demo.service.SchedulingService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +14,10 @@ import org.springframework.http.ResponseEntity;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -24,7 +28,7 @@ class SchedulingControllerTest {
     private SchedulingController controller;
 
     @Mock
-    private SchedulingAdapter adapter;
+    private SchedulingService service;
 
     // ---------- POST /schedulings ----------
 
@@ -34,13 +38,13 @@ class SchedulingControllerTest {
         SchedulingRequestDTO dto = mock(SchedulingRequestDTO.class);
         SchedulingResponseDTO responseDTO = mock(SchedulingResponseDTO.class);
 
-        when(adapter.create(dto)).thenReturn(responseDTO);
+        when(service.createAndReturn(dto)).thenReturn(responseDTO);
 
         ResponseEntity<SchedulingResponseDTO> response = controller.create(dto);
 
-        assertEquals(201, response.getStatusCodeValue());
+        assertEquals(201, response.getStatusCode().value());
         assertEquals(responseDTO, response.getBody());
-        verify(adapter).create(dto);
+        verify(service).createAndReturn(dto);
     }
 
     // ---------- GET /schedulings ----------
@@ -49,13 +53,13 @@ class SchedulingControllerTest {
     @DisplayName("getAll - deve retornar 200 e lista de agendamentos")
     void getAll_DeveRetornar200ELista() {
         List<SchedulingResponseDTO> list = List.of(mock(SchedulingResponseDTO.class));
-        when(adapter.getAll()).thenReturn(list);
+        when(service.getAllAndReturn()).thenReturn(list);
 
         ResponseEntity<List<SchedulingResponseDTO>> response = controller.getAll();
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(list, response.getBody());
-        verify(adapter).getAll();
+        verify(service).getAllAndReturn();
     }
 
     // ---------- GET /schedulings/{id} ----------
@@ -66,13 +70,13 @@ class SchedulingControllerTest {
         Integer id = 1;
         SchedulingResponseDTO dto = mock(SchedulingResponseDTO.class);
 
-        when(adapter.getById(id)).thenReturn(dto);
+        when(service.getByIdAndReturn(id)).thenReturn(dto);
 
         ResponseEntity<SchedulingResponseDTO> response = controller.getById(id);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(dto, response.getBody());
-        verify(adapter).getById(id);
+        verify(service).getByIdAndReturn(id);
     }
 
     // ---------- GET /schedulings/patient/{id} ----------
@@ -83,13 +87,13 @@ class SchedulingControllerTest {
         Integer id = 2;
         List<SchedulingResponseDTO> list = List.of(mock(SchedulingResponseDTO.class));
 
-        when(adapter.getByPatient(id)).thenReturn(list);
+        when(service.getByPatientAndReturn(id)).thenReturn(list);
 
         ResponseEntity<List<SchedulingResponseDTO>> response = controller.getByPatient(id);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(list, response.getBody());
-        verify(adapter).getByPatient(id);
+        verify(service).getByPatientAndReturn(id);
     }
 
     // ---------- GET /schedulings/nutritionist/{id} ----------
@@ -98,15 +102,16 @@ class SchedulingControllerTest {
     @DisplayName("getByNutritionist - deve retornar 200 e lista do nutricionista")
     void getByNutritionist_DeveRetornar200ELista() {
         Integer id = 3;
-        List<SchedulingResponseDTO> list = List.of(mock(SchedulingResponseDTO.class));
+        SchedulingResponseDTO mockDto = mock(SchedulingResponseDTO.class);
+        Page<SchedulingResponseDTO> page = new PageImpl<>(List.of(mockDto), PageRequest.of(0, 20), 1);
 
-        when(adapter.getByNutritionist(id)).thenReturn(list);
+        when(service.getByNutritionistAndReturn(id, PageRequest.of(0, 20))).thenReturn(page);
 
-        ResponseEntity<List<SchedulingResponseDTO>> response = controller.getByNutritionist(id);
+        ResponseEntity<Page<SchedulingResponseDTO>> response = controller.getByNutritionist(id, 0, 20);
 
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(list, response.getBody());
-        verify(adapter).getByNutritionist(id);
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(page, response.getBody());
+        verify(service).getByNutritionistAndReturn(id, PageRequest.of(0, 20));
     }
 
     // ---------- PUT /schedulings/{id} ----------
@@ -118,13 +123,13 @@ class SchedulingControllerTest {
         SchedulingRequestDTO dto = mock(SchedulingRequestDTO.class);
         SchedulingResponseDTO updated = mock(SchedulingResponseDTO.class);
 
-        when(adapter.update(id, dto)).thenReturn(updated);
+        when(service.updateAndReturn(id, dto)).thenReturn(updated);
 
         ResponseEntity<SchedulingResponseDTO> response = controller.update(id, dto);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(updated, response.getBody());
-        verify(adapter).update(id, dto);
+        verify(service).updateAndReturn(id, dto);
     }
 
     // ---------- PATCH /schedulings/{id}/date ----------
@@ -137,13 +142,13 @@ class SchedulingControllerTest {
 
         SchedulingResponseDTO dto = mock(SchedulingResponseDTO.class);
 
-        when(adapter.updateDate(id, novaData)).thenReturn(dto);
+        when(service.updateDateAndReturn(id, novaData)).thenReturn(dto);
 
         ResponseEntity<SchedulingResponseDTO> response = controller.updateDate(id, novaData);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(dto, response.getBody());
-        verify(adapter).updateDate(id, novaData);
+        verify(service).updateDateAndReturn(id, novaData);
     }
 
     // ---------- PATCH /schedulings/{id}/observacoes ----------
@@ -156,13 +161,13 @@ class SchedulingControllerTest {
 
         SchedulingResponseDTO dto = mock(SchedulingResponseDTO.class);
 
-        when(adapter.updateObservacoes(id, obs)).thenReturn(dto);
+        when(service.updateObservacoeseAndReturn(id, obs)).thenReturn(dto);
 
         ResponseEntity<SchedulingResponseDTO> response = controller.updateObservacoes(id, obs);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(dto, response.getBody());
-        verify(adapter).updateObservacoes(id, obs);
+        verify(service).updateObservacoeseAndReturn(id, obs);
     }
 
     // ---------- DELETE /schedulings/{id} ----------
@@ -174,7 +179,7 @@ class SchedulingControllerTest {
 
         ResponseEntity<Void> response = controller.delete(id);
 
-        assertEquals(204, response.getStatusCodeValue());
-        verify(adapter).delete(id);
+        assertEquals(204, response.getStatusCode().value());
+        verify(service).deleteScheduling(id);
     }
 }

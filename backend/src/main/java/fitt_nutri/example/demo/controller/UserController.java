@@ -1,6 +1,5 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.adapter.UserAdapter;
 import fitt_nutri.example.demo.dto.login.*;
 import fitt_nutri.example.demo.dto.request.UserRequestDTO;
 import fitt_nutri.example.demo.dto.response.UserResponseDTO;
@@ -27,7 +26,7 @@ import java.util.Map;
 @Tag(name = "Usuários", description = "CRUD de usuários")
 public class UserController {
 
-    private final UserAdapter adapter;
+    private final UserService userService;
     private final LoginService service;
 
     @PostMapping
@@ -67,7 +66,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> getUserById(@PathVariable Integer id) {
-        return ResponseEntity.ok(adapter.getUserById(id));
+        return ResponseEntity.ok(userService.getUserByIdAndReturn(id));
     }
 
     @GetMapping("/email/{email}")
@@ -77,7 +76,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> getUserByEmail(@PathVariable String email) {
-        return ResponseEntity.ok(adapter.getUserByEmail(email));
+        return ResponseEntity.ok(userService.getUserByEmailAndReturn(email));
     }
 
     @GetMapping("/cpf/{cpf}")
@@ -87,7 +86,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> getUserByCpf(@PathVariable String cpf) {
-        return ResponseEntity.ok(adapter.getUserByCpf(cpf));
+        return ResponseEntity.ok(userService.getUserByCpfAndReturn(cpf));
     }
 
     @PutMapping("/{id}")
@@ -98,7 +97,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Integer id, @Valid @RequestBody UserRequestDTO dto) {
-        return ResponseEntity.ok(adapter.updateUser(id, dto));
+        return ResponseEntity.ok(userService.updateUserAndReturn(id, dto));
     }
 
     @PatchMapping("/{id}")
@@ -109,7 +108,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<UserResponseDTO> patchUser(@PathVariable Integer id, @RequestBody Map<String, Object> updates) {
-        return ResponseEntity.ok(adapter.patchUser(id, updates));
+        return ResponseEntity.ok(userService.patchUserAndReturn(id, updates));
     }
 
     @DeleteMapping("/{id}")
@@ -119,7 +118,7 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<Void> deleteUser(@PathVariable Integer id) {
-        adapter.deleteUser(id);
+        userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
 

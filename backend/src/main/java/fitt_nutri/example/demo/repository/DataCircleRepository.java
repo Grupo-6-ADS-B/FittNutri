@@ -11,6 +11,8 @@ public interface DataCircleRepository extends JpaRepository<DataCircleModel, Int
 
     boolean existsByPaciente_Id(Integer pacienteId);
 
+    boolean existsByRotuloAndPaciente_Id(String rotulo, Integer pacienteId);
+
     // listar registros de um paciente
     List<DataCircleModel> findByPaciente_Id(Integer pacienteId);
 }

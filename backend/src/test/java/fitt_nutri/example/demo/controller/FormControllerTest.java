@@ -1,8 +1,8 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.adapter.FormAdapter;
 import fitt_nutri.example.demo.dto.request.FormRequestDTO;
 import fitt_nutri.example.demo.dto.response.FormResponseDTO;
+import fitt_nutri.example.demo.service.FormService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,7 +24,7 @@ class FormControllerTest {
     private FormController controller;
 
     @Mock
-    private FormAdapter formAdapter;
+    private FormService formService;
 
     // ---------- POST /forms ----------
 
@@ -34,13 +34,13 @@ class FormControllerTest {
         FormRequestDTO request = mock(FormRequestDTO.class);
         FormResponseDTO responseDTO = mock(FormResponseDTO.class);
 
-        when(formAdapter.create(request)).thenReturn(responseDTO);
+        when(formService.createFormAndReturn(request)).thenReturn(responseDTO);
 
         ResponseEntity<FormResponseDTO> response = controller.createForm(request);
 
         assertEquals(201, response.getStatusCodeValue());
         assertEquals(responseDTO, response.getBody());
-        verify(formAdapter).create(request);
+        verify(formService).createFormAndReturn(request);
     }
 
     // ---------- GET /forms ----------
@@ -49,25 +49,25 @@ class FormControllerTest {
     @DisplayName("getAllForms - deve retornar 200 e lista quando houver formulários")
     void getAllForms_DeveRetornar200ELista() {
         List<FormResponseDTO> lista = List.of(mock(FormResponseDTO.class));
-        when(formAdapter.getAll()).thenReturn(lista);
+        when(formService.getAllFormsAndReturn()).thenReturn(lista);
 
         ResponseEntity<List<FormResponseDTO>> response = controller.getAllForms();
 
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(lista, response.getBody());
-        verify(formAdapter).getAll();
+        verify(formService).getAllFormsAndReturn();
     }
 
     @Test
     @DisplayName("getAllForms - deve retornar 204 quando lista estiver vazia")
     void getAllForms_DeveRetornar204QuandoListaVazia() {
-        when(formAdapter.getAll()).thenReturn(Collections.emptyList());
+        when(formService.getAllFormsAndReturn()).thenReturn(Collections.emptyList());
 
         ResponseEntity<List<FormResponseDTO>> response = controller.getAllForms();
 
         assertEquals(204, response.getStatusCodeValue());
         assertNull(response.getBody());
-        verify(formAdapter).getAll();
+        verify(formService).getAllFormsAndReturn();
     }
 
     // ---------- GET /forms/{id} ----------
@@ -78,13 +78,13 @@ class FormControllerTest {
         Integer id = 1;
         FormResponseDTO dto = mock(FormResponseDTO.class);
 
-        when(formAdapter.getById(id)).thenReturn(dto);
+        when(formService.getFormByIdAndReturn(id)).thenReturn(dto);
 
         ResponseEntity<FormResponseDTO> response = controller.getFormById(id);
 
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(dto, response.getBody());
-        verify(formAdapter).getById(id);
+        verify(formService).getFormByIdAndReturn(id);
     }
 
     @Test
@@ -92,14 +92,14 @@ class FormControllerTest {
     void getFormById_DeveRetornar404QuandoNaoEncontrado() {
         Integer id = 1;
 
-        when(formAdapter.getById(id))
+        when(formService.getFormByIdAndReturn(id))
                 .thenThrow(new IllegalArgumentException("Formulário não encontrado"));
 
         ResponseEntity<FormResponseDTO> response = controller.getFormById(id);
 
         assertEquals(404, response.getStatusCodeValue());
         assertNull(response.getBody());
-        verify(formAdapter).getById(id);
+        verify(formService).getFormByIdAndReturn(id);
     }
 
     // ---------- PUT /forms/{id} ----------
@@ -111,13 +111,13 @@ class FormControllerTest {
         FormRequestDTO request = mock(FormRequestDTO.class);
         FormResponseDTO responseDTO = mock(FormResponseDTO.class);
 
-        when(formAdapter.update(id, request)).thenReturn(responseDTO);
+        when(formService.updateFormAndReturn(id, request)).thenReturn(responseDTO);
 
         ResponseEntity<FormResponseDTO> response = controller.updateForm(id, request);
 
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(responseDTO, response.getBody());
-        verify(formAdapter).update(id, request);
+        verify(formService).updateFormAndReturn(id, request);
     }
 
     @Test
@@ -126,14 +126,14 @@ class FormControllerTest {
         Integer id = 1;
         FormRequestDTO request = mock(FormRequestDTO.class);
 
-        when(formAdapter.update(id, request))
+        when(formService.updateFormAndReturn(id, request))
                 .thenThrow(new IllegalArgumentException("Formulário não encontrado"));
 
         ResponseEntity<FormResponseDTO> response = controller.updateForm(id, request);
 
         assertEquals(404, response.getStatusCodeValue());
         assertNull(response.getBody());
-        verify(formAdapter).update(id, request);
+        verify(formService).updateFormAndReturn(id, request);
     }
 
     @Test
@@ -142,14 +142,14 @@ class FormControllerTest {
         Integer id = 1;
         FormRequestDTO request = mock(FormRequestDTO.class);
 
-        when(formAdapter.update(id, request))
+        when(formService.updateFormAndReturn(id, request))
                 .thenThrow(new IllegalArgumentException("Parâmetros inválidos"));
 
         ResponseEntity<FormResponseDTO> response = controller.updateForm(id, request);
 
         assertEquals(400, response.getStatusCodeValue());
         assertNull(response.getBody());
-        verify(formAdapter).update(id, request);
+        verify(formService).updateFormAndReturn(id, request);
     }
 
     // ---------- DELETE /forms/{id} ----------
@@ -163,7 +163,7 @@ class FormControllerTest {
 
         assertEquals(204, response.getStatusCodeValue());
         assertNull(response.getBody());
-        verify(formAdapter).delete(id);
+        verify(formService).deleteForm(id);
     }
 
     @Test
@@ -172,12 +172,12 @@ class FormControllerTest {
         Integer id = 1;
 
         doThrow(new IllegalArgumentException("Formulário não encontrado"))
-                .when(formAdapter).delete(id);
+                .when(formService).deleteForm(id);
 
         ResponseEntity<Void> response = controller.deleteForm(id);
 
         assertEquals(404, response.getStatusCodeValue());
         assertNull(response.getBody());
-        verify(formAdapter).delete(id);
+        verify(formService).deleteForm(id);
     }
 }

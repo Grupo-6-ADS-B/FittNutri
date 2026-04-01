@@ -1,8 +1,8 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.adapter.PatientAdapter;
 import fitt_nutri.example.demo.dto.request.PatientRequestDTO;
 import fitt_nutri.example.demo.dto.response.PatientResponseDTO;
+import fitt_nutri.example.demo.service.PatientService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -13,6 +13,10 @@ import org.springframework.http.ResponseEntity;
 
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -26,7 +30,7 @@ class PatientControllerTest {
     private PatientController controller;
 
     @Mock
-    private PatientAdapter adapter;
+    private PatientService service;
 
     // ---------- POST /patients ----------
 
@@ -36,13 +40,13 @@ class PatientControllerTest {
         PatientRequestDTO request = mock(PatientRequestDTO.class);
         PatientResponseDTO responseDTO = mock(PatientResponseDTO.class);
 
-        when(adapter.create(request)).thenReturn(responseDTO);
+        when(service.createAndReturn(request)).thenReturn(responseDTO);
 
         ResponseEntity<PatientResponseDTO> response = controller.createPatient(request);
 
-        assertEquals(201, response.getStatusCodeValue());
+        assertEquals(201, response.getStatusCode().value());
         assertEquals(responseDTO, response.getBody());
-        verify(adapter).create(request);
+        verify(service).createAndReturn(request);
     }
 
     // ---------- GET /patients ----------
@@ -50,14 +54,15 @@ class PatientControllerTest {
     @Test
     @DisplayName("getAllPatients - deve retornar 200 e lista de pacientes")
     void getAllPatients_DeveRetornar200ELista() {
-        List<PatientResponseDTO> lista = List.of(mock(PatientResponseDTO.class));
-        when(adapter.getAll()).thenReturn(lista);
+        PatientResponseDTO mockDto = mock(PatientResponseDTO.class);
+        Page<PatientResponseDTO> page = new PageImpl<>(List.of(mockDto), PageRequest.of(0, 10), 1);
+        when(service.getAllAndReturn(PageRequest.of(0, 10))).thenReturn(page);
 
-        ResponseEntity<List<PatientResponseDTO>> response = controller.getAllPatients();
+        ResponseEntity<Page<PatientResponseDTO>> response = controller.getAllPatients(0);
 
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(lista, response.getBody());
-        verify(adapter).getAll();
+        assertEquals(200, response.getStatusCode().value());
+        assertEquals(page, response.getBody());
+        verify(service).getAllAndReturn(PageRequest.of(0, 10));
     }
 
     // ---------- GET /patients/{id} ----------
@@ -67,13 +72,13 @@ class PatientControllerTest {
     void getPatientById_DeveRetornar200EPaciente() {
         Integer id = 1;
         PatientResponseDTO dto = mock(PatientResponseDTO.class);
-        when(adapter.getById(id)).thenReturn(dto);
+        when(service.getByIdAndReturn(id)).thenReturn(dto);
 
         ResponseEntity<PatientResponseDTO> response = controller.getPatientById(id);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(dto, response.getBody());
-        verify(adapter).getById(id);
+        verify(service).getByIdAndReturn(id);
     }
 
     // ---------- PUT /patients/{id} ----------
@@ -85,13 +90,13 @@ class PatientControllerTest {
         PatientRequestDTO request = mock(PatientRequestDTO.class);
         PatientResponseDTO responseDTO = mock(PatientResponseDTO.class);
 
-        when(adapter.update(id, request)).thenReturn(responseDTO);
+        when(service.updateAndReturn(id, request)).thenReturn(responseDTO);
 
         ResponseEntity<PatientResponseDTO> response = controller.updatePatient(id, request);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(responseDTO, response.getBody());
-        verify(adapter).update(id, request);
+        verify(service).updateAndReturn(id, request);
     }
 
     // ---------- PATCH /patients/{id} ----------
@@ -103,13 +108,13 @@ class PatientControllerTest {
         Map<String, Object> updates = Map.of("nome", "Novo Nome");
         PatientResponseDTO responseDTO = mock(PatientResponseDTO.class);
 
-        when(adapter.patch(id, updates)).thenReturn(responseDTO);
+        when(service.patchAndReturn(id, updates)).thenReturn(responseDTO);
 
         ResponseEntity<PatientResponseDTO> response = controller.patchPatient(id, updates);
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(200, response.getStatusCode().value());
         assertEquals(responseDTO, response.getBody());
-        verify(adapter).patch(id, updates);
+        verify(service).patchAndReturn(id, updates);
     }
 
     // ---------- DELETE /patients/{id} ----------
@@ -121,8 +126,8 @@ class PatientControllerTest {
 
         ResponseEntity<Void> response = controller.deletePatient(id);
 
-        assertEquals(204, response.getStatusCodeValue());
+        assertEquals(204, response.getStatusCode().value());
         assertNull(response.getBody());
-        verify(adapter).delete(id);
+        verify(service).delete(id);
     }
 }

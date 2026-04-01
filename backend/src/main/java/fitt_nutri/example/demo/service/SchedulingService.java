@@ -1,6 +1,7 @@
 package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.dto.request.SchedulingRequestDTO;
+import fitt_nutri.example.demo.dto.response.SchedulingResponseDTO;
 import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.PatientModel;
 import fitt_nutri.example.demo.model.SchedulingModel;
@@ -16,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -119,5 +121,68 @@ public class SchedulingService {
         return repository.findAll().stream()
                 .filter(s -> s.getDataAgendada().equals(date))
                 .count();
+    }
+
+    // ===== MÉTODOS COM RETORNO DTO (para Controller) =====
+
+    public SchedulingResponseDTO createAndReturn(SchedulingRequestDTO dto) {
+        SchedulingModel scheduling = createScheduling(dto);
+        return toResponseDTO(scheduling);
+    }
+
+    public SchedulingResponseDTO getByIdAndReturn(Integer id) {
+        SchedulingModel scheduling = getSchedulingById(id);
+        return toResponseDTO(scheduling);
+    }
+
+    public List<SchedulingResponseDTO> getAllAndReturn() {
+        return getAllSchedulings()
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<SchedulingResponseDTO> getByPatientAndReturn(Integer pacienteId) {
+        return getByPatient(pacienteId)
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public List<SchedulingResponseDTO> getByNutritionistAndReturn(Integer usuarioId) {
+        return getByNutritionist(usuarioId)
+                .stream()
+                .map(this::toResponseDTO)
+                .collect(Collectors.toList());
+    }
+
+    public Page<SchedulingResponseDTO> getByNutritionistAndReturn(Integer usuarioId, Pageable pageable) {
+        Page<SchedulingModel> page = getByNutritionist(usuarioId, pageable);
+        return page.map(this::toResponseDTO);
+    }
+
+    public SchedulingResponseDTO updateAndReturn(Integer id, SchedulingRequestDTO dto) {
+        SchedulingModel scheduling = updateScheduling(id, dto);
+        return toResponseDTO(scheduling);
+    }
+
+    public SchedulingResponseDTO updateDateAndReturn(Integer id, LocalDate newDate) {
+        SchedulingModel scheduling = updateDate(id, newDate);
+        return toResponseDTO(scheduling);
+    }
+
+    public SchedulingResponseDTO updateObservacoeseAndReturn(Integer id, String observacoes) {
+        SchedulingModel scheduling = updateObservacoes(id, observacoes);
+        return toResponseDTO(scheduling);
+    }
+
+    private SchedulingResponseDTO toResponseDTO(SchedulingModel s) {
+        return new SchedulingResponseDTO(
+                s.getId(),
+                s.getPaciente().getNome(),
+                s.getNutricionista().getNome(),
+                s.getDataAgendada(),
+                s.getObservacoes()
+        );
     }
 }

@@ -1,8 +1,8 @@
 package fitt_nutri.example.demo.controller;
 
-import fitt_nutri.example.demo.adapter.PatientAdapter;
 import fitt_nutri.example.demo.dto.request.PatientRequestDTO;
 import fitt_nutri.example.demo.dto.response.PatientResponseDTO;
+import fitt_nutri.example.demo.service.PatientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -23,7 +23,7 @@ import java.util.Map;
 @Tag(name = "Patients", description = "CRUD de pacientes")
 public class PatientController {
 
-    private final PatientAdapter adapter;
+    private final PatientService service;
 
     @PostMapping
     @Operation(summary = "Cria um paciente")
@@ -33,7 +33,7 @@ public class PatientController {
             @ApiResponse(responseCode = "409", description = "Conflito de dados (Email, CPF ou Nome já cadastrado)")
     })
     public ResponseEntity<PatientResponseDTO> createPatient(@RequestBody PatientRequestDTO dto) {
-        PatientResponseDTO response = adapter.create(dto);
+        PatientResponseDTO response = service.createAndReturn(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
@@ -46,7 +46,7 @@ public class PatientController {
     public ResponseEntity<Page<PatientResponseDTO>> getAllPatients(
             @RequestParam(name = "page", defaultValue = "0") int page) {
         PageRequest pageable = PageRequest.of(Math.max(page, 0), 10);
-        Page<PatientResponseDTO> response = adapter.getAll(pageable);
+        Page<PatientResponseDTO> response = service.getAllAndReturn(pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -57,7 +57,7 @@ public class PatientController {
             @ApiResponse(responseCode = "404", description = "Paciente não encontrado ou não pertence ao nutricionista logado")
     })
     public ResponseEntity<PatientResponseDTO> getPatientById(@PathVariable Integer id) {
-        PatientResponseDTO response = adapter.getById(id);
+        PatientResponseDTO response = service.getByIdAndReturn(id);
         return ResponseEntity.ok(response);
     }
 
@@ -70,7 +70,7 @@ public class PatientController {
     })
     public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Integer id,
                                                             @RequestBody PatientRequestDTO dto) {
-        PatientResponseDTO response = adapter.update(id, dto);
+        PatientResponseDTO response = service.updateAndReturn(id, dto);
         return ResponseEntity.ok(response);
     }
 
@@ -83,7 +83,7 @@ public class PatientController {
     })
     public ResponseEntity<PatientResponseDTO> patchPatient(@PathVariable Integer id,
                                                            @RequestBody Map<String, Object> updates) {
-        PatientResponseDTO response = adapter.patch(id, updates);
+        PatientResponseDTO response = service.patchAndReturn(id, updates);
         return ResponseEntity.ok(response);
     }
 
@@ -94,7 +94,7 @@ public class PatientController {
             @ApiResponse(responseCode = "404", description = "Paciente não encontrado ou não pertence ao nutricionista logado")
     })
     public ResponseEntity<Void> deletePatient(@PathVariable Integer id) {
-        adapter.delete(id);
+        service.delete(id);
         return ResponseEntity.noContent().build();
     }
 }

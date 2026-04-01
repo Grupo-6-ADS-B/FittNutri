@@ -26,7 +26,6 @@ public class LoginService {
     private final AuthenticationManager authenticationManager;
 
     public void criar(UserModel novoUser){
-
         String senhaCriptografada = passwordEncoder.encode(novoUser.getSenha());
         novoUser.setSenha(senhaCriptografada);
 
