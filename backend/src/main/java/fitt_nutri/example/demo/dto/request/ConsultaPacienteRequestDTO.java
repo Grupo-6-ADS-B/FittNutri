@@ -11,6 +11,7 @@ public class ConsultaPacienteRequestDTO {
 
     private Integer pacienteId;
     private LocalDate dataConsulta;
+    private String motivoConsulta;
 
     private AnthropometricDataModel antropometria;
     private DataCircleModel circunferencia;

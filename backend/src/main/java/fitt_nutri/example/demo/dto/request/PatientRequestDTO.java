@@ -34,6 +34,9 @@ public record PatientRequestDTO(
         String etnia,
 
         @NotNull(message = "O campo atividade não pode estar vazio")
-        String atividade
+        String atividade,
+
+        @NotBlank(message = "O campo motivo da consulta não pode estar vazio")
+        String motivoConsulta
 
 ) {}

@@ -29,12 +29,14 @@ export default function Dashboard() {
   const [endDate, setEndDate] = useState('');
   const [evolution, setEvolution] = useState([]);
   const [patientName, setPatientName] = useState('');
+  const [patientMotivoConsulta, setPatientMotivoConsulta] = useState('');
   const [kpiValues, setKpiValues] = useState({
     imc: '-',
     gordura: '-',
     massaMuscular: '-',
     gorduraVisceral: '-',
   });
+  const [latestMotivoConsulta, setLatestMotivoConsulta] = useState('');
 
 
   let userId = location.state?.user?.id || location.state?.pacienteId;
@@ -46,7 +48,22 @@ export default function Dashboard() {
   React.useEffect(() => {
     const name = location.state?.patientName || location.state?.user?.name || sessionStorage.getItem('pacienteNome') || localStorage.getItem('pacienteNome') || '';
     setPatientName(name);
+    const motivo = location.state?.user?.motivoConsulta || '';
+    if (motivo) setPatientMotivoConsulta(motivo);
   }, [location.state]);
+
+  React.useEffect(() => {
+    const fetchPatientMotivo = async () => {
+      if (!userId) return;
+      try {
+        const res = await api.get(`/patients/${userId}`);
+        setPatientMotivoConsulta(res.data?.motivoConsulta || '');
+      } catch (error) {
+        console.error('Erro ao buscar motivo da consulta do paciente:', error);
+      }
+    };
+    fetchPatientMotivo();
+  }, [userId]);
 
 
   React.useEffect(() => {
@@ -72,12 +89,14 @@ export default function Dashboard() {
       // Ordena por data descrescente para pegar a mais recente
       const sorted = [...evolution].sort((a, b) => new Date(b.dataConsulta) - new Date(a.dataConsulta));
       const latestEvolution = sorted[0]; // Primeira é a mais recente
+      const resolvedMotivo = latestEvolution.motivoConsulta || patientMotivoConsulta || '';
       setKpiValues({
         imc: latestEvolution.imc?.toFixed(1) || '-',
         gordura: latestEvolution.gordura || '-',
         massaMuscular: latestEvolution.massaMuscular || '-',
         gorduraVisceral: latestEvolution.gorduraVisceral || '-',
       });
+      setLatestMotivoConsulta(resolvedMotivo);
     } else {
       setKpiValues({
         imc: '-',
@@ -85,8 +104,9 @@ export default function Dashboard() {
         massaMuscular: '-',
         gorduraVisceral: '-',
       });
+      setLatestMotivoConsulta(patientMotivoConsulta || '');
     }
-  }, [evolution]);
+  }, [evolution, patientMotivoConsulta]);
 
   const fetchEvolution = async (pacienteId) => {
     console.log('fetchEvolution chamado com:', pacienteId, startDate, endDate); // DEBUG
@@ -283,7 +303,9 @@ export default function Dashboard() {
           </Tabs>
 
           <Box sx={{ mt: 2, width: '100%', overflowX: 'auto' }}>
-            {evolution[tab] ? <DataTable data={evolution[tab]} /> : <Typography>Sem dados</Typography>}
+            {evolution[tab]
+              ? <DataTable data={{ ...evolution[tab], motivoConsulta: evolution[tab]?.motivoConsulta || patientMotivoConsulta || '' }} />
+              : <Typography>Sem dados</Typography>}
           </Box>
         </Box>
       </Box>
@@ -352,6 +374,14 @@ export default function Dashboard() {
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
           <Box sx={{ mb: 2, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
             <Typography variant="h4" fontWeight="bold" sx={{ mb: 2, padding: 3, textAlign: 'center' }}>Resumo Nutricional {patientName && `de ${patientName}`}</Typography>
+            {latestMotivoConsulta && (
+              <Typography
+                variant="body1"
+                sx={{ mb: 2, px: 2, py: 1, borderRadius: 2, bgcolor: '#f1f8e9', textAlign: 'center', width: '100%', maxWidth: 900 }}
+              >
+                <strong>Motivo da consulta:</strong> {latestMotivoConsulta}
+              </Typography>
+            )}
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', width: '100%', alignItems: 'center' }}>
               <Button variant="outlined" color="primary" sx={{ height: 48 }} onClick={() => navigate(-1)}>
                 Voltar

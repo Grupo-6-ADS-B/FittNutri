@@ -81,6 +81,7 @@ public class PatientHistoryService {
         historico.setAnthropometricDataModel(antropoSalvo);
         historico.setDataCircleModel(circSalvo);
         historico.setDataConsulta(dto.getDataConsulta());
+        historico.setMotivoConsulta(dto.getMotivoConsulta());
 
         repository.save(historico);
     }
@@ -93,6 +94,7 @@ public class PatientHistoryService {
             String dataInicio,
             String dataFim
     ) {
+
         LocalDate inicio = LocalDate.parse(dataInicio);
         LocalDate fim = LocalDate.parse(dataFim);
 
@@ -121,16 +123,21 @@ public class PatientHistoryService {
         EvolucaoPacienteDTO dto = new EvolucaoPacienteDTO();
         dto.setDataConsulta(h.getDataConsulta());
 
-        // ANTROPOMETRIA
-        dto.setPeso(h.getAnthropometricDataModel().getPeso());
-        dto.setImc(h.getAnthropometricDataModel().getImc());
-        dto.setMassaMuscular(h.getAnthropometricDataModel().getMassaMuscular());
-        dto.setGordura(h.getAnthropometricDataModel().getPorcentagemGordura());
-        dto.setAltura(h.getAnthropometricDataModel().getAltura());
-        dto.setGorduraVisceral(h.getAnthropometricDataModel().getGorduraVisceral());
-        dto.setIdadeMetabolica(h.getAnthropometricDataModel().getIdadeMetabolica().doubleValue());
-        dto.setTaxaMetabolicaBasal(h.getAnthropometricDataModel().getTaxaMetabolicaBasal());
-        dto.setAtividade(h.getPatientModel().getAtividade());
+            // 🔹 ANTROPOMETRIA
+            dto.setPeso(h.getAnthropometricDataModel().getPeso());
+            dto.setImc(h.getAnthropometricDataModel().getImc());
+            dto.setMassaMuscular(h.getAnthropometricDataModel().getMassaMuscular());
+            dto.setGordura(h.getAnthropometricDataModel().getPorcentagemGordura());
+            dto.setAltura(h.getAnthropometricDataModel().getAltura());
+            dto.setGorduraVisceral(h.getAnthropometricDataModel().getGorduraVisceral());
+            dto.setIdadeMetabolica(h.getAnthropometricDataModel().getIdadeMetabolica().doubleValue());
+            dto.setTaxaMetabolicaBasal(h.getAnthropometricDataModel().getTaxaMetabolicaBasal());
+            dto.setAtividade(h.getPatientModel().getAtividade());
+                dto.setMotivoConsulta(
+                    h.getMotivoConsulta() != null && !h.getMotivoConsulta().isBlank()
+                        ? h.getMotivoConsulta()
+                        : h.getPatientModel().getMotivoConsulta()
+                );
 
         // CIRCUNFERÊNCIA
         dto.setCintura(h.getDataCircleModel().getCintura());
@@ -144,7 +151,7 @@ public class PatientHistoryService {
 
         return dto;
     }
+
+
+
 }
-
-
-

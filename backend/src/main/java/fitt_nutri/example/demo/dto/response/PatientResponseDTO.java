@@ -11,4 +11,5 @@ public record PatientResponseDTO(
         String sexo,
         String etnia,
         String atividade,
+        String motivoConsulta,
         Integer nutriId) {}

@@ -27,4 +27,7 @@ public class PatientHistoryModel {
     private DataCircleModel dataCircleModel;
 
     private LocalDate dataConsulta;
+
+    @Column(name = "motivo_consulta")
+    private String motivoConsulta;
 }
