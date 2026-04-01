@@ -69,6 +69,7 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2 Console
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, "/users/google-login").permitAll()
                 .requestMatchers(URLS_PUBLICAS).permitAll()
                 .requestMatchers(URLS_DEV)
                     .access(new WebExpressionAuthorizationManager(

@@ -6,6 +6,8 @@ import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -19,14 +21,12 @@ public class PatientService {
     private final PatientRepository repository;
     private final UserRepository userRepository;
 
-    // Retorna o nutricionista logado
     private UserModel getNutricionistaLogado() {
         String emailNutri = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(emailNutri)
                 .orElseThrow(() -> new RuntimeException("Nutricionista não encontrado"));
     }
 
-    // Cria paciente e associa ao nutricionista logado
     public PatientModel create(PatientRequestDTO dto) {
         PatientModel p = new PatientModel();
         p.setNome(dto.nome());
@@ -43,12 +43,15 @@ public class PatientService {
         return repository.save(p);
     }
 
-    // Lista todos os pacientes do nutricionista logado
     public List<PatientModel> findAllByNutricionista() {
         return repository.findByNutricionista(getNutricionistaLogado());
     }
 
-    // Busca paciente por ID e verifica se pertence ao nutricionista logado
+    public Page<PatientModel> findAllByNutricionista(Pageable pageable) {
+        UserModel nutri = getNutricionistaLogado();
+        return repository.findByNutricionista(nutri, pageable);
+    }
+
     public PatientModel findByIdAndNutricionista(Integer id) {
         UserModel nutri = getNutricionistaLogado();
         return repository.findById(id)

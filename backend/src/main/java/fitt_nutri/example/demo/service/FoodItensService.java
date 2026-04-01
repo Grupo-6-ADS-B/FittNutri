@@ -6,6 +6,8 @@ import fitt_nutri.example.demo.model.FoodItensModel;
 import fitt_nutri.example.demo.repository.FoodItensRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,6 +17,10 @@ import java.util.List;
 public class FoodItensService {
 
     private final FoodItensRepository foodItensRepository;
+
+    public Page<FoodItensModel> findAll(Pageable pageable) {
+        return foodItensRepository.findAll(pageable);
+    }
 
     public FoodItensModel getFoodItemById(Integer id) {
         return foodItensRepository.findById(id)
@@ -26,7 +32,6 @@ public class FoodItensService {
     }
 
     public FoodItensModel findByName(String nome, Double quantidadeEmGramas) throws BadRequestException {
-
         if (quantidadeEmGramas <= 0) {
             throw new BadRequestException("Quantidade deve ser maior que zero");
         }
@@ -62,12 +67,10 @@ public class FoodItensService {
         resultado.setNiacina(safe(item.getNiacina()) * quantidadeEmGramas);
         resultado.setVitaminaC(safe(item.getVitaminaC()) * quantidadeEmGramas);
 
-
         return resultado;
     }
 
     public Double getCaloriasByNomeAndGramas(String nome, Double quantidadeEmGramas) throws BadRequestException {
-
         if (quantidadeEmGramas == null || quantidadeEmGramas <= 0) {
             throw new BadRequestException("Quantidade deve ser maior que zero");
         }
@@ -91,7 +94,6 @@ public class FoodItensService {
         FoodItensModel item = foodItensRepository.findByNome(nome)
                 .orElseThrow(() -> new NotFoundException("Alimento não encontrado"));
 
-
         Double proteina = safe(item.getProteina()) * quantidadeEmGramas;
         Double carboidrato = safe(item.getCarboidrato()) * quantidadeEmGramas;
         Double lipideos = safe(item.getLipideos()) * quantidadeEmGramas;
@@ -111,11 +113,7 @@ public class FoodItensService {
         return itens;
     }
 
-
-
     private double safe(Double value) {
         return value == null ? 0.0 : value;
     }
-
-
 }

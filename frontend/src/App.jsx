@@ -5,6 +5,7 @@ import { theme } from './theme';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Outlet, Navigate, useLocation } from "react-router-dom";
 import { LoginForm } from './Pages/LoginForm';
 import { RegisterForm } from './Pages/RegisterForm';
+import ResetPassword from './Pages/ResetPassword';
 import { Header } from './components/Header';
 import { Main } from './Pages/Main';
 import UserGestor from "./Pages/UserGestor";
@@ -12,8 +13,8 @@ import QuestionarioStepper from "./Pages/QuestionarioStepper";
 import ResumoCircunferencia from "./Pages/ResumoCircunferencia";
 import Diet from "./Pages/Diet";
 import Dashboard from "./Pages/Dashboard";
-
 import PatientRegister from './Pages/PatientRegister';
+import { restoreUserDataFromBackend } from './utils/userDataRestorer';
 
 function isAuthenticated() {
   return Boolean(localStorage.getItem('token') || sessionStorage.getItem('token'));
@@ -71,6 +72,13 @@ function Layout() {
 }
 
 function App() {
+  React.useEffect(() => {
+    // Restaura dados do usuário ao recarregar a página
+    if (localStorage.getItem('token') || sessionStorage.getItem('token')) {
+      restoreUserDataFromBackend();
+    }
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -86,7 +94,8 @@ function App() {
               </Route>
 
               <Route element={<ProtectedRoute />}>
-                <Route path="/register-patient" element={<PatientRegister />} />
+                <Route path="/resetar-senha" element={<ResetPassword />} />
+              <Route path="/register-patient" element={<PatientRegister />} />
                 <Route path="/questionario" element={<QuestionarioStepper />} />
                 <Route path="/resumo-circunferencia" element={<ResumoCircunferencia />} />
                 <Route path="/gestor" element={<UserGestor />} />

@@ -12,6 +12,8 @@ import fitt_nutri.example.demo.repository.PatientHistoryRepository;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -99,10 +101,27 @@ public class PatientHistoryService {
         List<PatientHistoryModel> historicos =
                 repository.buscarPorPacienteEPeriodo(pacienteId, inicio, fim);
 
-        return historicos.stream().map(h -> {
+        return historicos.stream().map(this::mapToEvolucaoDTO).toList();
+    }
 
-            EvolucaoPacienteDTO dto = new EvolucaoPacienteDTO();
-            dto.setDataConsulta(h.getDataConsulta());
+    // Nova sobrecarga paginada (retorna Page)
+    public Page<EvolucaoPacienteDTO> buscarEvolucaoPorPeriodo(
+            Integer pacienteId,
+            String dataInicio,
+            String dataFim,
+            Pageable pageable
+    ) {
+        LocalDate inicio = LocalDate.parse(dataInicio);
+        LocalDate fim = LocalDate.parse(dataFim);
+
+        Page<PatientHistoryModel> page = repository.buscarPorPacienteEPeriodo(pacienteId, inicio, fim, pageable);
+
+        return page.map(this::mapToEvolucaoDTO);
+    }
+
+    private EvolucaoPacienteDTO mapToEvolucaoDTO(PatientHistoryModel h) {
+        EvolucaoPacienteDTO dto = new EvolucaoPacienteDTO();
+        dto.setDataConsulta(h.getDataConsulta());
 
             // 🔹 ANTROPOMETRIA
             dto.setPeso(h.getAnthropometricDataModel().getPeso());
@@ -120,20 +139,17 @@ public class PatientHistoryService {
                         : h.getPatientModel().getMotivoConsulta()
                 );
 
-            // 🔹 CIRCUNFERÊNCIA
-            dto.setCintura(h.getDataCircleModel().getCintura());
-            dto.setAbdominal(h.getDataCircleModel().getAbdominal());
-            dto.setQuadril(h.getDataCircleModel().getQuadril());
-            dto.setBraco(h.getDataCircleModel().getBraco());
-            dto.setCoxa(h.getDataCircleModel().getCoxa());
-            dto.setPanturrilha(h.getDataCircleModel().getPanturrilha());
-            dto.setPulso(h.getDataCircleModel().getPulso());
-            dto.setPesoIdeal(h.getDataCircleModel().getPesoIdeal());
+        // CIRCUNFERÊNCIA
+        dto.setCintura(h.getDataCircleModel().getCintura());
+        dto.setAbdominal(h.getDataCircleModel().getAbdominal());
+        dto.setQuadril(h.getDataCircleModel().getQuadril());
+        dto.setBraco(h.getDataCircleModel().getBraco());
+        dto.setCoxa(h.getDataCircleModel().getCoxa());
+        dto.setPanturrilha(h.getDataCircleModel().getPanturrilha());
+        dto.setPulso(h.getDataCircleModel().getPulso());
+        dto.setPesoIdeal(h.getDataCircleModel().getPesoIdeal());
 
-            return dto;
-
-        }).toList();
-
+        return dto;
     }
 
 
