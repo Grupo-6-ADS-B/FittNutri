@@ -32,15 +32,11 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
         "/v3/api-docs",
         "/swagger-resources",
         "/webjars",
-        "/schedulings",
         "/h2-console",
         "/forms",
-        "/data-circle",
-        "/anthropometric-data",
-        "/food-itens",
-        "/meals",
-        "/patients",
-        "/patient-history"
+        "/error",
+        "/actuator/health",
+        "/actuator/prometheus"
     );
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutenticacaoFilter.class);
