@@ -2601,3 +2601,6 @@ INSERT INTO alimentos (nome, umidade, energia_kcal, proteina, lipideos, colester
   ('Óleo não especificado', NULL, 879.73, NULL, 99.52, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.05, NULL, NULL, NULL, 0.01, NULL, NULL, NULL, NULL, NULL, NULL),
   ('Óleo de dendê', NULL, 857.84, NULL, 99.52, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.1, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
+-- Garante que todos os alimentos TACO tenham fonte preenchida
+UPDATE alimentos SET fonte = 'TACO' WHERE fonte IS NULL OR fonte = '';
+
