@@ -26,3 +26,11 @@ terraform/tfplan-*
 terraform/contas/*.tfvars
 terraform/.terraform.tfstate.lock.info
 terraform/scripts/set-credentials.sh
+
+# Terraform Atividade
+terraform-atividade/.terraform/
+terraform-atividade/.terraform.lock.hcl
+terraform-atividade/*.tfstate
+terraform-atividade/*.tfstate.*
+terraform-atividade/terraform.tfvars
+terraform-atividade/.terraform.tfstate.lock.info
