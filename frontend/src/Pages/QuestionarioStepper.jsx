@@ -62,7 +62,11 @@ export default function QuestionarioStepper() {
   }, []);
   const location = useLocation();
 
-  const selectedUser = location.state?.user || mockUsers[0];
+  const selectedUser = location.state?.user || (() => {
+    const pid = sessionStorage.getItem('pacienteId') || localStorage.getItem('pacienteId') || localStorage.getItem('lastUserId');
+    const pname = sessionStorage.getItem('pacienteNome') || localStorage.getItem('pacienteNome') || '';
+    return pid ? { id: pid, name: pname } : null;
+  })();
   const [userInfo, setUserInfo] = useState(selectedUser);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [userDraft, setUserDraft] = useState({
@@ -97,7 +101,11 @@ const [circData, setCircData] = useState(() => ({
   
   useEffect(() => {
     if (!selectedUser?.id) return;
-  try { localStorage.setItem('lastUserId', String(selectedUser.id)); } catch { /* ignore */ }
+  try {
+      localStorage.setItem('lastUserId', String(selectedUser.id));
+      sessionStorage.setItem('pacienteId', String(selectedUser.id));
+      if (selectedUser.name) sessionStorage.setItem('pacienteNome', selectedUser.name);
+    } catch { /* ignore */ }
     const stored = localStorage.getItem(`questionario_${selectedUser.id}`);
     if (stored) {
       try {

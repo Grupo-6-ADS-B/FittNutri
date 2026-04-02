@@ -2,7 +2,6 @@ package fitt_nutri.example.demo.model;
 
 import fitt_nutri.example.demo.config.CpfConverter;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

@@ -7,6 +7,7 @@ import {
   Box,
   Typography,
   Grid,
+  CircularProgress,
 } from "@mui/material";
 import SearchHeader from '../components/UserGestor/SearchHeader';
 import PatientCard from '../components/UserGestor/PatientCard';
@@ -24,6 +25,7 @@ import {
 
 export default function UserGestor() {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("name");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -166,6 +168,7 @@ export default function UserGestor() {
   }, []);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const response = await api.get('/patients');
       const list = Array.isArray(response.data) ? response.data : (response.data?.content ?? []);
@@ -194,6 +197,8 @@ export default function UserGestor() {
         setUsers(defaultUsers);
         try { localStorage.setItem("users", JSON.stringify(defaultUsers)); } catch {}
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -732,7 +737,11 @@ export default function UserGestor() {
               />
             </Box>
 
-            {filteredUsers.length === 0 ? (
+            {loading ? (
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <CircularProgress color="success" />
+              </Box>
+            ) : filteredUsers.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 8 }}>
                 <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                   Nenhum paciente encontrado
