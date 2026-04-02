@@ -1,3 +1,147 @@
+---
+
+## Rodando Localmente (One-Command-Run)
+
+### Pré-requisitos
+
+| Requisito | Versão mínima | Download |
+|-----------|---------------|---------|
+| Docker Desktop | 4.x | https://www.docker.com/products/docker-desktop/ |
+| Git | qualquer | https://git-scm.com/ |
+
+> Não é necessário ter Java, Node.js ou MySQL instalados na máquina. Tudo roda dentro do Docker.
+
+---
+
+### Passo 1 — Clone o repositório
+
+```bash
+git clone <url-do-repositório>
+cd FittNutri
+```
+
+---
+
+### Passo 2 — Crie o arquivo `.env.dev`
+
+O script `manage.sh dev` exige um arquivo `.env.dev` na raiz do projeto.
+Copie o exemplo já fornecido:
+
+```bash
+# Linux / macOS / Git Bash (Windows)
+cp .env.dev.example .env.dev
+```
+
+> Os valores padrão do `.env.dev.example` funcionam para desenvolvimento local sem nenhuma alteração.
+
+---
+
+### Passo 3 — Suba o ambiente
+
+```bash
+./manage.sh dev
+```
+
+O script vai buildar as imagens e subir os 3 containers automaticamente.
+Na primeira execução o build pode levar alguns minutos.
+
+---
+
+### O que sobe
+
+| Serviço | URL local | Descrição |
+|---------|-----------|-----------|
+| Frontend | http://localhost:5173 | React + Vite dev server (hot reload) |
+| Backend | http://localhost:8080 | Spring Boot, perfil `dev` |
+| Swagger | http://localhost:8080/swagger-ui/index.html | Documentação da API |
+| MySQL | localhost:3306 | Banco de dados (acessível via cliente) |
+
+---
+
+### Dev vs Produção
+
+| Recurso | Dev local | Produção (EC2) |
+|---------|-----------|----------------|
+| CRUD completo | ✅ | ✅ |
+| Swagger UI | ✅ | ❌ |
+| Hot reload frontend | ✅ | ❌ |
+| Geração de PDF async | ❌ (sem RabbitMQ) | ✅ |
+| Upload de arquivos | ❌ (sem AWS S3) | ✅ |
+
+> **Por que PDF e S3 não funcionam em dev?**
+> Os beans `PdfConsumerService`, `PdfProducerService`, `S3Config` e `S3Service`
+> têm a anotação `@Profile("prod")` — eles só carregam em produção.
+> Isso é intencional: não é necessário ter credenciais AWS para desenvolver.
+
+---
+
+### Visualizando logs do backend no IntelliJ IDEA
+
+O backend roda dentro de um container Docker, não diretamente pela IDE.
+Para acompanhar os logs em tempo real no IntelliJ:
+
+**Opção 1 — Terminal integrado (mais rápido)**
+
+Abra o terminal integrado do IntelliJ (`Alt + F12`) e execute:
+
+```bash
+docker logs -f backend-dev
+```
+
+**Opção 2 — Painel Services do IntelliJ (visual)**
+
+1. Abra o painel Services: `View → Tool Windows → Services` ou `Alt + 8`
+2. Clique em `+` → **Docker** → **Docker** para conectar ao Docker Desktop local
+3. Expanda `Docker → Containers → backend-dev`
+4. Clique na aba **Log** no painel lateral direito
+5. Os logs aparecem em tempo real, com suporte a filtro e busca
+
+> O plugin Docker já vem instalado no IntelliJ IDEA Ultimate. Na Community Edition, instale via `File → Settings → Plugins → Marketplace → Docker`.
+
+---
+
+### Comandos úteis
+
+```bash
+./manage.sh dev          # Sobe ambiente de dev (com build)
+./manage.sh stop         # Para todos os containers
+./manage.sh logs backend # Logs do backend em tempo real
+./manage.sh logs mysql   # Logs do MySQL
+./manage.sh status       # Status dos containers, volumes e redes
+```
+
+---
+
+### Problemas comuns
+
+**Backend demora para subir na primeira vez:**
+```bash
+# O MySQL leva ~30s para inicializar. Aguarde e acompanhe:
+./manage.sh logs mysql
+```
+
+**Arquivo `.env.dev` não encontrado:**
+```bash
+cp .env.dev.example .env.dev
+```
+
+**Erro de porta já em uso:**
+```bash
+# Linux / macOS
+lsof -i :8080   # ou :5173 ou :3306
+
+# Windows (PowerShell)
+netstat -ano | findstr :8080
+```
+
+**Rebuild completo (limpar banco e recomeçar do zero):**
+```bash
+docker compose -f docker-compose.dev.yml down -v
+./manage.sh dev
+```
+
+---
+
 <!-- BANNER -->
 <p align="center">
   <img src="https://capsule-render.vercel.app/api?type=waving&color=0:22c55e,100:16a34a&height=200&section=header&text=FittNutri&fontSize=50&fontColor=ffffff&animation=fadeIn&fontAlignY=35&desc=Plataforma%20Inteligente%20para%20Nutricionistas&descAlignY=55&descSize=18" />

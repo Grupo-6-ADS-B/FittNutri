@@ -1,4 +1,4 @@
-CREATE DATABASE fittnutri;
+CREATE DATABASE IF NOT EXISTS fittnutri;
 
 USE fittnutri;
 

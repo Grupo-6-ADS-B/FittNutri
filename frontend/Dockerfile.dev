@@ -1,0 +1,22 @@
+# Dockerfile.dev — Frontend em modo desenvolvimento
+# ============================================================
+# Usa o Vite dev server com hot reload.
+# O proxy /api → VITE_API_TARGET (backend:8080) é configurado
+# em tempo de runtime via vite.config.js.
+#
+# NÃO usar em produção — use o Dockerfile padrão para builds estáticos.
+# ============================================================
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm cache clean --force && npm install
+
+COPY . .
+
+EXPOSE 5173
+
+# VITE_API_TARGET é injetado pelo docker-compose.dev.yml em runtime.
+# O vite.config.js lê process.env.VITE_API_TARGET para configurar o proxy.
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

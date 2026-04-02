@@ -3,6 +3,19 @@
 ACTION=$1
 
 case $ACTION in
+  dev)
+    echo "Iniciando ambiente de DESENVOLVIMENTO local..."
+    echo "Usando: docker-compose.dev.yml + .env.dev"
+
+    if [ ! -f .env.dev ]; then
+      echo "ERRO: arquivo .env.dev não encontrado."
+      echo "Crie o arquivo .env.dev com base no .env.example e tente novamente."
+      exit 1
+    fi
+
+    docker compose -f docker-compose.dev.yml --env-file .env.dev down
+    docker compose -f docker-compose.dev.yml --env-file .env.dev up --build
+    ;;
   start)
     echo "Subindo containers..."
     docker-compose --env-file .env up -d
@@ -53,7 +66,16 @@ case $ACTION in
     docker network ls
     ;;
   *)
-    echo "Uso: ./manage.sh {start|stop|restart|build|rebuild|logs [service]|status}"
+    echo "Uso: ./manage.sh {dev|start|stop|restart|build|rebuild|logs [service]|status}"
+    echo ""
+    echo "  dev       Sobe o ambiente de desenvolvimento local (One-Command-Run)"
+    echo "  start     Sobe containers usando docker-compose.yml (produção)"
+    echo "  stop      Para todos os containers"
+    echo "  restart   Reinicia os containers"
+    echo "  build     Builda as imagens Docker"
+    echo "  rebuild   Rebuild completo e reinicia"
+    echo "  logs      Exibe logs (opcional: nome do serviço)"
+    echo "  status    Mostra status dos containers, volumes e redes"
     ;;
 esac
 
