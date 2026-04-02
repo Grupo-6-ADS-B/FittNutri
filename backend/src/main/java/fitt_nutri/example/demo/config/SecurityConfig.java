@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -41,11 +42,16 @@ public class SecurityConfig {
             "/v3/api-docs/**",
             "/swagger-resources/**",
             "/webjars/**",
-            "/h2-console/**",
             "/forms/**",
             "/error",
             "/actuator/health",
             "/actuator/prometheus"
+    };
+
+    // H2 Console liberado apenas para localhost (127.0.0.1)
+    // Em produção fica bloqueado automaticamente
+    private static final String[] URLS_DEV = {
+        "/h2-console/**"
     };
 
     @Bean
@@ -70,7 +76,12 @@ public class SecurityConfig {
             .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers(HttpMethod.POST, "/users/google-login").permitAll()
                 .requestMatchers(URLS_PUBLICAS).permitAll()
+                .requestMatchers(URLS_DEV)
+                    .access(new WebExpressionAuthorizationManager(
+                        "hasIpAddress('127.0.0.1')"
+                    ))
                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
                 .anyRequest().authenticated()
             )
@@ -78,12 +89,19 @@ public class SecurityConfig {
                 .authenticationEntryPoint(autenticacaoEntryPoint))
             .sessionManagement(management -> management
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(autenticacaoFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(autenticacaoFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
 
+    // 💡 SUGESTÃO OWASP A05 - Credenciais hardcoded:
+    // As credenciais do banco estão fixas no application.properties.
+    // Quando possível, mover para variáveis de ambiente:
+    // spring.datasource.username=${SPRING_DATASOURCE_USERNAME}
+    // spring.datasource.password=${SPRING_DATASOURCE_PASSWORD}
+    // Criar arquivo .env na raiz e adicionar .env no .gitignore.
+    // Impacto: Médio - requer alinhamento com toda a equipe.
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();

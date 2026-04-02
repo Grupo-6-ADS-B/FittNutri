@@ -4,6 +4,7 @@ public record UserResponseDTO(Integer id,
                               String nome,
                               String email,
                               String cpf,
-                              String crn) {
+                              String crn,
+                              String foto) {
 
 }

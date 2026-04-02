@@ -25,6 +25,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.time.LocalDateTime;
+import java.util.UUID;
+import fitt_nutri.example.demo.model.PasswordResetToken;
+import fitt_nutri.example.demo.repository.PasswordResetTokenRepository;
+import fitt_nutri.example.demo.service.EmailService;
 
 @RestController
 @RequestMapping("/users")
@@ -37,6 +42,37 @@ public class UserController {
     private final UserService userService;
     private final RefreshTokenService refreshTokenService;
     private final GerenciadorTokenJwt gerenciadorTokenJwt;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
+    private final EmailService emailService;
+
+
+    @PostMapping("/recover-password")
+    public ResponseEntity<?> recoverPassword(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        if (email == null || email.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "E-mail é obrigatório"));
+        }
+        // Verifica se existe usuário com esse e-mail
+        var userOpt = service.getUserByEmail(email);
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Usuário não encontrado"));
+        }
+        // Remove tokens antigos
+        passwordResetTokenRepository.deleteByEmail(email);
+        // Gera token
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = new PasswordResetToken();
+        resetToken.setToken(token);
+        resetToken.setEmail(email);
+        resetToken.setExpiryDate(LocalDateTime.now().plusHours(1));
+        passwordResetTokenRepository.save(resetToken);
+        try {
+            emailService.sendPasswordRecoveryEmail(email, token);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Erro ao enviar e-mail: " + e.getMessage()));
+        }
+        return ResponseEntity.ok(Map.of("message", "E-mail de recuperação enviado!"));
+    }
 
     @PostMapping
     public ResponseEntity<Void> createUser(@Valid @RequestBody LoginCreateDTO dto) {
@@ -53,6 +89,48 @@ public class UserController {
         final UserModel user = LoginMapperDTO.of(dto);
         LoginTokenDTO loginTokenDTO = service.autenticar(user);
         return ResponseEntity.ok(loginTokenDTO);
+    }
+
+
+    @GetMapping
+    @SecurityRequirement(name = "Bearer")
+    public ResponseEntity<List<LoginListDTO>> getAllUsers() {
+        List<LoginListDTO> users = service.listarUsuarios();
+        if(users.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(users);
+    }
+
+    @GetMapping("/me")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Retorna dados do usuário autenticado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dados do usuário"),
+            @ApiResponse(responseCode = "401", description = "Não autenticado")
+    })
+    public ResponseEntity<?> getCurrentUser() {
+        try {
+            var auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.isAuthenticated()) {
+                String namePrincipal = auth.getName();
+                Integer userId = null;
+                try {
+                    userId = Integer.parseInt(namePrincipal);
+                } catch (NumberFormatException e) {
+                    var userOpt = service.getUserByEmail(namePrincipal);
+                    if (userOpt.isPresent()) {
+                        return ResponseEntity.ok(adapter.mapToResponse(userOpt.get()));
+                    }
+                }
+                if (userId != null) {
+                    return ResponseEntity.ok(adapter.getUserById(userId));
+                }
+            }
+            return ResponseEntity.status(401).body(Map.of("error", "Não autenticado"));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Erro ao obter usuário: " + e.getMessage()));
+        }
     }
 
     @GetMapping("/{id}")
@@ -163,6 +241,80 @@ public class UserController {
         UserModel user = userService.getUserByEmail(email);
         refreshTokenService.revokeByUserId(user.getId());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/google-login")
+    @Operation(summary = "Login com Google")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Login realizado com sucesso"),
+            @ApiResponse(responseCode = "401", description = "Token Google inválido")
+    })
+    public ResponseEntity<?> googleLogin(@RequestBody GoogleLoginDTO dto) {
+        try {
+            var payload = fitt_nutri.example.demo.util.GoogleTokenVerifierUtil.verify(dto.token);
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+            String picture = (String) payload.get("picture");
+            String sub = payload.getSubject();
+
+            var userOpt = service.getUserByEmail(email);
+            UserModel user;
+            if (userOpt.isPresent()) {
+                user = userOpt.get();
+            } else {
+                user = new UserModel();
+                user.setNome(name);
+                user.setEmail(email);
+                user.setSenha("");
+                user.setCpf("GOOGLE-" + sub);
+                user.setCrn("GOOGLE");
+                user.setFoto(picture);
+                service.criar(user);
+            }
+
+            String jwt = service.gerarToken(user);
+            return ResponseEntity.ok(Map.of(
+                "token", jwt,
+                "id", user.getId(),
+                "nome", user.getNome(),
+                "email", user.getEmail(),
+                "foto", user.getFoto()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(401).body(Map.of("error", "Token Google inválido ou erro de autenticação: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Redefinir senha usando token")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Senha redefinida com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Token inválido ou expirado"),
+            @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        String newPassword = body.get("password");
+        if (token == null || token.isBlank() || newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Token e nova senha são obrigatórios"));
+        }
+        var tokenOpt = passwordResetTokenRepository.findByToken(token);
+        if (tokenOpt.isEmpty()) {
+            return ResponseEntity.status(400).body(Map.of("error", "Token inválido ou expirado"));
+        }
+        var resetToken = tokenOpt.get();
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            passwordResetTokenRepository.delete(resetToken);
+            return ResponseEntity.status(400).body(Map.of("error", "Token expirado"));
+        }
+        var userOpt = service.getUserByEmail(resetToken.getEmail());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Usuário não encontrado"));
+        }
+        var user = userOpt.get();
+        service.atualizarSenha(user, newPassword);
+        passwordResetTokenRepository.delete(resetToken);
+        return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso!"));
     }
 
 }

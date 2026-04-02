@@ -6,6 +6,8 @@ import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -19,14 +21,12 @@ public class PatientService {
     private final PatientRepository repository;
     private final UserRepository userRepository;
 
-    // Retorna o nutricionista logado
     private UserModel getNutricionistaLogado() {
         String emailNutri = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(emailNutri)
                 .orElseThrow(() -> new RuntimeException("Nutricionista não encontrado"));
     }
 
-    // Cria paciente e associa ao nutricionista logado
     public PatientModel create(PatientRequestDTO dto) {
         PatientModel p = new PatientModel();
         p.setNome(dto.nome());
@@ -38,16 +38,20 @@ public class PatientService {
         p.setSexo(dto.sexo());
         p.setEtnia(dto.etnia());
         p.setAtividade(dto.atividade());
+        p.setMotivoConsulta(dto.motivoConsulta());
         p.setNutricionista(getNutricionistaLogado());
         return repository.save(p);
     }
 
-    // Lista todos os pacientes do nutricionista logado
     public List<PatientModel> findAllByNutricionista() {
         return repository.findByNutricionista(getNutricionistaLogado());
     }
 
-    // Busca paciente por ID e verifica se pertence ao nutricionista logado
+    public Page<PatientModel> findAllByNutricionista(Pageable pageable) {
+        UserModel nutri = getNutricionistaLogado();
+        return repository.findByNutricionista(nutri, pageable);
+    }
+
     public PatientModel findByIdAndNutricionista(Integer id) {
         UserModel nutri = getNutricionistaLogado();
         return repository.findById(id)
@@ -66,6 +70,7 @@ public class PatientService {
         p.setSexo(dto.sexo());
         p.setEtnia(dto.etnia());
         p.setAtividade(dto.atividade());
+        p.setMotivoConsulta(dto.motivoConsulta());
         return repository.save(p);
     }
 
@@ -88,6 +93,7 @@ public class PatientService {
                 case "sexo" -> p.setSexo(String.valueOf(value));
                 case "etnia" -> p.setEtnia(String.valueOf(value));
                 case "frequenciaAtividadeFisica" -> p.setAtividade(String.valueOf(value));
+                case "motivoConsulta" -> p.setMotivoConsulta(String.valueOf(value));
                 default -> throw new IllegalArgumentException("Campo inválido para PATCH: " + key);
             }
         });

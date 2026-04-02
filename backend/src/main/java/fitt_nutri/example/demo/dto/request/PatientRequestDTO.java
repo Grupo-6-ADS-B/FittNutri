@@ -44,6 +44,9 @@ public record PatientRequestDTO(
 
         @NotNull(message = "O campo atividade não pode estar vazio")
         @Size(max = 50, message = "Atividade deve ter no máximo 50 caracteres")
-        String atividade
+        String atividade,
+
+        @NotBlank(message = "O campo motivo da consulta não pode estar vazio")
+        String motivoConsulta
 
 ) {}

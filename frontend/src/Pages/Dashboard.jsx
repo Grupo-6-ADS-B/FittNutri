@@ -60,9 +60,12 @@ export default function Dashboard() {
   const [endDate, setEndDate] = useState('');
   const [evolution, setEvolution] = useState([]);
   const [patientName, setPatientName] = useState('');
+  const [patientMotivoConsulta, setPatientMotivoConsulta] = useState('');
   const [kpiValues, setKpiValues] = useState({ imc: '-', gordura: '-', massaMuscular: '-', gorduraVisceral: '-' });
   const [kpiTrends, setKpiTrends] = useState({ imc: null, gordura: null, massaMuscular: null, gorduraVisceral: null });
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [latestMotivoConsulta, setLatestMotivoConsulta] = useState('');
+
 
   let userId = location.state?.user?.id || location.state?.pacienteId;
   if (!userId) {
@@ -74,7 +77,22 @@ export default function Dashboard() {
     const name = location.state?.patientName || location.state?.user?.name
       || sessionStorage.getItem('pacienteNome') || localStorage.getItem('pacienteNome') || '';
     setPatientName(name);
+    const motivo = location.state?.user?.motivoConsulta || '';
+    if (motivo) setPatientMotivoConsulta(motivo);
   }, [location.state]);
+
+  React.useEffect(() => {
+    const fetchPatientMotivo = async () => {
+      if (!userId) return;
+      try {
+        const res = await api.get(`/patients/${userId}`);
+        setPatientMotivoConsulta(res.data?.motivoConsulta || '');
+      } catch (error) {
+        console.error('Erro ao buscar motivo da consulta do paciente:', error);
+      }
+    };
+    fetchPatientMotivo();
+  }, [userId]);
 
   React.useEffect(() => {
     const fromYear = dateRange.from.getFullYear();
@@ -117,11 +135,13 @@ export default function Dashboard() {
         massaMuscular: calcTrend(latest.massaMuscular, previous?.massaMuscular),
         gorduraVisceral: calcTrend(latest.gorduraVisceral, previous?.gorduraVisceral),
       });
+      setLatestMotivoConsulta(latest.motivoConsulta || patientMotivoConsulta || '');
     } else {
       setKpiValues({ imc: '-', gordura: '-', massaMuscular: '-', gorduraVisceral: '-' });
       setKpiTrends({ imc: null, gordura: null, massaMuscular: null, gorduraVisceral: null });
+      setLatestMotivoConsulta(patientMotivoConsulta || '');
     }
-  }, [evolution]);
+  }, [evolution, patientMotivoConsulta]);
 
   const handleDownloadBioimpedance = async () => {
     if (!userId) return;
@@ -336,7 +356,9 @@ export default function Dashboard() {
             ))}
           </Tabs>
           <Box sx={{ mt: 2, width: '100%', overflowX: 'auto' }}>
-            {evolution[tab] ? <DataTable data={evolution[tab]} /> : <Typography>Sem dados</Typography>}
+            {evolution[tab]
+              ? <DataTable data={{ ...evolution[tab], motivoConsulta: evolution[tab]?.motivoConsulta || patientMotivoConsulta || '' }} />
+              : <Typography>Sem dados</Typography>}
           </Box>
         </Box>
       </Box>
@@ -463,6 +485,14 @@ export default function Dashboard() {
             <Typography variant="h4" fontWeight="bold" sx={{ mb: 2, pt: 1, textAlign: 'center' }}>
               Resumo Nutricional {patientName && `de ${patientName}`}
             </Typography>
+            {latestMotivoConsulta && (
+              <Typography
+                variant="body1"
+                sx={{ mb: 2, px: 2, py: 1, borderRadius: 2, bgcolor: '#f1f8e9', textAlign: 'center', width: '100%', maxWidth: 900 }}
+              >
+                <strong>Motivo da consulta:</strong> {latestMotivoConsulta}
+              </Typography>
+            )}
 
             {/* KPIs */}
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center', width: '100%', alignItems: 'center' }}>

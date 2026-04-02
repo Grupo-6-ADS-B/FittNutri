@@ -55,6 +55,7 @@ export default function DataTable({ data }) {
 
   const rows = [
     { label: 'Data da Consulta',      value: data?.dataConsulta,                          rawValue: null,                  type: null },
+    { label: 'Motivo da Consulta',    value: data?.motivoConsulta,                        rawValue: null,                  type: null },
     { label: 'Peso',                  value: `${data?.peso} kg`,                          rawValue: null,                  type: null },
     { label: 'IMC',                   value: data?.imc,                                   rawValue: data?.imc,             type: 'imc' },
     { label: 'Gordura',               value: `${data?.gordura}%`,                         rawValue: data?.gordura,         type: 'gordura' },

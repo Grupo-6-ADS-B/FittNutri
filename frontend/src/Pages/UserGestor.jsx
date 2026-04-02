@@ -75,6 +75,7 @@ export default function UserGestor() {
     id: null,
     name: "",
     idade: "",
+    motivoConsulta: "",
     peso: "",
     altura: "",
     idade: "",
@@ -174,6 +175,7 @@ export default function UserGestor() {
             email: u.email ?? '',
             telefone: u.telefone ?? u.phone ?? '',
             cidade: u.cidade ?? u.city ?? '',
+            motivoConsulta: u.motivoConsulta ?? '',
             avatar: u.avatar ?? '',
             cpf: u.cpf ?? '',
             crn: u.crn ?? '',
@@ -263,6 +265,7 @@ export default function UserGestor() {
       id: patientId,
       name: name,
       idade: userFromList.idade ?? "",
+      motivoConsulta: userFromList.motivoConsulta ?? startAppointment?.note ?? "",
       peso: userFromList.peso ?? "",
       altura: userFromList.altura ?? "",
       idadeMetabolica: userFromList.idadeMetabolica ?? "",
@@ -314,6 +317,7 @@ export default function UserGestor() {
             ...prev,
             date: dateValue || prev.date,
             idade: anthropo.idade ?? prev.idade,
+            motivoConsulta: latest.motivoConsulta ?? latest.motivo_consulta ?? prev.motivoConsulta,
             peso: anthropo.peso ?? prev.peso,
             altura: anthropo.altura ?? prev.altura,
             idadeMetabolica: anthropo.idadeMetabolica ?? prev.idadeMetabolica,
@@ -365,6 +369,7 @@ export default function UserGestor() {
 
     const payload = {
       dataConsulta: adjustedDate,
+      motivoConsulta: (updateForm.motivoConsulta || '').trim(),
       antropometria: {
         peso: Number(updateForm.peso),
         altura: Number(updateForm.altura),
@@ -404,6 +409,7 @@ export default function UserGestor() {
       id: updateForm.id,
       name: updateForm.name,
       idade: updateForm.idade,
+      motivoConsulta: updateForm.motivoConsulta,
       peso: updateForm.peso,
       altura: updateForm.altura,
       idadeMetabolica: updateForm.idadeMetabolica,

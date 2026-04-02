@@ -10,6 +10,8 @@ import fitt_nutri.example.demo.repository.FoodItensRepository;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,10 @@ public class FoodItensService {
     // -------------------------------------------------------------------------
     // Leitura (endpoints existentes)
     // -------------------------------------------------------------------------
+
+    public Page<FoodItensModel> findAll(Pageable pageable) {
+        return foodItensRepository.findAll(pageable);
+    }
 
     public FoodItensModel getFoodItemById(Integer id) {
         return foodItensRepository.findById(id)

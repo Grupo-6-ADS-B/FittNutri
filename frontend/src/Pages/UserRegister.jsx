@@ -27,6 +27,7 @@ export default function UserRegister() {
     email: "",
     cpf: "",
     phone: "",
+    motivoConsulta: "",
     estado: "",
     cidade: "",
     sexo: "",
@@ -203,6 +204,7 @@ export default function UserRegister() {
       const phoneDigits = formData.phone.replace(/\D/g, "");
       if (phoneDigits.length < 10 || phoneDigits.length > 11) newErrors.phone = "Telefone deve ter 10 ou 11 dígitos";
     }
+    if (!formData.motivoConsulta.trim()) newErrors.motivoConsulta = "Campo obrigatório";
     if (!formData.estado) newErrors.estado = "Campo obrigatório";
     if (!formData.cidade) newErrors.cidade = "Campo obrigatório";
     if (!formData.autorizaCadastro) newErrors.autorizaCadastro = "É necessário autorizar o cadastro das informações no sistema";
@@ -221,6 +223,7 @@ export default function UserRegister() {
       email: formData.email,
       cpf: formData.cpf,
       telefone: formData.phone,
+      motivoConsulta: formData.motivoConsulta.trim(),
       cidade: formData.cidade,
       estado: formData.estado,
       sexo: formData.sexo,
@@ -336,6 +339,17 @@ export default function UserRegister() {
                 error={!!errors.phone}
                 helperText={errors.phone || ""}
                 inputProps={{ inputMode: 'tel' }}
+              />
+              <TextField
+                label="Motivo da consulta"
+                name="motivoConsulta"
+                value={formData.motivoConsulta}
+                onChange={handleChange}
+                fullWidth
+                variant="outlined"
+                error={!!errors.motivoConsulta}
+                helperText={errors.motivoConsulta || ""}
+                minRows={3}
               />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <TextField

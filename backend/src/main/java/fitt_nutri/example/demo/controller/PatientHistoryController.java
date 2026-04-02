@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -63,13 +65,15 @@ public class PatientHistoryController {
     @ApiResponse(responseCode = "200", description = "Evolução do paciente retornada com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @GetMapping("/evolucao/{pacienteId}")
-    public ResponseEntity<List<EvolucaoPacienteDTO>> buscarEvolucaoPorPeriodo(
+    public ResponseEntity<Page<EvolucaoPacienteDTO>> buscarEvolucaoPorPeriodo(
             @PathVariable Integer pacienteId,
             @RequestParam String dataInicio,
-            @RequestParam String dataFim
+            @RequestParam String dataFim,
+            @RequestParam(name = "page", defaultValue = "0") int page
     ) {
+        PageRequest pageable = PageRequest.of(Math.max(page, 0), 10);
         return ResponseEntity.ok(
-                service.buscarEvolucaoPorPeriodo(pacienteId, dataInicio, dataFim)
+                service.buscarEvolucaoPorPeriodo(pacienteId, dataInicio, dataFim, pageable)
         );
     }
 

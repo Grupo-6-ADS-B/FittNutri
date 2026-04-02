@@ -37,16 +37,17 @@ public class UserModel extends AuditableEntity {
     @Convert(converter = CpfConverter.class)
     private String cpf;
 
-
     @Column(nullable = false)
     private String crn;
-
 
     @Column(nullable = false)
     private String senha;
 
     @Column(nullable = false)
     private String role = "NUTRI";
+
+    @Column(nullable = true, length = 512)
+    private String foto;
 
     @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL)
     private List<PatientModel> pacientes = new ArrayList<>();

@@ -5,6 +5,8 @@ import fitt_nutri.example.demo.dto.response.SchedulingResponseDTO;
 import fitt_nutri.example.demo.model.SchedulingModel;
 import fitt_nutri.example.demo.service.SchedulingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,12 +42,18 @@ public class SchedulingAdapter {
                 .collect(Collectors.toList());
     }
 
+    public Page<SchedulingResponseDTO> getByNutritionist(Integer usuarioId, Pageable pageable) {
+        Page<SchedulingModel> page = service.getByNutritionist(usuarioId, pageable);
+        return page.map(this::toDTO);
+    }
+
     public List<SchedulingResponseDTO> getByNutritionist(Integer usuarioId) {
         return service.getByNutritionist(usuarioId)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
     }
+
 
     public SchedulingResponseDTO update(Integer id, SchedulingRequestDTO dto) {
         SchedulingModel scheduling = service.updateScheduling(id, dto);

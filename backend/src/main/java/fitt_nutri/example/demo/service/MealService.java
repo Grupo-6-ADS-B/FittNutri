@@ -13,9 +13,11 @@ import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.FoodItensModel;
 import fitt_nutri.example.demo.model.MealItemModel;
 import fitt_nutri.example.demo.model.MealModel;
+import fitt_nutri.example.demo.model.PatientHistoryModel;
 import fitt_nutri.example.demo.model.PatientModel;
 import fitt_nutri.example.demo.repository.FoodItensRepository;
 import fitt_nutri.example.demo.repository.MealRepository;
+import fitt_nutri.example.demo.repository.PatientHistoryRepository;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +27,7 @@ import org.springframework.stereotype.Service;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +42,7 @@ public class MealService {
 
     private final MealRepository repository;
     private final PatientRepository patientRepository;
+    private final PatientHistoryRepository patientHistoryRepository;
     private final FoodItensService foodItensService;
     private final FoodItensRepository foodItensRepository;
 
@@ -236,8 +240,35 @@ public class MealService {
         doc.add(title);
 
         Paragraph name = new Paragraph("Paciente: " + patient.getNome(), textFont);
-        name.setSpacingAfter(20f);
+        name.setSpacingAfter(8f);
         doc.add(name);
+
+        PatientHistoryModel latestHistory =
+                patientHistoryRepository.findTopByPatientModelIdOrderByDataConsultaDesc(patientId);
+
+        String dataConsulta = "-";
+        if (latestHistory != null && latestHistory.getDataConsulta() != null) {
+            dataConsulta = latestHistory.getDataConsulta()
+                    .minusDays(1)
+                    .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        }
+
+        String motivoConsulta = "-";
+        if (latestHistory != null
+                && latestHistory.getMotivoConsulta() != null
+                && !latestHistory.getMotivoConsulta().isBlank()) {
+            motivoConsulta = latestHistory.getMotivoConsulta();
+        } else if (patient.getMotivoConsulta() != null && !patient.getMotivoConsulta().isBlank()) {
+            motivoConsulta = patient.getMotivoConsulta();
+        }
+
+        Paragraph consultationDate = new Paragraph("Data da consulta: " + dataConsulta, textFont);
+        consultationDate.setSpacingAfter(4f);
+        doc.add(consultationDate);
+
+        Paragraph consultationReason = new Paragraph("Motivo da consulta: " + motivoConsulta, textFont);
+        consultationReason.setSpacingAfter(20f);
+        doc.add(consultationReason);
 
         for (MealModel meal : meals) {
             LineSeparator separator = new LineSeparator();
