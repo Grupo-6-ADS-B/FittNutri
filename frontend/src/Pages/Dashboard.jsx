@@ -176,7 +176,8 @@ export default function Dashboard() {
       const res = await api.get(`/patient-history/evolucao/${pacienteId}`, {
         params: { dataInicio: startDate, dataFim: endDate }
       });
-      setEvolution(Array.isArray(res.data) ? res.data : []);
+      const data = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
+      setEvolution(data);
     } catch (err) {
       console.error('Erro ao buscar evolução:', err);
       alert(`Erro: ${err.message}`);

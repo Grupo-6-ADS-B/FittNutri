@@ -137,7 +137,7 @@ export default function UserGestor() {
         } catch {}
         
         const res = await api.get('/schedulings');
-        const list = Array.isArray(res.data) ? res.data : [];
+        const list = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
         const mapped = list.map((a) => {
           const localAppt = localAppointments.find(la => la.id === a.id);
           
@@ -168,8 +168,8 @@ export default function UserGestor() {
   const fetchUsers = async () => {
     try {
       const response = await api.get('/patients');
-      const mapped = Array.isArray(response.data)
-        ? response.data.map(u => ({
+      const list = Array.isArray(response.data) ? response.data : (response.data?.content ?? []);
+      const mapped = list.map(u => ({
             id: u.id ?? u.ID ?? u.idUsuario ?? u.codigo ?? undefined,
             name: u.name ?? u.nome ?? '',
             email: u.email ?? '',
@@ -179,8 +179,7 @@ export default function UserGestor() {
             avatar: u.avatar ?? '',
             cpf: u.cpf ?? '',
             crn: u.crn ?? '',
-          }))
-        : [];
+          }));
       setUsers(mapped);
       try { localStorage.setItem("users", JSON.stringify(mapped)); } catch {}
     } catch (error) {
