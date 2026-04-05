@@ -74,36 +74,48 @@ export default function UpdateDataDialog({
 
         <TextField 
           label="Peso (kg)" 
+          type="number"
+          inputProps={{ min: 0, step: 'any' }}
           value={updateForm.peso} 
           onChange={(e) => setUpdateForm(f => ({ ...f, peso: e.target.value }))} 
           fullWidth 
         />
         <TextField 
           label="Altura (cm)" 
+          type="number"
+          inputProps={{ min: 0, step: 'any' }}
           value={updateForm.altura} 
           onChange={(e) => setUpdateForm(f => ({ ...f, altura: e.target.value }))} 
           fullWidth 
         />
         <TextField 
           label="Idade Metabólica" 
+          type="number"
+          inputProps={{ min: 0, step: 1 }}
           value={updateForm.idadeMetabolica} 
           onChange={(e) => setUpdateForm(f => ({ ...f, idadeMetabolica: e.target.value }))} 
           fullWidth 
         />
         <TextField 
           label="Massa Muscular (kg)" 
+          type="number"
+          inputProps={{ min: 0, step: 'any' }}
           value={updateForm.massaMuscular} 
           onChange={(e) => setUpdateForm(f => ({ ...f, massaMuscular: e.target.value }))} 
           fullWidth 
         />
         <TextField 
           label="Gordura (%)" 
+          type="number"
+          inputProps={{ min: 0, max: 100, step: 'any' }}
           value={updateForm.porcentagemGordura} 
           onChange={(e) => setUpdateForm(f => ({ ...f, porcentagemGordura: e.target.value }))} 
           fullWidth 
         />
         <TextField 
           label="Gordura Visceral (%)" 
+          type="number"
+          inputProps={{ min: 0, max: 100, step: 'any' }}
           value={updateForm.gorduraVisceral} 
           onChange={(e) => setUpdateForm(f => ({ ...f, gorduraVisceral: e.target.value }))} 
           fullWidth 
@@ -137,6 +149,8 @@ export default function UpdateDataDialog({
               <TextField
                 key={k}
                 label={k}
+                type="number"
+                inputProps={{ min: 0, step: 'any' }}
                 value={updateForm.circ[k] || ""}
                 onChange={(e) => setUpdateForm(f => ({ 
                   ...f, 

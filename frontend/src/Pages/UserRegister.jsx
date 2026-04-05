@@ -39,11 +39,34 @@ export default function UserRegister() {
   const [notification, setNotification] = useState({
     open: false,
     message: "",
+    severity: "success",
   });
   const [cidades, setCidades] = useState([]);
   const [loadingCidades, setLoadingCidades] = useState(false);
 
   const navigate = useNavigate();
+
+  const extractApiMessage = (responseData) => {
+    if (!responseData) return '';
+    if (typeof responseData === 'string') return responseData;
+    return responseData.message || responseData.detail || responseData.error || responseData.title || '';
+  };
+
+  const applyServerError = (message) => {
+    const normalized = (message || '').toLowerCase();
+
+    if (normalized.includes('email')) {
+      setErrors((prev) => ({ ...prev, email: message || 'Email já cadastrado' }));
+      return true;
+    }
+
+    if (normalized.includes('cpf')) {
+      setErrors((prev) => ({ ...prev, cpf: message || 'CPF já cadastrado' }));
+      return true;
+    }
+
+    return false;
+  };
 
   const estados = [
     { uf: "AC", nome: "Acre" },
@@ -232,22 +255,50 @@ export default function UserRegister() {
     };
     (async () => {
       try {
-        const resp = await axios.post('/api/patients', {...payload, estadoCivil: 'Solteiro'}, {
-  headers: {
-    'Content-Type': 'application/json',
-    Authorization: `Bearer ${sessionStorage.getItem('token') || localStorage.getItem('token')}`
-  }
-});
+        const resp = await api.post('/patients', {...payload, estadoCivil: 'Solteiro'});
         setNotification({
           open: true,
           message: `Sucesso! Novo usuário ${formData.name} registrado`,
+          severity: 'success',
         });
         setTimeout(() => navigate("/questionario", { state: { user: resp.data } }), 1200);
       } catch (err) {
         console.error('Erro ao registrar usuário:', err);
+        const status = err.response?.status;
+        const msg = extractApiMessage(err.response?.data) || err.message;
+
+        if (status === 409 && applyServerError(msg)) {
+          setNotification({
+            open: true,
+            message: msg || 'Verifique os campos do cadastro.',
+            severity: 'error',
+          });
+          return;
+        }
+
+        if (status === 400) {
+              if ((msg || '').toLowerCase().includes('cpf')) {
+                setErrors((prev) => ({ ...prev, cpf: msg || 'CPF inválido' }));
+                setNotification({
+                  open: true,
+                  message: msg || 'CPF inválido. Verifique o número informado.',
+                  severity: 'error',
+                });
+                return;
+              }
+
+          setNotification({
+            open: true,
+            message: msg || 'Dados inválidos. Verifique o preenchimento do formulário.',
+            severity: 'error',
+          });
+          return;
+        }
+
         setNotification({
           open: true,
-          message: `Erro ao registrar usuário: ${err.response?.data?.message || err.message || 'Erro desconhecido'}`,
+          message: `Erro ao registrar usuário: ${msg || 'Erro desconhecido'}`,
+          severity: 'error',
         });
       }
     })();
@@ -499,13 +550,13 @@ export default function UserRegister() {
         <Snackbar
           open={notification.open}
           autoHideDuration={3000}
-          onClose={() => setNotification({ open: false, message: "" })}
+          onClose={() => setNotification({ open: false, message: "", severity: "success" })}
           anchorOrigin={{ vertical: "top", horizontal: "center" }}
           sx={{ mt: 8 }}
         >
           <Alert
-            onClose={() => setNotification({ open: false, message: "" })}
-            severity="success"
+            onClose={() => setNotification({ open: false, message: "", severity: "success" })}
+            severity={notification.severity}
             sx={{ width: "100%" }}
           >
             {notification.message}

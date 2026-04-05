@@ -43,6 +43,8 @@ function LoginForm() {
   const {
     control,
     handleSubmit,
+    clearErrors,
+    setError: setFieldError,
     formState: { errors }
   } = useForm({
     defaultValues: {
@@ -54,6 +56,7 @@ function LoginForm() {
   const onSubmit = async (data) => {
     setError('');
     setSuccess('');
+    clearErrors();
     
     
     sessionStorage.removeItem('token');
@@ -83,21 +86,41 @@ function LoginForm() {
       setSuccess(`Login realizado com sucesso${nome ? `! Bem-vindo(a), ${nome}` : '!'}`);
       navigate(from, { replace: true });
     } catch (err) {
-      let msg = err.response?.data?.message || err.message;
-      if (msg.includes('Unexpected end of JSON input')) {
-        msg = 'Tente novamente mais tarde.';
-      } else if (msg.toLowerCase().includes('user not found')) {
-        msg = 'Usuário não encontrado.';
-      } else if (msg.toLowerCase().includes('invalid password')) {
-        msg = 'Senha inválida.';
-      } else if (msg.toLowerCase().includes('network')) {
-        msg = 'Não foi possível conectar ao servidor. Verifique sua conexão.';
-      } else if (msg.toLowerCase().includes('failed to fetch')) {
-        msg = 'Não foi possível conectar ao servidor. Tente novamente.';
-      } else if (err.response?.status === 401) {
-        msg = 'Credenciais inválidas. Verifique seu e-mail e senha.';
+      const responseData = err.response?.data;
+      const rawMessage = typeof responseData === 'string'
+        ? responseData
+        : responseData?.message || responseData?.error || responseData?.title || err.message || '';
+      const msg = rawMessage.toLowerCase();
+
+      if (msg.includes('unexpected end of json input')) {
+        setError('Tente novamente mais tarde.');
+        return;
       }
-      setError(msg || 'Ocorreu um erro ao fazer login. Tente novamente.');
+
+      if (msg.includes('user not found') || msg.includes('email do usuário não encontrado') || msg.includes('email não encontrado')) {
+        setFieldError('email', { type: 'server', message: 'Email não encontrado.' });
+        setError('Confira o e-mail informado.');
+        return;
+      }
+
+      if (msg.includes('invalid password') || msg.includes('senha incorreta') || msg.includes('password')) {
+        setFieldError('password', { type: 'server', message: 'Senha incorreta.' });
+        setError('Confira a senha informada.');
+        return;
+      }
+
+      if (msg.includes('credenciais inválidas') || msg.includes('credenciais invalidas') || err.response?.status === 401) {
+        setFieldError('password', { type: 'server', message: 'E-mail ou senha incorretos.' });
+        setError('Verifique seu e-mail e senha.');
+        return;
+      }
+
+      if (msg.includes('network') || msg.includes('failed to fetch')) {
+        setError('Não foi possível conectar ao servidor. Verifique sua conexão.');
+        return;
+      }
+
+      setError(rawMessage || 'Ocorreu um erro ao fazer login. Tente novamente.');
     }
   };
 

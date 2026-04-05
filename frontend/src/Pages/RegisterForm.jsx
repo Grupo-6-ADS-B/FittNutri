@@ -34,6 +34,8 @@ function RegisterForm() {
     handleSubmit,
     watch,
     setValue,
+    clearErrors,
+    setError: setFieldError,
     formState: { errors }
   } = useForm({
     defaultValues: {
@@ -63,9 +65,42 @@ function RegisterForm() {
     return v;
   };
 
+  const extractApiMessage = (responseData) => {
+    if (!responseData) return '';
+    if (typeof responseData === 'string') return responseData;
+    return responseData.message || responseData.detail || responseData.error || responseData.title || '';
+  };
+
+  const applyServerFieldError = (message) => {
+    const normalized = (message || '').toLowerCase();
+
+    if (normalized.includes('cpf')) {
+      setFieldError('cpf', { type: 'server', message: message || 'CPF já cadastrado' });
+      return true;
+    }
+
+    if (normalized.includes('email')) {
+      setFieldError('email', { type: 'server', message: message || 'Email já cadastrado' });
+      return true;
+    }
+
+    if (normalized.includes('crn')) {
+      setFieldError('crn', { type: 'server', message: message || 'CRN já cadastrado' });
+      return true;
+    }
+
+    if (normalized.includes('senha')) {
+      setFieldError('password', { type: 'server', message: message || 'Senha inválida' });
+      return true;
+    }
+
+    return false;
+  };
+
   const onSubmit = async (data) => {
     setError('');
     setSuccess('');
+    clearErrors();
 
     const payload = {
       nome: data.name,
@@ -76,7 +111,6 @@ function RegisterForm() {
     };
 
     try {
-     
       const resp = await api.post('/users', payload);
       sessionStorage.setItem('emailUsuario', data.email);
       sessionStorage.setItem('nomeUsuario', data.name);
@@ -86,11 +120,20 @@ function RegisterForm() {
       setTimeout(() => navigate('/login'), 1200);
     } catch (err) {
       const status = err.response?.status;
-      const msg = err.response?.data?.message;
+      const msg = extractApiMessage(err.response?.data) || err.message;
+
+      if (status === 409 && applyServerFieldError(msg)) {
+        return;
+      }
+
       if (status === 400) {
-        setError(msg ?? 'Requisição inválida. Verifique os dados.');
+        if (!applyServerFieldError(msg)) {
+          setError(msg ?? 'Requisição inválida. Verifique os dados.');
+        }
       } else if (status === 409) {
-        setError(msg ?? 'Registro duplicado (CPF/Email já cadastrado).');
+        setError(msg ?? 'Registro duplicado. Verifique CPF, e-mail ou CRN.');
+      } else if (status >= 500) {
+        setError('Erro interno ao cadastrar. Verifique CPF, e-mail e CRN novamente.');
       } else {
         setError(msg ?? `Erro ao cadastrar (status ${status ?? 'desconhecido'}).`);
       }
