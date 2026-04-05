@@ -4,9 +4,11 @@ import fitt_nutri.example.demo.config.GerenciadorTokenJwt;
 import fitt_nutri.example.demo.dto.login.LoginListDTO;
 import fitt_nutri.example.demo.dto.login.LoginMapperDTO;
 import fitt_nutri.example.demo.dto.login.LoginTokenDTO;
+import fitt_nutri.example.demo.exceptions.ConflictException;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -14,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -25,14 +29,46 @@ public class LoginService {
     private final GerenciadorTokenJwt gerenciadorTokenJwt;
     private final AuthenticationManager authenticationManager;
 
+    @Transactional
     public void criar(UserModel novoUser){
-        // Apenas criptografa a senha se ela não estiver vazia (usuários do Google têm senha vazia)
+        if (userRepository.existsByEmail(novoUser.getEmail())) {
+            throw new ConflictException("Email já cadastrado");
+        }
+
+        if (userRepository.existsByCpf(novoUser.getCpf())) {
+            throw new ConflictException("CPF já cadastrado");
+        }
+
+        if (userRepository.existsByCrn(novoUser.getCrn())) {
+            throw new ConflictException("CRN já cadastrado");
+        }
+
         if (novoUser.getSenha() != null && !novoUser.getSenha().isEmpty()) {
             String senhaCriptografada = passwordEncoder.encode(novoUser.getSenha());
             novoUser.setSenha(senhaCriptografada);
         }
 
-        userRepository.save(novoUser);
+        try {
+            userRepository.save(novoUser);
+            userRepository.flush();
+        } catch (DataIntegrityViolationException ex) {
+            String causeMessage = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage();
+            String normalized = causeMessage == null ? "" : causeMessage.toLowerCase();
+
+            if (normalized.contains("cpf")) {
+                throw new ConflictException("CPF já cadastrado");
+            }
+
+            if (normalized.contains("email")) {
+                throw new ConflictException("Email já cadastrado");
+            }
+
+            if (normalized.contains("crn")) {
+                throw new ConflictException("CRN já cadastrado");
+            }
+
+            throw new ConflictException("Dados já cadastrados");
+        }
     }
 
     public LoginTokenDTO autenticar(UserModel user){

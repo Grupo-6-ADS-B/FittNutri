@@ -3,11 +3,13 @@ package fitt_nutri.example.demo.dto.login;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.validator.constraints.br.CPF;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,7 +24,10 @@ public class LoginCreateDTO {
     @Schema(description = "Email do usuário", example = "johndoe@email.com")
     private String email;
 
+    @CPF(message = "CPF inválido")
+    @NotBlank(message = "CPF não pode estar vazio")
     private String cpf;
+
     private String crn;
 
     @Pattern(
