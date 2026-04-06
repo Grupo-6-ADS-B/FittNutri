@@ -26,5 +26,5 @@ public class PatientHistoryModel {
     @JoinColumn(name = "dados_circunferencia_id")
     private DataCircleModel dataCircleModel;
 
-    private LocalDate dataConsulta;
+    @com.fasterxml.jackson.annotation.JsonFormat(pattern = "yyyy-MM-dd") private LocalDate dataConsulta;
 }

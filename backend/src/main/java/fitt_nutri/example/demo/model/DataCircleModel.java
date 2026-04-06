@@ -21,7 +21,7 @@ public class DataCircleModel {
     @EqualsAndHashCode.Include
     private Integer idDadosCircunferencia;
 
-    @NotNull(message = "Rótulo é obrigatório")
+
     private String rotulo;
 
     private Double abdominal;

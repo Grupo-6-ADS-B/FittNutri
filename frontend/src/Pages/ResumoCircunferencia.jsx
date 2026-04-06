@@ -79,8 +79,9 @@ export default function ResumoCircunferencia() {
             setLoadingUsers(true);
             try {
                 const response = await api.get('/patients');
-                const mapped = Array.isArray(response.data)
-                    ? response.data.map((p) => ({
+                const dataList = Array.isArray(response.data) ? response.data : 
+                                 (response.data?.content && Array.isArray(response.data.content)) ? response.data.content : [];
+                const mapped = dataList.map((p) => ({
                         id: p.id ?? p.ID ?? p.idUsuario ?? p.codigo ?? undefined,
                         name: p.nome ?? p.name ?? '',
                         email: p.email ?? '',
@@ -89,8 +90,7 @@ export default function ResumoCircunferencia() {
                         sexo: p.sexo ?? '',
                         atividade: p.atividade ?? '',
                         avatar: p.avatar ?? ''
-                    }))
-                    : [];
+                    }));
                 setUsersList(mapped);
                 if (location.state?.user) {
                     setSelectedUser(location.state.user);
@@ -143,10 +143,8 @@ export default function ResumoCircunferencia() {
                 });
                 console.log('Resposta do histórico (evolução):', historyRes.data);
                 
-                let historyList = Array.isArray(historyRes.data) ? historyRes.data : [];
-                
-                console.log('Lista consolidada:', historyList);
-                
+                    let historyList = Array.isArray(historyRes.data) ? historyRes.data : 
+                                      (historyRes.data?.content && Array.isArray(historyRes.data.content)) ? historyRes.data.content : [];
                 const withIndex = historyList.map((item, index) => ({ ...item, _originalIndex: index }));
                 
                 const sorted = [...withIndex].sort((a, b) => {

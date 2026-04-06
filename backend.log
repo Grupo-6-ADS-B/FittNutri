@@ -1,0 +1,86 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< fitt-nutri.example:demo >-----------------------
+[INFO] Building demo 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.5:run (default-cli) > test-compile @ demo >>>
+[INFO] 
+[INFO] --- jacoco:0.8.9:prepare-agent (prepare-agent) @ demo ---
+[INFO] argLine set to "-javaagent:C:\\Users\\simon\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.9\\org.jacoco.agent-0.8.9-runtime.jar=destfile=C:\\Users\\simon\\OneDrive\\┴rea de Trabalho\\Projeto2026\\FittNutri\\backend\\target\\jacoco.exec"
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ demo ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ demo ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ demo ---
+[INFO] skip non existing resourceDirectory C:\Users\simon\OneDrive\┴rea de Trabalho\Projeto2026\FittNutri\backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ demo ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.5.5:run (default-cli) < test-compile @ demo <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.5:run (default-cli) @ demo ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.5)
+
+2026-04-01T21:38:38.521-03:00  INFO 3192 --- [demo] [           main] fitt_nutri.example.demo.Application      : Starting Application using Java 21.0.10 with PID 3192 (C:\Users\simon\OneDrive\├ürea de Trabalho\Projeto2026\FittNutri\backend\target\classes started by simon in C:\Users\simon\OneDrive\├ürea de Trabalho\Projeto2026\FittNutri\backend)
+2026-04-01T21:38:38.531-03:00  INFO 3192 --- [demo] [           main] fitt_nutri.example.demo.Application      : The following 1 profile is active: "dev"
+2026-04-01T21:38:49.319-03:00  INFO 3192 --- [demo] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-01T21:38:50.006-03:00  INFO 3192 --- [demo] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 608 ms. Found 9 JPA repository interfaces.
+2026-04-01T21:38:54.709-03:00  INFO 3192 --- [demo] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-04-01T21:38:54.765-03:00  INFO 3192 --- [demo] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-01T21:38:54.766-03:00  INFO 3192 --- [demo] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.44]
+2026-04-01T21:38:55.221-03:00  INFO 3192 --- [demo] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-04-01T21:38:55.225-03:00  INFO 3192 --- [demo] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 16396 ms
+2026-04-01T21:38:56.150-03:00  INFO 3192 --- [demo] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-04-01T21:38:56.322-03:00  INFO 3192 --- [demo] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.26.Final
+2026-04-01T21:38:56.421-03:00  INFO 3192 --- [demo] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-04-01T21:38:57.770-03:00  INFO 3192 --- [demo] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-01T21:38:57.886-03:00  INFO 3192 --- [demo] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-01T21:38:58.622-03:00  INFO 3192 --- [demo] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@798b36fd
+2026-04-01T21:38:58.626-03:00  INFO 3192 --- [demo] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-01T21:38:58.832-03:00  WARN 3192 --- [demo] [           main] org.hibernate.orm.deprecation            : HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-01T21:38:58.833-03:00  WARN 3192 --- [demo] [           main] org.hibernate.orm.deprecation            : HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2026-04-01T21:38:58.893-03:00  INFO 3192 --- [demo] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 8.0
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-01T21:39:04.968-03:00  INFO 3192 --- [demo] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-01T21:39:05.966-03:00  INFO 3192 --- [demo] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-01T21:39:10.194-03:00  INFO 3192 --- [demo] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-01T21:39:12.872-03:00  WARN 3192 --- [demo] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-01T21:39:13.172-03:00  INFO 3192 --- [demo] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name autenticacaoService
+2026-04-01T21:39:15.861-03:00  INFO 3192 --- [demo] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-04-01T21:39:18.631-03:00  INFO 3192 --- [demo] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-04-01T21:39:18.660-03:00  INFO 3192 --- [demo] [           main] fitt_nutri.example.demo.Application      : Started Application in 42.579 seconds (process running for 47.231)
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  03:56 min
+[INFO] Finished at: 2026-04-01T21:41:40-03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.5.5:run (default-cli) on project demo: Process terminated with exit code: -1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

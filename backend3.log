@@ -1,0 +1,242 @@
+[INFO] Scanning for projects...
+[INFO] 
+[INFO] ----------------------< fitt-nutri.example:demo >-----------------------
+[INFO] Building demo 0.0.1-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] >>> spring-boot:3.5.5:run (default-cli) > test-compile @ demo >>>
+[INFO] 
+[INFO] --- jacoco:0.8.9:prepare-agent (prepare-agent) @ demo ---
+[INFO] argLine set to "-javaagent:C:\\Users\\simon\\.m2\\repository\\org\\jacoco\\org.jacoco.agent\\0.8.9\\org.jacoco.agent-0.8.9-runtime.jar=destfile=C:\\Users\\simon\\OneDrive\\┴rea de Trabalho\\Projeto2026\\FittNutri\\backend\\target\\jacoco.exec"
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ demo ---
+[INFO] Copying 4 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ demo ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] --- resources:3.3.1:testResources (default-testResources) @ demo ---
+[INFO] skip non existing resourceDirectory C:\Users\simon\OneDrive\┴rea de Trabalho\Projeto2026\FittNutri\backend\src\test\resources
+[INFO] 
+[INFO] --- compiler:3.11.0:testCompile (default-testCompile) @ demo ---
+[INFO] Nothing to compile - all classes are up to date
+[INFO] 
+[INFO] <<< spring-boot:3.5.5:run (default-cli) < test-compile @ demo <<<
+[INFO] 
+[INFO] 
+[INFO] --- spring-boot:3.5.5:run (default-cli) @ demo ---
+[INFO] Attaching agents: []
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.5.5)
+
+2026-04-01T21:42:29.556-03:00  INFO 30728 --- [demo] [           main] fitt_nutri.example.demo.Application      : Starting Application using Java 21.0.10 with PID 30728 (C:\Users\simon\OneDrive\├ürea de Trabalho\Projeto2026\FittNutri\backend\target\classes started by simon in C:\Users\simon\OneDrive\├ürea de Trabalho\Projeto2026\FittNutri\backend)
+2026-04-01T21:42:29.564-03:00  INFO 30728 --- [demo] [           main] fitt_nutri.example.demo.Application      : The following 1 profile is active: "dev"
+2026-04-01T21:42:33.506-03:00  INFO 30728 --- [demo] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-01T21:42:33.814-03:00  INFO 30728 --- [demo] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 278 ms. Found 9 JPA repository interfaces.
+2026-04-01T21:42:35.813-03:00  INFO 30728 --- [demo] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-04-01T21:42:35.859-03:00  INFO 30728 --- [demo] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-01T21:42:35.861-03:00  INFO 30728 --- [demo] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.44]
+2026-04-01T21:42:36.110-03:00  INFO 30728 --- [demo] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-04-01T21:42:36.113-03:00  INFO 30728 --- [demo] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 6419 ms
+2026-04-01T21:42:36.363-03:00 TRACE 30728 --- [demo] [           main] o.s.b.w.s.ServletContextInitializerBeans : Added existing Filter initializer bean 'webMvcObservationFilter'; order=-2147483647, resource=class path resource [org/springframework/boot/actuate/autoconfigure/observation/web/servlet/WebMvcObservationAutoConfiguration.class]
+2026-04-01T21:42:36.363-03:00 TRACE 30728 --- [demo] [           main] o.s.b.w.s.ServletContextInitializerBeans : Added existing Filter initializer bean 'securityFilterChainRegistration'; order=-100, resource=class path resource [org/springframework/boot/autoconfigure/security/servlet/SecurityFilterAutoConfiguration.class]
+2026-04-01T21:42:36.364-03:00 TRACE 30728 --- [demo] [           main] o.s.b.w.s.ServletContextInitializerBeans : Added existing Servlet initializer bean 'dispatcherServletRegistration'; order=2147483647, resource=class path resource [org/springframework/boot/autoconfigure/web/servlet/DispatcherServletAutoConfiguration$DispatcherServletRegistrationConfiguration.class]
+2026-04-01T21:42:36.364-03:00 TRACE 30728 --- [demo] [           main] o.s.b.w.s.ServletContextInitializerBeans : Added existing ServletContextInitializer initializer bean 'servletEndpointRegistrar'; order=2147483647, resource=class path resource [org/springframework/boot/actuate/autoconfigure/endpoint/web/ServletEndpointManagementContextConfiguration$WebMvcServletEndpointManagementContextConfiguration.class]
+2026-04-01T21:42:36.740-03:00  INFO 30728 --- [demo] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-04-01T21:42:36.945-03:00  INFO 30728 --- [demo] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.26.Final
+2026-04-01T21:42:37.064-03:00  INFO 30728 --- [demo] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-04-01T21:42:38.868-03:00  INFO 30728 --- [demo] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-01T21:42:39.162-03:00  INFO 30728 --- [demo] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-01T21:42:40.605-03:00  INFO 30728 --- [demo] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@e4bb10b
+2026-04-01T21:42:40.616-03:00  INFO 30728 --- [demo] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-01T21:42:40.983-03:00  WARN 30728 --- [demo] [           main] org.hibernate.orm.deprecation            : HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-01T21:42:40.995-03:00  WARN 30728 --- [demo] [           main] org.hibernate.orm.deprecation            : HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead
+2026-04-01T21:42:41.175-03:00  INFO 30728 --- [demo] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 8.0
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-01T21:42:48.493-03:00  INFO 30728 --- [demo] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-01T21:42:49.144-03:00  INFO 30728 --- [demo] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-01T21:42:50.075-03:00 TRACE 30728 --- [demo] [           main] o.s.b.w.s.ServletContextInitializerBeans : Created Filter initializer for bean 'characterEncodingFilter'; order=-2147483648, resource=class path resource [org/springframework/boot/autoconfigure/web/servlet/HttpEncodingAutoConfiguration.class]
+2026-04-01T21:42:50.076-03:00 TRACE 30728 --- [demo] [           main] o.s.b.w.s.ServletContextInitializerBeans : Created Filter initializer for bean 'formContentFilter'; order=-9900, resource=class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration.class]
+2026-04-01T21:42:50.076-03:00 TRACE 30728 --- [demo] [           main] o.s.b.w.s.ServletContextInitializerBeans : Created Filter initializer for bean 'requestContextFilter'; order=-105, resource=class path resource [org/springframework/boot/autoconfigure/web/servlet/WebMvcAutoConfiguration$WebMvcAutoConfigurationAdapter.class]
+2026-04-01T21:42:50.077-03:00 TRACE 30728 --- [demo] [           main] o.s.b.w.s.ServletContextInitializerBeans : Created Filter initializer for bean 'autenticacaoFilter'; order=null, resource=file [C:\Users\simon\OneDrive\├ürea de Trabalho\Projeto2026\FittNutri\backend\target\classes\fitt_nutri\example\demo\config\AutenticacaoFilter.class]
+2026-04-01T21:42:50.086-03:00 DEBUG 30728 --- [demo] [           main] o.s.b.w.s.ServletContextInitializerBeans : Mapping filters: webMvcObservationFilter urls=[/*] order=-2147483647, springSecurityFilterChain urls=[/*] order=-100, characterEncodingFilter urls=[/*] order=-2147483648, formContentFilter urls=[/*] order=-9900, requestContextFilter urls=[/*] order=-105, autenticacaoFilter urls=[/*] order=2147483647
+2026-04-01T21:42:50.086-03:00 DEBUG 30728 --- [demo] [           main] o.s.b.w.s.ServletContextInitializerBeans : Mapping servlets: dispatcherServlet urls=[/]
+2026-04-01T21:42:50.164-03:00 DEBUG 30728 --- [demo] [           main] o.s.w.f.ServerHttpObservationFilter      : Filter 'webMvcObservationFilter' configured for use
+2026-04-01T21:42:51.983-03:00  INFO 30728 --- [demo] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-01T21:42:55.673-03:00  WARN 30728 --- [demo] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-04-01T21:42:55.950-03:00  INFO 30728 --- [demo] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name autenticacaoService
+2026-04-01T21:42:56.562-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	f.e.d.c.AnthropometricDataController:
+	{GET [/anthropometric-data/{id}]}: getById(Integer)
+	{PUT [/anthropometric-data/{id}]}: update(Integer,AnthropometricDataModel)
+	{DELETE [/anthropometric-data/{id}]}: delete(Integer)
+	{POST [/anthropometric-data]}: create(AnthropometricDataModel)
+	{GET [/anthropometric-data]}: getAll()
+	{PATCH [/anthropometric-data/paciente/{pacienteId}]}: partialUpdateByPaciente(Integer,Map)
+	{PATCH [/anthropometric-data/{id}]}: partialUpdate(Integer,Map)
+	{GET [/anthropometric-data/paciente/{pacienteId}]}: getByPaciente(Integer)
+	{POST [/anthropometric-data/patient/{patientId}]}: createByPaciente(Integer,AnthropometricDataModel)
+2026-04-01T21:42:56.597-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	f.e.d.c.DataCircleController:
+	{POST [/data-circle/patient/{pacienteId}]}: cadastrarPorPaciente(Integer,DataCircleModel)
+	{PATCH [/data-circle/{id}]}: atualizarParcial(Integer,Map)
+	{GET [/data-circle/count]}: contarRegistros()
+	{GET [/data-circle/patient/{pacienteId}]}: getByPatient(Integer)
+	{PUT [/data-circle/{id}]}: atualizar(Integer,DataCircleModel)
+	{DELETE [/data-circle/{id}]}: deletar(Integer)
+	{GET [/data-circle/{id}]}: pegarPorId(Integer)
+	{POST [/data-circle]}: cadastrar(DataCircleModel)
+	{GET [/data-circle]}: pegarTodos()
+2026-04-01T21:42:56.608-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	f.e.d.c.FoodItensController:
+	{GET [/food-itens/search-part]}: getFoodItemsByNamePart(String)
+	{GET [/food-itens/search]}: getFoodItemByNameAndAmount(String,double)
+	{GET [/food-itens]}: getFoodItems(int,int)
+	{GET [/food-itens/calorias/{nome}]}: getCalorias(String,Double)
+	{GET [/food-itens/{id}]}: getFoodItemById(Integer)
+	{GET [/food-itens/macros/{nome}]}: getMacros(String,Double)
+2026-04-01T21:42:56.620-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	f.e.d.c.FormController:
+	{PUT [/forms/{id}]}: updateForm(Integer,FormRequestDTO)
+	{GET [/forms/{id}]}: getFormById(Integer)
+	{GET [/forms]}: getAllForms()
+	{POST [/forms]}: createForm(FormRequestDTO)
+	{DELETE [/forms/{id}]}: deleteForm(Integer)
+2026-04-01T21:42:56.624-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	f.e.d.c.FormNotifyController:
+	{POST [/forms/notify]}: notifyForm(FormModel)
+2026-04-01T21:42:56.629-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	f.e.d.c.MealController:
+	{POST [/meals/meal-by-type/{patientId}]}: addMealByType(Integer,MealRequestDTO)
+	{GET [/meals/{patientId}]}: getMealsByPatient(Integer)
+	{POST [/meals/full-diet/{patientId}]}: saveFullDiet(Integer,FullDietRequestDTO)
+	{GET [/meals/patient/{patientId}/pdf]}: getPdf(Integer)
+	{POST [/meals/patient/{patientId}/pdf/request]}: requestPdf(Integer,String,Integer,String)
+	{PATCH [/meals/{mealId}]}: patchMeal(Integer,MealModel)
+	{DELETE [/meals/{mealId}]}: deleteMeal(Integer)
+	{PUT [/meals/{mealId}]}: updateMeal(Integer,MealModel)
+2026-04-01T21:42:56.638-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	f.e.d.c.PatientController:
+	{PUT [/patients/{id}]}: updatePatient(Integer,PatientRequestDTO)
+	{GET [/patients]}: getAllPatients(int)
+	{DELETE [/patients/{id}]}: deletePatient(Integer)
+	{PATCH [/patients/{id}]}: patchPatient(Integer,Map)
+	{GET [/patients/{id}]}: getPatientById(Integer)
+	{POST [/patients]}: createPatient(PatientRequestDTO)
+2026-04-01T21:42:56.643-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	f.e.d.c.PatientHistoryController:
+	{GET [/patient-history/evolucao/{pacienteId}]}: buscarEvolucaoPorPeriodo(Integer,String,String,int)
+	{GET [/patient-history/{id}]}: buscarPorPaciente(Integer)
+	{POST [/patient-history/{pacienteId}]}: salvarConsulta(Integer,ConsultaPacienteRequestDTO)
+2026-04-01T21:42:56.654-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	f.e.d.c.SchedulingController:
+	{GET [/schedulings/{id}]}: getById(Integer)
+	{PUT [/schedulings/{id}]}: update(Integer,SchedulingRequestDTO)
+	{DELETE [/schedulings/{id}]}: delete(Integer)
+	{POST [/schedulings]}: create(SchedulingRequestDTO)
+	{GET [/schedulings]}: getAll()
+	{GET [/schedulings/patient/{pacienteId}]}: getByPatient(Integer)
+	{GET [/schedulings/nutritionist/{usuarioId}]}: getByNutritionist(Integer,int,int)
+	{PATCH [/schedulings/{id}/observacoes]}: updateObservacoes(Integer,String)
+	{PATCH [/schedulings/{id}/date]}: updateDate(Integer,LocalDate)
+2026-04-01T21:42:56.668-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	f.e.d.c.UserController:
+	{GET [/users/email/{email}]}: getUserByEmail(String)
+	{GET [/users/cpf/{cpf}]}: getUserByCpf(String)
+	{GET [/users/{id}]}: getUserById(Integer)
+	{GET [/users]}: getAllUsers()
+	{PUT [/users/{id}]}: updateUser(Integer,UserRequestDTO)
+	{POST [/users]}: createUser(LoginCreateDTO)
+	{POST [/users/login]}: loginUser(LoginRequestDTO)
+	{PATCH [/users/{id}]}: patchUser(Integer,Map)
+	{DELETE [/users/{id}]}: deleteUser(Integer)
+2026-04-01T21:42:56.683-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	o.s.b.a.w.s.e.BasicErrorController:
+	{ [/error]}: error(HttpServletRequest)
+	{ [/error], produces [text/html]}: errorHtml(HttpServletRequest,HttpServletResponse)
+2026-04-01T21:42:56.709-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	o.s.w.a.OpenApiWebMvcResource:
+	{GET [/v3/api-docs.yaml], produces [application/vnd.oai.openapi]}: openapiYaml(HttpServletRequest,String,Locale)
+	{GET [/v3/api-docs], produces [application/json]}: openapiJson(HttpServletRequest,String,Locale)
+2026-04-01T21:42:56.714-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	o.s.w.u.SwaggerWelcomeWebMvc:
+	{GET [/swagger-ui.html]}: redirectToUi(HttpServletRequest)
+2026-04-01T21:42:56.716-03:00 TRACE 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 
+	o.s.w.u.SwaggerConfigResource:
+	{GET [/v3/api-docs/swagger-config], produces [application/json]}: openapiJson(HttpServletRequest)
+2026-04-01T21:42:56.726-03:00 DEBUG 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerMapping : 71 mappings in 'requestMappingHandlerMapping'
+2026-04-01T21:42:56.762-03:00 DEBUG 30728 --- [demo] [           main] o.s.w.s.h.BeanNameUrlHandlerMapping      : Detected 0 mappings in 'beanNameHandlerMapping'
+2026-04-01T21:42:57.021-03:00 TRACE 30728 --- [demo] [           main] o.s.w.s.f.support.RouterFunctionMapping  : 0 RouterFunction(s) in 'routerFunctionMapping'
+2026-04-01T21:42:57.076-03:00 TRACE 30728 --- [demo] [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped [/webjars/**] onto ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2026-04-01T21:42:57.078-03:00 TRACE 30728 --- [demo] [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped [/**] onto ResourceHttpRequestHandler [classpath [META-INF/resources/], classpath [resources/], classpath [static/], classpath [public/], ServletContext [/]]
+2026-04-01T21:42:57.078-03:00 TRACE 30728 --- [demo] [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped [/swagger-ui*/*swagger-initializer.js] onto ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2026-04-01T21:42:57.078-03:00 TRACE 30728 --- [demo] [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Mapped [/swagger-ui*/**] onto ResourceHttpRequestHandler [classpath [META-INF/resources/webjars/]]
+2026-04-01T21:42:57.079-03:00 DEBUG 30728 --- [demo] [           main] o.s.w.s.handler.SimpleUrlHandlerMapping  : Patterns [/webjars/**, /**, /swagger-ui*/*swagger-initializer.js, /swagger-ui*/**] in 'resourceHandlerMapping'
+2026-04-01T21:42:57.553-03:00  INFO 30728 --- [demo] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-04-01T21:42:57.575-03:00 TRACE 30728 --- [demo] [           main] s.b.a.e.w.s.WebMvcEndpointHandlerMapping : Register "{GET [/actuator/health/**], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}" to java.lang.Object org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping$OperationHandler.handle(jakarta.servlet.http.HttpServletRequest,java.util.Map<java.lang.String, java.lang.String>)
+2026-04-01T21:42:57.579-03:00 TRACE 30728 --- [demo] [           main] s.b.a.e.w.s.WebMvcEndpointHandlerMapping : Register "{GET [/actuator/health], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}" to java.lang.Object org.springframework.boot.actuate.endpoint.web.servlet.AbstractWebMvcEndpointHandlerMapping$OperationHandler.handle(jakarta.servlet.http.HttpServletRequest,java.util.Map<java.lang.String, java.lang.String>)
+2026-04-01T21:42:57.588-03:00 TRACE 30728 --- [demo] [           main] s.b.a.e.w.s.WebMvcEndpointHandlerMapping : Register "{GET [/actuator], produces [application/vnd.spring-boot.actuator.v3+json || application/vnd.spring-boot.actuator.v2+json || application/json]}" to public java.util.Map<java.lang.String, java.util.Map<java.lang.String, org.springframework.boot.actuate.endpoint.web.Link>> org.springframework.boot.actuate.endpoint.web.servlet.WebMvcEndpointHandlerMapping$WebMvcLinksHandler.links(jakarta.servlet.http.HttpServletRequest,jakarta.servlet.http.HttpServletResponse)
+2026-04-01T21:42:59.249-03:00 DEBUG 30728 --- [demo] [           main] s.w.s.m.m.a.RequestMappingHandlerAdapter : ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+2026-04-01T21:42:59.536-03:00 DEBUG 30728 --- [demo] [           main] .m.m.a.ExceptionHandlerExceptionResolver : ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+2026-04-01T21:43:01.353-03:00  INFO 30728 --- [demo] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-04-01T21:43:01.377-03:00  INFO 30728 --- [demo] [           main] fitt_nutri.example.demo.Application      : Started Application in 33.726 seconds (process running for 34.834)
+2026-04-01T21:43:06.134-03:00  INFO 30728 --- [demo] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-01T21:43:06.134-03:00  INFO 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-01T21:43:06.134-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.multipart.support.StandardServletMultipartResolver@19940123
+2026-04-01T21:43:06.134-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver@6f2d77e9
+2026-04-01T21:43:06.134-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected org.springframework.web.servlet.theme.FixedThemeResolver@baee849
+2026-04-01T21:43:06.136-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected DefaultRequestToViewNameTranslator
+2026-04-01T21:43:06.137-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Detected SessionFlashMapManager
+2026-04-01T21:43:06.138-03:00 DEBUG 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : enableLoggingRequestDetails='false': request parameters and headers will be masked to prevent unsafe logging of potentially sensitive data
+2026-04-01T21:43:06.138-03:00  INFO 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 4 ms
+2026-04-01T21:43:06.245-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : POST "/users/login", parameters={}, headers={masked} in DispatcherServlet 'dispatcherServlet'
+2026-04-01T21:43:06.250-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to fitt_nutri.example.demo.controller.UserController#loginUser(LoginRequestDTO)
+2026-04-01T21:43:06.435-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] m.m.a.RequestResponseBodyMethodProcessor : Read "application/json;charset=UTF-8" to [fitt_nutri.example.demo.dto.login.LoginRequestDTO@6f150643]
+2026-04-01T21:43:06.553-03:00  WARN 30728 --- [demo] [nio-8080-exec-1] .w.s.m.s.DefaultHandlerExceptionResolver : Resolved [org.springframework.web.bind.MethodArgumentNotValidException: Validation failed for argument [0] in public org.springframework.http.ResponseEntity<fitt_nutri.example.demo.dto.login.LoginTokenDTO> fitt_nutri.example.demo.controller.UserController.loginUser(fitt_nutri.example.demo.dto.login.LoginRequestDTO): [Field error in object 'loginRequestDTO' on field 'senha': rejected value [password]; codes [Pattern.loginRequestDTO.senha,Pattern.senha,Pattern.java.lang.String,Pattern]; arguments [org.springframework.context.support.DefaultMessageSourceResolvable: codes [loginRequestDTO.senha,senha]; arguments []; default message [senha],[Ljakarta.validation.constraints.Pattern$Flag;@6096a862,^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$]; default message [A senha deve ter no m├¡nimo 8 caracteres e incluir letras mai├║sculas, min├║sculas, n├║meros e caracteres especiais]] ]
+2026-04-01T21:43:06.553-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : No view rendering, null ModelAndView returned.
+2026-04-01T21:43:06.555-03:00 DEBUG 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed 400 BAD_REQUEST, headers={masked}
+2026-04-01T21:43:06.572-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : 2 matching mappings: [{ [/error]}, { [/error], produces [text/html]}]
+2026-04-01T21:43:06.574-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : "ERROR" dispatch for POST "/error", parameters={}, headers={masked} in DispatcherServlet 'dispatcherServlet'
+2026-04-01T21:43:06.575-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : 2 matching mappings: [{ [/error]}, { [/error], produces [text/html]}]
+2026-04-01T21:43:06.575-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#error(HttpServletRequest)
+2026-04-01T21:43:06.578-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.web.method.HandlerMethod             : Arguments: [SecurityContextHolderAwareRequestWrapper[ FirewalledRequest[ org.apache.catalina.core.ApplicationHttpRequest@6cc751c6]]]
+2026-04-01T21:43:06.612-03:00 DEBUG 30728 --- [demo] [nio-8080-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/yaml]
+2026-04-01T21:43:06.616-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{timestamp=Wed Apr 01 21:43:06 BRT 2026, status=400, error=Bad Request, path=/users/login}]
+2026-04-01T21:43:06.662-03:00 TRACE 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : No view rendering, null ModelAndView returned.
+2026-04-01T21:43:06.665-03:00 DEBUG 30728 --- [demo] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Exiting from "ERROR" dispatch, status 400, headers={masked}
+2026-04-01T21:43:07.437-03:00 TRACE 30728 --- [demo] [nio-8080-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : 2 matching mappings: [{ [/error]}, { [/error], produces [text/html]}]
+2026-04-01T21:43:07.440-03:00 TRACE 30728 --- [demo] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : "ERROR" dispatch for POST "/error", parameters={}, headers={masked} in DispatcherServlet 'dispatcherServlet'
+2026-04-01T21:43:07.440-03:00 TRACE 30728 --- [demo] [nio-8080-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : 2 matching mappings: [{ [/error]}, { [/error], produces [text/html]}]
+2026-04-01T21:43:07.441-03:00 TRACE 30728 --- [demo] [nio-8080-exec-2] s.w.s.m.m.a.RequestMappingHandlerMapping : Mapped to org.springframework.boot.autoconfigure.web.servlet.error.BasicErrorController#error(HttpServletRequest)
+2026-04-01T21:43:07.443-03:00 TRACE 30728 --- [demo] [nio-8080-exec-2] o.s.web.method.HandlerMethod             : Arguments: [SecurityContextHolderAwareRequestWrapper[ FirewalledRequest[ org.apache.catalina.core.ApplicationHttpRequest@1642011d]]]
+2026-04-01T21:43:07.444-03:00 DEBUG 30728 --- [demo] [nio-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Using 'application/json', given [*/*] and supported [application/json, application/*+json, application/yaml]
+2026-04-01T21:43:07.445-03:00 TRACE 30728 --- [demo] [nio-8080-exec-2] o.s.w.s.m.m.a.HttpEntityMethodProcessor  : Writing [{timestamp=Wed Apr 01 21:43:07 BRT 2026, status=401, error=Unauthorized, path=/patient-history/1}]
+2026-04-01T21:43:07.446-03:00 TRACE 30728 --- [demo] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : No view rendering, null ModelAndView returned.
+2026-04-01T21:43:07.446-03:00 DEBUG 30728 --- [demo] [nio-8080-exec-2] o.s.web.servlet.DispatcherServlet        : Exiting from "ERROR" dispatch, status 401, headers={masked}
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  02:57 min
+[INFO] Finished at: 2026-04-01T21:45:10-03:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.springframework.boot:spring-boot-maven-plugin:3.5.5:run (default-cli) on project demo: Process terminated with exit code: -1 -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoExecutionException

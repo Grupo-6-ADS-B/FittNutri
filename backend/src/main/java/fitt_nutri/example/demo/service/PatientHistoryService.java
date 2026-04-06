@@ -48,6 +48,7 @@ public class PatientHistoryService {
 
         antropo.setPeso(dto.getAntropometria().getPeso());
         antropo.setAltura(dto.getAntropometria().getAltura());
+        antropo.setIdade(dto.getAntropometria().getIdade());
         antropo.setImc(dto.getAntropometria().getImc());
         antropo.setGorduraVisceral(dto.getAntropometria().getGorduraVisceral());
         antropo.setPorcentagemGordura(dto.getAntropometria().getPorcentagemGordura());
@@ -62,6 +63,7 @@ public class PatientHistoryService {
 
         DataCircleModel circ = new DataCircleModel();
 
+        circ.setRotulo(dto.getCircunferencia().getRotulo() != null ? dto.getCircunferencia().getRotulo() : "Avaliação " + dto.getDataConsulta());
         circ.setCintura(dto.getCircunferencia().getCintura());
         circ.setAbdominal(dto.getCircunferencia().getAbdominal());
         circ.setQuadril(dto.getCircunferencia().getQuadril());

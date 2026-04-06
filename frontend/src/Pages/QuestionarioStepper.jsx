@@ -284,6 +284,7 @@ const handleResumoClick = async () => {
       };
 
       const circToSend = {
+        rotulo: "Avaliação " + new Date().toLocaleDateString('pt-BR'),
         abdominal: parseOrNull(circData.abdominal),
         cintura: parseOrNull(circData.cintura),
         quadril: parseOrNull(circData.quadril),
@@ -300,12 +301,13 @@ const handleResumoClick = async () => {
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
         const day = String(now.getDate()).padStart(2, '0');
-        const today = `${year}-${month}-${day}T00:00:00Z`;
+        const today = `${year}-${month}-${day}`;
         const historyPayload = {
           dataConsulta: today,
           antropometria: {
             peso,
             altura: alturaMeters,
+            idade: parseOrNull(antropoData.idade),
             imc: imcValue !== null ? Number(imcValue.toFixed(2)) : null,
             idadeMetabolica: parseOrNull(antropoData.idadeMetabolica),
             massaMuscular: parseOrNull(antropoData.massaMuscular),
@@ -317,7 +319,7 @@ const handleResumoClick = async () => {
         };
         await api.post(`/patient-history/${selectedUser.id}`, historyPayload);
       } catch (err) {
-        console.error('Erro ao salvar consulta no backend:', err);
+        console.error('Erro ao salvar consulta no backend:', err.response?.data || err);
         throw err;
       }
 

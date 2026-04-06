@@ -1,12 +1,14 @@
 package fitt_nutri.example.demo.dto;
 
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDate;
 
 @Data
 public class EvolucaoPacienteDTO {
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dataConsulta;
 
     private Double peso;

@@ -134,8 +134,9 @@ export default function UserGestor() {
         } catch {}
         
         const res = await api.get('/schedulings');
-        const list = Array.isArray(res.data) ? res.data : [];
-        const mapped = list.map((a) => {
+          const dataList = Array.isArray(res.data) ? res.data : 
+                           (res.data?.content && Array.isArray(res.data.content)) ? res.data.content : [];
+          const mapped = dataList.map((a) => {
           const localAppt = localAppointments.find(la => la.id === a.id);
           
           return {
@@ -165,8 +166,9 @@ export default function UserGestor() {
   const fetchUsers = async () => {
     try {
       const response = await api.get('/patients');
-      const mapped = Array.isArray(response.data)
-        ? response.data.map(u => ({
+        const dataList = Array.isArray(response.data) ? response.data : 
+                         (response.data?.content && Array.isArray(response.data.content)) ? response.data.content : [];
+        const mapped = dataList.map(u => ({
             id: u.id ?? u.ID ?? u.idUsuario ?? u.codigo ?? undefined,
             name: u.name ?? u.nome ?? '',
             email: u.email ?? '',
@@ -175,8 +177,7 @@ export default function UserGestor() {
             avatar: u.avatar ?? '',
             cpf: u.cpf ?? '',
             crn: u.crn ?? '',
-          }))
-        : [];
+          }));
       setUsers(mapped);
       try { localStorage.setItem("users", JSON.stringify(mapped)); } catch {}
     } catch (error) {
@@ -357,7 +358,7 @@ export default function UserGestor() {
     const year = adjustDate.getFullYear();
     const month = String(adjustDate.getMonth() + 1).padStart(2, '0');
     const day = String(adjustDate.getDate()).padStart(2, '0');
-    const adjustedDate = `${year}-${month}-${day}T00:00:00Z`;
+    const adjustedDate = `${year}-${month}-${day}`;
 
     const payload = {
       dataConsulta: adjustedDate,
