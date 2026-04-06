@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from "jwt-decode";
+// import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+// import { jwtDecode } from "jwt-decode";
 import { useForm, Controller } from 'react-hook-form';
 import { 
   Box, 
@@ -215,7 +215,7 @@ function LoginForm() {
         }}
       />
 
-      <GoogleOAuthProvider clientId={googleClientId}>
+      {/* <GoogleOAuthProvider clientId={googleClientId}> */}
       <Container sx={{ position: 'relative', zIndex: 2, maxWidth: '500px !important', border: '1px solid #ddd', borderRadius: '8px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', backgroundColor: 'rgba(255,255,255,0.96)' }}>
         {!showRecovery ? (
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
@@ -296,7 +296,7 @@ function LoginForm() {
                   {success}
                 </Alert>
               )}
-              <Divider sx={{ my: 2 }}>
+              {/* <Divider sx={{ my: 2 }}>
                 <Typography variant="body2" color="text.secondary">
                   Faça login com:
                 </Typography>
@@ -349,7 +349,7 @@ function LoginForm() {
                     </Button>
                   )}
                 />
-              </Box>
+              </Box> */}
               <Box sx={{ textAlign: 'center', mt: 2 }}>
                 <Typography variant="body2">
                   Ainda não tem uma conta?{' '}
@@ -409,7 +409,7 @@ function LoginForm() {
           </Box>
         )}
       </Container>
-      </GoogleOAuthProvider>
+      {/* </GoogleOAuthProvider> */}
     </Box>
   );
 }
