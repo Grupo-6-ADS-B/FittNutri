@@ -74,19 +74,11 @@ cd FittNutri
 
 ---
 
-### Passo 2 — Crie o arquivo `.env.dev`
+### Passo 2 — Suba o ambiente
 
-```bash
-cp .env.dev.example .env.dev
-```
+> **Não é necessário criar nenhum arquivo `.env`.** Todas as variáveis já têm valores padrão seguros embutidos no `docker-compose.dev.yml`.
 
-> Os valores padrão já funcionam para desenvolvimento local sem nenhuma alteração.
-
----
-
-### Passo 3 — Suba o ambiente
-
-**Opção A — Com o script `manage.sh` (Linux/macOS/Git Bash):**
+**Opção A — Com o script `manage.sh` (recomendado):**
 
 ```bash
 ./manage.sh dev
@@ -95,7 +87,7 @@ cp .env.dev.example .env.dev
 **Opção B — Diretamente com Docker Compose:**
 
 ```bash
-docker compose -f docker-compose.dev.yml --env-file .env.dev up --build
+docker compose -f docker-compose.dev.yml up --build
 ```
 
 Na primeira execução o build pode levar alguns minutos (download das imagens + build do Maven).
@@ -109,7 +101,7 @@ Na primeira execução o build pode levar alguns minutos (download das imagens +
 | Frontend | `frontend-dev` | http://localhost:5173 | React + Vite dev server (hot reload) |
 | Backend | `backend-dev` | http://localhost:8080 | Spring Boot 3, perfil `dev` |
 | Swagger | — | http://localhost:8080/swagger-ui/index.html | Documentação interativa da API |
-| MySQL | `mysql-dev` | localhost:3306 | Banco com dados TACO pré-carregados |
+| MySQL | `mysql-dev` | localhost:3307 | Banco com dados TACO pré-carregados |
 
 > O frontend em dev usa um **proxy** (`/api` → `backend:8080`) configurado no `vite.config.js`. Não é necessário configurar CORS manualmente.
 
@@ -159,13 +151,13 @@ O backend demora ~30-40 segundos para iniciar na primeira vez (aguarda o MySQL +
 ./manage.sh dev
 
 # Parar todos os containers
-./manage.sh stop
+docker compose -f docker-compose.dev.yml down
 
 # Logs do backend em tempo real
-./manage.sh logs backend
+docker logs -f backend-dev
 
 # Logs do MySQL
-./manage.sh logs mysql
+docker logs -f mysql-dev
 
 # Status dos containers, volumes e redes
 ./manage.sh status
@@ -203,7 +195,7 @@ docker logs -f backend-dev
 | Problema | Solucao |
 |----------|---------|
 | Backend demora para subir | Normal na primeira vez (~30-40s). Acompanhe: `./manage.sh logs backend` |
-| `.env.dev` nao encontrado | Execute: `cp .env.dev.example .env.dev` |
+| Porta ja em uso (3307) | Windows: `netstat -ano \| findstr :3307`. Possível conflito com MySQL local. |
 | Porta ja em uso | Windows: `netstat -ano \| findstr :8080` / Linux: `lsof -i :8080` |
 | Alimentos TACO nao aparecem na dieta | Verifique se o MySQL carregou o init: `docker exec mysql-dev mysql -uroot -proot fittnutri -e "SELECT COUNT(*) FROM alimentos WHERE fonte='TACO'"` (esperado: 5373) |
 | Rebuild completo (limpar tudo) | `docker compose -f docker-compose.dev.yml down -v` e depois `./manage.sh dev` |

@@ -4,17 +4,8 @@ ACTION=$1
 
 case $ACTION in
   dev)
-    echo "Iniciando ambiente de DESENVOLVIMENTO local..."
-    echo "Usando: docker-compose.dev.yml + .env.dev"
-
-    if [ ! -f .env.dev ]; then
-      echo "ERRO: arquivo .env.dev não encontrado."
-      echo "Crie o arquivo .env.dev com base no .env.example e tente novamente."
-      exit 1
-    fi
-
-    docker compose -f docker-compose.dev.yml --env-file .env.dev down
-    docker compose -f docker-compose.dev.yml --env-file .env.dev up --build
+    echo "Subindo ambiente de desenvolvimento..."
+    docker compose -f docker-compose.dev.yml up --build
     ;;
   start)
     echo "Subindo containers..."
