@@ -52,78 +52,131 @@ FittNutri/
 
 ---
 
-## Rodando Localmente com Docker (Recomendado)
+## Rodando Localmente com Docker
 
-### Pré-requisitos
-
-| Requisito | Versão mínima | Download |
-|-----------|---------------|----------|
-| Docker Desktop | 4.x | https://www.docker.com/products/docker-desktop/ |
-| Git | qualquer | https://git-scm.com/ |
-
-> **Não é necessário ter Java, Node.js ou MySQL instalados.** Tudo roda dentro do Docker.
+> Voce **nao precisa instalar Java, Node.js ou MySQL** na sua maquina. O Docker cuida de tudo isso.
 
 ---
 
-### Passo 1 — Clone o repositório
+### Pre-requisitos
+
+Voce precisa ter dois programas instalados:
+
+#### 1. Docker Desktop
+O Docker Desktop e o programa que vai criar e rodar os containers da aplicacao (banco de dados, backend e frontend).
+
+1. Acesse: https://www.docker.com/products/docker-desktop/
+2. Baixe a versao para o seu sistema operacional (Windows, Mac ou Linux)
+3. Instale normalmente (next, next, finish)
+4. **Abra o Docker Desktop** e aguarde ele iniciar — o icone na bandeja do sistema (canto inferior direito no Windows) ficara estatico quando estiver pronto
+
+> Se aparecer uma tela pedindo para criar conta, pode fechar ou criar uma conta gratuita. Nao e obrigatorio.
+
+#### 2. Git
+O Git e usado para baixar o codigo do projeto.
+
+1. Acesse: https://git-scm.com/
+2. Baixe e instale com as opcoes padrao
+3. No Windows, apos instalar, use sempre o **Git Bash** (nao o CMD nem o PowerShell) para rodar os comandos deste guia
+
+> **Como abrir o Git Bash no Windows:** clique com o botao direito dentro de qualquer pasta e selecione "Git Bash Here", ou pesquise "Git Bash" no menu iniciar.
+
+---
+
+### Passo 1 — Baixe o projeto
+
+Abra o **Git Bash** e execute os comandos abaixo um por vez:
 
 ```bash
 git clone https://github.com/Grupo-6-ADS-B/FittNutri.git
+```
+```bash
 cd FittNutri
 ```
+```bash
+git checkout dev
+```
+
+Apos isso, voce tera uma pasta `FittNutri` com todo o codigo do projeto.
 
 ---
 
-### Passo 2 — Suba o ambiente
+### Passo 2 — Verifique se o Docker Desktop esta rodando
 
-> **Não é necessário criar nenhum arquivo `.env`.** Todas as variáveis já têm valores padrão seguros embutidos no `docker-compose.dev.yml`.
+Antes de subir o projeto, confirme que o Docker Desktop esta aberto e com o icone **verde ou estatico** na bandeja do sistema.
 
-**Opção A — Com o script `manage.sh` (recomendado):**
+Se estiver fechado, abra e aguarde aparecer a mensagem **"Docker Desktop is running"**.
+
+---
+
+### Passo 3 — Suba o ambiente
+
+> Nao precisa criar nenhum arquivo de configuracao. Todos os valores ja estao definidos com padroes para desenvolvimento local.
+
+Dentro da pasta `FittNutri` no Git Bash, execute:
 
 ```bash
 ./manage.sh dev
 ```
 
-**Opção B — Diretamente com Docker Compose:**
+**Na primeira vez, esse processo pode levar entre 5 e 10 minutos** — o Docker vai baixar as imagens necessarias e compilar o projeto. Isso e normal, pode aguardar.
 
-```bash
-docker compose -f docker-compose.dev.yml up --build
+Voce vai ver varias linhas aparecendo no terminal. Quando terminar, ele para de rolar e aparece algo como:
+
+```
+Container backend-dev  Started
+Container frontend-dev  Started
 ```
 
-Na primeira execução o build pode levar alguns minutos (download das imagens + build do Maven).
+---
+
+### Passo 4 — Confirme que tudo subiu
+
+Abra o **Docker Desktop**, clique em **Containers** no menu lateral esquerdo e verifique se os 3 containers estao com o icone **verde** (Running):
+
+| Container | O que e | Status esperado |
+|-----------|---------|----------------|
+| `mysql-dev` | Banco de dados | Running |
+| `backend-dev` | API do sistema | Running |
+| `frontend-dev` | Tela do sistema | Running |
+
+> O `backend-dev` pode demorar **ate 40 segundos** para ficar verde apos o MySQL subir. Se ainda estiver amarelo/laranja, aguarde um pouco antes de abrir o navegador.
 
 ---
 
-### O que sobe
+### Passo 5 — Acesse a aplicacao
 
-| Serviço | Container | URL local | Descrição |
-|---------|-----------|-----------|-----------|
-| Frontend | `frontend-dev` | http://localhost:5173 | React + Vite dev server (hot reload) |
-| Backend | `backend-dev` | http://localhost:8080 | Spring Boot 3, perfil `dev` |
-| Swagger | — | http://localhost:8080/swagger-ui/index.html | Documentação interativa da API |
-| MySQL | `mysql-dev` | localhost:3307 | Banco com dados TACO pré-carregados |
+Abra o navegador e acesse:
 
-> O frontend em dev usa um **proxy** (`/api` → `backend:8080`) configurado no `vite.config.js`. Não é necessário configurar CORS manualmente.
+**http://localhost:5173**
 
----
-
-### Containers no Docker Desktop
-
-Após rodar o comando, abra o **Docker Desktop** e verifique que os 3 containers estão com status **Running**:
-
-| Container | Status esperado |
-|-----------|----------------|
-| `mysql-dev` | Running |
-| `backend-dev` | Running (aguarda MySQL ficar healthy) |
-| `frontend-dev` | Running |
-
-O backend demora ~30-40 segundos para iniciar na primeira vez (aguarda o MySQL + build do Spring).
+| O que e | URL |
+|---------|-----|
+| Aplicacao (tela do sistema) | http://localhost:5173 |
+| API do backend | http://localhost:8080 |
+| Documentacao da API (Swagger) | http://localhost:8080/swagger-ui/index.html |
 
 ---
 
-## Dev vs Produção
+### Como parar o projeto
 
-| Recurso | Dev (local) | Produção (EC2) |
+Quando quiser parar, volte ao terminal e aperte `Ctrl + C`, ou execute:
+
+```bash
+docker compose -f docker-compose.dev.yml down
+```
+
+Para subir novamente depois (sem precisar rebuildar tudo):
+
+```bash
+./manage.sh dev
+```
+
+---
+
+## Dev vs Producao
+
+| Recurso | Dev (local) | Producao (EC2) |
 |---------|-------------|----------------|
 | Compose file | `docker-compose.dev.yml` | `docker-compose.yml` |
 | Containers | 3 (mysql, backend, frontend) | 6 (+ nginx, prometheus, grafana) |
@@ -138,9 +191,7 @@ O backend demora ~30-40 segundos para iniciar na primeira vez (aguarda o MySQL +
 | Monitoring | Nao | Sim (Prometheus + Grafana) |
 
 > **Por que PDF e S3 nao funcionam em dev?**
-> Os beans `PdfConsumerService`, `PdfProducerService`, `S3Config` e `S3Service`
-> possuem a anotacao `@Profile("prod")` — eles so carregam quando `SPRING_PROFILES_ACTIVE=prod`.
-> Isso e intencional: nao e necessario ter credenciais AWS para desenvolver.
+> Os beans `PdfConsumerService`, `PdfProducerService`, `S3Config` e `S3Service` possuem a anotacao `@Profile("prod")` — eles so carregam quando `SPRING_PROFILES_ACTIVE=prod`. Isso e intencional: nao e necessario ter credenciais AWS para desenvolver.
 
 ---
 
@@ -153,52 +204,75 @@ O backend demora ~30-40 segundos para iniciar na primeira vez (aguarda o MySQL +
 # Parar todos os containers
 docker compose -f docker-compose.dev.yml down
 
-# Logs do backend em tempo real
+# Ver logs do backend em tempo real (util para ver erros)
 docker logs -f backend-dev
 
-# Logs do MySQL
+# Ver logs do frontend em tempo real
+docker logs -f frontend-dev
+
+# Ver logs do banco de dados
 docker logs -f mysql-dev
 
 # Status dos containers, volumes e redes
 ./manage.sh status
 
-# Rebuild completo (limpar banco e recomecar do zero)
+# Rebuild completo — use quando mudar codigo e o projeto nao atualizar
+docker compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml build --no-cache
+./manage.sh dev
+
+# Reset total — apaga o banco e recria tudo do zero
 docker compose -f docker-compose.dev.yml down -v
 ./manage.sh dev
 ```
 
 ---
 
-## Visualizando logs no IntelliJ IDEA
-
-O backend roda dentro de um container Docker, nao diretamente pela IDE.
-
-**Opcao 1 — Terminal integrado (mais rapido):**
-
-```bash
-docker logs -f backend-dev
-```
-
-**Opcao 2 — Painel Services do IntelliJ (visual):**
-
-1. `View → Tool Windows → Services` ou `Alt + 8`
-2. Clique em `+` → **Docker** → conectar ao Docker Desktop local
-3. Expanda `Docker → Containers → backend-dev`
-4. Clique na aba **Log**
-
-> O plugin Docker ja vem instalado no IntelliJ Ultimate. Na Community Edition: `File → Settings → Plugins → Marketplace → Docker`.
-
----
-
 ## Problemas comuns
 
-| Problema | Solucao |
-|----------|---------|
-| Backend demora para subir | Normal na primeira vez (~30-40s). Acompanhe: `./manage.sh logs backend` |
-| Porta ja em uso (3307) | Windows: `netstat -ano \| findstr :3307`. Possível conflito com MySQL local. |
-| Porta ja em uso | Windows: `netstat -ano \| findstr :8080` / Linux: `lsof -i :8080` |
-| Alimentos TACO nao aparecem na dieta | Verifique se o MySQL carregou o init: `docker exec mysql-dev mysql -uroot -proot fittnutri -e "SELECT COUNT(*) FROM alimentos WHERE fonte='TACO'"` (esperado: 5373) |
-| Rebuild completo (limpar tudo) | `docker compose -f docker-compose.dev.yml down -v` e depois `./manage.sh dev` |
+### O projeto nao abre no navegador
+- Verifique se os 3 containers estao **Running** no Docker Desktop
+- Aguarde o `backend-dev` ficar verde (pode levar ate 40 segundos)
+- Tente acessar em aba anonima (`Ctrl + Shift + N`)
+
+### Erro "porta ja em uso"
+
+**Porta 8080 ocupada** — algum processo Java esta rodando. Para descobrir qual e encerrar:
+```bash
+# Windows (Git Bash)
+netstat -ano | grep :8080
+# Anote o PID (ultimo numero) e execute:
+taskkill //PID <numero_do_pid> //F
+```
+
+**Porta 3306 ocupada** — MySQL instalado localmente no Windows esta ativo. Para parar:
+```bash
+net stop MySQL80
+```
+
+### O frontend atualizou mas o navegador nao mudou
+Aperte `Ctrl + Shift + R` para forcar recarregar sem cache.
+
+### Mudei codigo mas nao refletiu no projeto
+O container foi buildado com os arquivos antigos. Faca o rebuild:
+```bash
+docker compose -f docker-compose.dev.yml down
+docker compose -f docker-compose.dev.yml build --no-cache frontend
+./manage.sh dev
+```
+
+### Os alimentos TACO nao aparecem na dieta
+Verifique se o banco carregou corretamente:
+```bash
+docker exec mysql-dev mysql -uroot -proot fittnutri -e "SELECT COUNT(*) FROM alimentos WHERE fonte='TACO'"
+```
+O resultado esperado e `5373`. Se for `0`, pare tudo com `down -v` e suba novamente para recriar o banco.
+
+### `./manage.sh dev` retorna "Permission denied"
+```bash
+chmod +x manage.sh
+./manage.sh dev
+```
 
 ---
 
