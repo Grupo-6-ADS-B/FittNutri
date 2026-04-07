@@ -3,14 +3,19 @@ package fitt_nutri.example.demo.model;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.SQLRestriction;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Table(name = "refeicao")
 @Data
-public class MealModel {
+@EqualsAndHashCode(callSuper = false)
+@SQLRestriction("deleted_at IS NULL")
+public class MealModel extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,5 +32,8 @@ public class MealModel {
     @ManyToOne
     @JoinColumn(name = "patient_id")
     private PatientModel patient;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 }
 

@@ -6,19 +6,31 @@ import fitt_nutri.example.demo.exceptions.InvalidDataException;
 import fitt_nutri.example.demo.model.DataCircleModel;
 import fitt_nutri.example.demo.model.PatientModel;
 import fitt_nutri.example.demo.repository.DataCircleRepository;
+import fitt_nutri.example.demo.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class DataCircleService {
 
     private final DataCircleRepository repository;
+    private final PatientRepository patientRepository;
+
+    private void verificarPropriedadePaciente(PatientModel patient) {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (patient.getNutricionista() == null || !emailLogado.equals(patient.getNutricionista().getEmail())) {
+            throw new AccessDeniedException("Acesso negado: este paciente não pertence ao nutricionista logado");
+        }
+    }
 
     /* -------------------- CREATE -------------------- */
     @Transactional
@@ -27,10 +39,14 @@ public class DataCircleService {
         if (model.getIdDadosCircunferencia() != null)
             throw new InvalidDataException("ID deve ser nulo ao cadastrar um novo registro");
 
-        // exige paciente (FK)
         if (model.getPaciente() == null || model.getPaciente().getId() == null)
             throw new InvalidDataException("Informe o paciente (paciente.id) para salvar o registro");
 
+        // Carrega o paciente real do banco e verifica ownership
+        PatientModel paciente = patientRepository.findById(model.getPaciente().getId())
+                .orElseThrow(() -> new InvalidDataException("Paciente não encontrado"));
+        verificarPropriedadePaciente(paciente);
+        model.setPaciente(paciente);
 
         if (model.getPesoIdeal() != null && model.getPesoIdeal() < 0)
             throw new InvalidDataException("O peso não pode ser negativo");
@@ -53,13 +69,13 @@ public class DataCircleService {
         if (model.getIdDadosCircunferencia() != null)
             throw new InvalidDataException("ID deve ser nulo ao cadastrar um novo registro");
 
+        PatientModel pacienteModel = patientRepository.findById(pacienteId)
+                .orElseThrow(() -> new InvalidDataException("Paciente não encontrado"));
+        verificarPropriedadePaciente(pacienteModel);
 
         if (model.getPesoIdeal() != null && model.getPesoIdeal() < 0)
             throw new InvalidDataException("O peso não pode ser negativo");
 
-        // vincula o paciente ao modelo
-        var pacienteModel = new PatientModel();
-        pacienteModel.setId(pacienteId);
         model.setPaciente(pacienteModel);
 
         try {
@@ -74,14 +90,21 @@ public class DataCircleService {
 
     /* -------------------- READ -------------------- */
     public List<DataCircleModel> pegarTodos() {
-        List<DataCircleModel> list = repository.findAll();
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        List<DataCircleModel> list = repository.findAll().stream()
+                .filter(d -> d.getPaciente() != null
+                        && d.getPaciente().getNutricionista() != null
+                        && emailLogado.equals(d.getPaciente().getNutricionista().getEmail()))
+                .collect(Collectors.toList());
         if (list.isEmpty()) throw new DateNotFound("Nenhum dado encontrado");
         return list;
     }
 
     public DataCircleModel pegarPorId(Integer id) {
         if (id == null || id <= 0) throw new InvalidDataException("ID inválido");
-        return repository.findById(id).orElseThrow(() -> new DateNotFound("ID não encontrado"));
+        DataCircleModel model = repository.findById(id).orElseThrow(() -> new DateNotFound("ID não encontrado"));
+        verificarPropriedadePaciente(model.getPaciente());
+        return model;
     }
 
     /* -------------------- UPDATE (PUT) -------------------- */
@@ -91,6 +114,7 @@ public class DataCircleService {
 
         DataCircleModel existing = repository.findById(id)
                 .orElseThrow(() -> new DateNotFound("ID não encontrado"));
+        verificarPropriedadePaciente(existing.getPaciente());
 
         if (model == null) throw new InvalidDataException("Dados não podem ser nulos");
 
@@ -121,6 +145,7 @@ public class DataCircleService {
 
         DataCircleModel m = repository.findById(id)
                 .orElseThrow(() -> new DateNotFound("ID não encontrado"));
+        verificarPropriedadePaciente(m.getPaciente());
 
         if (updates == null || updates.isEmpty())
             throw new InvalidDataException("Nenhum dado para atualização fornecido.");
@@ -162,7 +187,9 @@ public class DataCircleService {
     @Transactional
     public void deletar(Integer id) {
         if (id == null || id <= 0) throw new InvalidDataException("ID inválido");
-        if (!repository.existsById(id)) throw new DateNotFound("Registro não encontrado para exclusão");
+        DataCircleModel model = repository.findById(id)
+                .orElseThrow(() -> new DateNotFound("Registro não encontrado para exclusão"));
+        verificarPropriedadePaciente(model.getPaciente());
         repository.deleteById(id);
     }
 
@@ -175,6 +202,10 @@ public class DataCircleService {
     public List<DataCircleModel> listarPorPaciente(Integer pacienteId) {
         if (pacienteId == null || pacienteId <= 0)
             throw new InvalidDataException("ID de paciente inválido");
+
+        PatientModel patient = patientRepository.findById(pacienteId)
+                .orElseThrow(() -> new InvalidDataException("Paciente não encontrado"));
+        verificarPropriedadePaciente(patient);
 
         List<DataCircleModel> list = repository.findByPaciente_Id(pacienteId);
         if (list.isEmpty()) throw new DateNotFound("Nenhum dado encontrado para este paciente");

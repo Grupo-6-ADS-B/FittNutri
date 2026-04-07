@@ -7,8 +7,12 @@ import fitt_nutri.example.demo.exceptions.NotFoundException;
 import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Map;
@@ -53,30 +57,32 @@ public class UserService {
     }
 
     public UserModel getUserById(Integer id) {
-        if (userRepository.existsById(id)) {
-            return userRepository.findById(id).get();
-        } else {
-            throw new NotFoundException("Usuário não encontrado");
-        }
+        verificarPropriedade(id);
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
     }
 
     public UserModel getUserByEmail(String email) {
-        if (userRepository.findByEmail(email).isPresent()) {
-            return userRepository.findByEmail(email).get();
-        } else {
-            throw new NotFoundException("Usuário não encontrado");
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!emailLogado.equals(email)) {
+            throw new AccessDeniedException("Acesso negado: você só pode consultar seus próprios dados");
         }
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
     }
 
     public UserModel getUserByCpf(String cpf) {
-        if (userRepository.findByCpf(cpf).isPresent()) {
-            return userRepository.findByCpf(cpf).get();
-        } else {
-            throw new NotFoundException("Usuário não encontrado");
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userRepository.findByCpf(cpf)
+                .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
+        if (!emailLogado.equals(user.getEmail())) {
+            throw new AccessDeniedException("Acesso negado: você só pode consultar seus próprios dados");
         }
+        return user;
     }
 
     public UserModel updateUser(Integer id, UserRequestDTO dto) {
+        verificarPropriedade(id);
         if (!userRepository.existsById(id)) {
             throw new NotFoundException("Usuário não encontrado");
         }
@@ -101,6 +107,7 @@ public class UserService {
     }
 
     public UserModel patchUser(Integer id, Map<String, Object> updates) {
+        verificarPropriedade(id);
         if (!userRepository.existsById(id)) {
             throw new NotFoundException("Usuário não encontrado");
         }
@@ -139,10 +146,27 @@ public class UserService {
     }
 
     public void deleteUser(Integer id) {
-        if (userRepository.existsById(id)) {
-            userRepository.deleteById(id);
-        } else {
-            throw new NotFoundException("Usuário não encontrado");
+        verificarPropriedade(id);
+        UserModel user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
+        user.setDeletedAt(java.time.LocalDateTime.now());
+        userRepository.save(user);
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers privados
+    // -------------------------------------------------------------------------
+
+    /**
+     * Garante que o usuário autenticado só acesse/modifique seus próprios dados.
+     * Compara o id solicitado com o id do usuário logado (A01 — IDOR prevention).
+     */
+    private void verificarPropriedade(Integer id) {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel logado = userRepository.findByEmail(emailLogado)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.UNAUTHORIZED, "Usuário não autenticado"));
+        if (!logado.getId().equals(id)) {
+            throw new AccessDeniedException("Acesso negado: você só pode acessar seus próprios dados");
         }
     }
 

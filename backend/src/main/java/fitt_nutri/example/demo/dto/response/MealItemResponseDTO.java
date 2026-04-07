@@ -8,4 +8,9 @@ public class MealItemResponseDTO {
     private String alimento;
     private Double quantidade;
     private String unidade;
+    private Double snapshotKcal;
+    private Double snapshotProteina;
+    private Double snapshotCarboidrato;
+    private Double snapshotLipideos;
+    private Double snapshotFibra;
 }

@@ -7,6 +7,7 @@ import {
   Box,
   Typography,
   Grid,
+  CircularProgress,
 } from "@mui/material";
 import SearchHeader from '../components/UserGestor/SearchHeader';
 import PatientCard from '../components/UserGestor/PatientCard';
@@ -24,6 +25,7 @@ import {
 
 export default function UserGestor() {
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("name");
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -74,9 +76,11 @@ export default function UserGestor() {
   const [updateForm, setUpdateForm] = useState({
     id: null,
     name: "",
+    idade: "",
     motivoConsulta: "",
     peso: "",
     altura: "",
+    idade: "",
     idadeMetabolica: "",
     massaMuscular: "",
     porcentagemGordura: "",
@@ -84,7 +88,7 @@ export default function UserGestor() {
     taxaMetabolicaBasal: "",
     atividade: "",
     circ: { ...initialCirc },
-    date: "" 
+    date: ""
   });
 
   const navigate = useNavigate();
@@ -135,7 +139,7 @@ export default function UserGestor() {
         } catch {}
         
         const res = await api.get('/schedulings');
-        const list = Array.isArray(res.data) ? res.data : [];
+        const list = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
         const mapped = list.map((a) => {
           const localAppt = localAppointments.find(la => la.id === a.id);
           
@@ -164,10 +168,11 @@ export default function UserGestor() {
   }, []);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const response = await api.get('/patients');
-      const mapped = Array.isArray(response.data)
-        ? response.data.map(u => ({
+      const list = Array.isArray(response.data) ? response.data : (response.data?.content ?? []);
+      const mapped = list.map(u => ({
             id: u.id ?? u.ID ?? u.idUsuario ?? u.codigo ?? undefined,
             name: u.name ?? u.nome ?? '',
             email: u.email ?? '',
@@ -177,8 +182,7 @@ export default function UserGestor() {
             avatar: u.avatar ?? '',
             cpf: u.cpf ?? '',
             crn: u.crn ?? '',
-          }))
-        : [];
+          }));
       setUsers(mapped);
       try { localStorage.setItem("users", JSON.stringify(mapped)); } catch {}
     } catch (error) {
@@ -193,6 +197,8 @@ export default function UserGestor() {
         setUsers(defaultUsers);
         try { localStorage.setItem("users", JSON.stringify(defaultUsers)); } catch {}
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -262,6 +268,7 @@ export default function UserGestor() {
     setUpdateForm({
       id: patientId,
       name: name,
+      idade: userFromList.idade ?? "",
       motivoConsulta: userFromList.motivoConsulta ?? startAppointment?.note ?? "",
       peso: userFromList.peso ?? "",
       altura: userFromList.altura ?? "",
@@ -313,6 +320,7 @@ export default function UserGestor() {
           return {
             ...prev,
             date: dateValue || prev.date,
+            idade: anthropo.idade ?? prev.idade,
             motivoConsulta: latest.motivoConsulta ?? latest.motivo_consulta ?? prev.motivoConsulta,
             peso: anthropo.peso ?? prev.peso,
             altura: anthropo.altura ?? prev.altura,
@@ -369,6 +377,7 @@ export default function UserGestor() {
       antropometria: {
         peso: Number(updateForm.peso),
         altura: Number(updateForm.altura),
+        idade: updateForm.idade ? Number(updateForm.idade) : null,
         imc: Number(computeImc(updateForm.peso, updateForm.altura)),
         idadeMetabolica: Number(updateForm.idadeMetabolica),
         massaMuscular: Number(updateForm.massaMuscular),
@@ -403,6 +412,7 @@ export default function UserGestor() {
     const updatedUser = {
       id: updateForm.id,
       name: updateForm.name,
+      idade: updateForm.idade,
       motivoConsulta: updateForm.motivoConsulta,
       peso: updateForm.peso,
       altura: updateForm.altura,
@@ -727,7 +737,11 @@ export default function UserGestor() {
               />
             </Box>
 
-            {filteredUsers.length === 0 ? (
+            {loading ? (
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <CircularProgress color="success" />
+              </Box>
+            ) : filteredUsers.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 8 }}>
                 <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                   Nenhum paciente encontrado

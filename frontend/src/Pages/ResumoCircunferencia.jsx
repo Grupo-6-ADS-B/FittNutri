@@ -420,11 +420,11 @@ if (!selectedUser && !loadingUsers) {
         <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', width: '100%' }}>
             <Box sx={{ p: { xs: 2, md: 4 }, overflowY: 'auto' }}>
                 <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
-                    {loadingUsers ? (
+                    {loadingUsers && !selectedUser ? (
                         <Typography variant="h6" color="primary" sx={{ textAlign: 'center', mt: 6 }}>
                             Carregando usuários...
                         </Typography>
-                    ) : usersList.length === 0 ? (
+                    ) : !selectedUser && usersList.length === 0 ? (
                         <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center', mt: 6 }}>
                             Nenhum usuário encontrado. Cadastre um usuário para visualizar os dados.
                         </Typography>

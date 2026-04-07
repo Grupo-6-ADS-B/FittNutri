@@ -11,6 +11,8 @@ import fitt_nutri.example.demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,12 +27,27 @@ public class SchedulingService {
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
 
+    private UserModel getNutricionistaLogado() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("Nutricionista não encontrado"));
+    }
+
+    private void verificarPropriedadeAgendamento(SchedulingModel scheduling) {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!scheduling.getNutricionista().getEmail().equals(emailLogado)) {
+            throw new AccessDeniedException("Acesso negado: este agendamento não pertence ao nutricionista logado");
+        }
+    }
+
     @Transactional
     public SchedulingModel createScheduling(SchedulingRequestDTO dto) {
+        UserModel nutritionist = getNutricionistaLogado();
         PatientModel patient = patientRepository.findById(dto.pacienteId())
                 .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
-        UserModel nutritionist = userRepository.findById(dto.usuarioId())
-                .orElseThrow(() -> new NotFoundException("Nutricionista não encontrado"));
+        if (!patient.getNutricionista().getId().equals(nutritionist.getId())) {
+            throw new AccessDeniedException("Acesso negado: este paciente não pertence ao nutricionista logado");
+        }
 
         SchedulingModel scheduling = new SchedulingModel();
         scheduling.setPaciente(patient);
@@ -42,26 +59,30 @@ public class SchedulingService {
     }
 
     public List<SchedulingModel> getAllSchedulings() {
-        return repository.findAll();
+        UserModel nutri = getNutricionistaLogado();
+        return repository.findByNutricionistaId(nutri.getId());
     }
 
     public SchedulingModel getSchedulingById(Integer id) {
-        return repository.findById(id)
+        SchedulingModel scheduling = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Agendamento não encontrado"));
+        verificarPropriedadeAgendamento(scheduling);
+        return scheduling;
     }
 
     public List<SchedulingModel> getByPatient(Integer pacienteId) {
-        if (!patientRepository.existsById(pacienteId)) {
-            throw new NotFoundException("Paciente não encontrado");
+        PatientModel patient = patientRepository.findById(pacienteId)
+                .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!patient.getNutricionista().getEmail().equals(emailLogado)) {
+            throw new AccessDeniedException("Acesso negado: este paciente não pertence ao nutricionista logado");
         }
         return repository.findByPacienteId(pacienteId);
     }
 
     public List<SchedulingModel> getByNutritionist(Integer usuarioId) {
-        if (!userRepository.existsById(usuarioId)) {
-            throw new NotFoundException("Nutricionista não encontrado");
-        }
-        return repository.findByNutricionistaId(usuarioId);
+        UserModel nutri = getNutricionistaLogado();
+        return repository.findByNutricionistaId(nutri.getId());
     }
 
     public Page<SchedulingModel> getByNutritionist(Integer usuarioId, Pageable pageable) {
@@ -76,6 +97,7 @@ public class SchedulingService {
     public SchedulingModel updateScheduling(Integer id, SchedulingRequestDTO dto) {
         SchedulingModel scheduling = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Agendamento não encontrado"));
+        verificarPropriedadeAgendamento(scheduling);
 
         if (dto.dataAgendada() != null) scheduling.setDataAgendada(dto.dataAgendada());
         if (dto.observacoes() != null && !dto.observacoes().isBlank())
@@ -86,16 +108,18 @@ public class SchedulingService {
 
     @Transactional
     public void deleteScheduling(Integer id) {
-        if (!repository.existsById(id)) {
-            throw new NotFoundException("Agendamento não encontrado");
-        }
-        repository.deleteById(id);
+        SchedulingModel scheduling = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Agendamento não encontrado"));
+        verificarPropriedadeAgendamento(scheduling);
+        scheduling.setDeletedAt(java.time.LocalDateTime.now());
+        repository.save(scheduling);
     }
 
     @Transactional
     public SchedulingModel updateDate(Integer id, LocalDate newDate) {
         SchedulingModel scheduling = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Agendamento não encontrado"));
+        verificarPropriedadeAgendamento(scheduling);
         scheduling.setDataAgendada(newDate);
         return repository.save(scheduling);
     }
@@ -104,6 +128,7 @@ public class SchedulingService {
     public SchedulingModel updateObservacoes(Integer id, String observacoes) {
         SchedulingModel scheduling = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Agendamento não encontrado"));
+        verificarPropriedadeAgendamento(scheduling);
         scheduling.setObservacoes(observacoes);
         return repository.save(scheduling);
     }

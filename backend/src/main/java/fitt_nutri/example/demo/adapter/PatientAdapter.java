@@ -61,7 +61,6 @@ public class PatientAdapter {
                 p.getEtnia(),
                 p.getAtividade(),
                 p.getMotivoConsulta(),
-                p.getNutricionista().getId()  // retorna o id do nutricionista associado
                 p.getNutricionista().getId()
         );
     }

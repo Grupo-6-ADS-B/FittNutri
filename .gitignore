@@ -16,3 +16,21 @@ build/
 nginx/certbot/
 *.pem
 *.key
+
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/tfplan-*
+terraform/contas/*.tfvars
+terraform/.terraform.tfstate.lock.info
+terraform/scripts/set-credentials.sh
+
+# Terraform Atividade
+terraform-atividade/.terraform/
+terraform-atividade/.terraform.lock.hcl
+terraform-atividade/*.tfstate
+terraform-atividade/*.tfstate.*
+terraform-atividade/terraform.tfvars
+terraform-atividade/.terraform.tfstate.lock.info

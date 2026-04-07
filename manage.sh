@@ -3,6 +3,10 @@
 ACTION=$1
 
 case $ACTION in
+  dev)
+    echo "Subindo ambiente de desenvolvimento..."
+    docker compose -f docker-compose.dev.yml up --build
+    ;;
   start)
     echo "Subindo containers..."
     docker-compose --env-file .env up -d
@@ -53,7 +57,16 @@ case $ACTION in
     docker network ls
     ;;
   *)
-    echo "Uso: ./manage.sh {start|stop|restart|build|rebuild|logs [service]|status}"
+    echo "Uso: ./manage.sh {dev|start|stop|restart|build|rebuild|logs [service]|status}"
+    echo ""
+    echo "  dev       Sobe o ambiente de desenvolvimento local (One-Command-Run)"
+    echo "  start     Sobe containers usando docker-compose.yml (produção)"
+    echo "  stop      Para todos os containers"
+    echo "  restart   Reinicia os containers"
+    echo "  build     Builda as imagens Docker"
+    echo "  rebuild   Rebuild completo e reinicia"
+    echo "  logs      Exibe logs (opcional: nome do serviço)"
+    echo "  status    Mostra status dos containers, volumes e redes"
     ;;
 esac
 
