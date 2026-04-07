@@ -55,8 +55,16 @@ export default function UpdateDataDialog({
           onChange={(e) => setUpdateForm(f => ({ ...f, name: e.target.value }))} 
           fullWidth 
         />
+        <TextField
+          sx={{ mt: 4 }}
+          label="Motivo da Consulta"
+          value={updateForm.motivoConsulta || ""}
+          onChange={(e) => setUpdateForm(f => ({ ...f, motivoConsulta: e.target.value }))}
+          fullWidth
+          minRows={2}
+        />
         <TextField 
-          sx={{ mt: 4 }} 
+          sx={{ mt: 0 }} 
           label="IMC" 
           value={computeImc(updateForm.peso, updateForm.altura)} 
           disabled 
@@ -76,11 +84,18 @@ export default function UpdateDataDialog({
           onChange={(e) => setUpdateForm(f => ({ ...f, altura: e.target.value }))} 
           fullWidth 
         />
-        <TextField 
-          label="Idade Metabólica" 
-          value={updateForm.idadeMetabolica} 
-          onChange={(e) => setUpdateForm(f => ({ ...f, idadeMetabolica: e.target.value }))} 
-          fullWidth 
+        <TextField
+          label="Idade (anos)"
+          type="number"
+          value={updateForm.idade}
+          onChange={(e) => setUpdateForm(f => ({ ...f, idade: e.target.value }))}
+          fullWidth
+        />
+        <TextField
+          label="Idade Metabólica"
+          value={updateForm.idadeMetabolica}
+          onChange={(e) => setUpdateForm(f => ({ ...f, idadeMetabolica: e.target.value }))}
+          fullWidth
         />
         <TextField 
           label="Massa Muscular (kg)" 

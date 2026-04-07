@@ -1,3 +1,10 @@
 {
-    "liveServer.settings.port": 5501
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.compile.nullAnalysis.mode": "disabled",
+    "java.settings.url": "",
+    "java.errors.incompleteClasspath.severity": "ignore",
+    "java.warnings.incompleteClasspath.severity": "ignore",
+    "java.diagnostic.filter": [
+        "backend/src/test"
+    ]
 }

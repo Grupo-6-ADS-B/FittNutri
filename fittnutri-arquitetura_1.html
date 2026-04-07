@@ -21,6 +21,8 @@
     --yellow: #eab308;
     --red: #ef4444;
     --cyan: #06b6d4;
+    --prometheus: #e6522c;
+    --grafana: #f46800;
     --text: #e2e8f0;
     --text-dim: #64748b;
     --text-mid: #94a3b8;
@@ -210,6 +212,55 @@
   .badge-purple { background: rgba(168,85,247,0.15); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
   .badge-cyan { background: rgba(6,182,212,0.15); color: var(--cyan); border: 1px solid rgba(6,182,212,0.3); }
   .badge-yellow { background: rgba(234,179,8,0.15); color: var(--yellow); border: 1px solid rgba(234,179,8,0.3); }
+  .badge-prometheus { background: rgba(230,82,44,0.15); color: var(--prometheus); border: 1px solid rgba(230,82,44,0.3); }
+  .badge-grafana { background: rgba(244,104,0,0.15); color: var(--grafana); border: 1px solid rgba(244,104,0,0.3); }
+
+  /* Monitoring group */
+  .monitoring-group {
+    border: 1px dashed rgba(230,82,44,0.3);
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative;
+    margin-top: 0;
+  }
+
+  .monitoring-group::before {
+    content: 'MONITORAMENTO';
+    position: absolute;
+    top: -10px;
+    left: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--prometheus);
+    background: var(--bg);
+    padding: 0 8px;
+  }
+
+  .monitor-box {
+    border-radius: 12px;
+    padding: 18px 20px;
+    text-align: center;
+    min-width: 180px;
+    position: relative;
+  }
+
+  .monitor-box.prometheus {
+    background: linear-gradient(135deg, rgba(230,82,44,0.15), rgba(230,82,44,0.05));
+    border: 1px solid rgba(230,82,44,0.4);
+  }
+
+  .monitor-box.grafana {
+    background: linear-gradient(135deg, rgba(244,104,0,0.15), rgba(244,104,0,0.05));
+    border: 1px solid rgba(244,104,0,0.4);
+  }
+
+  .monitor-box .icon { font-size: 26px; margin-bottom: 6px; }
+  .monitor-box .label { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .monitor-box.prometheus .label { color: var(--prometheus); }
+  .monitor-box.grafana .label { color: var(--grafana); }
+  .monitor-box .sub { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; }
+  .monitor-box .detail { font-size: 11px; color: var(--text-mid); margin-top: 8px; line-height: 1.6; }
 
   /* Split arrows */
   .split-arrows {
@@ -515,7 +566,7 @@
   <div class="header">
     <div class="badge">Arquitetura de Sistema</div>
     <h1>FittNutri — Infrastructure Diagram</h1>
-    <p><span class="live-dot"></span>aws ec2 · us-east-1 · docker compose · nginx · ssl</p>
+    <p><span class="live-dot"></span>aws ec2 · us-east-1 · docker compose · nginx · ssl · prometheus · grafana</p>
   </div>
 
   <!-- Internet -->
@@ -552,6 +603,7 @@
           <span class="mini-badge badge-green">/ → frontend:5173</span>
           <span class="mini-badge badge-blue">/api/ → backend:8080</span>
           <span class="mini-badge badge-cyan">SSL · Let's Encrypt</span>
+          <span class="mini-badge badge-grafana">/grafana/ → grafana:3000</span>
         </div>
       </div>
     </div>
@@ -628,6 +680,62 @@
           <span class="mini-badge badge-orange">healthcheck</span>
           <span class="mini-badge badge-orange">interno</span>
         </div>
+      </div>
+    </div>
+
+    <!-- Arrow to monitoring -->
+    <div style="display:flex;justify-content:center;margin:4px 0;">
+      <div style="display:flex;flex-direction:column;align-items:center;">
+        <div class="arrow-label" style="border-color:rgba(230,82,44,0.3);color:var(--prometheus);">scrape :8080/actuator/prometheus</div>
+        <div style="width:2px;height:24px;background:var(--prometheus);margin-top:2px;"></div>
+        <div style="width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--prometheus);"></div>
+      </div>
+    </div>
+
+    <!-- Monitoring group -->
+    <div class="monitoring-group">
+      <div style="display:flex;justify-content:center;gap:32px;flex-wrap:wrap;">
+
+        <div class="monitor-box prometheus">
+          <div class="icon">🔥</div>
+          <div class="label">Prometheus</div>
+          <div class="sub">prom/prometheus · port 9090</div>
+          <div class="detail">
+            scrape interval: 15s<br>
+            targets: backend:8080<br>
+            volume: prometheus_data
+          </div>
+          <div class="badges-row" style="margin-top:10px;">
+            <span class="mini-badge badge-prometheus">:9090</span>
+            <span class="mini-badge badge-prometheus">interno</span>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <span class="arrow-label" style="border-color:rgba(244,104,0,0.3);color:var(--grafana);">datasource</span>
+            <div style="display:flex;align-items:center;gap:0;">
+              <div style="width:40px;height:2px;background:var(--grafana);"></div>
+              <div style="width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid var(--grafana);"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="monitor-box grafana">
+          <div class="icon">📊</div>
+          <div class="label">Grafana</div>
+          <div class="sub">grafana/grafana · port 3000</div>
+          <div class="detail">
+            dashboards: JVM, HTTP, MySQL<br>
+            alertas configuráveis<br>
+            volume: grafana_data
+          </div>
+          <div class="badges-row" style="margin-top:10px;">
+            <span class="mini-badge badge-grafana">:3000</span>
+            <span class="mini-badge badge-grafana">via /grafana/</span>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -738,6 +846,8 @@
     <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>RabbitMQ Queue</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div>Amazon S3</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>Internet / DNS</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--prometheus)"></div>Prometheus</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--grafana)"></div>Grafana</div>
   </div>
 
 </div>

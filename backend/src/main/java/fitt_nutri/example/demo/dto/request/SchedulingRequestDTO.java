@@ -2,6 +2,7 @@ package fitt_nutri.example.demo.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public record SchedulingRequestDTO(
@@ -15,5 +16,6 @@ public record SchedulingRequestDTO(
         LocalDate dataAgendada,
 
         @NotBlank(message = "As observações não podem estar vazias")
+        @Size(max = 500, message = "Observações devem ter no máximo 500 caracteres")
         String observacoes
 ) {}

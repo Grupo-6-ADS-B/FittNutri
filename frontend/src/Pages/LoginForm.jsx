@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import { jwtDecode } from "jwt-decode";
 import { useForm, Controller } from 'react-hook-form';
 import { 
   Box, 
@@ -14,8 +16,7 @@ import {
 import { 
   Email as EmailIcon, 
   Lock as LockIcon, 
-  Login as LoginIcon,
-  Google as GoogleIcon 
+  Login as LoginIcon
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from "react-router-dom";
 import InstagramIcon from '@mui/icons-material/Instagram';
@@ -32,6 +33,9 @@ function LoginForm() {
   const [recoverySuccess, setRecoverySuccess] = useState('');
   const [recoveryError, setRecoveryError] = useState('');
   const from = location.state?.from?.pathname || '/gestor';
+
+  // Google Client ID
+  const googleClientId = '857800617390-jioede29n3luve0u0svvp2mnfatu35j0.apps.googleusercontent.com';
 
   // Recupera email do sessionStorage se existir
   const emailSession = sessionStorage.getItem('emailUsuario') || '';
@@ -97,6 +101,72 @@ function LoginForm() {
     }
   };
 
+  const handleGoogleLogin = async (credentialResponse) => {
+    console.log('Google credentialResponse:', credentialResponse);
+    setError('');
+    setSuccess('');
+    let decoded;
+    try {
+      decoded = jwtDecode(credentialResponse.credential);
+      console.log('Google decoded:', decoded);
+      console.log('Google picture URL:', decoded.picture);
+      console.log('Todos os campos:', Object.keys(decoded));
+    } catch (decodeErr) {
+      console.error('Erro ao decodificar JWT do Google:', decodeErr);
+      setError('Erro ao decodificar dados do Google.');
+      return;
+    }
+    try {
+      sessionStorage.setItem('token', credentialResponse.credential);
+      localStorage.setItem('token', credentialResponse.credential);
+      sessionStorage.setItem('nomeUsuario', decoded.name || 'Google User');
+      localStorage.setItem('nomeUsuario', decoded.name || 'Google User');
+      
+      const photoUrl = decoded.picture;
+      if (photoUrl && photoUrl.trim()) {
+        console.log('✓ Salvando foto do Google:', photoUrl);
+        sessionStorage.setItem('fotoUsuario', photoUrl);
+        localStorage.setItem('fotoUsuario', photoUrl);
+      } else {
+        console.warn('✗ Foto não encontrada no JWT do Google ou está vazia');
+      }
+      
+      console.log('Enviando para backend /users/google-login:', {
+        name: decoded.name,
+        email: decoded.email,
+        picture: photoUrl,
+        sub: decoded.sub,
+      });
+      const response = await api.post('/users/google-login', {
+        name: decoded.name,
+        email: decoded.email,
+        picture: photoUrl,
+        sub: decoded.sub,
+        token: credentialResponse.credential
+      });
+      
+      console.log('Resposta do backend:', response.data);
+      
+      if (response.data?.foto) {
+        console.log('✓ Foto retornada do backend:', response.data.foto);
+        sessionStorage.setItem('fotoUsuario', response.data.foto);
+        localStorage.setItem('fotoUsuario', response.data.foto);
+      }
+      if (response.data?.id) {
+        sessionStorage.setItem('idUsuario', response.data.id);
+        localStorage.setItem('idUsuario', response.data.id);
+      }
+      
+      setSuccess(`Login Google realizado com sucesso! Bem-vindo(a), ${decoded.name || ''}`);
+      setTimeout(() => {
+        navigate('/gestor', { replace: true });
+      }, 500);
+    } catch (err) {
+      console.error('Erro ao salvar usuário Google ou redirecionar:', err);
+      setError('Erro ao autenticar com o Google. ' + (err.response?.data?.error || err.message));
+    }
+  };
+
   const handleRecovery = async (e) => {
     e.preventDefault();
     setRecoveryError('');
@@ -105,10 +175,16 @@ function LoginForm() {
       setRecoveryError('Digite um e-mail válido.');
       return;
     }
-    // Simula envio de email
-    setTimeout(() => {
-      setRecoverySuccess(`Um email para redefinir sua senha foi enviado para ${recoveryEmail}.`);
-    }, 1000);
+    try {
+      const { data } = await api.post('/users/recover-password', { email: recoveryEmail });
+      setRecoverySuccess('Um email para redefinir sua senha foi enviado para ' + recoveryEmail + '.');
+    } catch (err) {
+      let msg = err.response?.data?.error || err.message;
+      if (err.response?.status === 404) {
+        msg = 'E-mail não encontrado.';
+      }
+      setRecoveryError(msg || 'Erro ao enviar e-mail de recuperação.');
+    }
   };
 
   return (
@@ -139,6 +215,7 @@ function LoginForm() {
         }}
       />
 
+      <GoogleOAuthProvider clientId={googleClientId}>
       <Container sx={{ position: 'relative', zIndex: 2, maxWidth: '500px !important', border: '1px solid #ddd', borderRadius: '8px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', backgroundColor: 'rgba(255,255,255,0.96)' }}>
         {!showRecovery ? (
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
@@ -224,24 +301,55 @@ function LoginForm() {
                   Faça login com:
                 </Typography>
               </Divider>
-              <Stack direction="row" spacing={2}>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<GoogleIcon />}
-                  sx={{ py: 1.5 }}
-                >
-                  Google
-                </Button>
-                <Button
-                  fullWidth
-                  variant="outlined"
-                  startIcon={<InstagramIcon />}
-                  sx={{ py: 1.5, borderColor: '#E1306C', color: '#E1306C' }}
-                >
-                  Instagram
-                </Button>
-              </Stack>
+              <Box sx={{ display: 'flex', justifyContent: 'center', my: 2 }}>
+                <GoogleLogin
+                  onSuccess={handleGoogleLogin}
+                  onError={() => setError('Erro ao autenticar com o Google.')}
+                  width="100%"
+                  shape="pill"
+                  text="signin_with"
+                  locale="pt-BR"
+                  render={renderProps => (
+                    <Button
+                      onClick={renderProps.onClick}
+                      disabled={renderProps.disabled}
+                      variant="outlined"
+                      sx={{
+                        py: 2,
+                        px: 4,
+                        borderColor: '#2e7d32', // verde do tema
+                        color: '#2e7d32',
+                        fontWeight: 600,
+                        fontSize: '1.1rem',
+                        borderRadius: '30px',
+                        boxShadow: '0 2px 8px rgba(46,125,50,0.08)',
+                        minWidth: 260,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                        '&:hover': {
+                          borderColor: '#1b5e20',
+                          background: 'rgba(46,125,50,0.04)'
+                        }
+                      }}
+                      fullWidth={false}
+                      startIcon={
+                        <svg width="28" height="28" viewBox="0 0 48 48" style={{ marginRight: 8 }}>
+                          <g>
+                            <path fill="#4285F4" d="M43.6 20.5h-1.9V20H24v8h11.3c-1.6 4.3-5.7 7-11.3 7-6.6 0-12-5.4-12-12s5.4-12 12-12c2.7 0 5.2.9 7.2 2.4l6-6C36.1 5.1 30.4 3 24 3 12.9 3 4 11.9 4 23s8.9 20 20 20c11 0 19.7-8 19.7-20 0-1.3-.1-2.2-.3-3.5z"/>
+                            <path fill="#34A853" d="M6.3 14.7l6.6 4.8C14.3 16.1 18.8 13 24 13c2.7 0 5.2.9 7.2 2.4l6-6C36.1 5.1 30.4 3 24 3 16.1 3 9.1 7.6 6.3 14.7z"/>
+                            <path fill="#FBBC05" d="M24 43c5.4 0 10-1.8 13.3-4.9l-6.2-5.1c-2 1.4-4.5 2.2-7.1 2.2-5.6 0-10.3-3.7-12-8.7l-6.5 5c3.1 6.2 9.7 10.5 18.5 10.5z"/>
+                            <path fill="#EA4335" d="M43.6 20.5h-1.9V20H24v8h11.3c-1.1 3-4.1 5.1-7.3 5.1-2.1 0-4-.7-5.5-2l-6.5 5C18.1 41.2 20.9 43 24 43c8.8 0 15.4-4.3 18.5-10.5z"/>
+                          </g>
+                        </svg>
+                      }
+                    >
+                      Entrar com Google
+                    </Button>
+                  )}
+                />
+              </Box>
               <Box sx={{ textAlign: 'center', mt: 2 }}>
                 <Typography variant="body2">
                   Ainda não tem uma conta?{' '}
@@ -301,6 +409,7 @@ function LoginForm() {
           </Box>
         )}
       </Container>
+      </GoogleOAuthProvider>
     </Box>
   );
 }

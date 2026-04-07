@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -19,6 +20,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/data-circle")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('NUTRI')")
 @Tag(name = "Dados Circunferência", description = "CRUD para gerenciar os dados de circunferência")
 public class DataCircleController {
 

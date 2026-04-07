@@ -10,4 +10,5 @@ public class LoginTokenDTO {
     private String nome;
     private String email;
     private String token;
+    private String refreshToken;
 }

@@ -1,9 +1,9 @@
 package fitt_nutri.example.demo.dto.login;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,14 +15,19 @@ import lombok.Setter;
 @Setter
 public class LoginCreateDTO {
 
+    @Size(max = 100, message = "Nome deve ter no máximo 100 caracteres")
     @Schema(description = "Nome do usuário", example = "John doe")
     private String nome;
 
     @Email(message = "Email inválido")
+    @Size(max = 100, message = "Email deve ter no máximo 100 caracteres")
     @Schema(description = "Email do usuário", example = "johndoe@email.com")
     private String email;
 
+    @Size(max = 14, message = "CPF deve ter no máximo 14 caracteres")
     private String cpf;
+
+    @Size(max = 20, message = "CRN deve ter no máximo 20 caracteres")
     private String crn;
 
     @Pattern(

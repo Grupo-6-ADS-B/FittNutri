@@ -8,13 +8,13 @@ import fitt_nutri.example.demo.model.PatientModel;
 import fitt_nutri.example.demo.repository.AnthropometricDataRepository;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ReflectionUtils;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.lang.reflect.Field;
+
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class AnthropometricDataService {
@@ -25,6 +25,13 @@ public class AnthropometricDataService {
     @Autowired
     private PatientRepository patientRepository;
 
+    private void verificarPropriedadePaciente(PatientModel patient) {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (patient.getNutricionista() == null || !emailLogado.equals(patient.getNutricionista().getEmail())) {
+            throw new AccessDeniedException("Acesso negado: este paciente não pertence ao nutricionista logado");
+        }
+    }
+
     public List<AnthropometricDataModel> listAll() {
         if (repository.findAll().isEmpty()) {
             throw new NotFoundUser("Nenhum dado antropométrico cadastrado");
@@ -33,8 +40,10 @@ public class AnthropometricDataService {
     }
 
     public AnthropometricDataModel getById(Integer id) {
-        return repository.findById(id)
+        AnthropometricDataModel data = repository.findById(id)
                 .orElseThrow(() -> new NotFoundUser("id " + id + " não encontrado"));
+        verificarPropriedadePaciente(data.getPaciente());
+        return data;
     }
 
     public AnthropometricDataModel create(AnthropometricDataModel data) {
@@ -60,9 +69,9 @@ public class AnthropometricDataService {
     }
 
     public void deleteById(Integer id) {
-        if (!repository.existsById(id)) {
-            throw new NotFoundUser("id " + id + " não encontrado");
-        }
+        AnthropometricDataModel data = repository.findById(id)
+                .orElseThrow(() -> new NotFoundUser("id " + id + " não encontrado"));
+        verificarPropriedadePaciente(data.getPaciente());
         repository.deleteById(id);
     }
 
@@ -70,6 +79,7 @@ public class AnthropometricDataService {
 
         AnthropometricDataModel existente = repository.findById(data.getIdDadosAntropometricos())
                 .orElseThrow(() -> new NotFoundData("ID " + data.getIdDadosAntropometricos() + " não encontrado"));
+        verificarPropriedadePaciente(existente.getPaciente());
 
         existente.setAltura(data.getAltura());
         existente.setPeso(data.getPeso());
@@ -86,20 +96,23 @@ public class AnthropometricDataService {
 
 
     public AnthropometricDataModel partialUpdate(Integer id, Map<String, Object> fields) {
-        Optional<AnthropometricDataModel> optionalData = repository.findById(id);
-        if (optionalData.isEmpty()) {
-            throw new NotFoundData("id " + id + " não encontrado");
-        }
-
-        AnthropometricDataModel existingData = optionalData.get();
+        AnthropometricDataModel existingData = repository.findById(id)
+                .orElseThrow(() -> new NotFoundData("id " + id + " não encontrado"));
+        verificarPropriedadePaciente(existingData.getPaciente());
 
         fields.forEach((key, value) -> {
-            try {
-                Field field = AnthropometricDataModel.class.getDeclaredField(key);
-                field.setAccessible(true);
-                field.set(existingData, value);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                throw new NotFoundData("Campo '" + key + "' inválido para atualização parcial");
+            switch (key) {
+                case "altura"              -> existingData.setAltura(toDouble(value, key));
+                case "peso"               -> existingData.setPeso(toDouble(value, key));
+                case "imc"                -> existingData.setImc(toDouble(value, key));
+                case "porcentagemGordura" -> existingData.setPorcentagemGordura(toDouble(value, key));
+                case "massaMuscular"      -> existingData.setMassaMuscular(toDouble(value, key));
+                case "taxaMetabolicaBasal"-> existingData.setTaxaMetabolicaBasal(toDouble(value, key));
+                case "idadeMetabolica"    -> existingData.setIdadeMetabolica(toInt(value, key));
+                case "gorduraVisceral"    -> existingData.setGorduraVisceral(toDouble(value, key));
+                case "idDadosAntropometricos", "paciente" ->
+                    throw new NotFoundData("Campo não permitido no PATCH: " + key);
+                default -> throw new NotFoundData("Campo '" + key + "' inválido para atualização parcial");
             }
         });
 
@@ -124,73 +137,68 @@ public class AnthropometricDataService {
     }
 
     public List<AnthropometricDataModel> findByPaciente_Id(Integer pacienteId) {
-        List<AnthropometricDataModel> dados = repository.findByPaciente_Id(pacienteId);
-        // Não lança exceção se não houver dados, apenas retorna lista vazia
-        return dados;
+        PatientModel patient = patientRepository.findById(pacienteId)
+                .orElseThrow(() -> new NotFoundUser("Paciente não encontrado"));
+        verificarPropriedadePaciente(patient);
+        return repository.findByPaciente_Id(pacienteId);
     }
 
     public AnthropometricDataModel partialUpdateByPacienteId(Integer pacienteId, Map<String, Object> fields) {
+        PatientModel paciente = patientRepository.findById(pacienteId)
+                .orElseThrow(() -> new NotFoundData("Paciente não encontrado"));
+        verificarPropriedadePaciente(paciente);
 
-        List<AnthropometricDataModel> existentes =
-                repository.findByPaciente_Id(pacienteId);
+        List<AnthropometricDataModel> existentes = repository.findByPaciente_Id(pacienteId);
 
         AnthropometricDataModel data;
-
         if (existentes.isEmpty()) {
             data = new AnthropometricDataModel();
-
-            PatientModel paciente = patientRepository.findById(pacienteId)
-                    .orElseThrow(() -> new NotFoundData("Paciente não encontrado"));
-
             data.setPaciente(paciente);
         } else {
             data = existentes.get(0);
         }
 
         fields.forEach((key, value) -> {
-            Field field = ReflectionUtils.findField(AnthropometricDataModel.class, key);
-            if (field != null) {
-                field.setAccessible(true);
-
-                Object convertedValue = convertValue(field.getType(), value);
-
-                ReflectionUtils.setField(field, data, convertedValue);
+            switch (key) {
+                case "altura"              -> data.setAltura(toDouble(value, key));
+                case "peso"               -> data.setPeso(toDouble(value, key));
+                case "imc"                -> data.setImc(toDouble(value, key));
+                case "porcentagemGordura" -> data.setPorcentagemGordura(toDouble(value, key));
+                case "massaMuscular"      -> data.setMassaMuscular(toDouble(value, key));
+                case "taxaMetabolicaBasal"-> data.setTaxaMetabolicaBasal(toDouble(value, key));
+                case "idadeMetabolica"    -> data.setIdadeMetabolica(toInt(value, key));
+                case "gorduraVisceral"    -> data.setGorduraVisceral(toDouble(value, key));
+                case "idDadosAntropometricos", "paciente" ->
+                    throw new NotFoundData("Campo não permitido no PATCH: " + key);
+                default -> {} // ignora campos desconhecidos
             }
         });
 
         return repository.save(data);
     }
 
-    /** Conversão automática de tipos */
-    private Object convertValue(Class<?> targetType, Object value) {
-        if (value == null) return null;
+    private Double toDouble(Object value, String campo) {
+        if (value == null) throw new NotFoundData(campo + " não pode ser nulo");
+        if (value instanceof Number n) return n.doubleValue();
+        try { return Double.valueOf(value.toString()); }
+        catch (NumberFormatException e) { throw new NotFoundData("Valor inválido para " + campo + ": " + value); }
+    }
 
-        if (targetType.equals(Double.class)) {
-            if (value instanceof Number n) return n.doubleValue();
-            return Double.valueOf(value.toString());
-        }
-
-        if (targetType.equals(Integer.class)) {
-            if (value instanceof Number n) return n.intValue();
-            return Integer.valueOf(value.toString());
-        }
-
-        if (targetType.equals(String.class)) {
-            return value.toString();
-        }
-
-        return value;
+    private Integer toInt(Object value, String campo) {
+        if (value == null) throw new NotFoundData(campo + " não pode ser nulo");
+        if (value instanceof Number n) return n.intValue();
+        try { return Integer.valueOf(value.toString()); }
+        catch (NumberFormatException e) { throw new NotFoundData("Valor inválido para " + campo + ": " + value); }
     }
 
 
 
-    public AnthropometricDataModel createByPaciente(Integer patientId, AnthropometricDataModel data) {
 
+    public AnthropometricDataModel createByPaciente(Integer patientId, AnthropometricDataModel data) {
         PatientModel patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new NotFoundData("Paciente não encontrado"));
-
+        verificarPropriedadePaciente(patient);
         data.setPaciente(patient);
-
         return repository.save(data);
     }
 

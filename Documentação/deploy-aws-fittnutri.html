@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FittNutri — Deploy & Operações AWS</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Sora:wght@300;400;600;700&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2235;
+    --border: #1e2d45;
+    --green: #22c55e;
+    --blue: #3b82f6;
+    --orange: #f97316;
+    --purple: #a855f7;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --cyan: #06b6d4;
+    --text: #e2e8f0;
+    --text-dim: #64748b;
+    --text-mid: #94a3b8;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Sora', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 40px 24px;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(59,130,246,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,130,246,0.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+
+  .header .badge {
+    display: inline-block;
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--green);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+
+  .header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 8px;
+  }
+
+  .header p {
+    color: var(--text-dim);
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Section */
+  .section {
+    margin-bottom: 40px;
+  }
+
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .card p {
+    font-size: 13px;
+    color: var(--text-mid);
+    line-height: 1.7;
+    margin-bottom: 8px;
+  }
+
+  /* Info grid */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .info-grid { grid-template-columns: 1fr; }
+  }
+
+  .info-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  .info-item .label {
+    font-size: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .info-item .value {
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  /* Status badge */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-family: 'JetBrains Mono', monospace;
+    padding: 3px 10px;
+    border-radius: 20px;
+  }
+
+  .status.ok {
+    background: rgba(34,197,94,0.1);
+    border: 1px solid rgba(34,197,94,0.3);
+    color: var(--green);
+  }
+
+  .status.warn {
+    background: rgba(234,179,8,0.1);
+    border: 1px solid rgba(234,179,8,0.3);
+    color: var(--yellow);
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+
+  /* Steps */
+  .steps {
+    counter-reset: step;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    min-width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(59,130,246,0.15);
+    border: 1px solid rgba(59,130,246,0.3);
+    color: var(--blue);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+
+  .step-body {
+    flex: 1;
+  }
+
+  .step-body strong {
+    font-size: 13px;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .step-body p {
+    font-size: 12px;
+    color: var(--text-mid);
+    margin-bottom: 0;
+  }
+
+  /* Code block */
+  .code-block {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin: 12px 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    line-height: 1.8;
+    overflow-x: auto;
+    white-space: pre;
+    color: #c9d1d9;
+  }
+
+  .code-block .comment { color: #8b949e; }
+  .code-block .cmd { color: #79c0ff; }
+  .code-block .str { color: #a5d6ff; }
+  .code-block .flag { color: #ffa657; }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 8px;
+  }
+
+  th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-dim);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    color: var(--text-mid);
+    vertical-align: top;
+  }
+
+  td:first-child {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  /* Alert */
+  .alert {
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    line-height: 1.6;
+    margin: 12px 0;
+    display: flex;
+    gap: 10px;
+  }
+
+  .alert.info {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.25);
+    color: #93c5fd;
+  }
+
+  .alert.warn {
+    background: rgba(234,179,8,0.08);
+    border: 1px solid rgba(234,179,8,0.25);
+    color: #fde68a;
+  }
+
+  .alert-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  /* Flow */
+  .flow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    align-items: center;
+    margin: 12px 0;
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .flow-item {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    color: var(--text-mid);
+  }
+
+  .flow-arrow {
+    color: var(--text-dim);
+    padding: 0 8px;
+    font-size: 14px;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">Operações · AWS · Deploy</div>
+    <h1>FittNutri — Deploy & Operações</h1>
+    <p>Guia operacional da infraestrutura AWS · EC2 · Docker Compose · SSL · RabbitMQ</p>
+  </div>
+
+  <!-- ─── Infraestrutura Atual ─── -->
+  <div class="section">
+    <div class="section-title">Infraestrutura Atual</div>
+
+    <div class="info-grid">
+      <div class="info-item">
+        <div class="label">Instância EC2</div>
+        <div class="value">i-002dbbd8acdc50042</div>
+      </div>
+      <div class="info-item">
+        <div class="label">IP Público (Elastic IP)</div>
+        <div class="value">100.51.245.76</div>
+      </div>
+      <div class="info-item">
+        <div class="label">Tipo / Região</div>
+        <div class="value">t3.small · us-east-1a</div>
+      </div>
+      <div class="info-item">
+        <div class="label">Domínio</div>
+        <div class="value">fittnutri.duckdns.org</div>
+      </div>
+      <div class="info-item">
+        <div class="label">Certificado SSL</div>
+        <div class="value">Let's Encrypt · expira 2026-06-22</div>
+      </div>
+      <div class="info-item">
+        <div class="label">RabbitMQ (CloudAMQP)</div>
+        <div class="value">moose.rmq.cloudamqp.com</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Status dos Containers</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Container</th>
+            <th>Imagem</th>
+            <th>Porta</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>nginx</td>
+            <td>nginx:alpine</td>
+            <td>80, 443</td>
+            <td><span class="status ok"><span class="status-dot"></span>Up</span></td>
+          </tr>
+          <tr>
+            <td>backend</td>
+            <td>fittnutri-backend</td>
+            <td>8080</td>
+            <td><span class="status ok"><span class="status-dot"></span>Up · /actuator/health OK</span></td>
+          </tr>
+          <tr>
+            <td>frontend</td>
+            <td>fittnutri-frontend</td>
+            <td>5173</td>
+            <td><span class="status ok"><span class="status-dot"></span>Up</span></td>
+          </tr>
+          <tr>
+            <td>mysql</td>
+            <td>mysql:8</td>
+            <td>3306</td>
+            <td><span class="status ok"><span class="status-dot"></span>Up · healthy</span></td>
+          </tr>
+          <tr>
+            <td>prometheus</td>
+            <td>prom/prometheus</td>
+            <td>9090</td>
+            <td><span class="status ok"><span class="status-dot"></span>Up</span></td>
+          </tr>
+          <tr>
+            <td>grafana</td>
+            <td>grafana/grafana</td>
+            <td>3000</td>
+            <td><span class="status ok"><span class="status-dot"></span>Up</span></td>
+          </tr>
+          <tr>
+            <td>certbot</td>
+            <td>certbot/certbot</td>
+            <td>—</td>
+            <td><span class="status warn"><span class="status-dot"></span>Exited (esperado)</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ─── Gerenciar EC2 ─── -->
+  <div class="section">
+    <div class="section-title">Gerenciar EC2 (Ligar / Desligar)</div>
+
+    <div class="card">
+      <h3>⚡ Parar e iniciar a instância</h3>
+      <p>Para economizar créditos, pare a EC2 quando não estiver usando. O EBS (disco) persiste — os dados do MySQL não são perdidos.</p>
+
+      <div class="code-block"><span class="comment"># ─── Parar EC2 (economiza compute, ~$0/h) ───</span>
+<span class="cmd">"/c/Program Files/Amazon/AWSCLIV2/aws.exe"</span> ec2 stop-instances \
+  <span class="flag">--instance-ids</span> <span class="str">i-002dbbd8acdc50042</span>
+
+<span class="comment"># ─── Ligar EC2 ───</span>
+<span class="cmd">"/c/Program Files/Amazon/AWSCLIV2/aws.exe"</span> ec2 start-instances \
+  <span class="flag">--instance-ids</span> <span class="str">i-002dbbd8acdc50042</span>
+
+<span class="comment"># ─── Aguardar ficar running ───</span>
+<span class="cmd">"/c/Program Files/Amazon/AWSCLIV2/aws.exe"</span> ec2 wait instance-running \
+  <span class="flag">--instance-ids</span> <span class="str">i-002dbbd8acdc50042</span></div>
+
+      <div class="alert info">
+        <span class="alert-icon">💡</span>
+        <span>O Elastic IP é fixo — o domínio <strong>fittnutri.duckdns.org</strong> continuará apontando para <strong>100.51.245.76</strong> mesmo após reiniciar.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Conectar na EC2 ─── -->
+  <div class="section">
+    <div class="section-title">Conectar na EC2 (sem chave .pem)</div>
+
+    <div class="card">
+      <h3>🔑 EC2 Instance Connect</h3>
+      <p>Como o arquivo <code>.pem</code> fica salvo no desktop de casa, usa-se o EC2 Instance Connect para injetar uma chave SSH temporária (válida 60 segundos) e conectar normalmente.</p>
+
+      <div class="code-block"><span class="comment"># ─── Passo 1: Gerar chave temporária (só na 1ª vez ou se sumir) ───</span>
+ssh-keygen <span class="flag">-t</span> ed25519 <span class="flag">-f</span> /tmp/ec2_temp_key <span class="flag">-N</span> <span class="str">""</span>
+
+<span class="comment"># ─── Passo 2: Injetar chave via EC2 Instance Connect (60s para conectar) ───</span>
+<span class="cmd">"/c/Program Files/Amazon/AWSCLIV2/aws.exe"</span> ec2-instance-connect send-ssh-public-key \
+  <span class="flag">--instance-id</span>        <span class="str">i-002dbbd8acdc50042</span> \
+  <span class="flag">--availability-zone</span>  <span class="str">us-east-1a</span> \
+  <span class="flag">--instance-os-user</span>   <span class="str">ubuntu</span> \
+  <span class="flag">--ssh-public-key</span>     <span class="str">"$(cat /tmp/ec2_temp_key.pub)"</span>
+
+<span class="comment"># ─── Passo 3: Conectar via SSH ───</span>
+ssh <span class="flag">-i</span> /tmp/ec2_temp_key \
+    <span class="flag">-o</span> StrictHostKeyChecking=no \
+    ubuntu@<span class="str">100.51.245.76</span></div>
+
+      <div class="alert warn">
+        <span class="alert-icon">⚠️</span>
+        <span>Se o Windows reiniciar, a chave em <strong>/tmp/ec2_temp_key</strong> some. Basta rodar o <em>Passo 1</em> novamente para recriar.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Credenciais AWS Lab ─── -->
+  <div class="section">
+    <div class="section-title">Renovar Credenciais AWS Lab</div>
+
+    <div class="card">
+      <h3>🔄 Por que as credenciais expiram?</h3>
+      <p>O AWS Academy usa credenciais temporárias (STS) que expiram a cada sessão do Learner Lab (geralmente 4 horas). Existem <strong>dois lugares</strong> onde precisam ser atualizadas:</p>
+      <table>
+        <thead>
+          <tr><th>Onde</th><th>O que para de funcionar</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>~/.aws/credentials (local)</td>
+            <td>AWS CLI: start/stop EC2, EC2 Instance Connect</td>
+          </tr>
+          <tr>
+            <td>.env na EC2</td>
+            <td>Backend: upload de PDF para o S3</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>📋 Processo de renovação (4 passos)</h3>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-body">
+            <strong>Pegar novas credenciais no painel do AWS Lab</strong>
+            <p>Acessar o Learner Lab → clicar em <em>"AWS Details"</em> → copiar os 3 valores: <code>aws_access_key_id</code>, <code>aws_secret_access_key</code>, <code>aws_session_token</code>.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-body">
+            <strong>Atualizar ~/.aws/credentials no computador local</strong>
+            <p>Editar o arquivo <code>C:\Users\lucas\.aws\credentials</code> com os novos valores.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-body">
+            <strong>SSH na EC2 e atualizar o .env</strong>
+            <p>Usar o processo de EC2 Instance Connect acima para entrar na EC2 e editar <code>~/FittNutri/.env</code> com as novas credenciais.</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-num">4</div>
+          <div class="step-body">
+            <strong>Reiniciar apenas o container backend</strong>
+            <p>O backend é o único que lê as credenciais AWS. Não é necessário derrubar o MySQL ou outros serviços.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="code-block"><span class="comment"># ─── Arquivo: C:\Users\lucas\.aws\credentials ───</span>
+[default]
+aws_access_key_id     = <span class="str">NOVA_ACCESS_KEY</span>
+aws_secret_access_key = <span class="str">NOVO_SECRET_KEY</span>
+aws_session_token     = <span class="str">NOVO_SESSION_TOKEN</span>
+
+<span class="comment"># ─── Na EC2: editar .env ───</span>
+nano ~/FittNutri/.env
+<span class="comment"># Atualizar: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_SESSION_TOKEN</span>
+
+<span class="comment"># ─── Reiniciar só o backend ───</span>
+cd ~/FittNutri
+docker compose up <span class="flag">-d --no-deps</span> backend</div>
+    </div>
+  </div>
+
+  <!-- ─── Fluxo de PDF / RabbitMQ ─── -->
+  <div class="section">
+    <div class="section-title">Fluxo de Geração de PDF (RabbitMQ + S3)</div>
+
+    <div class="card">
+      <h3>📄 Como funciona o envio de dieta para o S3</h3>
+      <p>O processo é assíncrono via fila. O backend não gera o PDF na hora — ele publica uma mensagem e um consumer processa em background.</p>
+
+      <div class="flow">
+        <div class="flow-item">Usuário clica "Enviar PDF"</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">GET /api/meals/patient/{id}/pdf</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">PdfProducerService</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">Fila: pdf.generation</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">PdfConsumerService</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-item">Upload S3</div>
+      </div>
+
+      <table>
+        <thead>
+          <tr><th>Componente</th><th>Arquivo</th><th>Detalhe</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Fila</td>
+            <td>RabbitMQConfig.java</td>
+            <td>pdf.generation · durável</td>
+          </tr>
+          <tr>
+            <td>Producer</td>
+            <td>PdfProducerService.java</td>
+            <td>@Profile("prod") · publica PdfGenerationMessageDTO</td>
+          </tr>
+          <tr>
+            <td>Consumer</td>
+            <td>PdfConsumerService.java</td>
+            <td>@Profile("prod") · @RabbitListener · gera PDF → S3</td>
+          </tr>
+          <tr>
+            <td>Broker</td>
+            <td>application-prod.properties</td>
+            <td>spring.rabbitmq.addresses=${RABBITMQ_URL}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="alert info">
+        <span class="alert-icon">✅</span>
+        <span>O backend já está conectado ao CloudAMQP (plano Little Lemur · gratuito). A variável <strong>RABBITMQ_URL</strong> está configurada no <code>.env</code> da EC2. Nenhuma alteração necessária.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Rebuild completo ─── -->
+  <div class="section">
+    <div class="section-title">Rebuild Completo dos Containers</div>
+
+    <div class="card">
+      <h3>🔨 Quando usar: nova versão do código ou mudança de configuração</h3>
+
+      <div class="code-block"><span class="comment"># ─── Puxar código mais recente ───</span>
+cd ~/FittNutri
+git pull origin main
+
+<span class="comment"># ─── Rebuild + restart ───</span>
+./manage.sh rebuild
+
+<span class="comment"># ─── Acompanhar logs durante o build ───</span>
+docker compose logs <span class="flag">-f</span> backend
+docker compose logs <span class="flag">-f</span> frontend</div>
+
+      <div class="alert warn">
+        <span class="alert-icon">⚠️</span>
+        <span>O build do frontend (Vite) consome muita memória. A EC2 possui 2 GB de swap configurado em <code>/swapfile</code>. O <code>NODE_OPTIONS=--max-old-space-size=1024</code> já está configurado no <code>frontend/Dockerfile</code>.</span>
+      </div>
+
+      <div class="alert info">
+        <span class="alert-icon">💡</span>
+        <span>Se a EC2 foi recriada do zero (novo Terraform), recriar o swap antes do rebuild: <br><code>sudo fallocate -l 2G /swapfile &amp;&amp; sudo chmod 600 /swapfile &amp;&amp; sudo mkswap /swapfile &amp;&amp; sudo swapon /swapfile</code></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── SSL ─── -->
+  <div class="section">
+    <div class="section-title">Certificado SSL (Let's Encrypt)</div>
+
+    <div class="card">
+      <h3>🔒 Renovar certificado (expira 2026-06-22)</h3>
+      <p>O Certbot precisa ser rodado manualmente quando o certificado estiver próximo de expirar.</p>
+
+      <div class="code-block"><span class="comment"># ─── Rodar Certbot para renovar ───</span>
+cd ~/FittNutri
+docker compose run <span class="flag">--rm</span> certbot certonly \
+  <span class="flag">--webroot -w</span> /var/www/certbot \
+  <span class="flag">-d</span> fittnutri.duckdns.org \
+  <span class="flag">--email</span> lucas.cartaxo@sptech.school \
+  <span class="flag">--agree-tos --no-eff-email --force-renewal</span>
+
+<span class="comment"># ─── Recarregar nginx após renovar ───</span>
+docker compose exec nginx nginx <span class="flag">-s</span> reload</div>
+    </div>
+  </div>
+
+  <!-- ─── Arquivos-chave ─── -->
+  <div class="section">
+    <div class="section-title">Arquivos-Chave do Projeto</div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr><th>Arquivo</th><th>Propósito</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>docker-compose.yml</td>
+            <td>Orquestra os 7 serviços (mysql, backend, frontend, nginx, certbot, prometheus, grafana)</td>
+          </tr>
+          <tr>
+            <td>.env (na EC2, não versionado)</td>
+            <td>Credenciais AWS, RABBITMQ_URL, DB_PASSWORD, JWT_SECRET e demais secrets</td>
+          </tr>
+          <tr>
+            <td>frontend/Dockerfile</td>
+            <td>Build multi-stage Node.js → nginx. Contém NODE_OPTIONS=1024MB para evitar OOM</td>
+          </tr>
+          <tr>
+            <td>nginx/conf.d/fittnutri.conf</td>
+            <td>Proxy reverso com HTTPS, headers de segurança, rate limiting na API</td>
+          </tr>
+          <tr>
+            <td>manage.sh</td>
+            <td>Scripts de start / stop / rebuild / logs / status</td>
+          </tr>
+          <tr>
+            <td>application-prod.properties</td>
+            <td>Config Spring Boot em produção (MySQL, RabbitMQ, S3, JWT)</td>
+          </tr>
+          <tr>
+            <td>terraform/</td>
+            <td>Infraestrutura como código (EC2, VPC, Security Groups, EBS)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center; margin-top:48px; padding-top:24px; border-top:1px solid var(--border);">
+    <p style="font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--text-dim);">
+      FittNutri · Grupo 6 ADS-B · Gerado em 2026-03-24
+    </p>
+  </div>
+
+</div>
+</body>
+</html>

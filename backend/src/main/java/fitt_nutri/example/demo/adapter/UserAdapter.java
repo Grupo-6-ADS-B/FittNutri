@@ -62,7 +62,7 @@ public class UserAdapter {
         userService.deleteUser(id);
     }
 
-    private UserResponseDTO mapToResponse(UserModel user) {
-        return new UserResponseDTO(user.getId(), user.getNome(), user.getEmail(), user.getCpf(), user.getCrn());
+    public UserResponseDTO mapToResponse(UserModel user) {
+        return new UserResponseDTO(user.getId(), user.getNome(), user.getEmail(), user.getCpf(), user.getCrn(), user.getFoto());
     }
 }
