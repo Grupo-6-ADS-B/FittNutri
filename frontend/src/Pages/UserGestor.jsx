@@ -775,21 +775,6 @@ export default function UserGestor() {
         userName={userToDelete?.name}
       />
 
-<<<<<<< HEAD
-      <Dialog open={scheduleOpen} onClose={closeScheduleDialog}>
-        <DialogTitle>Agendar Consulta</DialogTitle>
-        <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 320 }}>
-          <TextField label="Paciente" value={scheduleUser?.name || ""} disabled />
-          <TextField type="date" label="Data" value={apptDate} onChange={(e) => setApptDate(e.target.value)} InputLabelProps={{ shrink: true }} />
-          <TextField type="time" label="Hora" value={apptTime} onChange={(e) => setApptTime(e.target.value)} InputLabelProps={{ shrink: true }} />
-          <TextField label="Observação" value={apptNote} onChange={(e) => setApptNote(e.target.value)} multiline minRows={2} />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={closeScheduleDialog}>Cancelar</Button>
-          <Button variant="contained" onClick={saveAppointment}>Salvar</Button>
-        </DialogActions>
-      </Dialog>
-=======
       <ScheduleDialog
         open={scheduleOpen}
         onClose={closeScheduleDialog}
@@ -802,7 +787,6 @@ export default function UserGestor() {
         apptNote={apptNote}
         setApptNote={setApptNote}
       />
->>>>>>> 8cea882c8af81e3759c5282fc5dee3f122259129
 
       <WeeklyConsultationsDialog
         open={weekDialogOpen}
