@@ -185,12 +185,12 @@ class DataCircleServiceTest {
     void deletar_DeveDeletarQuandoExiste() {
         Integer id = 1;
 
-        when(repository.existsById(id)).thenReturn(true);
+        when(repository.findById(id)).thenReturn(Optional.of(existing));
         doNothing().when(repository).deleteById(id);
 
         service.deletar(id);
 
-        verify(repository).existsById(id);
+        verify(repository).findById(id);
         verify(repository).deleteById(id);
     }
 
@@ -215,11 +215,13 @@ class DataCircleServiceTest {
         Integer pacienteId = paciente.getId();
         List<DataCircleModel> lista = List.of(existing);
 
+        when(patientRepository.findById(pacienteId)).thenReturn(Optional.of(paciente));
         when(repository.findByPaciente_Id(pacienteId)).thenReturn(lista);
 
         List<DataCircleModel> result = service.listarPorPaciente(pacienteId);
 
         assertEquals(lista, result);
+        verify(patientRepository).findById(pacienteId);
         verify(repository).findByPaciente_Id(pacienteId);
     }
 }

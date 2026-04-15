@@ -4,7 +4,11 @@ import fitt_nutri.example.demo.exceptions.AlreadyExistingData;
 import fitt_nutri.example.demo.exceptions.NotFoundData;
 import fitt_nutri.example.demo.exceptions.NotFoundUser;
 import fitt_nutri.example.demo.model.AnthropometricDataModel;
+import fitt_nutri.example.demo.model.PatientModel;
+import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.AnthropometricDataRepository;
+import fitt_nutri.example.demo.repository.PatientRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -12,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.*;
 
@@ -27,10 +33,22 @@ class AnthropometricDataServiceTest {
     @Mock
     private AnthropometricDataRepository repository;
 
+    @Mock
+    private PatientRepository patientRepository;
+
     private AnthropometricDataModel model;
+    private PatientModel paciente;
+    private UserModel nutricionista;
 
     @BeforeEach
     void setUp() {
+        nutricionista = new UserModel();
+        nutricionista.setEmail("nutri@test.com");
+
+        paciente = new PatientModel();
+        paciente.setId(10);
+        paciente.setNutricionista(nutricionista);
+
         model = new AnthropometricDataModel();
         model.setIdDadosAntropometricos(1);
         model.setAltura(1.75);
@@ -41,6 +59,16 @@ class AnthropometricDataServiceTest {
         model.setTaxaMetabolicaBasal(1600.0);
         model.setIdadeMetabolica(25);
         model.setGorduraVisceral(5.0);
+        model.setPaciente(paciente);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("nutri@test.com", null, List.of())
+        );
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     // ---------- listAll ----------
@@ -94,7 +122,7 @@ class AnthropometricDataServiceTest {
     @DisplayName("create - deve salvar dado válido com ID nulo")
     void create_DeveSalvarQuandoDadosValidosEIdNulo() {
         AnthropometricDataModel novo = new AnthropometricDataModel();
-        novo.setIdDadosAntropometricos(null); // ID nulo → não entra no existsById
+        novo.setIdDadosAntropometricos(null);
         novo.setAltura(1.80);
         novo.setPeso(80.0);
         novo.setTaxaMetabolicaBasal(1800.0);
@@ -148,21 +176,22 @@ class AnthropometricDataServiceTest {
     @Test
     @DisplayName("deleteById - deve deletar quando ID existir")
     void deleteById_DeveDeletarQuandoIdExistir() {
-        when(repository.existsById(1)).thenReturn(true);
+        when(repository.findById(1)).thenReturn(Optional.of(model));
+        doNothing().when(repository).deleteById(1);
 
         service.deleteById(1);
 
-        verify(repository).existsById(1);
+        verify(repository).findById(1);
         verify(repository).deleteById(1);
     }
 
     @Test
     @DisplayName("deleteById - deve lançar NotFoundUser quando ID não existir")
     void deleteById_DeveLancarNotFoundUserQuandoIdNaoExistir() {
-        when(repository.existsById(1)).thenReturn(false);
+        when(repository.findById(1)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundUser.class, () -> service.deleteById(1));
-        verify(repository).existsById(1);
+        verify(repository).findById(1);
         verify(repository, never()).deleteById(any());
     }
 
@@ -171,11 +200,15 @@ class AnthropometricDataServiceTest {
     @Test
     @DisplayName("update - deve salvar e retornar dado atualizado")
     void update_DeveSalvarEretornar() {
+        // Service: findById → existente, copia campos de 'model' para 'existente', salva existente
+        // Como model.id = 1 e findById(1) retorna o próprio model, existente == model
+        when(repository.findById(1)).thenReturn(Optional.of(model));
         when(repository.save(model)).thenReturn(model);
 
         AnthropometricDataModel result = service.update(model);
 
         assertEquals(model, result);
+        verify(repository).findById(1);
         verify(repository).save(model);
     }
 
@@ -216,25 +249,31 @@ class AnthropometricDataServiceTest {
     @Test
     @DisplayName("findByPaciente_Id - deve retornar lista quando houver dados")
     void findByPacienteId_DeveRetornarLista() {
-        Integer pacienteId = 10;
+        Integer pacienteId = paciente.getId();
         List<AnthropometricDataModel> lista = List.of(model);
 
+        when(patientRepository.findById(pacienteId)).thenReturn(Optional.of(paciente));
         when(repository.findByPaciente_Id(pacienteId)).thenReturn(lista);
 
         List<AnthropometricDataModel> result = service.findByPaciente_Id(pacienteId);
 
         assertEquals(lista, result);
+        verify(patientRepository).findById(pacienteId);
         verify(repository).findByPaciente_Id(pacienteId);
     }
 
     @Test
-    @DisplayName("findByPaciente_Id - deve lançar NotFoundData quando lista estiver vazia")
-    void findByPacienteId_DeveLancarNotFoundDataQuandoVazia() {
-        Integer pacienteId = 10;
+    @DisplayName("findByPaciente_Id - deve retornar lista vazia quando não houver dados")
+    void findByPacienteId_DeveRetornarListaVaziaQuandoVazia() {
+        Integer pacienteId = paciente.getId();
 
+        when(patientRepository.findById(pacienteId)).thenReturn(Optional.of(paciente));
         when(repository.findByPaciente_Id(pacienteId)).thenReturn(Collections.emptyList());
 
-        assertThrows(NotFoundData.class, () -> service.findByPaciente_Id(pacienteId));
+        List<AnthropometricDataModel> result = service.findByPaciente_Id(pacienteId);
+
+        assertTrue(result.isEmpty());
+        verify(patientRepository).findById(pacienteId);
         verify(repository).findByPaciente_Id(pacienteId);
     }
 
@@ -243,30 +282,32 @@ class AnthropometricDataServiceTest {
     @Test
     @DisplayName("partialUpdateByPacienteId - deve atualizar parcialmente por pacienteId")
     void partialUpdateByPacienteId_DeveAtualizarParcialmente() {
-        Integer pacienteId = 10;
+        Integer pacienteId = paciente.getId();
         Map<String, Object> fields = new HashMap<>();
         fields.put("massaMuscular", 55.0);
 
-        when(repository.findFirstByPaciente_Id(pacienteId)).thenReturn(model);
+        when(patientRepository.findById(pacienteId)).thenReturn(Optional.of(paciente));
+        when(repository.findByPaciente_Id(pacienteId)).thenReturn(List.of(model));
         when(repository.save(any(AnthropometricDataModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         AnthropometricDataModel result = service.partialUpdateByPacienteId(pacienteId, fields);
 
         assertEquals(55.0, result.getMassaMuscular());
-        verify(repository).findFirstByPaciente_Id(pacienteId);
+        verify(patientRepository).findById(pacienteId);
+        verify(repository).findByPaciente_Id(pacienteId);
         verify(repository).save(result);
     }
 
     @Test
-    @DisplayName("partialUpdateByPacienteId - deve lançar NotFoundData quando não encontrar dados do paciente")
+    @DisplayName("partialUpdateByPacienteId - deve lançar NotFoundData quando paciente não encontrado")
     void partialUpdateByPacienteId_DeveLancarNotFoundDataQuandoNaoEncontrar() {
-        Integer pacienteId = 10;
+        Integer pacienteId = paciente.getId();
         Map<String, Object> fields = Map.of("massaMuscular", 55.0);
 
-        when(repository.findFirstByPaciente_Id(pacienteId)).thenReturn(null);
+        when(patientRepository.findById(pacienteId)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundData.class, () -> service.partialUpdateByPacienteId(pacienteId, fields));
-        verify(repository).findFirstByPaciente_Id(pacienteId);
+        verify(patientRepository).findById(pacienteId);
         verify(repository, never()).save(any());
     }
 }
