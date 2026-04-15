@@ -65,10 +65,9 @@ jobs:
           path: backend/target/site/jacoco/
           retention-days: 7
 
-      # ── 5. OWASP Dependency-Check — CVEs ≥ 7.0 ──────────────────────────────
-      # NVD_API_KEY: cadastre em https://nvd.nist.gov/developers/request-an-api-key
-      # continue-on-error: true enquanto a chave NVD não estiver configurada;
-      # mude para false após adicionar o secret NVD_API_KEY no repositório.
+      # ── 5. OWASP Dependency-Check — CVEs ≥ 7.0 quebram o build ──────────────
+      # failOnError=false: tolera falha de rede/NVD sem derrubar o build;
+      # failBuildOnCVSS=7: ainda bloqueia se CVE real for encontrado.
       - name: OWASP Dependency-Check (CVSS ≥ 7)
         run: |
           mvn -B dependency-check:check \
@@ -76,7 +75,7 @@ jobs:
             -DfailBuildOnCVSS=7 \
             -DskipTestScope=true \
             -DfailOnError=false
-        continue-on-error: true   # não bloqueia sem chave NVD válida
+        continue-on-error: false
 
       - name: Publicar relatório OWASP
         uses: actions/upload-artifact@v4
