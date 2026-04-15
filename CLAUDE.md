@@ -1,5 +1,5 @@
 # FittNutri Project Context
-
+Context: This project is documented in the Obsidian vault under projects/FittNutri
 This repository contains the FittNutri system.
 
 It is a SaaS platform for nutritionists to manage patients, diets, and anthropometric data.

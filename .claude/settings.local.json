@@ -10,7 +10,8 @@
       "Bash(curl -s -o /dev/null -w \"HTTP Status: %{http_code}\\\\n\" http://100.25.153.210)",
       "Bash(curl -s http://100.25.153.210)",
       "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" taint:*)",
-      "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" destroy:*)"
+      "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" destroy:*)",
+      "Bash(docker start:*)"
     ]
   }
 }

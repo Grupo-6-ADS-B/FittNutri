@@ -80,7 +80,6 @@ export default function UserGestor() {
     motivoConsulta: "",
     peso: "",
     altura: "",
-    idade: "",
     idadeMetabolica: "",
     massaMuscular: "",
     porcentagemGordura: "",
