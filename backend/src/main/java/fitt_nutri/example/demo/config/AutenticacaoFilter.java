@@ -32,15 +32,11 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
         "/v3/api-docs",
         "/swagger-resources",
         "/webjars",
-        "/schedulings",
         "/h2-console",
         "/forms",
-        "/data-circle",
-        "/anthropometric-data",
-        "/food-itens",
-        "/meals",
-        "/patients",
-        "/patient-history"
+        "/error",
+        "/actuator/health",
+        "/actuator/prometheus"
     );
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutenticacaoFilter.class);
@@ -83,10 +79,14 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
                 username = jwtTokenManager.getUsernameFromToken(token);
 
             } catch (ExpiredJwtException e) {
+                response.setContentType("application/json");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("{\"error\":\"Token expirado. Faça login novamente.\"}");
                 return;
             } catch (Exception e) {
+                response.setContentType("application/json");
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("{\"error\":\"Token inválido.\"}");
                 return;
             }
         }

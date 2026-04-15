@@ -1,0 +1,33 @@
+# ============================================================
+# FittNutri — Template de configuração por conta
+# Copie este arquivo: cp exemplo.tfvars.example minha-conta.tfvars
+# Preencha os valores e use: terraform plan -var-file="contas/minha-conta.tfvars"
+# ============================================================
+
+aws_region  = "us-east-1"
+environment = "prod"
+project     = "fittnutri"
+
+# Compute
+instance_type = "t3.small"       # t3.micro para free tier
+ami_id        = ""               # Vazio = Ubuntu 22.04 mais recente
+key_name      = "SEU-KEY-PAIR"   # Nome do Key Pair na sua conta AWS
+volume_size   = 20
+
+# Segurança
+ssh_allowed_cidrs = ["SEU.IP.AQUI/32"]
+
+# Domínio
+domain = "fittnutri.duckdns.org"
+
+# Aplicação
+git_branch = "main"
+app_email  = "seu@email.com"
+
+# S3 (vazio = gera automaticamente com account ID)
+s3_bucket_name = ""
+
+# Flags de resiliência — desabilite se a conta bloquear o serviço
+enable_iam            = true    # false se IAM bloqueado
+enable_s3             = true    # false se S3 bloqueado
+enable_ebs_encryption = true    # false se EBS encryption bloqueado

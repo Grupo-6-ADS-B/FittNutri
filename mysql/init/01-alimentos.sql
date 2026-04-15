@@ -1,4 +1,4 @@
-CREATE DATABASE fittnutri;
+CREATE DATABASE IF NOT EXISTS fittnutri;
 
 USE fittnutri;
 
@@ -27,7 +27,8 @@ CREATE TABLE alimentos (
     riboflavina DECIMAL(10,2),
     piridoxina DECIMAL(10,2),
     niacina DECIMAL(10,2),
-    vitaminac DECIMAL(10,2)
+    vitaminac DECIMAL(10,2),
+    fonte VARCHAR(50) DEFAULT 'TACO'
 );
 
 INSERT INTO alimentos (nome, umidade, energia_kcal, proteina, lipideos, colesterol, carboidrato, fibra, cinzas, calcio, magnesio, manganes, fosforo, ferro, sodio, potassio, cobre, zinco, retinol, tiamina, riboflavina, piridoxina, niacina, vitaminac) VALUES
@@ -2599,4 +2600,7 @@ INSERT INTO alimentos (nome, umidade, energia_kcal, proteina, lipideos, colester
   ('Banha bovina', NULL, 680.0, 10.65, 70.33, 95.0, NULL, NULL, NULL, 19.0, 6.0, NULL, 64.0, 1.08, 23.0, 99.0, 0.04, 1.24, NULL, 0.03, 0.05, 0.14, 1.53, NULL),
   ('Óleo não especificado', NULL, 879.73, NULL, 99.52, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.05, NULL, NULL, NULL, 0.01, NULL, NULL, NULL, NULL, NULL, NULL),
   ('Óleo de dendê', NULL, 857.84, NULL, 99.52, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.1, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
+
+-- Garante que todos os alimentos TACO tenham fonte preenchida
+UPDATE alimentos SET fonte = 'TACO' WHERE fonte IS NULL OR fonte = '';
 

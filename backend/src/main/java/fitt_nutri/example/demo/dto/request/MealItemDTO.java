@@ -7,4 +7,5 @@ public class    MealItemDTO {
     private String alimento;
     private Double quantidade;
     private String unidade;
+    private Integer foodItemId;
 }

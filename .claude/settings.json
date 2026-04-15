@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(winget --version)",
+      "Bash(choco --version)",
+      "Bash(winget install:*)",
+      "Bash(export PATH=\"/c/Program Files/Amazon/AWSCLIV2:$PATH\")",
+      "Bash(aws --version)",
+      "Bash(aws sts:*)",
+      "Bash(aws ec2:*)",
+      "Bash(aws ssm:*)",
+      "Bash(aws ec2-instance-connect:*)",
+      "Bash(chmod 600 /tmp/ec2-temp-key)",
+      "Bash(ssh -i /tmp/ec2-temp-key -o StrictHostKeyChecking=no -o ConnectTimeout=10 ubuntu@100.51.245.76 \"echo ''Conexão SSH OK!'' && hostname && whoami\")",
+      "Bash(git push:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(aws.exe sts:*)",
+      "Bash(/mnt/c/Users/lucas/AppData/Local/Programs/Python/Python*/Scripts/aws)",
+      "Bash(2)",
+      "Read(//c/Users/lucas/AppData/Local/Amazon/**)",
+      "Read(//c/Program Files/Amazon/AWSCLIV2//**)",
+      "Read(//c/Users/lucas/AppData/Local/Programs/Amazon/**)",
+      "Bash(\"/c/Program Files/Amazon/AWSCLIV2/aws.exe\" sts get-caller-identity)",
+      "Bash(\"/c/Program Files/Amazon/AWSCLIV2/aws.exe\" ec2 describe-instances --filters \"Name=tag:Project,Values=fittnutri\" --query \"Reservations[].Instances[].{ID:InstanceId,State:State.Name,IP:PublicIpAddress,AZ:Placement.AvailabilityZone}\" --output table)",
+      "Bash(\"/c/Program Files/Amazon/AWSCLIV2/aws.exe\" ec2-instance-connect send-ssh-public-key --instance-id i-002dbbd8acdc50042 --availability-zone us-east-1a --instance-os-user ubuntu --ssh-public-key file:///tmp/ec2_temp_key.pub)",
+      "Bash(ssh -i /tmp/ec2_temp_key -o StrictHostKeyChecking=no -o ConnectTimeout=15 ubuntu@100.51.245.76 \"cd ~/FittNutri && docker compose run --rm certbot certonly --webroot -w /var/www/certbot -d fittnutri.duckdns.org --email lucas.cartaxo@sptech.school --agree-tos --no-eff-email --force-renewal 2>&1\")",
+      "Bash(find c:UserslucasDownloadsfitNutriFittNutri -name *.properties -o -name *.yml)",
+      "Bash(grep -E \"\\\\.\\(tf|json|tfvars\\)$\")",
+      "Bash(grep -E \"\\\\.\\(sh|tpl\\)$\")",
+      "Bash(\"/c/Program Files/Amazon/AWSCLIV2/aws.exe\" ec2 create-key-pair --key-name fittnutri-notebook --key-type ed25519 --query \"KeyMaterial\" --output text)",
+      "Bash(\"/c/Program Files/Amazon/AWSCLIV2/aws.exe\" ec2 import-key-pair --key-name fittnutri-notebook --public-key-material fileb:///tmp/fittnutri-notebook.pub)",
+      "Bash(curl -s ifconfig.me)",
+      "Bash(terraform --version)",
+      "Read(//c/Program Files/**)",
+      "Read(//c/ProgramData/chocolatey/bin/**)",
+      "Read(//c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/**)",
+      "Read(//c/Users/lucas/**)",
+      "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" --version)",
+      "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" init:*)",
+      "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" validate:*)",
+      "Bash(\"/c/Program Files/Amazon/AWSCLIV2/aws.exe\" ec2 describe-instances --instance-ids i-002dbbd8acdc50042 --query \"Reservations[0].Instances[0].[State.Name, PublicIpAddress, PrivateIpAddress, SubnetId, VpcId]\" --output text)",
+      "Bash(\"/c/Program Files/Amazon/AWSCLIV2/aws.exe\" ec2 describe-vpcs --vpc-ids vpc-0c38f698b496c24e7 --query \"Vpcs[0].CidrBlock\" --output text)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\lucas\\.aws",
+      "\\tmp"
+    ]
+  }
+}

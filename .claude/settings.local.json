@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"/c/Program Files/Amazon/AWSCLIV2/aws.exe\" ec2 describe-subnets --filters \"Name=vpc-id,Values=vpc-0c38f698b496c24e7\" --query \"Subnets[*].[SubnetId, CidrBlock, AvailabilityZone, Tags[?Key==''Name''].Value|[0], MapPublicIpOnLaunch]\" --output text)",
+      "Bash(\"/c/Program Files/Amazon/AWSCLIV2/aws.exe\" ec2 describe-internet-gateways --filters \"Name=attachment.vpc-id,Values=vpc-0c38f698b496c24e7\" --query \"InternetGateways[0].InternetGatewayId\" --output text)",
+      "Bash(\"/c/Program Files/Amazon/AWSCLIV2/aws.exe\" ec2 describe-security-groups --filters \"Name=vpc-id,Values=vpc-0c38f698b496c24e7\" --query \"SecurityGroups[*].[GroupId, GroupName, Description]\" --output text)",
+      "Bash(terraform plan:*)",
+      "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" plan:*)",
+      "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" apply:*)",
+      "Bash(curl -s -o /dev/null -w \"HTTP Status: %{http_code}\\\\n\" http://100.25.153.210)",
+      "Bash(curl -s http://100.25.153.210)",
+      "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" taint:*)",
+      "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" destroy:*)",
+      "Bash(docker start:*)"
+    ]
+  }
+}

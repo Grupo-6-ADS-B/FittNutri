@@ -18,6 +18,7 @@ public class EvolucaoPacienteDTO {
     private Double idadeMetabolica;
     private Double taxaMetabolicaBasal;
     private String atividade;
+    private Integer idade;
     private String motivoConsulta;
 
     private Double cintura;

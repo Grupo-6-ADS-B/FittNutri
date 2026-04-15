@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FittNutri — Arquitetura Final</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+  :root {
+    --bg: #050810;
+    --surface: #0d1117;
+    --surface2: #161b22;
+    --border: #21262d;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --orange: #f0883e;
+    --purple: #bc8cff;
+    --yellow: #e3b341;
+    --red: #f85149;
+    --cyan: #39d353;
+    --teal: #2dd4bf;
+    --prometheus: #e6522c;
+    --grafana: #f46800;
+    --text: #c9d1d9;
+    --text-dim: #484f58;
+    --text-mid: #8b949e;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    padding: 48px 32px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 40% at 20% 10%, rgba(88,166,255,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 90%, rgba(63,185,80,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    max-width: 1300px;
+    margin: 0 auto;
+  }
+
+  /* ─── HEADER ─── */
+  .header {
+    text-align: center;
+    margin-bottom: 64px;
+  }
+
+  .header .tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(63,185,80,0.08);
+    border: 1px solid rgba(63,185,80,0.2);
+    color: var(--green);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    padding: 6px 14px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+
+  .tag-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: blink 2s infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  .header h1 {
+    font-size: 42px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+
+  .header h1 span { color: var(--green); }
+
+  .header p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  /* ─── MAIN DIAGRAM ─── */
+  .diagram {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  /* ─── LAYER WRAPPER ─── */
+  .layer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  /* ─── ZONE LABELS ─── */
+  .zone {
+    width: 100%;
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    margin-bottom: 0;
+  }
+
+  .zone-label {
+    position: absolute;
+    top: -11px;
+    left: 24px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    background: var(--bg);
+    padding: 0 10px;
+  }
+
+  .zone-internet {
+    border: 1px solid rgba(227,179,65,0.2);
+    background: rgba(227,179,65,0.02);
+  }
+  .zone-internet .zone-label { color: var(--yellow); }
+
+  .zone-aws {
+    border: 1px solid rgba(88,166,255,0.15);
+    background: rgba(88,166,255,0.02);
+  }
+  .zone-aws .zone-label { color: var(--blue); }
+
+  .zone-vpc {
+    border: 1px dashed rgba(88,166,255,0.2);
+    background: rgba(88,166,255,0.01);
+    margin: 0;
+  }
+  .zone-vpc .zone-label { color: rgba(88,166,255,0.6); }
+
+  .zone-public {
+    border: 1px dashed rgba(63,185,80,0.2);
+    background: rgba(63,185,80,0.01);
+    margin-bottom: 0;
+  }
+  .zone-public .zone-label { color: rgba(63,185,80,0.6); }
+
+  .zone-private-app {
+    border: 1px dashed rgba(188,140,255,0.2);
+    background: rgba(188,140,255,0.01);
+  }
+  .zone-private-app .zone-label { color: rgba(188,140,255,0.6); }
+
+  .zone-private-db {
+    border: 1px dashed rgba(240,136,62,0.2);
+    background: rgba(240,136,62,0.01);
+  }
+  .zone-private-db .zone-label { color: rgba(240,136,62,0.6); }
+
+  .zone-external {
+    border: 1px dashed rgba(45,212,191,0.2);
+    background: rgba(45,212,191,0.01);
+  }
+  .zone-external .zone-label { color: rgba(45,212,191,0.6); }
+
+  /* ─── BOXES ROW ─── */
+  .boxes-row {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  /* ─── BOX ─── */
+  .box {
+    border-radius: 10px;
+    padding: 16px 20px;
+    text-align: center;
+    min-width: 160px;
+    position: relative;
+    transition: transform 0.2s;
+  }
+
+  .box:hover { transform: translateY(-2px); }
+
+  .box-icon { font-size: 26px; margin-bottom: 6px; }
+  .box-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+  .box-sub { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--text-dim); line-height: 1.5; }
+
+  .box-green { background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.25); }
+  .box-green .box-name { color: var(--green); }
+
+  .box-blue { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.25); }
+  .box-blue .box-name { color: var(--blue); }
+
+  .box-purple { background: rgba(188,140,255,0.08); border: 1px solid rgba(188,140,255,0.25); }
+  .box-purple .box-name { color: var(--purple); }
+
+  .box-orange { background: rgba(240,136,62,0.08); border: 1px solid rgba(240,136,62,0.25); }
+  .box-orange .box-name { color: var(--orange); }
+
+  .box-yellow { background: rgba(227,179,65,0.08); border: 1px solid rgba(227,179,65,0.25); }
+  .box-yellow .box-name { color: var(--yellow); }
+
+  .box-red { background: rgba(248,81,73,0.08); border: 1px solid rgba(248,81,73,0.25); }
+  .box-red .box-name { color: var(--red); }
+
+  .box-teal { background: rgba(45,212,191,0.08); border: 1px solid rgba(45,212,191,0.25); }
+  .box-teal .box-name { color: var(--teal); }
+
+  .box-wide { min-width: 220px; }
+
+  /* ─── BADGE ─── */
+  .badge {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  .badge-green { background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .badge-blue { background: rgba(88,166,255,0.15); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+  .badge-orange { background: rgba(240,136,62,0.15); color: var(--orange); border: 1px solid rgba(240,136,62,0.3); }
+  .badge-purple { background: rgba(188,140,255,0.15); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+  .badge-teal { background: rgba(45,212,191,0.15); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
+  .badge-yellow { background: rgba(227,179,65,0.15); color: var(--yellow); border: 1px solid rgba(227,179,65,0.3); }
+  .badge-red { background: rgba(248,81,73,0.15); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .badge-prometheus { background: rgba(230,82,44,0.15); color: var(--prometheus); border: 1px solid rgba(230,82,44,0.3); }
+  .badge-grafana { background: rgba(244,104,0,0.15); color: var(--grafana); border: 1px solid rgba(244,104,0,0.3); }
+
+  .box-prometheus { background: rgba(230,82,44,0.08); border: 1px solid rgba(230,82,44,0.25); }
+  .box-prometheus .box-name { color: var(--prometheus); }
+
+  .box-grafana { background: rgba(244,104,0,0.08); border: 1px solid rgba(244,104,0,0.25); }
+  .box-grafana .box-name { color: var(--grafana); }
+
+  .zone-monitoring {
+    border: 1px dashed rgba(230,82,44,0.25);
+    background: rgba(230,82,44,0.01);
+  }
+  .zone-monitoring .zone-label { color: rgba(230,82,44,0.7); }
+
+  .arr-prometheus .arrow-line { background: var(--prometheus); }
+  .arr-prometheus .arrow-tip { border-top: 7px solid var(--prometheus); }
+  .arr-prometheus .arrow-label-pill { background: rgba(230,82,44,0.1); color: var(--prometheus); border: 1px solid rgba(230,82,44,0.3); }
+
+  /* ─── ARROWS ─── */
+  .arrow { display: flex; flex-direction: column; align-items: center; margin: 4px 0; }
+  .arrow-line { width: 2px; height: 28px; }
+  .arrow-tip { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; }
+  .arrow-label-pill {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin: 2px 0;
+    white-space: nowrap;
+  }
+
+  .arr-yellow .arrow-line { background: var(--yellow); }
+  .arr-yellow .arrow-tip { border-top: 7px solid var(--yellow); }
+  .arr-yellow .arrow-label-pill { background: rgba(227,179,65,0.1); color: var(--yellow); border: 1px solid rgba(227,179,65,0.3); }
+
+  .arr-blue .arrow-line { background: var(--blue); }
+  .arr-blue .arrow-tip { border-top: 7px solid var(--blue); }
+  .arr-blue .arrow-label-pill { background: rgba(88,166,255,0.1); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+
+  .arr-green .arrow-line { background: var(--green); }
+  .arr-green .arrow-tip { border-top: 7px solid var(--green); }
+  .arr-green .arrow-label-pill { background: rgba(63,185,80,0.1); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+
+  .arr-purple .arrow-line { background: var(--purple); }
+  .arr-purple .arrow-tip { border-top: 7px solid var(--purple); }
+  .arr-purple .arrow-label-pill { background: rgba(188,140,255,0.1); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+
+  .arr-orange .arrow-line { background: var(--orange); }
+  .arr-orange .arrow-tip { border-top: 7px solid var(--orange); }
+  .arr-orange .arrow-label-pill { background: rgba(240,136,62,0.1); color: var(--orange); border: 1px solid rgba(240,136,62,0.3); }
+
+  .arr-teal .arrow-line { background: var(--teal); }
+  .arr-teal .arrow-tip { border-top: 7px solid var(--teal); }
+  .arr-teal .arrow-label-pill { background: rgba(45,212,191,0.1); color: var(--teal); border: 1px solid rgba(45,212,191,0.3); }
+
+  /* ─── SPLIT ARROW ─── */
+  .split-row {
+    display: flex;
+    justify-content: center;
+    gap: 200px;
+    position: relative;
+    height: 52px;
+    width: 100%;
+  }
+
+  .split-row::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 2px;
+    background: var(--border);
+  }
+
+  .split-branch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 52px;
+  }
+
+  .split-branch .arrow-line { flex: 1; }
+
+  /* ─── SPACING ─── */
+  .gap-sm { height: 8px; }
+  .gap-md { height: 16px; }
+  .gap-lg { height: 24px; }
+
+  /* ─── BOTTOM PANELS ─── */
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 48px;
+  }
+
+  .info-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+  }
+
+  .info-card h3 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--text-mid);
+  }
+
+  .flow-step {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    align-items: flex-start;
+  }
+
+  .step-num {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .step-text { font-size: 12px; color: var(--text-mid); line-height: 1.6; }
+  .step-text strong { color: var(--text); font-weight: 600; }
+
+  .cost-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+
+  .cost-row:last-child { border-bottom: none; }
+  .cost-name { color: var(--text-mid); font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+  .cost-value { color: var(--text); font-weight: 600; font-family: 'IBM Plex Mono', monospace; font-size: 11px; }
+  .cost-total { color: var(--green); font-weight: 700; }
+
+  .inner-zones { display: flex; flex-direction: column; gap: 12px; }
+
+  /* ─── AZ SPLIT ─── */
+  .az-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .az-col { display: flex; flex-direction: column; gap: 8px; }
+  .az-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    text-align: center;
+    margin-bottom: 4px;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="tag"><span class="tag-dot"></span>Arquitetura Final</div>
+    <h1>FittNutri <span>AWS</span></h1>
+    <p>vpc · alb · auto scaling · rds · amazon mq · s3 · ecr · secrets manager · acm · route 53 · prometheus · grafana</p>
+  </div>
+
+  <div class="diagram">
+
+    <!-- INTERNET -->
+    <div class="zone zone-internet" style="max-width:500px;">
+      <div class="zone-label">Internet</div>
+      <div class="boxes-row">
+        <div class="box box-yellow">
+          <div class="box-icon">🌐</div>
+          <div class="box-name">Usuário / Nutricionista</div>
+          <div class="box-sub">Navegador Web</div>
+        </div>
+        <div class="box box-yellow">
+          <div class="box-icon">🌍</div>
+          <div class="box-name">Route 53</div>
+          <div class="box-sub">fittnutri.com.br<br>DNS → ALB</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="arrow arr-yellow">
+      <div class="arrow-line"></div>
+      <div class="arrow-label-pill">HTTPS :443</div>
+      <div class="arrow-line"></div>
+      <div class="arrow-tip"></div>
+    </div>
+
+    <!-- AWS ZONE -->
+    <div class="zone zone-aws" style="width:100%;">
+      <div class="zone-label">AWS — us-east-1</div>
+
+      <!-- ACM -->
+      <div class="boxes-row" style="margin-bottom:16px;">
+        <div class="box box-blue box-wide">
+          <div class="box-icon">🔐</div>
+          <div class="box-name">ACM — SSL Certificate</div>
+          <div class="box-sub">*.fittnutri.com.br<br>Certificado Gratuito</div>
+          <span class="badge badge-blue">FREE</span>
+        </div>
+      </div>
+
+      <!-- ALB -->
+      <div class="boxes-row" style="margin-bottom:0;">
+        <div class="box box-blue box-wide">
+          <div class="box-icon">⚖️</div>
+          <div class="box-name">Application Load Balancer</div>
+          <div class="box-sub">fittnutri-alb<br>Internet-facing · HTTP/HTTPS</div>
+          <div style="display:flex;gap:6px;justify-content:center;margin-top:8px;flex-wrap:wrap;">
+            <span class="badge badge-blue">:80 → :443</span>
+            <span class="badge badge-blue">health: /actuator/health</span>
+            <span class="badge badge-grafana">/grafana/ → grafana:3000</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="gap-md"></div>
+
+      <!-- VPC -->
+      <div class="zone zone-vpc">
+        <div class="zone-label">VPC — fittnutri-vpc · 10.0.0.0/16</div>
+
+        <div class="inner-zones">
+
+          <!-- PUBLIC SUBNETS -->
+          <div class="zone zone-public">
+            <div class="zone-label">Subnets Públicas</div>
+            <div class="az-grid">
+              <div class="az-col">
+                <div class="az-label">us-east-1a · 10.0.1.0/24</div>
+                <div class="box box-green" style="text-align:left;min-width:unset;">
+                  <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--green);font-weight:600;">fittnutri-public-1a</div>
+                  <div class="box-sub">IGW → Internet</div>
+                </div>
+              </div>
+              <div class="az-col">
+                <div class="az-label">us-east-1b · 10.0.2.0/24</div>
+                <div class="box box-green" style="text-align:left;min-width:unset;">
+                  <div style="font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--green);font-weight:600;">fittnutri-public-1b</div>
+                  <div class="box-sub">IGW → Internet</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="arrow arr-purple" style="margin:4px 0;">
+            <div class="arrow-line"></div>
+            <div class="arrow-label-pill">Target Group :8080</div>
+            <div class="arrow-line"></div>
+            <div class="arrow-tip"></div>
+          </div>
+
+          <!-- PRIVATE APP SUBNETS -->
+          <div class="zone zone-private-app">
+            <div class="zone-label">Subnets Privadas — App · fittnutri-app-sg</div>
+            <div class="az-grid">
+              <div class="az-col">
+                <div class="az-label">us-east-1a · 10.0.10.0/24</div>
+                <div class="box box-purple" style="min-width:unset;">
+                  <div class="box-icon">🐳</div>
+                  <div class="box-name">EC2 t3.micro</div>
+                  <div class="box-sub">Docker · Spring Boot<br>React · Nginx<br>port 8080</div>
+                  <span class="badge badge-purple">ASG instance</span>
+                </div>
+              </div>
+              <div class="az-col">
+                <div class="az-label">us-east-1b · 10.0.11.0/24</div>
+                <div class="box box-purple" style="min-width:unset;">
+                  <div class="box-icon">🐳</div>
+                  <div class="box-name">EC2 t3.micro</div>
+                  <div class="box-sub">Docker · Spring Boot<br>React · Nginx<br>port 8080</div>
+                  <span class="badge badge-purple">ASG instance</span>
+                </div>
+              </div>
+            </div>
+            <div style="text-align:center;margin-top:12px;">
+              <span class="badge badge-purple" style="font-size:10px;padding:4px 12px;">Auto Scaling Group · min:1 desired:2 max:4 · CPU &gt; 75%</span>
+            </div>
+          </div>
+
+          <!-- ARROWS DOWN -->
+          <div style="display:flex;justify-content:center;gap:80px;margin:4px 0;">
+            <div class="arrow arr-orange" style="margin:0;">
+              <div class="arrow-line"></div>
+              <div class="arrow-label-pill">JDBC :3306</div>
+              <div class="arrow-line"></div>
+              <div class="arrow-tip"></div>
+            </div>
+            <div class="arrow arr-red" style="margin:0;">
+              <div class="arrow-line"></div>
+              <div class="arrow-label-pill">AMQPS :5671</div>
+              <div class="arrow-line"></div>
+              <div class="arrow-tip"></div>
+            </div>
+          </div>
+
+          <!-- PRIVATE DB SUBNETS -->
+          <div class="zone zone-private-db">
+            <div class="zone-label">Subnets Privadas — DB · fittnutri-db-sg / fittnutri-mq-sg</div>
+            <div class="az-grid">
+              <div class="az-col">
+                <div class="az-label">us-east-1a · 10.0.20.0/24</div>
+                <div class="box box-orange" style="min-width:unset;">
+                  <div class="box-icon">🗄️</div>
+                  <div class="box-name">RDS MySQL 8.0</div>
+                  <div class="box-sub">db.t3.micro<br>fittnutri-db<br>20GB GP3</div>
+                  <span class="badge badge-orange">primary</span>
+                </div>
+              </div>
+              <div class="az-col">
+                <div class="az-label">us-east-1b · 10.0.21.0/24</div>
+                <div class="box box-red" style="min-width:unset;">
+                  <div class="box-icon">🐰</div>
+                  <div class="box-name">Amazon MQ</div>
+                  <div class="box-sub">RabbitMQ 3.12<br>mq.t3.micro<br>fila: pdf.generation</div>
+                  <span class="badge badge-red">single-instance</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ARROW TO MONITORING EC2 -->
+          <div class="arrow arr-prometheus" style="margin:4px 0;">
+            <div class="arrow-line"></div>
+            <div class="arrow-label-pill">scrape :8080/actuator/prometheus · fittnutri-monitoring-sg</div>
+            <div class="arrow-line"></div>
+            <div class="arrow-tip"></div>
+          </div>
+
+          <!-- MONITORING ZONE — dedicated EC2 -->
+          <div class="zone zone-monitoring">
+            <div class="zone-label">Subnet Privada — Monitoring · 10.0.30.0/24 · us-east-1a</div>
+            <div class="boxes-row" style="align-items:flex-start;gap:20px;">
+
+              <!-- EC2 Monitoring box -->
+              <div class="box box-prometheus box-wide" style="min-width:260px;">
+                <div class="box-icon">🖥️</div>
+                <div class="box-name">EC2 t3.micro — Monitoring</div>
+                <div class="box-sub" style="margin-bottom:10px;">instância dedicada · fora do ASG<br>Docker Compose · volume persistente</div>
+
+                <!-- inner containers -->
+                <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+                  <div style="background:rgba(230,82,44,0.12);border:1px solid rgba(230,82,44,0.35);border-radius:8px;padding:10px 14px;text-align:center;min-width:100px;">
+                    <div style="font-size:20px;margin-bottom:4px;">🔥</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--prometheus);">Prometheus</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:2px;">:9090 · 15s scrape<br>volume: prom_data</div>
+                  </div>
+
+                  <div style="display:flex;align-items:center;">
+                    <div style="display:flex;flex-direction:column;align-items:center;gap:3px;">
+                      <span style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--grafana);">datasource</span>
+                      <div style="display:flex;align-items:center;">
+                        <div style="width:20px;height:2px;background:var(--grafana);"></div>
+                        <div style="width:0;height:0;border-top:4px solid transparent;border-bottom:4px solid transparent;border-left:6px solid var(--grafana);"></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style="background:rgba(244,104,0,0.12);border:1px solid rgba(244,104,0,0.35);border-radius:8px;padding:10px 14px;text-align:center;min-width:100px;">
+                    <div style="font-size:20px;margin-bottom:4px;">📊</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--grafana);">Grafana</div>
+                    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--text-dim);margin-top:2px;">:3000 · via ALB<br>volume: graf_data</div>
+                  </div>
+                </div>
+
+                <div style="margin-top:12px;display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                  <span class="badge badge-prometheus">fora do ASG</span>
+                  <span class="badge badge-grafana">ALB → /grafana/ → :3000</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="gap-md"></div>
+
+      <!-- ECR -->
+      <div class="boxes-row">
+        <div class="box box-blue">
+          <div class="box-icon">📦</div>
+          <div class="box-name">ECR</div>
+          <div class="box-sub">fittnutri-backend<br>fittnutri-frontend</div>
+          <span class="badge badge-blue">Docker Registry</span>
+        </div>
+        <div class="box box-blue">
+          <div class="box-icon">🔑</div>
+          <div class="box-name">Secrets Manager</div>
+          <div class="box-sub">fittnutri/database<br>fittnutri/rabbitmq<br>fittnutri/jwt</div>
+          <span class="badge badge-blue">encrypted</span>
+        </div>
+        <div class="box box-blue">
+          <div class="box-icon">👁️</div>
+          <div class="box-name">CloudWatch</div>
+          <div class="box-sub">Logs · Métricas<br>Alertas CPU/Memória</div>
+          <span class="badge badge-blue">monitoring</span>
+        </div>
+      </div>
+
+    </div><!-- end zone-aws -->
+
+    <div class="arrow arr-teal">
+      <div class="arrow-line"></div>
+      <div class="arrow-label-pill">VPC Endpoint S3 · HTTPS</div>
+      <div class="arrow-line"></div>
+      <div class="arrow-tip"></div>
+    </div>
+
+    <!-- EXTERNAL -->
+    <div class="zone zone-external" style="width:100%;">
+      <div class="zone-label">Serviços Externos</div>
+      <div class="boxes-row">
+        <div class="box box-teal box-wide">
+          <div class="box-icon">🪣</div>
+          <div class="box-name">Amazon S3</div>
+          <div class="box-sub">fittnutri-dietas<br>pacientes/{NOME}/<br>consultas/{data}-{id}.pdf</div>
+          <span class="badge badge-teal">PDF Storage</span>
+        </div>
+        <div class="box box-teal">
+          <div class="box-icon">🔄</div>
+          <div class="box-name">GitHub Actions</div>
+          <div class="box-sub">CI/CD Pipeline<br>build → ECR → ASG</div>
+          <span class="badge badge-teal">auto deploy</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end diagram -->
+
+  <!-- BOTTOM PANELS -->
+  <div class="bottom-grid">
+
+    <!-- Fluxos -->
+    <div class="info-card">
+      <h3>📄 Fluxo PDF Assíncrono</h3>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(45,212,191,0.15);color:var(--teal);">1</div>
+        <div class="step-text"><strong>Nutricionista</strong> clica "Enviar para S3" no frontend</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(45,212,191,0.15);color:var(--teal);">2</div>
+        <div class="step-text"><strong>ALB</strong> roteia para EC2 disponível via Target Group</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(45,212,191,0.15);color:var(--teal);">3</div>
+        <div class="step-text"><strong>PdfProducerService</strong> publica mensagem no Amazon MQ</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(45,212,191,0.15);color:var(--teal);">4</div>
+        <div class="step-text"><strong>PdfConsumerService</strong> consome e gera PDF via RDS</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(45,212,191,0.15);color:var(--teal);">5</div>
+        <div class="step-text"><strong>S3Service</strong> faz upload via VPC Endpoint</div>
+      </div>
+    </div>
+
+    <!-- Custos -->
+    <div class="info-card">
+      <h3>💰 Estimativa de Custo Mensal</h3>
+      <div class="cost-row">
+        <span class="cost-name">ALB</span>
+        <span class="cost-value">~$16/mês</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-name">2x EC2 t3.micro (ASG)</span>
+        <span class="cost-value">~$15/mês</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-name">RDS db.t3.micro MySQL</span>
+        <span class="cost-value">~$15/mês</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-name">Amazon MQ mq.t3.micro</span>
+        <span class="cost-value">~$12/mês</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-name">S3 + ECR + CloudWatch</span>
+        <span class="cost-value">~$5/mês</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-name">Route 53 + ACM</span>
+        <span class="cost-value">~$1/mês</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-name cost-total">TOTAL ESTIMADO</span>
+        <span class="cost-value cost-total">~$64/mês</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>
