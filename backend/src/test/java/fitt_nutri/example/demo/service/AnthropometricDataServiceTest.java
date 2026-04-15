@@ -36,11 +36,11 @@ class AnthropometricDataServiceTest {
         model.setAltura(1.75);
         model.setPeso(70.0);
         model.setImc(22.86);
-        model.setPercentualGordura(15.0);
+        model.setPorcentagemGordura(15.0);
         model.setMassaMuscular(50.0);
-        model.setTmb(1600);
+        model.setTaxaMetabolicaBasal(1600.0);
         model.setIdadeMetabolica(25);
-        model.setGorduraVisceral(5);
+        model.setGorduraVisceral(5.0);
     }
 
     // ---------- listAll ----------
@@ -97,9 +97,9 @@ class AnthropometricDataServiceTest {
         novo.setIdDadosAntropometricos(null); // ID nulo → não entra no existsById
         novo.setAltura(1.80);
         novo.setPeso(80.0);
-        novo.setTmb(1800);
-        novo.setPercentualGordura(20.0);
-        novo.setGorduraVisceral(10);
+        novo.setTaxaMetabolicaBasal(1800.0);
+        novo.setPorcentagemGordura(20.0);
+        novo.setGorduraVisceral(10.0);
 
         when(repository.save(novo)).thenReturn(novo);
 
@@ -117,9 +117,9 @@ class AnthropometricDataServiceTest {
         novo.setIdDadosAntropometricos(1);
         novo.setAltura(1.80);
         novo.setPeso(80.0);
-        novo.setTmb(1800);
-        novo.setPercentualGordura(20.0);
-        novo.setGorduraVisceral(10);
+        novo.setTaxaMetabolicaBasal(1800.0);
+        novo.setPorcentagemGordura(20.0);
+        novo.setGorduraVisceral(10.0);
 
         when(repository.existsById(1)).thenReturn(true);
 
@@ -135,9 +135,9 @@ class AnthropometricDataServiceTest {
         novo.setIdDadosAntropometricos(null);
         novo.setAltura(3.0); // inválida
         novo.setPeso(80.0);
-        novo.setTmb(1800);
-        novo.setPercentualGordura(20.0);
-        novo.setGorduraVisceral(10);
+        novo.setTaxaMetabolicaBasal(1800.0);
+        novo.setPorcentagemGordura(20.0);
+        novo.setGorduraVisceral(10.0);
 
         assertThrows(NotFoundData.class, () -> service.create(novo));
         verify(repository, never()).save(any());
