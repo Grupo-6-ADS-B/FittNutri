@@ -100,3 +100,23 @@ resource "aws_lb_listener" "https" {
     Name = "${var.project}-${var.environment}-https"
   })
 }
+
+resource "aws_lb_listener_rule" "grafana" {
+  listener_arn = aws_lb_listener.https.arn
+  priority     = 100
+
+  condition {
+    path_pattern {
+      values = ["/grafana/*"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.grafana.arn
+  }
+
+  tags = merge(var.tags, {
+    Name = "${var.project}-${var.environment}-grafana-rule"
+  })
+}
