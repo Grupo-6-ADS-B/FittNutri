@@ -1,11 +1,12 @@
 # ─── EC2 INSTANCE ───
 resource "aws_instance" "app" {
-  ami                    = var.ami_id
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  subnet_id              = var.subnet_id
-  vpc_security_group_ids = var.security_group_ids
-  iam_instance_profile   = var.iam_instance_profile != "" ? var.iam_instance_profile : null
+  ami                         = var.ami_id
+  instance_type               = var.instance_type
+  key_name                    = var.key_name
+  subnet_id                   = var.subnet_id
+  vpc_security_group_ids      = var.security_group_ids
+  associate_public_ip_address = false
+  iam_instance_profile        = var.iam_instance_profile != "" ? var.iam_instance_profile : null
 
   root_block_device {
     volume_size           = var.volume_size
@@ -32,16 +33,10 @@ resource "aws_instance" "app" {
   }
 }
 
-# ─── ELASTIC IP (IP fixo para DNS) ───
-resource "aws_eip" "app" {
-  domain = "vpc"
-
-  tags = merge(var.tags, {
-    Name = "${var.project}-eip-${var.environment}"
-  })
-}
-
-resource "aws_eip_association" "app" {
-  instance_id   = aws_instance.app.id
-  allocation_id = aws_eip.app.id
+# ─── ALB TARGET GROUP ATTACHMENT ───
+resource "aws_lb_target_group_attachment" "app" {
+  count            = var.target_group_arn != "" ? 1 : 0
+  target_group_arn = var.target_group_arn
+  target_id        = aws_instance.app.id
+  port             = var.target_group_port
 }
