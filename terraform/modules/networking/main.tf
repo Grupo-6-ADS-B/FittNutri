@@ -90,3 +90,28 @@ resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
 }
+
+# ─── ELASTIC IP PARA NAT GATEWAY ───
+resource "aws_eip" "nat" {
+  count  = var.enable_nat_gateway ? 1 : 0
+  domain = "vpc"
+
+  tags = merge(var.tags, {
+    Name = "${var.project}-nat-eip-${var.environment}"
+  })
+
+  depends_on = [aws_internet_gateway.main]
+}
+
+# ─── NAT GATEWAY (subnet publica 1a) ───
+resource "aws_nat_gateway" "main" {
+  count         = var.enable_nat_gateway ? 1 : 0
+  allocation_id = aws_eip.nat[0].id
+  subnet_id     = aws_subnet.public[0].id
+
+  tags = merge(var.tags, {
+    Name = "${var.project}-nat-${var.environment}"
+  })
+
+  depends_on = [aws_internet_gateway.main]
+}
