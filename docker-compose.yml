@@ -33,15 +33,10 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       JWT_SECRET: ${JWT_SECRET}
       JWT_VALIDITY: ${JWT_VALIDITY}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN}
       AWS_REGION: ${AWS_REGION}
       AWS_S3_BUCKET: ${AWS_S3_BUCKET}
       RABBITMQ_URL: ${RABBITMQ_URL}
       APP_AES_KEY: ${APP_AES_KEY}
-    ports:
-      - "8080:8080"
     volumes:
       - backend_logs:/app/logs
     depends_on:
