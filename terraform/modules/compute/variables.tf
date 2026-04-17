@@ -63,3 +63,93 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+# ─── ALB TARGET GROUP ───
+variable "target_group_arn" {
+  description = "ARN do Target Group do ALB (vazio = não registrar)"
+  type        = string
+  default     = ""
+}
+
+variable "target_group_port" {
+  description = "Porta do Target Group para health-check"
+  type        = number
+  default     = 8080
+}
+
+# ─── VARIÁVEIS DE APLICAÇÃO ───
+variable "app_frontend_url" {
+  description = "URL pública do frontend"
+  type        = string
+  default     = ""
+}
+
+variable "app_db_host" {
+  description = "Host do banco de dados RDS"
+  type        = string
+  default     = ""
+}
+
+variable "app_db_port" {
+  description = "Porta do banco de dados"
+  type        = number
+  default     = 3306
+}
+
+variable "app_db_name" {
+  description = "Nome do banco de dados"
+  type        = string
+  default     = ""
+}
+
+variable "app_db_username" {
+  description = "Usuário do banco de dados"
+  type        = string
+  default     = ""
+}
+
+variable "app_db_password" {
+  description = "Senha do banco de dados"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "app_jwt_secret" {
+  description = "Segredo JWT"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "app_jwt_validity" {
+  description = "Validade do token JWT (ms)"
+  type        = string
+  default     = "86400000"
+}
+
+variable "app_aes_key" {
+  description = "Chave AES para criptografia"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "app_rabbitmq_url" {
+  description = "URL de conexão do RabbitMQ/AmazonMQ"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "app_s3_bucket" {
+  description = "Nome do bucket S3"
+  type        = string
+  default     = ""
+}
+
+variable "app_spring_profile" {
+  description = "Profile Spring ativo (local, prod)"
+  type        = string
+  default     = "prod"
+}
