@@ -22,11 +22,13 @@ export default function UpdateDataDialog({
   selectedUser
 }) {
   useEffect(() => {
-    if (!selectedUser || !open) return;
+    if (!open) return;
 
     const peso = parseFloat(String(updateForm.peso || '').replace(',', '.'));
     const altura = parseFloat(String(updateForm.altura || '').replace(',', '.'));
-    const idade = parseFloat(String(updateForm.idadeMetabolica || selectedUser?.idade || '').replace(',', '.'));
+    const idade = parseFloat(
+      String(updateForm.idade || updateForm.idadeMetabolica || selectedUser?.idade || '').replace(',', '.')
+    );
     const sexo = selectedUser?.sexo || 'feminino';
     const atividade = updateForm.atividade || selectedUser?.atividade || 'sedentário';
 
@@ -42,7 +44,7 @@ export default function UpdateDataDialog({
         }
       }
     }
-  }, [updateForm.peso, updateForm.altura, updateForm.idadeMetabolica, updateForm.atividade, selectedUser, open]);
+  }, [updateForm.peso, updateForm.altura, updateForm.idade, updateForm.idadeMetabolica, updateForm.atividade, selectedUser, open]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
