@@ -7,7 +7,7 @@
 # ─── SG ALB (publico, recebe HTTP/HTTPS da internet) ───
 resource "aws_security_group" "alb" {
   name_prefix = "${var.project}-alb-"
-  description = "ALB publico — entrada HTTP/HTTPS da internet"
+  description = "ALB publico - entrada HTTP/HTTPS da internet"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -31,7 +31,7 @@ resource "aws_security_group" "alb" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Egress — ALB encaminha para targets na VPC"
+    description = "Egress - ALB encaminha para targets na VPC"
   }
 
   tags = merge(var.tags, {
@@ -46,7 +46,7 @@ resource "aws_security_group" "alb" {
 # ─── SG App (EC2 aplicacao, recebe APENAS do ALB) ───
 resource "aws_security_group" "app" {
   name_prefix = "${var.project}-app-"
-  description = "EC2 App — recebe trafego apenas do ALB"
+  description = "EC2 App - recebe trafego apenas do ALB"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -62,7 +62,7 @@ resource "aws_security_group" "app" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Egress — ECR, S3 (via NAT), DB, MQ externo"
+    description = "Egress - ECR, S3 (via NAT), DB, MQ externo"
   }
 
   tags = merge(var.tags, {
@@ -77,7 +77,7 @@ resource "aws_security_group" "app" {
 # ─── SG DB (MySQL, recebe APENAS do App) ───
 resource "aws_security_group" "db" {
   name_prefix = "${var.project}-db-"
-  description = "MySQL — recebe trafego apenas do App SG"
+  description = "MySQL - recebe trafego apenas do App SG"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -93,7 +93,7 @@ resource "aws_security_group" "db" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Egress — apt/yum updates via NAT"
+    description = "Egress - apt/yum updates via NAT"
   }
 
   tags = merge(var.tags, {
@@ -108,7 +108,7 @@ resource "aws_security_group" "db" {
 # ─── SG Monitoring (Prometheus scrape + Grafana via ALB) ───
 resource "aws_security_group" "monitoring" {
   name_prefix = "${var.project}-monitoring-"
-  description = "Prometheus + Grafana — scrape no App, painel via ALB"
+  description = "Prometheus + Grafana - scrape no App, painel via ALB"
   vpc_id      = var.vpc_id
 
   ingress {
@@ -124,7 +124,7 @@ resource "aws_security_group" "monitoring" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
-    description = "Egress — scrape no App :8080/actuator/prometheus"
+    description = "Egress - scrape no App :8080/actuator/prometheus"
   }
 
   tags = merge(var.tags, {

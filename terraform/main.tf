@@ -96,12 +96,15 @@ module "database" {
   tags                = local.common_tags
 }
 
-# ─── FRONTEND_URL dinamico: ACM domain se disponivel, senao ALB DNS, senao private IP ───
+# ─── FRONTEND_URL dinamico: ACM domain se disponivel, senao ALB DNS
+# Nota: sem ALB, private_ip nao pode ser referenciado aqui (criaria ciclo Terraform).
+# Nesse caso, configure FRONTEND_URL manualmente pos-deploy no .env da instancia.
+# ─────────────────────────────────────────────────────────────────────────────────
 locals {
   resolved_frontend_url = (
     var.enable_alb && var.acm_domain_name != "" ? "https://${var.acm_domain_name}" :
     var.enable_alb ? "http://${module.alb[0].alb_dns_name}" :
-    "http://${module.compute.private_ip}:8080"
+    ""
   )
 
   resolved_app_s3_bucket = (
