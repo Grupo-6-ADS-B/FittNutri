@@ -9,7 +9,8 @@ import {
   Chip,
   Button,
   TextField,
-  Grid
+  Grid,
+  Pagination
 } from "@mui/material";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import { formatDateHuman, getConsultationStatus } from '../../utils/userGestorUtils';
@@ -18,6 +19,9 @@ export default function WeeklyConsultationsDialog({
   open, 
   onClose, 
   weeklyAppointments,
+  appointmentsPage,
+  appointmentsTotalPages,
+  onAppointmentsPageChange,
   users,
   onStartConsultation,
   persistActivePatient,
@@ -152,6 +156,28 @@ export default function WeeklyConsultationsDialog({
         )}
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
+        <Box
+          sx={{
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 1.5,
+            flexWrap: 'wrap'
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            Página {appointmentsPage} de {appointmentsTotalPages}
+          </Typography>
+          <Pagination
+            page={appointmentsPage}
+            count={appointmentsTotalPages}
+            onChange={onAppointmentsPageChange}
+            color="success"
+            showFirstButton
+            showLastButton
+          />
+        </Box>
         <Button onClick={onClose}>Fechar</Button>
       </DialogActions>
     </Dialog>
