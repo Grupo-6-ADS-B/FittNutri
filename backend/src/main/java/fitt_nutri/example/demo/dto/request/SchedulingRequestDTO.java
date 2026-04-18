@@ -15,7 +15,6 @@ public record SchedulingRequestDTO(
         @NotNull(message = "A data agendada é obrigatória")
         LocalDate dataAgendada,
 
-        @NotBlank(message = "As observações não podem estar vazias")
         @Size(max = 500, message = "Observações devem ter no máximo 500 caracteres")
         String observacoes
 ) {}
