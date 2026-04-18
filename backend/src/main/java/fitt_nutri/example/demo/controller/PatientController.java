@@ -48,7 +48,7 @@ public class PatientController {
     })
     public ResponseEntity<Page<PatientResponseDTO>> getAllPatients(
             @RequestParam(name = "page", defaultValue = "0") int page) {
-        PageRequest pageable = PageRequest.of(Math.max(page, 0), 10);
+        PageRequest pageable = PageRequest.of(Math.max(page, 0), 12);
         Page<PatientResponseDTO> response = adapter.getAll(pageable);
         return ResponseEntity.ok(response);
     }
