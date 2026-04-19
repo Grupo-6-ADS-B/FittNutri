@@ -58,6 +58,8 @@ cd "$APP_DIR"
 # --- 6. Gerar .env com variáveis injetadas pelo Terraform ---
 echo "[6/7] Gerando .env..."
 cat > "$APP_DIR/.env" <<'ENVEOF'
+DB_HOST=${app_db_host}
+DB_PORT=${app_db_port}
 MYSQL_ROOT_PASSWORD=${app_db_password}
 MYSQL_DATABASE=${app_db_name}
 SPRING_DATASOURCE_URL=jdbc:mysql://${app_db_host}:${app_db_port}/${app_db_name}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
@@ -76,14 +78,14 @@ ENVEOF
 chown ubuntu:ubuntu "$APP_DIR/.env"
 chmod 600 "$APP_DIR/.env"
 
-# --- 7. Iniciar aplicação ---
-echo "[7/7] Iniciando aplicação..."
+# --- 7. Build e subir containers com compose.prod.yml ---
+echo "[7/7] Build + up via docker-compose.prod.yml (pode levar 5-10 min no primeiro build)..."
 cd "$APP_DIR"
-sg docker -c "bash manage.sh start" 2>/dev/null || bash manage.sh start
+docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 
 echo ""
 echo "=============================="
 echo " Deploy concluído! $(date)"
 echo "=============================="
 
-docker ps
+docker compose -f docker-compose.prod.yml ps
