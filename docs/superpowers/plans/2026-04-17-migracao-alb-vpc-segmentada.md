@@ -1591,7 +1591,7 @@ git commit -m "refactor(packer): remover mkdir FittNutri e deixar AMI focada em 
 **Files:**
 - Create: `terraform/modules/database/variables.tf`
 
-- [ ] **Step 1: Escrever**
+- [x] **Step 1: Escrever**
 
 ```hcl
 variable "project" {
@@ -1667,7 +1667,7 @@ variable "tags" {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add terraform/modules/database/variables.tf
@@ -1681,7 +1681,7 @@ git commit -m "feat(database): definir variaveis do modulo MySQL em EC2"
 **Files:**
 - Create: `terraform/modules/database/main.tf`
 
-- [ ] **Step 1: Escrever**
+- [x] **Step 1: Escrever**
 
 ```hcl
 # ============================================================
@@ -1749,7 +1749,7 @@ resource "aws_volume_attachment" "mysql_data" {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add terraform/modules/database/main.tf
@@ -1763,7 +1763,7 @@ git commit -m "feat(database): provisionar EC2 MySQL com volume EBS persistente"
 **Files:**
 - Create: `terraform/modules/database/user-data.sh.tpl`
 
-- [ ] **Step 1: Escrever**
+- [x] **Step 1: Escrever**
 
 ```bash
 #!/bin/bash
@@ -1824,12 +1824,12 @@ docker ps --filter name=fittnutri-mysql
 - `-e MYSQL_ROOT_PASSWORD=xxx` aparece em `docker inspect` e em listagens de processos do daemon.
 - `--env-file` lê o arquivo no momento do exec e não persiste os valores nas variáveis do container visíveis no `inspect`.
 
-- [ ] **Step 2: Validar**
+- [x] **Step 2: Validar**
 
 Run: `bash -n terraform/modules/database/user-data.sh.tpl 2>&1 | grep -v '${' || echo "OK — placeholders"`
 Expected: sem erros reais.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add terraform/modules/database/user-data.sh.tpl
@@ -1843,7 +1843,7 @@ git commit -m "feat(database): user-data monta EBS e sobe MySQL 8.0 com senha vi
 **Files:**
 - Create: `terraform/modules/database/outputs.tf`
 
-- [ ] **Step 1: Escrever**
+- [x] **Step 1: Escrever**
 
 ```hcl
 output "db_instance_id" {
@@ -1862,12 +1862,12 @@ output "db_volume_id" {
 }
 ```
 
-- [ ] **Step 2: Formatar + validar**
+- [x] **Step 2: Formatar + validar**
 
 Run: `terraform -chdir=terraform fmt -recursive modules/database && terraform -chdir=terraform validate`
 Expected: OK.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add terraform/modules/database/outputs.tf
@@ -1885,7 +1885,7 @@ Justificativa: o diagrama final (`fittnutri-arquitetura-final.html`) define uma 
 **Files:**
 - Create: `terraform/modules/monitoring/variables.tf`
 
-- [ ] **Step 1: Escrever**
+- [x] **Step 1: Escrever**
 
 ```hcl
 variable "project" {
@@ -1938,7 +1938,7 @@ variable "tags" {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add terraform/modules/monitoring/variables.tf
@@ -1952,7 +1952,7 @@ git commit -m "feat(monitoring): definir variaveis do modulo"
 **Files:**
 - Create: `terraform/modules/monitoring/main.tf`
 
-- [ ] **Step 1: Escrever**
+- [x] **Step 1: Escrever**
 
 ```hcl
 # ============================================================
@@ -2004,7 +2004,7 @@ resource "aws_lb_target_group_attachment" "grafana" {
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add terraform/modules/monitoring/main.tf
@@ -2018,7 +2018,7 @@ git commit -m "feat(monitoring): EC2 privada registrada no target group /grafana
 **Files:**
 - Create: `terraform/modules/monitoring/user-data.sh.tpl`
 
-- [ ] **Step 1: Escrever**
+- [x] **Step 1: Escrever**
 
 ```bash
 #!/bin/bash
@@ -2080,7 +2080,7 @@ echo "=== Monitoring up $(date) ==="
 docker ps --format 'table {{.Names}}\t{{.Ports}}'
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add terraform/modules/monitoring/user-data.sh.tpl
@@ -2094,7 +2094,7 @@ git commit -m "feat(monitoring): user-data sobe Prometheus+Grafana com GRAFANA_A
 **Files:**
 - Create: `terraform/modules/monitoring/outputs.tf`
 
-- [ ] **Step 1: Escrever**
+- [x] **Step 1: Escrever**
 
 ```hcl
 output "monitoring_instance_id" {
@@ -2106,12 +2106,12 @@ output "monitoring_private_ip" {
 }
 ```
 
-- [ ] **Step 2: Formatar + validar**
+- [x] **Step 2: Formatar + validar**
 
 Run: `terraform -chdir=terraform fmt -recursive modules/monitoring && terraform -chdir=terraform validate`
 Expected: OK.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add terraform/modules/monitoring/outputs.tf

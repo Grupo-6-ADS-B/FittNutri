@@ -53,7 +53,7 @@ resource "aws_ebs_volume" "mysql_data" {
   })
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 }
 

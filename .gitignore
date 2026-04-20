@@ -27,6 +27,11 @@ terraform/contas/*.tfvars
 terraform/.terraform.tfstate.lock.info
 terraform/scripts/set-credentials.sh
 
+# Scripts com senhas hardcoded (nao commitar)
+terraform/scripts/create-test-user.sh
+terraform/scripts/db-setup.sh
+terraform/scripts/db-setup2.sh
+
 # Terraform Atividade
 terraform-atividade/.terraform/
 terraform-atividade/.terraform.lock.hcl
