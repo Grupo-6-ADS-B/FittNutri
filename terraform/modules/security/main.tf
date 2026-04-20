@@ -14,16 +14,16 @@ resource "aws_security_group" "alb" {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTP from internet (redirect para HTTPS)"
+    cidr_blocks = var.alb_allowed_cidrs
+    description = "HTTP do ALB (restrito a alb_allowed_cidrs)"
   }
 
   ingress {
     from_port   = 443
     to_port     = 443
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    description = "HTTPS from internet"
+    cidr_blocks = var.alb_allowed_cidrs
+    description = "HTTPS do ALB (restrito a alb_allowed_cidrs)"
   }
 
   egress {

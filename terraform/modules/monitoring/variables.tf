@@ -37,8 +37,19 @@ variable "grafana_admin_password" {
   type      = string
   sensitive = true
 }
+variable "register_with_alb" {
+  description = "Se true, registra a EC2 Grafana no target group do ALB"
+  type        = bool
+  default     = false
+}
+
 variable "grafana_target_group_arn" {
-  description = "ARN do target group /grafana/* no ALB (vazio se ALB desabilitado)"
+  description = "ARN do target group /grafana/* no ALB (usado quando register_with_alb=true)"
+  type        = string
+  default     = ""
+}
+variable "iam_instance_profile" {
+  description = "Instance profile para SSM/CloudWatch (vazio = sem profile)"
   type        = string
   default     = ""
 }

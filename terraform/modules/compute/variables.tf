@@ -65,8 +65,14 @@ variable "tags" {
 }
 
 # ─── ALB TARGET GROUP ───
+variable "register_with_alb" {
+  description = "Se true, registra a EC2 no target group do ALB"
+  type        = bool
+  default     = false
+}
+
 variable "target_group_arn" {
-  description = "ARN do Target Group do ALB (vazio = não registrar)"
+  description = "ARN do Target Group do ALB (usado quando register_with_alb=true)"
   type        = string
   default     = ""
 }

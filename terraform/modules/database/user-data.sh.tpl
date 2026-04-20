@@ -3,16 +3,19 @@ set -euo pipefail
 exec > /var/log/user-data-db.log 2>&1
 umask 077
 
-echo "=== FittNutri DB boot $$(date) ==="
+echo "=== FittNutri DB boot $(date) ==="
 
-# 1. Formatar volume EBS se ainda nao tiver FS
-DATA_DEV="${data_device}"
-# espera ate o device aparecer (attachment assincrono)
-for i in $$(seq 1 30); do
-  [ -b "$${DATA_DEV}" ] && break
-  echo "aguardando $${DATA_DEV}... ($${i}/30)"
+# 1. Detectar device EBS (Nitro/t3 usa NVMe, instancias antigas usam xvdf)
+# Aguarda ate um dos possiveis devices aparecer
+for i in $(seq 1 30); do
+  if   [ -b "/dev/nvme1n1" ]; then DATA_DEV=/dev/nvme1n1; break
+  elif [ -b "/dev/xvdf" ];    then DATA_DEV=/dev/xvdf;    break
+  elif [ -b "${data_device}" ]; then DATA_DEV=${data_device}; break
+  fi
+  echo "aguardando volume EBS... ($${i}/30)"
   sleep 2
 done
+echo "Device detectado: $${DATA_DEV}"
 
 if ! blkid "$${DATA_DEV}" >/dev/null 2>&1; then
   mkfs.ext4 -F "$${DATA_DEV}"
@@ -48,5 +51,5 @@ docker run -d \
   mysql:8.0 \
   --default-authentication-plugin=caching_sha2_password
 
-echo "=== MySQL up $$(date) ==="
+echo "=== MySQL up $(date) ==="
 docker ps --filter name=fittnutri-mysql

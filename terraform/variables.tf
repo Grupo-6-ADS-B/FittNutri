@@ -60,20 +60,6 @@ variable "volume_size" {
   default     = 20
 }
 
-# ─── Segurança ───
-variable "ssh_allowed_cidrs" {
-  description = "CIDRs permitidos para SSH (ex: seu IP/32)"
-  type        = list(string)
-  default     = []
-}
-
-# ─── Domínio ───
-variable "domain" {
-  description = "Domínio da aplicação"
-  type        = string
-  default     = "fittnutri.duckdns.org"
-}
-
 # ─── Aplicação ───
 variable "git_repo" {
   description = "URL do repositório Git"
@@ -87,12 +73,6 @@ variable "git_branch" {
   default     = "main"
 }
 
-variable "app_email" {
-  description = "Email para certificado SSL (Let's Encrypt)"
-  type        = string
-  default     = ""
-}
-
 # ─── S3 ───
 variable "s3_bucket_name" {
   description = "Nome do bucket S3 (deve ser globalmente único)"
@@ -102,9 +82,15 @@ variable "s3_bucket_name" {
 
 # ─── Flags de Resiliência (contas com restrições) ───
 variable "enable_iam" {
-  description = "Criar IAM Role/Instance Profile (false se a conta bloquear IAM)"
+  description = "Criar IAM Role/Instance Profile (false se a conta bloquear IAM, ex: AWS Academy)"
   type        = bool
   default     = true
+}
+
+variable "existing_instance_profile" {
+  description = "Nome de Instance Profile ja existente (ex: 'LabInstanceProfile' no AWS Academy). Tem precedencia sobre enable_iam."
+  type        = string
+  default     = ""
 }
 
 variable "enable_s3" {
@@ -144,7 +130,25 @@ variable "enable_nat_gateway" {
   default     = true
 }
 
-# ─── ALB / ACM ───
+# ─── HTTPS / ALB ───
+variable "enable_https" {
+  description = "Habilita listener HTTPS no ALB (requer acm_certificate_arn ou route53_zone_id)"
+  type        = bool
+  default     = false
+}
+
+variable "alb_allowed_cidrs" {
+  description = "CIDRs que podem acessar o ALB nas portas 80/443 (ex: [\"SEU.IP/32\"] para restringir ao seu IP)"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
+variable "acm_certificate_arn" {
+  description = "ARN de certificado ACM pre-existente ou importado (ex: Let's Encrypt via certbot). Se informado, o modulo ACM nao e criado."
+  type        = string
+  default     = ""
+}
+
 variable "acm_domain_name" {
   description = "Dominio principal do certificado ACM (ex: fittnutri.com.br)"
   type        = string

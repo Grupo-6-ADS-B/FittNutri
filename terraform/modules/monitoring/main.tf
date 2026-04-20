@@ -9,6 +9,7 @@ resource "aws_instance" "monitoring" {
   subnet_id                   = var.subnet_id
   vpc_security_group_ids      = var.security_group_ids
   associate_public_ip_address = false
+  iam_instance_profile        = var.iam_instance_profile != "" ? var.iam_instance_profile : null
 
   root_block_device {
     volume_size           = 20
@@ -40,7 +41,7 @@ resource "aws_instance" "monitoring" {
 }
 
 resource "aws_lb_target_group_attachment" "grafana" {
-  count            = var.grafana_target_group_arn != "" ? 1 : 0
+  count            = var.register_with_alb ? 1 : 0
   target_group_arn = var.grafana_target_group_arn
   target_id        = aws_instance.monitoring.id
   port             = 3000

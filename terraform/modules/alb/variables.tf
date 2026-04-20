@@ -23,9 +23,16 @@ variable "alb_security_group_id" {
   type        = string
 }
 
+variable "enable_https" {
+  description = "Habilita listener HTTPS (requer certificate_arn preenchido)"
+  type        = bool
+  default     = false
+}
+
 variable "certificate_arn" {
-  description = "ARN do certificado ACM para o listener HTTPS"
+  description = "ARN do certificado ACM para o listener HTTPS (obrigatorio se enable_https = true)"
   type        = string
+  default     = ""
 }
 
 variable "app_health_check_path" {

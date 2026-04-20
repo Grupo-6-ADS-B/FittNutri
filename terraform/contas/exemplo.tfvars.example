@@ -14,15 +14,8 @@ ami_id        = ""               # Vazio = Ubuntu 22.04 mais recente
 key_name      = "SEU-KEY-PAIR"   # Nome do Key Pair na sua conta AWS
 volume_size   = 20
 
-# Segurança
-ssh_allowed_cidrs = ["SEU.IP.AQUI/32"]
-
-# Domínio
-domain = "fittnutri.duckdns.org"
-
 # Aplicação
 git_branch = "main"
-app_email  = "seu@email.com"
 
 # S3 (vazio = gera automaticamente com account ID)
 s3_bucket_name = ""
@@ -32,11 +25,37 @@ enable_iam            = true    # false se IAM bloqueado
 enable_s3             = true    # false se S3 bloqueado
 enable_ebs_encryption = true    # false se EBS encryption bloqueado
 
-# ─── ALB + ACM ───
-enable_alb                    = true
-acm_domain_name               = "fittnutri.com.br"
-acm_subject_alternative_names = ["*.fittnutri.com.br"]
-route53_zone_id               = ""  # preencher se a zona existir, senao validacao DNS manual
+# ─── ALB ───
+enable_alb = true
+
+# Restringe acesso ao ALB ao seu IP. Mude para ["0.0.0.0/0"] para acesso público.
+# Descubra seu IP: curl -s https://ifconfig.me
+alb_allowed_cidrs = ["SEU.IP.AQUI/32"]
+
+# ─── HTTPS ───
+# Modo 1 — HTTP-only (sem domínio, acesso via http://<alb-dns>):
+#   enable_https      = false
+#   acm_domain_name   = ""
+#   acm_certificate_arn = ""
+#
+# Modo 2 — HTTPS com Let's Encrypt + DuckDNS (rode scripts/pre-apply-ssl.sh primeiro):
+#   enable_https        = true
+#   acm_domain_name     = "fittnutri.duckdns.org"
+#   acm_certificate_arn = "arn:aws:acm:us-east-1:ACCOUNT:certificate/XXXX"
+#
+# Modo 3 — HTTPS com ACM nativo (requer Route53 + domínio próprio):
+#   enable_https                  = true
+#   acm_domain_name               = "fittnutri.com.br"
+#   acm_subject_alternative_names = ["*.fittnutri.com.br"]
+#   route53_zone_id               = "Z0123456789ABCDEF"
+
+enable_https          = false
+acm_domain_name       = ""
+acm_certificate_arn   = ""
+
+# Apenas para Modo 3 (ACM nativo + Route53):
+acm_subject_alternative_names = []
+route53_zone_id               = ""
 
 # ─── Networking privado ───
 enable_nat_gateway              = true

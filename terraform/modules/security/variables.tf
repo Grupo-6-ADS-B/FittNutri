@@ -18,6 +18,12 @@ variable "vpc_cidr" {
   type        = string
 }
 
+variable "alb_allowed_cidrs" {
+  description = "CIDRs permitidos nas portas 80/443 do ALB (ex: [\"SEU.IP/32\"])"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
 variable "tags" {
   description = "Tags comuns"
   type        = map(string)

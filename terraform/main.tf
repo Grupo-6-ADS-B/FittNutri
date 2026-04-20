@@ -22,11 +22,12 @@ module "networking" {
 module "security" {
   source = "./modules/security"
 
-  project     = var.project
-  environment = var.environment
-  vpc_id      = module.networking.vpc_id
-  vpc_cidr    = module.networking.vpc_cidr
-  tags        = local.common_tags
+  project           = var.project
+  environment       = var.environment
+  vpc_id            = module.networking.vpc_id
+  vpc_cidr          = module.networking.vpc_cidr
+  alb_allowed_cidrs = var.alb_allowed_cidrs
+  tags              = local.common_tags
 }
 
 # ─── STORAGE (S3) — Condicional ───
@@ -51,10 +52,10 @@ module "iam" {
   tags          = local.common_tags
 }
 
-# ─── ACM — Condicional ao ALB ───
+# ─── ACM — apenas quando enable_alb + enable_https + sem cert externo ───
 module "acm" {
   source = "./modules/acm"
-  count  = var.enable_alb ? 1 : 0
+  count  = var.enable_alb && var.enable_https && var.acm_certificate_arn == "" ? 1 : 0
 
   project                   = var.project
   environment               = var.environment
@@ -62,6 +63,14 @@ module "acm" {
   subject_alternative_names = var.acm_subject_alternative_names
   route53_zone_id           = var.route53_zone_id
   tags                      = local.common_tags
+}
+
+locals {
+  # Resolve o ARN do certificado: externo (importado) > ACM module > vazio
+  resolved_certificate_arn = (
+    var.acm_certificate_arn != "" ? var.acm_certificate_arn :
+    (var.enable_alb && var.enable_https && length(module.acm) > 0 ? module.acm[0].certificate_arn : "")
+  )
 }
 
 # ─── ALB — Condicional ───
@@ -74,7 +83,8 @@ module "alb" {
   vpc_id                = module.networking.vpc_id
   public_subnet_ids     = module.networking.public_subnet_ids
   alb_security_group_id = module.security.alb_sg_id
-  certificate_arn       = module.acm[0].certificate_arn
+  enable_https          = var.enable_https
+  certificate_arn       = local.resolved_certificate_arn
   tags                  = local.common_tags
 }
 
@@ -82,18 +92,19 @@ module "alb" {
 module "database" {
   source = "./modules/database"
 
-  project             = var.project
-  environment         = var.environment
-  ami_id              = local.resolved_ami_id
-  instance_type       = var.db_instance_type
-  key_name            = var.key_name
-  subnet_id           = module.networking.private_db_subnet_ids[0]
-  security_group_ids  = [module.security.db_sg_id]
-  data_volume_size    = var.db_data_volume_size
-  ebs_encrypted       = var.enable_ebs_encryption
-  mysql_root_password = var.app_db_password
-  mysql_database      = "fittnutri"
-  tags                = local.common_tags
+  project              = var.project
+  environment          = var.environment
+  ami_id               = local.resolved_ami_id
+  instance_type        = var.db_instance_type
+  key_name             = var.key_name
+  subnet_id            = module.networking.private_db_subnet_ids[0]
+  security_group_ids   = [module.security.db_sg_id]
+  data_volume_size     = var.db_data_volume_size
+  ebs_encrypted        = var.enable_ebs_encryption
+  mysql_root_password  = var.app_db_password
+  mysql_database       = "fittnutri"
+  iam_instance_profile = var.existing_instance_profile != "" ? var.existing_instance_profile : (var.enable_iam ? module.iam[0].instance_profile_name : "")
+  tags                 = local.common_tags
 }
 
 # ─── FRONTEND_URL dinamico: ACM domain se disponivel, senao ALB DNS
@@ -102,7 +113,8 @@ module "database" {
 # ─────────────────────────────────────────────────────────────────────────────────
 locals {
   resolved_frontend_url = (
-    var.enable_alb && var.acm_domain_name != "" ? "https://${var.acm_domain_name}" :
+    var.enable_alb && var.enable_https && var.acm_domain_name != "" ? "https://${var.acm_domain_name}" :
+    var.enable_alb && var.enable_https ? "https://${module.alb[0].alb_dns_name}" :
     var.enable_alb ? "http://${module.alb[0].alb_dns_name}" :
     ""
   )
@@ -124,9 +136,10 @@ module "compute" {
   key_name             = var.key_name
   subnet_id            = module.networking.private_app_subnet_ids[0]
   security_group_ids   = [module.security.app_sg_id]
-  iam_instance_profile = var.enable_iam ? module.iam[0].instance_profile_name : ""
+  iam_instance_profile = var.existing_instance_profile != "" ? var.existing_instance_profile : (var.enable_iam ? module.iam[0].instance_profile_name : "")
   volume_size          = var.volume_size
   ebs_encrypted        = var.enable_ebs_encryption
+  register_with_alb    = var.enable_alb
   target_group_arn     = var.enable_alb ? module.alb[0].app_target_group_arn : ""
   target_group_port    = 8080
 
@@ -184,6 +197,8 @@ module "monitoring" {
   app_private_ip           = module.compute.private_ip
   grafana_admin_user       = var.grafana_admin_user
   grafana_admin_password   = var.grafana_admin_password
+  register_with_alb        = var.enable_alb
   grafana_target_group_arn = var.enable_alb ? module.alb[0].grafana_target_group_arn : ""
+  iam_instance_profile     = var.existing_instance_profile != "" ? var.existing_instance_profile : (var.enable_iam ? module.iam[0].instance_profile_name : "")
   tags                     = local.common_tags
 }

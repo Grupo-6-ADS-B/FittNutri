@@ -64,6 +64,12 @@ variable "ebs_encrypted" {
   default     = true
 }
 
+variable "iam_instance_profile" {
+  description = "Instance profile para SSM/CloudWatch (vazio = sem profile)"
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   description = "Tags"
   type        = map(string)

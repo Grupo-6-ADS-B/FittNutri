@@ -64,27 +64,36 @@ resource "aws_lb_target_group" "grafana" {
   })
 }
 
-resource "aws_lb_listener" "http_redirect" {
+# ─── Listener HTTP ───
+# enable_https=false → forward direto para app TG
+# enable_https=true  → redirect 301 para HTTPS
+resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.main.arn
   port              = 80
   protocol          = "HTTP"
 
   default_action {
-    type = "redirect"
+    type             = var.enable_https ? "redirect" : "forward"
+    target_group_arn = var.enable_https ? null : aws_lb_target_group.app.arn
 
-    redirect {
-      port        = "443"
-      protocol    = "HTTPS"
-      status_code = "HTTP_301"
+    dynamic "redirect" {
+      for_each = var.enable_https ? [1] : []
+      content {
+        port        = "443"
+        protocol    = "HTTPS"
+        status_code = "HTTP_301"
+      }
     }
   }
 
   tags = merge(var.tags, {
-    Name = "${var.project}-${var.environment}-http-redirect"
+    Name = "${var.project}-${var.environment}-http"
   })
 }
 
+# ─── Listener HTTPS (apenas quando enable_https = true) ───
 resource "aws_lb_listener" "https" {
+  count             = var.enable_https ? 1 : 0
   load_balancer_arn = aws_lb.main.arn
   port              = 443
   protocol          = "HTTPS"
@@ -101,13 +110,15 @@ resource "aws_lb_listener" "https" {
   })
 }
 
-resource "aws_lb_listener_rule" "grafana" {
-  listener_arn = aws_lb_listener.https.arn
+# ─── Rule /grafana/* no listener HTTPS ───
+resource "aws_lb_listener_rule" "grafana_https" {
+  count        = var.enable_https ? 1 : 0
+  listener_arn = aws_lb_listener.https[0].arn
   priority     = 100
 
   condition {
     path_pattern {
-      values = ["/grafana/*"]
+      values = ["/grafana", "/grafana/*"]
     }
   }
 
@@ -117,6 +128,28 @@ resource "aws_lb_listener_rule" "grafana" {
   }
 
   tags = merge(var.tags, {
-    Name = "${var.project}-${var.environment}-grafana-rule"
+    Name = "${var.project}-${var.environment}-grafana-https-rule"
+  })
+}
+
+# ─── Rule /grafana/* no listener HTTP ───
+resource "aws_lb_listener_rule" "grafana_http" {
+  count        = var.enable_https ? 0 : 1
+  listener_arn = aws_lb_listener.http.arn
+  priority     = 100
+
+  condition {
+    path_pattern {
+      values = ["/grafana", "/grafana/*"]
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.grafana.arn
+  }
+
+  tags = merge(var.tags, {
+    Name = "${var.project}-${var.environment}-grafana-http-rule"
   })
 }

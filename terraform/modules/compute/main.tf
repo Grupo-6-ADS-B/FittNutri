@@ -35,7 +35,7 @@ resource "aws_instance" "app" {
 
 # ─── ALB TARGET GROUP ATTACHMENT ───
 resource "aws_lb_target_group_attachment" "app" {
-  count            = var.target_group_arn != "" ? 1 : 0
+  count            = var.register_with_alb ? 1 : 0
   target_group_arn = var.target_group_arn
   target_id        = aws_instance.app.id
   port             = var.target_group_port

@@ -15,8 +15,13 @@ output "alb_zone_id" {
 }
 
 output "acm_certificate_arn" {
-  description = "ARN do certificado ACM"
-  value       = var.enable_alb ? module.acm[0].certificate_arn : ""
+  description = "ARN do certificado ACM (externo ou via modulo ACM)"
+  value       = local.resolved_certificate_arn
+}
+
+output "acm_validation_records" {
+  description = "CNAMEs a inserir no provedor DNS (Namecheap) para validar o certificado ACM"
+  value       = length(module.acm) > 0 ? module.acm[0].validation_records : []
 }
 
 # ─── Compute ───

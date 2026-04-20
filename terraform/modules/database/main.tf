@@ -10,6 +10,7 @@ resource "aws_instance" "db" {
   subnet_id                   = var.subnet_id
   vpc_security_group_ids      = var.security_group_ids
   associate_public_ip_address = false
+  iam_instance_profile        = var.iam_instance_profile != "" ? var.iam_instance_profile : null
 
   root_block_device {
     volume_size           = 20
