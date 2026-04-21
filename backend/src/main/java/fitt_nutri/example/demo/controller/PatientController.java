@@ -7,6 +7,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,7 +35,7 @@ public class PatientController {
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (Email, CPF ou Nome já cadastrado)")
     })
-    public ResponseEntity<PatientResponseDTO> createPatient(@RequestBody PatientRequestDTO dto) {
+    public ResponseEntity<PatientResponseDTO> createPatient(@Valid @RequestBody PatientRequestDTO dto) {
         PatientResponseDTO response = adapter.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -47,7 +48,7 @@ public class PatientController {
     })
     public ResponseEntity<Page<PatientResponseDTO>> getAllPatients(
             @RequestParam(name = "page", defaultValue = "0") int page) {
-        PageRequest pageable = PageRequest.of(Math.max(page, 0), 10);
+        PageRequest pageable = PageRequest.of(Math.max(page, 0), 12);
         Page<PatientResponseDTO> response = adapter.getAll(pageable);
         return ResponseEntity.ok(response);
     }
@@ -71,7 +72,7 @@ public class PatientController {
             @ApiResponse(responseCode = "409", description = "Conflito de dados (Email, CPF ou Nome já cadastrado)")
     })
     public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Integer id,
-                                                            @RequestBody PatientRequestDTO dto) {
+                                                            @Valid @RequestBody PatientRequestDTO dto) {
         PatientResponseDTO response = adapter.update(id, dto);
         return ResponseEntity.ok(response);
     }
