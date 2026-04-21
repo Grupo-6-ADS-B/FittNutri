@@ -74,10 +74,23 @@ aws_secret_access_key = ...
 aws_session_token     = ...
 ```
 
-5. Confirme que funciona:
+5. Se o Claude Code ou outro processo estava aberto, limpe as variáveis de ambiente
+   que podem sobrescrever o arquivo (no bash/WSL):
+```bash
+unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
+```
+
+6. Confirme que funciona:
 ```bash
 aws sts get-caller-identity
 ```
+
+> **Armadilha — variáveis de ambiente têm prioridade sobre `~/.aws/credentials`:**
+> Se `AWS_ACCESS_KEY_ID` estiver definida no ambiente (herdada do processo que abriu
+> o terminal ou setada por outro script), o AWS CLI usa essa variável e **ignora**
+> o arquivo de credenciais — mesmo que o arquivo tenha valores novos e válidos.
+> Sintoma: `aws sts get-caller-identity` retorna `ExpiredToken` mesmo após atualizar
+> o arquivo. Solução: sempre rodar o `unset` acima antes de qualquer comando AWS/Terraform.
 
 > **Por que não colocar as credenciais no `.env` ou no código?**
 > As EC2s usam o `LabInstanceProfile` (IAM Instance Profile), então os contêineres
@@ -143,9 +156,15 @@ e crie/atualize os seguintes registros:
 | CNAME | `_XXXXX` (ACM root)     | `_YYYY.acm-validations.aws.`                | Auto |
 | CNAME | `_XXXXX.www` (ACM www)  | `_ZZZZ.acm-validations.aws.`                | Auto |
 
-> **Atenção:** O ALB muda de DNS a cada `terraform apply` (novo ALB é criado).
-> Sempre que recriar a infra, atualize os registros `www` e `@` no Namecheap
-> com o novo `alb_dns_name`.
+> **Atenção — o que muda e o que não muda a cada destroy/apply:**
+>
+> - **DNS do ALB** (`www` e `@`): **sempre muda** — novo ALB = novo DNS.
+>   Atualize com o `alb_dns_name` do output do terraform.
+>
+> - **CNAMEs de validação do ACM** (`_XXXXX`): **não mudam** — a AWS reutiliza os
+>   mesmos valores de validação para o mesmo domínio, mesmo que o certificado seja
+>   recriado com um ARN diferente. Não é necessário atualizar esses registros no
+>   Namecheap após um destroy/apply.
 
 > **Namecheap e registro raiz `@`:** O Namecheap não permite CNAME no `@` diretamente.
 > Use o tipo **ALIAS** ou **URL Redirect** se disponível, ou aponte apenas `www`
