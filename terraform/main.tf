@@ -194,11 +194,12 @@ module "monitoring" {
   subnet_id                = module.networking.private_monitoring_subnet_ids[0]
   security_group_ids       = [module.security.monitoring_sg_id]
   ebs_encrypted            = var.enable_ebs_encryption
-  app_private_ip           = module.compute.private_ip
-  grafana_admin_user       = var.grafana_admin_user
-  grafana_admin_password   = var.grafana_admin_password
-  fittnutri_dashboard_json = base64encode(file("${path.module}/fittnutri-dashboard.json"))
-  register_with_alb        = var.enable_alb
+  app_private_ip         = module.compute.private_ip
+  grafana_admin_user     = var.grafana_admin_user
+  grafana_admin_password = var.grafana_admin_password
+  git_repo               = var.git_repo
+  git_branch             = var.git_branch
+  register_with_alb      = var.enable_alb
   grafana_target_group_arn = var.enable_alb ? module.alb[0].grafana_target_group_arn : ""
   iam_instance_profile     = var.existing_instance_profile != "" ? var.existing_instance_profile : (var.enable_iam ? module.iam[0].instance_profile_name : "")
   tags                     = local.common_tags

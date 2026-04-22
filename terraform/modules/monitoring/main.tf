@@ -25,10 +25,11 @@ resource "aws_instance" "monitoring" {
   }
 
   user_data = templatefile("${path.module}/user-data.sh.tpl", {
-    app_private_ip           = var.app_private_ip
-    grafana_admin_user       = var.grafana_admin_user
-    grafana_admin_password   = var.grafana_admin_password
-    fittnutri_dashboard_json = var.fittnutri_dashboard_json
+    app_private_ip         = var.app_private_ip
+    grafana_admin_user     = var.grafana_admin_user
+    grafana_admin_password = var.grafana_admin_password
+    git_repo               = var.git_repo
+    git_branch             = var.git_branch
   })
 
   tags = merge(var.tags, {

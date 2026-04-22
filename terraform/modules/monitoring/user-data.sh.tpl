@@ -29,7 +29,7 @@ GF_SERVER_SERVE_FROM_SUB_PATH=true
 EOF
 chmod 600 /etc/fittnutri/grafana.env
 
-# 3. Grafana provisioning — datasource (arquivo carregado antes de subir o container)
+# 3. Grafana provisioning — datasource
 mkdir -p /etc/grafana/provisioning/datasources \
          /etc/grafana/provisioning/dashboards \
          /etc/grafana/dashboards
@@ -58,8 +58,9 @@ providers:
       path: /etc/grafana/dashboards
 EOF
 
-# 5. Dashboard FittNutri (base64 -> JSON -> extrai objeto .dashboard para provisionamento)
-printf '%s' '${fittnutri_dashboard_json}' | base64 -d | python3 -c "
+# 5. Dashboard FittNutri — baixa do repositorio e extrai o objeto .dashboard
+DASHBOARD_URL="https://raw.githubusercontent.com/Grupo-6-ADS-B/FittNutri/${git_branch}/terraform/fittnutri-dashboard.json"
+curl -fsSL "$$DASHBOARD_URL" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 dash = data.get('dashboard', data)
@@ -104,7 +105,6 @@ echo "=== Containers iniciados $$(date) ==="
 docker ps --format 'table {{.Names}}\t{{.Ports}}'
 
 # 10. Dashboards da comunidade (JVM + Spring Boot) via API em background
-#     Executado apos o Grafana estar pronto — nao bloqueia o user-data
 cat > /usr/local/bin/grafana-community-dashboards.sh <<'PROVISION'
 #!/bin/bash
 set -euo pipefail

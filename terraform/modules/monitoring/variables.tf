@@ -53,9 +53,16 @@ variable "iam_instance_profile" {
   type        = string
   default     = ""
 }
-variable "fittnutri_dashboard_json" {
-  description = "Conteúdo do dashboard FittNutri em base64 para provisionamento automático"
+variable "git_repo" {
+  description = "URL do repositório GitHub para baixar o dashboard FittNutri"
   type        = string
+  default     = "https://github.com/Grupo-6-ADS-B/FittNutri"
+}
+
+variable "git_branch" {
+  description = "Branch do repositório para buscar o dashboard"
+  type        = string
+  default     = "main"
 }
 
 variable "tags" {
