@@ -455,3 +455,42 @@ aws ec2 describe-instances \
 | `fittnutri-ec2-prod`         | Servidor de app (backend+frontend+nginx) |
 | `fittnutri-db-ec2-prod`      | Banco de dados MySQL             |
 | `fittnutri-monitoring-ec2-prod` | Prometheus + Grafana          |
+
+---
+
+## Comandos rápidos — copie e use
+
+> ⚠️ **Sempre rode dentro da pasta `terraform/`** (use `cd terraform/` antes se estiver na raiz do projeto).
+> As credenciais AWS devem estar válidas em `~/.aws/credentials` (copie do AWS Academy → AWS Details).
+
+### ▶️ Subir / provisionar a infraestrutura
+
+```bash
+cd terraform/
+terraform apply -var-file="contas/lab.tfvars" -auto-approve
+```
+
+> Sobe todas as EC2s, VPC, ALB, EBS, S3, ACM, security groups etc.
+> Tempo estimado: **10–15 minutos**.
+
+---
+
+### 💣 Destruir toda a infraestrutura
+
+```bash
+cd terraform/
+terraform destroy -var-file="contas/lab.tfvars" -refresh=false -auto-approve
+```
+
+> Remove **todos** os recursos da AWS. Use `-refresh=false` para evitar erros de permissão do Academy.
+> ⚠️ Faça isso **antes de encerrar o lab** para evitar que o Academy fique preso em "cleanup".
+
+---
+
+### 🔍 Ver o que será criado/destruído (sem aplicar)
+
+```bash
+cd terraform/
+terraform plan -var-file="contas/lab.tfvars"
+```
+
