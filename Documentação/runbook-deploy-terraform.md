@@ -65,8 +65,27 @@ As credenciais do lab expiram a cada ~4h. Sempre que ligar o lab novamente:
 1. Abra o **AWS Academy Learner Lab** no navegador
 2. Clique em **AWS Details** → **AWS CLI**
 3. Copie o bloco com `aws_access_key_id`, `aws_secret_access_key`, `aws_session_token`
-4. Cole em `~/.aws/credentials` (substitua a seção `[default]`)
+4. Abra o arquivo de credenciais e substitua os valores da seção `[default]`
 
+### 4.1 Como abrir o arquivo de credenciais no Windows
+
+O arquivo fica em:
+```
+C:\Users\<seu-usuario>\.aws\credentials
+```
+
+**Opção A — pelo atalho de execução:**
+1. Pressione `Win + R`
+2. Cole o caminho `C:\Users\<seu-usuario>\.aws\credentials` e dê Enter
+3. Escolha **Bloco de Notas** ou qualquer editor de texto
+
+**Opção B — pelo Explorador de Arquivos:**
+1. Abra o Explorador (`Win + E`)
+2. Cole `C:\Users\<seu-usuario>\.aws` na barra de endereço e dê Enter
+3. Se a pasta `.aws` não aparecer: vá em **Ver → Itens ocultos** e marque a opção
+4. Abra o arquivo `credentials` com um editor de texto
+
+**Conteúdo do arquivo após editar:**
 ```ini
 [default]
 aws_access_key_id     = ASIA...
@@ -74,16 +93,19 @@ aws_secret_access_key = ...
 aws_session_token     = ...
 ```
 
-5. Se o Claude Code ou outro processo estava aberto, limpe as variáveis de ambiente
-   que podem sobrescrever o arquivo (no bash/WSL):
+### 4.2 Passos obrigatórios antes de rodar o Terraform
+
+5. Limpe as variáveis de ambiente que podem sobrescrever o arquivo (no bash/WSL):
 ```bash
 unset AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_SESSION_TOKEN
 ```
 
-6. Confirme que funciona:
+6. Confirme que as credenciais estão válidas:
 ```bash
 aws sts get-caller-identity
 ```
+
+Se retornar `UserId`, `Account` e `Arn` sem erro — pode rodar o Terraform.
 
 > **Armadilha — variáveis de ambiente têm prioridade sobre `~/.aws/credentials`:**
 > Se `AWS_ACCESS_KEY_ID` estiver definida no ambiente (herdada do processo que abriu
