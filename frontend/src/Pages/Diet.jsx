@@ -8,6 +8,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import MealModal from '../components/MealModal';
+import DietModelsModal from '../components/DietModelsModal';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
@@ -105,6 +106,8 @@ const handleSendToS3 = async () => {
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [sendingToS3, setSendingToS3] = useState(false);
+  const [openDietModels, setOpenDietModels] = useState(false);
+  const [loadingDietModel, setLoadingDietModel] = useState(false);
 
   const handleOpenMeal = () => { setSelectedMeal(null); setOpenMeal(true); };
   const handleCloseMeal = () => setOpenMeal(false);
@@ -196,6 +199,50 @@ const handleSendToS3 = async () => {
       console.error('Erro ao limpar dieta:', error);
       alert('Erro ao limpar algumas refeições. Verifique o console.');
       loadMeals();
+    }
+  };
+
+  const handleLoadDietModel = async (mealRequests) => {
+    if (!patientId) {
+      alert('Erro: ID do paciente não encontrado.');
+      return;
+    }
+
+    setLoadingDietModel(true);
+    try {
+      // Salva cada refeição do modelo
+      for (const meal of mealRequests) {
+        const payload = {
+          descricao: meal.descricao,
+          horario: meal.horario,
+          observacao: meal.observacao || '',
+          alimentos: meal.alimentos.map(a => ({
+            alimento: a.alimento,
+            quantidade: parseFloat(a.quantidade),
+            unidade: a.unidade
+          }))
+        };
+
+        await api.post(`/meals/meal-by-type/${patientId}`, payload);
+      }
+
+      // Recarrega as refeições
+      await loadMeals();
+
+      setSnackbar({
+        open: true,
+        message: `${mealRequests.length} refeição(ões) do modelo carregada(s) com sucesso!`,
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Erro ao carregar modelo de dieta:', error);
+      setSnackbar({
+        open: true,
+        message: 'Erro ao carregar o modelo de dieta. Tente novamente.',
+        severity: 'error'
+      });
+    } finally {
+      setLoadingDietModel(false);
     }
   };
 
@@ -407,7 +454,12 @@ const handleSendToS3 = async () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Experimente visualizar e carregar um plano alimentar já salvo.
           </Typography>
-          <Button variant="contained" color="primary">
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={() => setOpenDietModels(true)}
+            disabled={loadingDietModel}
+          >
             Ver modelos
           </Button>
         </Paper>
@@ -430,6 +482,13 @@ const handleSendToS3 = async () => {
         onClose={handleCloseMeal} 
         onSave={handleSaveMeal} 
         initial={selectedMeal} 
+      />
+
+      <DietModelsModal
+        open={openDietModels}
+        onClose={() => setOpenDietModels(false)}
+        onSelectModel={handleLoadDietModel}
+        patientId={patientId}
       />
     </Box>
   );

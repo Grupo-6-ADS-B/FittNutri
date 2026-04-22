@@ -60,12 +60,18 @@ public class DietAdapter {
                             .map(i -> {
                                 DietMealItemResponseDTO itemDTO = new DietMealItemResponseDTO();
                                 itemDTO.setId(i.getId());
-                                itemDTO.setAlimentoId(i.getAlimento() != null ? i.getAlimento().getId() : null);
-                                itemDTO.setNomeAlimento(i.getAlimento() != null ? i.getAlimento().getNome() : null);
+                                
+                                if (i.getAlimento() != null) {
+                                    itemDTO.setAlimento(i.getAlimento().getNome());
+                                } else {
+                                    itemDTO.setAlimento(i.getDescricao());
+                                }
+                                
                                 itemDTO.setDescricao(i.getDescricao());
                                 itemDTO.setQuantidade(i.getQuantidade());
                                 itemDTO.setUnidade(i.getUnidade());
                                 itemDTO.setObservacao(i.getObservacao());
+                                
                                 return itemDTO;
                             })
                             .toList();

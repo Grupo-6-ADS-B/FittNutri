@@ -7,8 +7,7 @@ import java.math.BigDecimal;
 @Data
 public class DietMealItemResponseDTO {
     private Integer id;
-    private Integer alimentoId;
-    private String nomeAlimento;
+    private String alimento; 
     private String descricao;
     private BigDecimal quantidade;
     private String unidade;
