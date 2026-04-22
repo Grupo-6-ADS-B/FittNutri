@@ -53,6 +53,11 @@ variable "iam_instance_profile" {
   type        = string
   default     = ""
 }
+variable "fittnutri_dashboard_json" {
+  description = "Conteúdo do dashboard FittNutri em base64 para provisionamento automático"
+  type        = string
+}
+
 variable "tags" {
   type    = map(string)
   default = {}
