@@ -26,6 +26,7 @@ terraform/tfplan-*
 terraform/contas/*.tfvars
 terraform/.terraform.tfstate.lock.info
 terraform/scripts/set-credentials.sh
+terraform/scripts/create-test-user.sh
 
 # Terraform Atividade
 terraform-atividade/.terraform/
