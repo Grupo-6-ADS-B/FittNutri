@@ -5,7 +5,7 @@ ACTION=$1
 case $ACTION in
   dev)
     echo "Subindo ambiente de desenvolvimento..."
-    docker compose -f docker-compose.dev.yml up --build
+    docker compose -f docker-compose.dev.yml --env-file .env.dev up --build
     ;;
   start)
     echo "Subindo containers..."
