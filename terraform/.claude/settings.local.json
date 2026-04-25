@@ -1,11 +1,35 @@
 {
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(terraform *)",
+            "shell": "powershell",
+            "command": "powershell -File \"C:/Users/Ivand/.claude/scripts/refresh-aws-mcp.ps1\"",
+            "timeout": 30,
+            "statusMessage": "Atualizando credenciais AWS no MCP..."
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(AWS_ACCESS_KEY_ID=ASIAW3MECWH6ZSKEHFXJ AWS_SECRET_ACCESS_KEY=\"IXnI0BU0+sWgjxbuAEap/jgioA0/LkBzxwOqi6VO\" AWS_SESSION_TOKEN=\"IQoJb3JpZ2luX2VjEHcaCXVzLXdlc3QtMiJHMEUCIAyqUlbxBMRKSVpj3cqGoa+iYrhhKkg/zeoOCNpSt+3dAiEA27/zD3d3K7LrAspuIXm8uEuQ3lrCT8khM3wMtxPx1o8qtQIIPxAAGgw0NzExMTI3OTA1MjUiDPb27QAIPd4gRejkNyqSAmI42J8fFWSWdLSpYbxMZ5NjRMOE9j0FbWlzerPjAKSdx4VcZYD8P06db9gpgwk6lNn5OUAnAtXLF7IWEnmkm8jUbDMqfg7w6Aiq9VUyB4jhxUBTDLBepOUKqjv5vXya8HSZKzfRSMeiRX6m8JmOKF5RUo/BPOyLFYnUfLceYPVrrTm+E1lxht31NVfw53bzRirdxBcUjkwFLC7m0g6ndfib2N6VO2HP51tMPvBOIfIKFm2cMG3XcOdgsSjqTrjbQIQjUUE1N4tgG2rRYNQMlwwPSRoa7L+bi3nlJ5+jrDhbeWMIWPA+BnItz2HukUaPW14jkpRkX+lS0RqFT4wxUxV3Icq6M/h+TNPXJC3hU3jbF1cw2/CfzwY6nQERLVVR3UB/t3OlJEK/ciG6WBqJsCjleJkm2LuX2cNjp8eiQfx2OVZgpk5Qdt+JbmoFVlWEdUB92USmmWSnu3eMhog7/pbWCy433huc4UjY8HtH0IVwG88nvNdBG1OS5Cxhsm5pTa9h/T4mrZDFeAqYLq/842+KdWzzRki/hapdnA8qBJugHhWSciyvRzDwyqEDIgf30dXXPRRlDKtK\" terraform output *)",
+      "Bash(npx -y @github/mcp-server --help)",
+      "Bash(npx -y @modelcontextprotocol/server-mysql --help)",
+      "Bash(npm search *)",
+      "Bash(winget search *)",
+      "Bash(where github-mcp-server *)",
+      "Bash(powershell -Command \"irm https://astral.sh/uv/install.ps1 | iex\")",
+      "Skill(update-config)"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "grafana"
-  ],
-  "permissions": {
-    "allow": [
-      "Bash(AWS_ACCESS_KEY_ID=ASIAW3MECWH6ZSKEHFXJ AWS_SECRET_ACCESS_KEY=\"IXnI0BU0+sWgjxbuAEap/jgioA0/LkBzxwOqi6VO\" AWS_SESSION_TOKEN=\"IQoJb3JpZ2luX2VjEHcaCXVzLXdlc3QtMiJHMEUCIAyqUlbxBMRKSVpj3cqGoa+iYrhhKkg/zeoOCNpSt+3dAiEA27/zD3d3K7LrAspuIXm8uEuQ3lrCT8khM3wMtxPx1o8qtQIIPxAAGgw0NzExMTI3OTA1MjUiDPb27QAIPd4gRejkNyqSAmI42J8fFWSWdLSpYbxMZ5NjRMOE9j0FbWlzerPjAKSdx4VcZYD8P06db9gpgwk6lNn5OUAnAtXLF7IWEnmkm8jUbDMqfg7w6Aiq9VUyB4jhxUBTDLBepOUKqjv5vXya8HSZKzfRSMeiRX6m8JmOKF5RUo/BPOyLFYnUfLceYPVrrTm+E1lxht31NVfw53bzRirdxBcUjkwFLC7m0g6ndfib2N6VO2HP51tMPvBOIfIKFm2cMG3XcOdgsSjqTrjbQIQjUUE1N4tgG2rRYNQMlwwPSRoa7L+bi3nlJ5+jrDhbeWMIWPA+BnItz2HukUaPW14jkpRkX+lS0RqFT4wxUxV3Icq6M/h+TNPXJC3hU3jbF1cw2/CfzwY6nQERLVVR3UB/t3OlJEK/ciG6WBqJsCjleJkm2LuX2cNjp8eiQfx2OVZgpk5Qdt+JbmoFVlWEdUB92USmmWSnu3eMhog7/pbWCy433huc4UjY8HtH0IVwG88nvNdBG1OS5Cxhsm5pTa9h/T4mrZDFeAqYLq/842+KdWzzRki/hapdnA8qBJugHhWSciyvRzDwyqEDIgf30dXXPRRlDKtK\" terraform output *)"
-    ]
-  }
+  ]
 }
