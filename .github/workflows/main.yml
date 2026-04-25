@@ -4,14 +4,14 @@
 # Jobs:
 #   1. backend-ci  → testa, escaneia segurança e constrói imagem Docker
 #   2. frontend-ci → instala dependências, faz build e constrói imagem Docker
-#   3. deploy      → (apenas na branch main) faz deploy no servidor EC2
+#   3. deploy      → (apenas nas branches main e claude-test) faz deploy no EC2
 # =============================================================================
 
 name: FittNutri CI/CD
 
 on:
   push:
-    branches: [ main, dev ]
+    branches: [ main, dev, claude-test ]
   pull_request:
     branches: [ main ]
 
@@ -115,7 +115,7 @@ jobs:
         with:
           context: backend
           file: backend/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/claude-test') }}
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
           cache-from: type=gha
@@ -208,7 +208,7 @@ jobs:
         with:
           context: frontend
           file: frontend/Dockerfile
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/claude-test') }}
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
           cache-from: type=gha
@@ -222,7 +222,7 @@ jobs:
     name: Deploy — AWS EC2 (produção)
     runs-on: ubuntu-latest
     needs: [ backend-ci, frontend-ci ]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/claude-test') && github.event_name == 'push'
     environment: production
 
     steps:
