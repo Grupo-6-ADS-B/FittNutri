@@ -11,15 +11,16 @@
 ## Índice
 
 1. [MCPs configurados](#1-mcps-configurados)
-2. [Pré-requisitos](#2-pré-requisitos)
-3. [Configurar MCP do Postman](#3-configurar-mcp-do-postman)
-4. [Configurar MCP do GitHub](#4-configurar-mcp-do-github)
-5. [Configurar MCP do Docker](#5-configurar-mcp-do-docker)
-6. [Configurar MCP da AWS](#6-configurar-mcp-da-aws)
-7. [Configurar MCP do MySQL](#7-configurar-mcp-do-mysql)
-8. [Hook de reconexão automática antes do Terraform](#8-hook-de-reconexão-automática-antes-do-terraform)
-9. [Verificar status dos MCPs](#9-verificar-status-dos-mcps)
-10. [Armadilhas conhecidas](#10-armadilhas-conhecidas)
+2. [O que muda com os MCPs — casos de uso no FittNutri](#2-o-que-muda-com-os-mcps--casos-de-uso-no-fittnutri)
+3. [Pré-requisitos](#3-pré-requisitos)
+4. [Configurar MCP do Postman](#4-configurar-mcp-do-postman)
+5. [Configurar MCP do GitHub](#5-configurar-mcp-do-github)
+6. [Configurar MCP do Docker](#6-configurar-mcp-do-docker)
+7. [Configurar MCP da AWS](#7-configurar-mcp-da-aws)
+8. [Configurar MCP do MySQL](#8-configurar-mcp-do-mysql)
+9. [Hook de reconexão automática antes do Terraform](#9-hook-de-reconexão-automática-antes-do-terraform)
+10. [Verificar status dos MCPs](#10-verificar-status-dos-mcps)
+11. [Armadilhas conhecidas](#11-armadilhas-conhecidas)
 
 ---
 
@@ -35,7 +36,91 @@
 
 ---
 
-## 2. Pré-requisitos
+## 2. O que muda com os MCPs — casos de uso no FittNutri
+
+Sem MCP, o Claude trabalha "cego" — você descreve o estado do sistema e ele responde com
+base nisso. Com os MCPs, o Claude **acessa o estado real** diretamente. A diferença é entre
+um médico que examina o paciente versus um que recebe um relato verbal.
+
+```
+Sem MCP:  você age → copia resultado → passa para o Claude → ele responde → você age novamente
+Com MCP:  você pede → Claude age, observa e responde em um único passo
+```
+
+---
+
+### AWS MCP — ciclo de deploy e infraestrutura
+
+**Diagnóstico de infra em tempo real**
+
+Quando o backend não responde após um `terraform apply`, em vez de abrir o console AWS
+e navegar por várias telas:
+
+> "Por que o backend não está respondendo?"
+
+O Claude consulta diretamente:
+- Status do target group do ALB → verifica se as instâncias estão `healthy` ou `unhealthy`
+- CloudWatch Logs da EC2 → lê os logs do Docker sem você abrir o console
+- Estado das instâncias EC2 → verifica se estão `running`, `stopped` ou `terminated`
+
+**Verificação pré-deploy**
+
+> "Verifica se o lab ainda tem créditos antes de subir a infra"
+
+O Claude checa `aws sts get-caller-identity`, o estado atual dos recursos e confirma
+se é seguro prosseguir — evitando um `terraform apply` com credenciais já expiradas.
+
+**Validação pós-deploy**
+
+> "Confirma que o health check do ALB está verde e os containers estão rodando"
+
+O Claude verifica o target group, o status SSM das instâncias e os logs do Docker.
+Você não abre o console AWS em nenhum momento.
+
+**Investigação de recursos ativos**
+
+> "Quais recursos estão consumindo na conta do lab agora?"
+
+O Claude lista EC2s, RDS, Load Balancers ativos e identifica o que está ligado
+desnecessariamente — útil antes de encerrar o lab para evitar desperdício de créditos.
+
+---
+
+### Postman MCP — ciclo de teste de API
+
+**Sincronizar a collection com mudanças no código**
+
+Quando um endpoint muda de parâmetro ou response no Spring Boot:
+
+> "O endpoint `/api/food-itens/search-part` mudou de parâmetro — atualiza a collection"
+
+O Claude lê o controller Java, identifica a mudança e atualiza a request na collection
+diretamente, sem você abrir o Postman.
+
+**Criar testes automatizados na collection**
+
+> "Adiciona um teste que valida que o login retorna um JWT válido e com expiração correta"
+
+O Claude cria a request com o script de teste em JavaScript no Postman — pronto para
+rodar com Newman no pipeline de CI.
+
+**Auditoria dos endpoints documentados**
+
+> "A collection está atualizada com todos os endpoints do projeto? O que está faltando?"
+
+O Claude lê a collection e compara com os controllers do Spring Boot, listando os
+endpoints que existem no código mas não estão documentados no Postman.
+
+**Regressão antes de um deploy**
+
+> "Roda a collection de testes contra o ambiente local e me diz se passou tudo"
+
+O Claude executa via Newman e apresenta o resultado na conversa — sem você alternar
+entre terminal e Postman.
+
+---
+
+## 3. Pré-requisitos
 
 - Claude Code instalado
 - Node.js >= 18 e `npx` disponível no PATH
@@ -53,7 +138,7 @@ Após instalar, `uvx` fica disponível em `C:\Users\<seu-usuario>\.local\bin\uvx
 
 ---
 
-## 3. Configurar MCP do Postman
+## 4. Configurar MCP do Postman
 
 O pacote correto é `@postman/postman-mcp-server` (não `@postman/mcp-server` — esse não existe no npm).
 
@@ -73,7 +158,7 @@ claude mcp add postman --transport stdio -s local \
 
 ---
 
-## 4. Configurar MCP do GitHub
+## 5. Configurar MCP do GitHub
 
 ```bash
 claude mcp add github --transport stdio -s user \
@@ -92,7 +177,7 @@ claude mcp add github --transport stdio -s user \
 
 ---
 
-## 5. Configurar MCP do Docker
+## 6. Configurar MCP do Docker
 
 Não requer credenciais — conecta diretamente ao socket do Docker.
 
@@ -105,7 +190,7 @@ claude mcp add docker --transport stdio -s user \
 
 ---
 
-## 6. Configurar MCP da AWS
+## 7. Configurar MCP da AWS
 
 As credenciais do AWS Academy expiram a cada ~4h. Use **PowerShell** para configurar
 (o Git Bash converte o `/` da secret key em caminho Windows, corrompendo a credencial).
@@ -133,7 +218,7 @@ claude mcp add aws --transport stdio -s user `
 
 ---
 
-## 7. Configurar MCP do MySQL
+## 8. Configurar MCP do MySQL
 
 O MySQL local roda via Docker Compose na porta `3307` (mapeada da `3306` interna do container).
 
@@ -153,7 +238,7 @@ claude mcp add mysql --transport stdio -s user \
 
 ---
 
-## 8. Hook de reconexão automática antes do Terraform
+## 9. Hook de reconexão automática antes do Terraform
 
 O hook abaixo executa automaticamente antes de qualquer comando `terraform *`,
 atualizando as credenciais da AWS no MCP com os valores atuais do `aws configure`.
@@ -218,7 +303,7 @@ O hook fica no arquivo `terraform/.claude/settings.local.json` (está no `.gitig
 
 ---
 
-## 9. Verificar status dos MCPs
+## 10. Verificar status dos MCPs
 
 ```bash
 claude mcp list
@@ -242,7 +327,7 @@ claude mcp get aws
 
 ---
 
-## 10. Armadilhas conhecidas
+## 11. Armadilhas conhecidas
 
 ### AWS secret key corrompida pelo Git Bash
 
