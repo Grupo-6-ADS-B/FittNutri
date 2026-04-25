@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FittNutri — Arquitetura v2 (Terraform)</title>
+<title>FittNutri — Arquitetura v3 (Terraform + GitHub Actions)</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Sora:wght@300;400;600;700&display=swap');
 
@@ -172,6 +172,81 @@
   .internet-box .label { font-size: 13px; font-weight: 600; color: var(--yellow); }
   .internet-box .sub { font-size: 11px; color: var(--text-dim); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
 
+  /* ── GITHUB CI/CD SECTION ── */
+  .github-section {
+    border: 1px dashed rgba(99,102,241,0.45);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    background: rgba(99,102,241,0.02);
+  }
+  .github-section-label {
+    position: absolute;
+    top: -11px;
+    left: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--indigo);
+    background: var(--bg);
+    padding: 0 10px;
+    text-transform: uppercase;
+  }
+  .github-ci-grid {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr 40px 1fr;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+  .gh-arrow-h {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    font-size: 20px;
+    font-weight: 300;
+  }
+  .gh-card {
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .gh-repo { background:linear-gradient(135deg,rgba(99,102,241,0.15),rgba(99,102,241,0.05)); border:1px solid rgba(99,102,241,0.4); }
+  .gh-ci   { background:linear-gradient(135deg,rgba(34,197,94,0.12),rgba(34,197,94,0.04));  border:1px solid rgba(34,197,94,0.35); }
+  .gh-ghcr { background:linear-gradient(135deg,rgba(6,182,212,0.12),rgba(6,182,212,0.04));  border:1px solid rgba(6,182,212,0.35); }
+  .gh-cd   { background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(168,85,247,0.04));border:1px solid rgba(168,85,247,0.35);}
+  .gh-card .card-label { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+  .gh-repo .card-label { color: var(--indigo); }
+  .gh-ci   .card-label { color: var(--green); }
+  .gh-ghcr .card-label { color: var(--cyan); }
+  .gh-cd   .card-label { color: var(--purple); }
+  .gh-step-list { text-align: left; margin-top: 8px; }
+  .gh-step {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: var(--text-mid);
+    font-family: 'JetBrains Mono', monospace;
+    margin-bottom: 3px;
+  }
+  .gh-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .gh-cd-row {
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+    display: flex;
+    justify-content: center;
+  }
+  .gh-cd-inner {
+    display: grid;
+    grid-template-columns: 1fr 40px 1fr;
+    gap: 8px;
+    align-items: center;
+    max-width: 700px;
+    width: 100%;
+  }
+
   /* ── AWS REGION ── */
   .aws-region {
     border: 1px solid rgba(99,102,241,0.25);
@@ -328,16 +403,6 @@
   .ds-backend  { background:rgba(59,130,246,0.15);  color:var(--blue);    border:1px solid rgba(59,130,246,0.3); }
   .ds-frontend { background:rgba(34,197,94,0.15);   color:var(--green);   border:1px solid rgba(34,197,94,0.3); }
 
-  /* SG pill */
-  .sg-pill {
-    display: inline-block;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    margin: 2px;
-  }
-
   /* ── SECTION DIVIDER ── */
   .section-sep {
     text-align: center;
@@ -370,14 +435,16 @@
     text-align: center;
     min-width: 140px;
   }
-  .card-acm  { background:linear-gradient(135deg,rgba(34,197,94,0.12),rgba(34,197,94,0.04));  border:1px solid rgba(34,197,94,0.35); }
-  .card-s3   { background:linear-gradient(135deg,rgba(6,182,212,0.12),rgba(6,182,212,0.04));  border:1px solid rgba(6,182,212,0.35); }
-  .card-ssm  { background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(99,102,241,0.04));border:1px solid rgba(99,102,241,0.35);}
-  .card-iam  { background:linear-gradient(135deg,rgba(239,68,68,0.1),rgba(239,68,68,0.03));   border:1px solid rgba(239,68,68,0.3); }
-  .card-acm .card-label  { color: var(--green); }
-  .card-s3  .card-label  { color: var(--cyan); }
-  .card-ssm .card-label  { color: var(--indigo); }
-  .card-iam .card-label  { color: var(--red); }
+  .card-acm      { background:linear-gradient(135deg,rgba(34,197,94,0.12),rgba(34,197,94,0.04));  border:1px solid rgba(34,197,94,0.35); }
+  .card-s3       { background:linear-gradient(135deg,rgba(6,182,212,0.12),rgba(6,182,212,0.04));  border:1px solid rgba(6,182,212,0.35); }
+  .card-s3-state { background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(168,85,247,0.04));border:1px solid rgba(168,85,247,0.35);}
+  .card-ssm      { background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(99,102,241,0.04));border:1px solid rgba(99,102,241,0.35);}
+  .card-iam      { background:linear-gradient(135deg,rgba(239,68,68,0.1),rgba(239,68,68,0.03));   border:1px solid rgba(239,68,68,0.3); }
+  .card-acm      .card-label { color: var(--green); }
+  .card-s3       .card-label { color: var(--cyan); }
+  .card-s3-state .card-label { color: var(--purple); }
+  .card-ssm      .card-label { color: var(--indigo); }
+  .card-iam      .card-label { color: var(--red); }
 
   /* ── EXTERNAL SERVICES ── */
   .external-section {
@@ -472,17 +539,6 @@
   .legend-item { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-mid); }
   .legend-dot  { width: 10px; height: 10px; border-radius: 50%; }
 
-  /* ── NETWORK TOPOLOGY MAP ── */
-  .topology-header {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    text-align: center;
-    margin: 32px 0 16px;
-  }
-
   /* spacing helpers */
   .mt4 { margin-top: 4px; }
   .mt8 { margin-top: 8px; }
@@ -496,6 +552,9 @@
     .subnet-row-private { grid-template-columns: 1fr; }
     .subnet-row-public  { grid-template-columns: 1fr; }
     .flows-section      { grid-template-columns: 1fr; }
+    .github-ci-grid     { grid-template-columns: 1fr; }
+    .gh-cd-inner        { grid-template-columns: 1fr; }
+    .gh-arrow-h         { transform: rotate(90deg); }
   }
 </style>
 </head>
@@ -504,9 +563,9 @@
 
   <!-- HEADER -->
   <div class="header">
-    <div class="badge">Arquitetura de Sistema · v2 · Terraform</div>
+    <div class="badge">Arquitetura de Sistema · v3 · Terraform + GitHub Actions</div>
     <h1>FittNutri — Infrastructure Diagram</h1>
-    <p><span class="live-dot"></span>aws · us-east-1 · vpc segmentada · alb · 3x ec2 · rds-free · s3 · acm · terraform</p>
+    <p><span class="live-dot"></span>aws · us-east-1 · vpc segmentada · alb · 3x ec2 · s3 · acm · terraform · github actions · ghcr</p>
   </div>
 
   <!-- INTERNET -->
@@ -526,7 +585,127 @@
     </div>
   </div>
 
-  <!-- arrow internet → ALB -->
+  <!-- arrow internet → GitHub CI/CD -->
+  <div class="arrow-v mt4" style="width:2px;">
+    <div class="arrow-line-v" style="height:14px;background:var(--border);"></div>
+    <div class="arrow-tip-down" style="border-top:7px solid var(--border);"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <!-- GITHUB CI/CD SECTION                                       -->
+  <!-- ══════════════════════════════════════════════════════════ -->
+  <div class="github-section mt4">
+    <div class="github-section-label">GitHub · CI / CD</div>
+
+    <!-- CI Pipeline row -->
+    <div class="github-ci-grid">
+
+      <!-- Repository -->
+      <div class="gh-card gh-repo">
+        <div class="card-icon">📦</div>
+        <div class="card-label">Repository</div>
+        <div class="card-sub">LucasRodriguescartaxo/FittNutri</div>
+        <div class="gh-step-list">
+          <div class="gh-step"><div class="gh-dot" style="background:var(--indigo)"></div>branch main → produção</div>
+          <div class="gh-step"><div class="gh-dot" style="background:var(--blue)"></div>branch claude-test → CI ativo</div>
+          <div class="gh-step"><div class="gh-dot" style="background:var(--text-dim)"></div>branch dev → sem CI</div>
+        </div>
+        <div class="badges-row mt8">
+          <span class="mini-badge badge-indigo">main</span>
+          <span class="mini-badge badge-blue">claude-test</span>
+          <span class="mini-badge badge-yellow">dev</span>
+        </div>
+      </div>
+
+      <div class="gh-arrow-h">→</div>
+
+      <!-- CI -->
+      <div class="gh-card gh-ci">
+        <div class="card-icon">🔄</div>
+        <div class="card-label">GitHub Actions CI</div>
+        <div class="card-sub">main.yml · automático por push/PR</div>
+        <div class="gh-step-list">
+          <div class="gh-step"><div class="gh-dot" style="background:var(--blue)"></div>Backend: JUnit + JaCoCo (H2 in-memory)</div>
+          <div class="gh-step"><div class="gh-dot" style="background:var(--red)"></div>OWASP Dependency-Check (CVSS ≥ 7)</div>
+          <div class="gh-step"><div class="gh-dot" style="background:var(--green)"></div>Frontend: ESLint + Vite build prod</div>
+          <div class="gh-step"><div class="gh-dot" style="background:var(--yellow)"></div>npm audit (segurança deps)</div>
+          <div class="gh-step"><div class="gh-dot" style="background:var(--cyan)"></div>Docker build + push → GHCR</div>
+        </div>
+        <div class="badges-row mt8">
+          <span class="mini-badge badge-green">push main · claude-test</span>
+          <span class="mini-badge badge-indigo">PR → main</span>
+          <span class="mini-badge badge-indigo">Node.js 24</span>
+        </div>
+      </div>
+
+      <div class="gh-arrow-h">→</div>
+
+      <!-- GHCR -->
+      <div class="gh-card gh-ghcr">
+        <div class="card-icon">🐳</div>
+        <div class="card-label">GHCR</div>
+        <div class="card-sub">GitHub Container Registry</div>
+        <div class="gh-step-list">
+          <div class="gh-step"><div class="gh-dot" style="background:var(--blue)"></div>fittnutri-backend:latest</div>
+          <div class="gh-step"><div class="gh-dot" style="background:var(--green)"></div>fittnutri-frontend:latest</div>
+          <div class="gh-step"><div class="gh-dot" style="background:var(--text-dim)"></div>tag :sha-* por commit</div>
+          <div class="gh-step"><div class="gh-dot" style="background:var(--text-dim)"></div>tag :branch por branch</div>
+        </div>
+        <div class="badges-row mt8">
+          <span class="mini-badge badge-cyan">ghcr.io</span>
+          <span class="mini-badge badge-cyan">pull na EC2 (user-data)</span>
+        </div>
+      </div>
+
+    </div><!-- end ci grid -->
+
+    <!-- CD row -->
+    <div class="gh-cd-row">
+      <div class="gh-cd-inner">
+
+        <div class="gh-card gh-cd">
+          <div class="card-icon">🏗️</div>
+          <div class="card-label">GitHub Actions CD</div>
+          <div class="card-sub">terraform.yml · manual (workflow_dispatch)</div>
+          <div class="gh-step-list" style="display:flex;gap:24px;justify-content:center;text-align:left;margin-top:10px;">
+            <div>
+              <div class="gh-step"><div class="gh-dot" style="background:var(--purple)"></div>Configura credenciais AWS</div>
+              <div class="gh-step"><div class="gh-dot" style="background:var(--purple)"></div>Cria lab.tfvars via secret</div>
+              <div class="gh-step"><div class="gh-dot" style="background:var(--purple)"></div>terraform init → S3 backend</div>
+            </div>
+            <div>
+              <div class="gh-step"><div class="gh-dot" style="background:var(--purple)"></div>terraform plan</div>
+              <div class="gh-step"><div class="gh-dot" style="background:var(--purple)"></div>terraform apply / destroy</div>
+              <div class="gh-step"><div class="gh-dot" style="background:var(--yellow)"></div>credenciais expiram ~4h</div>
+            </div>
+          </div>
+          <div class="badges-row mt8">
+            <span class="mini-badge badge-purple">plan</span>
+            <span class="mini-badge badge-purple">apply</span>
+            <span class="mini-badge badge-purple">destroy</span>
+            <span class="mini-badge badge-yellow">AWS Academy · ~4h TTL</span>
+          </div>
+        </div>
+
+        <div class="gh-arrow-h">→</div>
+
+        <div style="text-align:center;">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:1px;margin-bottom:8px;">PROVISIONA</div>
+          <div style="display:flex;flex-direction:column;gap:6px;align-items:center;">
+            <span class="mini-badge badge-purple">VPC · Subnets · SGs</span>
+            <span class="mini-badge badge-blue">EC2 App · EC2 DB · EC2 Monitoring</span>
+            <span class="mini-badge badge-teal">ALB · NAT Gateway · IGW</span>
+            <span class="mini-badge badge-green">ACM Certificate</span>
+            <span class="mini-badge badge-cyan">S3 (app) · S3 (state)</span>
+          </div>
+        </div>
+
+      </div>
+    </div><!-- end cd row -->
+
+  </div><!-- end github section -->
+
+  <!-- arrow GitHub → ALB -->
   <div class="arrow-v mt4" style="width:2px;">
     <div class="arrow-line-v" style="height:14px;background:linear-gradient(to bottom,var(--border),var(--purple));"></div>
   </div>
@@ -576,14 +755,12 @@
             <span class="subnet-cidr">10.0.1.0/24</span>
           </div>
 
-          <!-- IGW -->
           <div class="resource-card card-igw">
             <div class="card-icon">🚪</div>
             <div class="card-label">Internet Gateway</div>
             <div class="card-sub">fittnutri-igw-prod</div>
           </div>
 
-          <!-- NAT -->
           <div class="resource-card card-nat">
             <div class="card-icon">🔄</div>
             <div class="card-label">NAT Gateway</div>
@@ -592,7 +769,7 @@
           </div>
         </div>
 
-        <!-- Public 1b — ALB -->
+        <!-- Public 1a + 1b — ALB -->
         <div class="subnet subnet-pub">
           <div class="subnet-title">
             public-1a + 1b (multi-AZ)
@@ -604,14 +781,13 @@
             <div class="card-label">Application Load Balancer</div>
             <div class="card-sub">fittnutri-alb-prod · internet-facing</div>
             <div class="card-detail">
-              fittnutri-alb-prod-22697690.us-east-1.elb.amazonaws.com
+              fittnutri-alb-prod.us-east-1.elb.amazonaws.com
             </div>
             <div class="badges-row">
               <span class="mini-badge badge-purple">:80 → redirect HTTPS</span>
               <span class="mini-badge badge-purple">:443 → app :8080</span>
               <span class="mini-badge badge-grafana">:443 /grafana/ → grafana :3000</span>
             </div>
-            <!-- SG -->
             <div class="mt8" style="border-top:1px solid rgba(168,85,247,0.2);padding-top:8px;">
               <span class="card-sub">SG: alb-sg — ingress 0.0.0.0/0 :80/:443</span>
             </div>
@@ -626,7 +802,6 @@
         <div class="sep-line"></div>
       </div>
 
-      <!-- arrows ALB → app, monitoring -->
       <div style="display:flex;justify-content:space-around;margin:6px 0;">
         <div class="arrow-v" style="width:2px;">
           <div class="arrow-line-v" style="height:16px;background:var(--blue);"></div>
@@ -650,9 +825,9 @@
           <div class="resource-card card-app">
             <div class="card-icon">🖥️</div>
             <div class="card-label">EC2 App</div>
-            <div class="card-sub">i-03cb67463322dc8c4 · t3.medium</div>
+            <div class="card-sub">fittnutri-ec2-prod · t3.medium</div>
             <div class="card-detail">
-              Ubuntu 24.04 · 10.0.10.109<br>
+              Ubuntu 22.04 · subnet privada<br>
               IAM: LabInstanceProfile
             </div>
 
@@ -666,6 +841,7 @@
             </div>
 
             <div class="badges-row mt8">
+              <span class="mini-badge badge-cyan">imagens ← GHCR (user-data)</span>
               <span class="mini-badge badge-blue">app-sg: ingress ALB :8080</span>
               <span class="mini-badge badge-teal">egress via NAT</span>
             </div>
@@ -684,7 +860,7 @@
             <div class="card-label">EC2 Database</div>
             <div class="card-sub">fittnutri-db-ec2-prod · t3.small</div>
             <div class="card-detail">
-              MySQL 8.0 · 10.0.20.27 · port 3306<br>
+              MySQL 8.0 · port 3306<br>
               database: fittnutri
             </div>
             <div class="badges-row mt8">
@@ -695,13 +871,11 @@
           <div class="resource-card card-db mt8" style="background:rgba(249,115,22,0.06);">
             <div class="card-icon">💾</div>
             <div class="card-label" style="font-size:12px;">EBS Volume</div>
-            <div class="card-sub">vol-0a0e8098ec5765b76 · 20GB gp3</div>
+            <div class="card-sub">30GB gp3 · encrypt AES-256</div>
             <div class="card-detail">
-              encrypt: AES-256<br>
               <code style="font-size:10px;color:var(--orange);">prevent_destroy = true</code>
             </div>
             <div class="badges-row mt8">
-              <span class="mini-badge badge-orange">/dev/nvme1n1 (Nitro)</span>
               <span class="mini-badge badge-orange">persistente</span>
             </div>
           </div>
@@ -747,7 +921,7 @@
         <span class="mini-badge badge-indigo" style="font-size:9px;">Security Groups por camada</span>
       </div>
 
-      <!-- AWS Managed Services dentro da região -->
+      <!-- AWS Managed Services -->
       <div class="section-sep mt16">
         <div class="sep-line"></div>
         <div class="sep-label">AWS Managed Services</div>
@@ -755,17 +929,33 @@
       </div>
 
       <div class="aws-services-row mt12">
+
         <div class="aws-service-card card-s3">
           <div class="card-icon">🪣</div>
-          <div class="card-label">Amazon S3</div>
+          <div class="card-label">Amazon S3 — App</div>
           <div class="card-sub">fittnutri-471112790525-prod</div>
           <div class="card-detail">
+            armazenamento de PDFs<br>
             versioning: enabled<br>
-            encryption: AES-256<br>
-            public access: blocked
+            encryption: AES-256
           </div>
           <div class="badges-row mt8">
             <span class="mini-badge badge-cyan">via LabInstanceProfile</span>
+          </div>
+        </div>
+
+        <div class="aws-service-card card-s3-state">
+          <div class="card-icon">🗂️</div>
+          <div class="card-label">Amazon S3 — State</div>
+          <div class="card-sub">fittnutri-terraform-state-471112790525</div>
+          <div class="card-detail">
+            terraform.tfstate<br>
+            versioning: enabled<br>
+            encrypt: true
+          </div>
+          <div class="badges-row mt8">
+            <span class="mini-badge badge-purple">backend Terraform</span>
+            <span class="mini-badge badge-red">não deletar</span>
           </div>
         </div>
 
@@ -796,6 +986,7 @@
             <span class="mini-badge badge-red">enable_iam = false</span>
           </div>
         </div>
+
       </div>
 
     </div><!-- end VPC -->
@@ -849,15 +1040,16 @@
       <div class="ext-card ext-tf">
         <div class="card-icon">🏗️</div>
         <div class="card-label">Terraform</div>
-        <div class="card-sub">state local · lab.tfvars</div>
+        <div class="card-sub">state → S3 backend · lab.tfvars</div>
         <div class="card-detail">
-          43 recursos gerenciados<br>
-          terraform.tfstate local<br>
+          estado persistido no S3<br>
+          apply / destroy via CI/CD<br>
           credenciais STS (~4h TTL)
         </div>
         <div class="badges-row mt8">
           <span class="mini-badge badge-purple">IaC</span>
           <span class="mini-badge badge-purple">auto-approve</span>
+          <span class="mini-badge badge-purple">S3 backend</span>
         </div>
       </div>
 
@@ -896,6 +1088,34 @@
     </div>
 
     <div class="flow-card">
+      <h3><span style="color:var(--indigo)">⚙️</span> Fluxo CI/CD — Push para Produção</h3>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(99,102,241,0.2);color:var(--indigo);">1</div>
+        <div class="step-text"><strong>Push</strong> para <code>main</code> ou <code>claude-test</code> no GitHub</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(34,197,94,0.2);color:var(--green);">2</div>
+        <div class="step-text"><strong>GitHub Actions CI</strong> (main.yml): testes JUnit, OWASP, ESLint, Vite build</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(6,182,212,0.2);color:var(--cyan);">3</div>
+        <div class="step-text"><strong>Docker build</strong> → imagens publicadas no GHCR com tag <code>:sha-*</code> e <code>:branch</code></div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(168,85,247,0.2);color:var(--purple);">4</div>
+        <div class="step-text"><strong>GitHub Actions CD</strong> (terraform.yml): acionado manualmente — atualiza credenciais AWS → terraform apply</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(168,85,247,0.2);color:var(--purple);">5</div>
+        <div class="step-text"><strong>Terraform</strong> lê estado do S3, provisiona/atualiza infra. EC2 executa <code>user-data.sh</code> no boot</div>
+      </div>
+      <div class="flow-step">
+        <div class="step-num" style="background:rgba(59,130,246,0.2);color:var(--blue);">6</div>
+        <div class="step-text"><strong>EC2 App</strong> clona repositório e executa <code>docker compose up</code> puxando imagens do GHCR</div>
+      </div>
+    </div>
+
+    <div class="flow-card">
       <h3><span style="color:var(--cyan)">☁️</span> Fluxo Assíncrono — PDF para S3</h3>
       <div class="flow-step">
         <div class="step-num" style="background:rgba(6,182,212,0.2);color:var(--cyan);">1</div>
@@ -924,26 +1144,6 @@
     </div>
 
     <div class="flow-card">
-      <h3><span style="color:var(--indigo)">🔧</span> Fluxo de Deploy / Redeploy</h3>
-      <div class="flow-step">
-        <div class="step-num" style="background:rgba(99,102,241,0.2);color:var(--indigo);">1</div>
-        <div class="step-text"><strong>Push</strong> para branch <code>claude-test</code> no GitHub</div>
-      </div>
-      <div class="flow-step">
-        <div class="step-num" style="background:rgba(99,102,241,0.2);color:var(--indigo);">2</div>
-        <div class="step-text"><strong>SSM SendCommand</strong> na EC2 App (sem SSH, sem bastion)</div>
-      </div>
-      <div class="flow-step">
-        <div class="step-num" style="background:rgba(99,102,241,0.2);color:var(--indigo);">3</div>
-        <div class="step-text"><strong>git pull</strong> + <code>docker compose up --build backend</code></div>
-      </div>
-      <div class="flow-step">
-        <div class="step-num" style="background:rgba(99,102,241,0.2);color:var(--indigo);">4</div>
-        <div class="step-text"><strong>ALB health check</strong> detecta novo container saudável em ~30s</div>
-      </div>
-    </div>
-
-    <div class="flow-card">
       <h3><span style="color:var(--prometheus)">📈</span> Fluxo de Monitoramento</h3>
       <div class="flow-step">
         <div class="step-num" style="background:rgba(230,82,44,0.2);color:var(--prometheus);">1</div>
@@ -968,14 +1168,16 @@
   <!-- LEGEND -->
   <div class="legend">
     <div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div>Internet · DNS · Namecheap</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>ALB · TLS Termination</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--indigo)"></div>GitHub · Repository · CI/CD</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>GitHub Actions CI · Testes</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div>GHCR · Docker Images</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div>GitHub Actions CD · ALB · TLS</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--teal)"></div>NAT Gateway · IGW</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div>EC2 App · Docker Compose</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div>EC2 MySQL · EBS</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--prometheus)"></div>EC2 Monitoring</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div>Amazon S3</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div>Amazon S3 App + State</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div>ACM Certificate</div>
-    <div class="legend-item"><div class="legend-dot" style="background:var(--indigo)"></div>SSM · IAM · VPC</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div>RabbitMQ CloudAMQP</div>
     <div class="legend-item"><div class="legend-dot" style="background:var(--grafana)"></div>Grafana · Prometheus</div>
   </div>
