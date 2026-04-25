@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from '../utils/api';
 import axios from "axios";
 import {
@@ -43,6 +43,7 @@ export default function UserRegister() {
   });
   const [cidades, setCidades] = useState([]);
   const [loadingCidades, setLoadingCidades] = useState(false);
+  const [erroCidades, setErroCidades] = useState(false);
 
   const navigate = useNavigate();
 
@@ -162,6 +163,7 @@ export default function UserRegister() {
 
   const fetchCidades = async (uf) => {
     setLoadingCidades(true);
+    setErroCidades(false);
     try {
       const response = await axios.get(
         `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
@@ -180,10 +182,17 @@ export default function UserRegister() {
     } catch (error) {
       console.error('Erro ao buscar cidades:', error);
       setCidades([]);
+      setErroCidades(true);
     } finally {
       setLoadingCidades(false);
     }
   };
+
+  useEffect(() => {
+    if (formData.estado) {
+      fetchCidades(formData.estado);
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -441,12 +450,14 @@ export default function UserRegister() {
                   onChange={handleChange}
                   fullWidth
                   variant="outlined"
-                  error={!!errors.cidade}
                   helperText={
-                    loadingCidades 
-                      ? "Carregando cidades..." 
-                      : errors.cidade || "Selecione a cidade"
+                    loadingCidades
+                      ? "Carregando cidades..."
+                      : erroCidades
+                      ? "Erro ao carregar cidades. Verifique sua conexão."
+                      : errors.cidade || (formData.estado ? "Selecione a cidade" : "Selecione o estado primeiro")
                   }
+                  error={!!errors.cidade || erroCidades}
                   disabled={!formData.estado || loadingCidades}
                 >
                   {cidades.map((cidade) => (
