@@ -9,12 +9,17 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -95,18 +100,19 @@ class SchedulingControllerTest {
     // ---------- GET /schedulings/nutritionist/{id} ----------
 
     @Test
-    @DisplayName("getByNutritionist - deve retornar 200 e lista do nutricionista")
+    @DisplayName("getByNutritionist - deve retornar 200 e página do nutricionista")
     void getByNutritionist_DeveRetornar200ELista() {
         Integer id = 3;
         List<SchedulingResponseDTO> list = List.of(mock(SchedulingResponseDTO.class));
+        Page<SchedulingResponseDTO> page = new PageImpl<>(list);
 
-        when(adapter.getByNutritionist(id)).thenReturn(list);
+        when(adapter.getByNutritionist(eq(id), any(Pageable.class))).thenReturn(page);
 
-        ResponseEntity<List<SchedulingResponseDTO>> response = controller.getByNutritionist(id);
+        ResponseEntity<Page<SchedulingResponseDTO>> response = controller.getByNutritionist(id, 0, 20);
 
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(list, response.getBody());
-        verify(adapter).getByNutritionist(id);
+        assertEquals(page, response.getBody());
+        verify(adapter).getByNutritionist(eq(id), any(Pageable.class));
     }
 
     // ---------- PUT /schedulings/{id} ----------

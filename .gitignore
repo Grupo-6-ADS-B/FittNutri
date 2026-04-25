@@ -28,6 +28,14 @@ terraform/.terraform.tfstate.lock.info
 terraform/scripts/set-credentials.sh
 terraform/scripts/create-test-user.sh
 
+# Scripts com senhas hardcoded (nao commitar)
+terraform/scripts/create-test-user.sh
+terraform/scripts/db-setup.sh
+terraform/scripts/db-setup2.sh
+
+# MCP (contém tokens de service account)
+.mcp.json
+
 # Terraform Atividade
 terraform-atividade/.terraform/
 terraform-atividade/.terraform.lock.hcl

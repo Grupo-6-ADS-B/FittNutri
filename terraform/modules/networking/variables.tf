@@ -31,3 +31,27 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "private_app_subnet_cidrs" {
+  description = "CIDRs das subnets privadas de aplicacao (camada EC2 backend/frontend)"
+  type        = list(string)
+  default     = ["10.0.10.0/24", "10.0.11.0/24"]
+}
+
+variable "private_db_subnet_cidrs" {
+  description = "CIDRs das subnets privadas de banco de dados (MySQL em EC2)"
+  type        = list(string)
+  default     = ["10.0.20.0/24", "10.0.21.0/24"]
+}
+
+variable "private_monitoring_subnet_cidrs" {
+  description = "CIDRs das subnets privadas de monitoramento (Prometheus + Grafana)"
+  type        = list(string)
+  default     = ["10.0.30.0/24"]
+}
+
+variable "enable_nat_gateway" {
+  description = "Habilita NAT Gateway para que subnets privadas tenham saida a internet"
+  type        = bool
+  default     = true
+}

@@ -20,11 +20,11 @@ variable "instance_type" {
 
 # ─── Source AMI (Ubuntu 22.04) ───
 source "amazon-ebs" "fittnutri" {
-  ami_name      = "fittnutri-{{timestamp}}"
-  ami_description = "FittNutri AMI — Docker + docker-compose pré-instalados"
-  instance_type = var.instance_type
-  region        = var.aws_region
-  ssh_username  = "ubuntu"
+  ami_name        = "fittnutri-docker-base-{{timestamp}}"
+  ami_description = "FittNutri AMI base — Ubuntu 22.04 + Docker + docker-compose + awscli (sem Nginx/Certbot)"
+  instance_type   = var.instance_type
+  region          = var.aws_region
+  ssh_username    = "ubuntu"
 
   source_ami_filter {
     filters = {
@@ -32,15 +32,16 @@ source "amazon-ebs" "fittnutri" {
       root-device-type    = "ebs"
       virtualization-type = "hvm"
     }
-    owners      = ["099720109477"] # Canonical
+    owners      = ["099720109477"]
     most_recent = true
   }
 
   tags = {
-    Name        = "fittnutri-ami"
-    Project     = "fittnutri"
-    ManagedBy   = "packer"
-    BuildDate   = "{{timestamp}}"
+    Name      = "fittnutri-docker-base"
+    Project   = "fittnutri"
+    ManagedBy = "packer"
+    Layer     = "base"
+    BuildDate = "{{timestamp}}"
   }
 }
 

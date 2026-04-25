@@ -39,11 +39,11 @@ class AnthropometricDataControllerTest {
         model.setAltura(1.75);
         model.setPeso(70.0);
         model.setImc(22.86);
-        model.setPercentualGordura(15.0);
+        model.setPorcentagemGordura(15.0);
         model.setMassaMuscular(50.0);
-        model.setTmb(1600);
+        model.setTaxaMetabolicaBasal(1600.0);
         model.setIdadeMetabolica(25);
-        model.setGorduraVisceral(5);
+        model.setGorduraVisceral(5.0);
     }
 
     @Test

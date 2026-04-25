@@ -2,7 +2,10 @@ package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.model.DataCircleModel;
 import fitt_nutri.example.demo.model.PatientModel;
+import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.DataCircleRepository;
+import fitt_nutri.example.demo.repository.PatientRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.*;
 
@@ -25,19 +30,31 @@ class DataCircleServiceTest {
     @Mock
     private DataCircleRepository repository;
 
+    @Mock
+    private PatientRepository patientRepository;
+
     private DataCircleModel existing;   // registro já existente (para update / patch / get)
     private PatientModel paciente;
 
     @BeforeEach
     void setUp() {
-        // Paciente "padrão" com ID
+        // Nutricionista logado
+        UserModel nutricionista = new UserModel();
+        nutricionista.setEmail("nutri@test.com");
+
+        // Paciente "padrão" com ID e nutricionista (necessário para verificarPropriedadePaciente)
         paciente = new PatientModel();
         paciente.setId(10);
+        paciente.setNutricionista(nutricionista);
+
+        // Simula autenticação no SecurityContext
+        SecurityContextHolder.getContext().setAuthentication(
+            new UsernamePasswordAuthenticationToken("nutri@test.com", null, List.of())
+        );
 
         // Registro existente no "banco"
         existing = new DataCircleModel();
         existing.setIdDadosCircunferencia(1);
-        existing.setRotulo("Antigo");
         existing.setAbdominal(90.0);
         existing.setCintura(80.0);
         existing.setQuadril(100.0);
@@ -49,6 +66,11 @@ class DataCircleServiceTest {
         existing.setPaciente(paciente);
     }
 
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
+    }
+
     // ---------- CREATE ----------
 
     @Test
@@ -56,7 +78,6 @@ class DataCircleServiceTest {
     void cadastrar_DeveSalvarERetornar() {
         DataCircleModel novo = new DataCircleModel();
         novo.setIdDadosCircunferencia(null); // ID deve ser nulo ao cadastrar
-        novo.setRotulo("Medida 1");
         novo.setAbdominal(90.0);
         novo.setCintura(80.0);
         novo.setQuadril(100.0);
@@ -67,15 +88,14 @@ class DataCircleServiceTest {
         novo.setPesoIdeal(75.0);
         novo.setPaciente(paciente);
 
-        // não existe outro registro com o mesmo rótulo para esse paciente
-        when(repository.existsByRotuloAndPaciente_Id("Medida 1", paciente.getId()))
-                .thenReturn(false);
+        // Service agora busca o paciente real no banco
+        when(patientRepository.findById(paciente.getId())).thenReturn(Optional.of(paciente));
         when(repository.save(novo)).thenReturn(novo);
 
         DataCircleModel result = service.cadastrar(novo);
 
         assertEquals(novo, result);
-        verify(repository).existsByRotuloAndPaciente_Id("Medida 1", paciente.getId());
+        verify(patientRepository).findById(paciente.getId());
         verify(repository).save(novo);
         verify(repository).flush();
     }
@@ -115,7 +135,6 @@ class DataCircleServiceTest {
         Integer id = 1;
 
         DataCircleModel body = new DataCircleModel();
-        body.setRotulo("Novo Rótulo");
         body.setAbdominal(91.0);
         body.setCintura(81.0);
         body.setQuadril(101.0);
@@ -126,11 +145,7 @@ class DataCircleServiceTest {
         body.setPesoIdeal(76.0);
         body.setPaciente(paciente);
 
-        // Service busca o registro existente
         when(repository.findById(id)).thenReturn(Optional.of(existing));
-        // Não existe outro com o mesmo rótulo para esse paciente
-        when(repository.existsByRotuloAndPaciente_Id("Novo Rótulo", paciente.getId()))
-                .thenReturn(false);
         when(repository.save(body)).thenReturn(body);
 
         DataCircleModel result = service.atualizar(id, body);
@@ -138,7 +153,6 @@ class DataCircleServiceTest {
         assertEquals(body, result);
         assertEquals(id, result.getIdDadosCircunferencia());
         verify(repository).findById(id);
-        verify(repository).existsByRotuloAndPaciente_Id("Novo Rótulo", paciente.getId());
         verify(repository).save(body);
         verify(repository).flush();
     }
@@ -171,12 +185,12 @@ class DataCircleServiceTest {
     void deletar_DeveDeletarQuandoExiste() {
         Integer id = 1;
 
-        when(repository.existsById(id)).thenReturn(true);
+        when(repository.findById(id)).thenReturn(Optional.of(existing));
         doNothing().when(repository).deleteById(id);
 
         service.deletar(id);
 
-        verify(repository).existsById(id);
+        verify(repository).findById(id);
         verify(repository).deleteById(id);
     }
 
@@ -201,11 +215,13 @@ class DataCircleServiceTest {
         Integer pacienteId = paciente.getId();
         List<DataCircleModel> lista = List.of(existing);
 
+        when(patientRepository.findById(pacienteId)).thenReturn(Optional.of(paciente));
         when(repository.findByPaciente_Id(pacienteId)).thenReturn(lista);
 
         List<DataCircleModel> result = service.listarPorPaciente(pacienteId);
 
         assertEquals(lista, result);
+        verify(patientRepository).findById(pacienteId);
         verify(repository).findByPaciente_Id(pacienteId);
     }
 }

@@ -1,0 +1,62 @@
+services:
+  backend:
+    build: ./backend
+    image: fittnutri-backend:local
+    container_name: backend
+    restart: always
+    env_file:
+      - .env
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:${DB_PORT}/${MYSQL_DATABASE}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=true
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_VALIDITY: ${JWT_VALIDITY}
+      AWS_REGION: ${AWS_REGION}
+      AWS_S3_BUCKET: ${AWS_S3_BUCKET}
+      RABBITMQ_URL: ${RABBITMQ_URL}
+      APP_AES_KEY: ${APP_AES_KEY}
+    volumes:
+      - backend_logs:/app/logs
+    networks:
+      - fittnutri-network
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+
+  frontend:
+    build: ./frontend
+    image: fittnutri-frontend:local
+    container_name: frontend
+    restart: always
+    depends_on:
+      - backend
+    networks:
+      - fittnutri-network
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+
+  nginx:
+    image: nginx:alpine
+    container_name: nginx
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - fittnutri-network
+
+volumes:
+  backend_logs:
+
+networks:
+  fittnutri-network:
+    driver: bridge

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from '../utils/api';
 import axios from "axios";
+import { cidadesPorEstado } from '../utils/cidadesFallback';
 import {
   Box,
   TextField,
@@ -43,6 +44,8 @@ export default function UserRegister() {
   });
   const [cidades, setCidades] = useState([]);
   const [loadingCidades, setLoadingCidades] = useState(false);
+  const [erroCidades, setErroCidades] = useState(false);
+  const [cidadesModoOffline, setCidadesModoOffline] = useState(false);
 
   const navigate = useNavigate();
 
@@ -160,11 +163,21 @@ export default function UserRegister() {
 
   const hasAtSign = (email) => email.includes("@");
 
+  const aplicarFallback = (uf) => {
+    const cidadesLocais = cidadesPorEstado[uf] || [];
+    setCidades(cidadesLocais);
+    setCidadesModoOffline(cidadesLocais.length > 0);
+    setErroCidades(cidadesLocais.length === 0);
+  };
+
   const fetchCidades = async (uf) => {
     setLoadingCidades(true);
+    setErroCidades(false);
+    setCidadesModoOffline(false);
     try {
       const response = await axios.get(
-        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
+        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`,
+        { timeout: 5000 }
       );
       let cidadesOrdenadas = response.data
         .map(cidade => cidade.nome)
@@ -177,13 +190,19 @@ export default function UserRegister() {
       }
 
       setCidades(cidadesOrdenadas);
-    } catch (error) {
-      console.error('Erro ao buscar cidades:', error);
-      setCidades([]);
+    } catch {
+      console.warn('API do IBGE indisponível, usando dados locais.');
+      aplicarFallback(uf);
     } finally {
       setLoadingCidades(false);
     }
   };
+
+  useEffect(() => {
+    if (formData.estado) {
+      fetchCidades(formData.estado);
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -441,12 +460,16 @@ export default function UserRegister() {
                   onChange={handleChange}
                   fullWidth
                   variant="outlined"
-                  error={!!errors.cidade}
                   helperText={
-                    loadingCidades 
-                      ? "Carregando cidades..." 
-                      : errors.cidade || "Selecione a cidade"
+                    loadingCidades
+                      ? "Carregando cidades..."
+                      : erroCidades
+                      ? "Sem conexão e sem dados locais para este estado."
+                      : cidadesModoOffline
+                      ? "Lista offline (principais cidades). Cidade não encontrada? Digite abaixo."
+                      : errors.cidade || (formData.estado ? "Selecione a cidade" : "Selecione o estado primeiro")
                   }
+                  error={!!errors.cidade || erroCidades}
                   disabled={!formData.estado || loadingCidades}
                 >
                   {cidades.map((cidade) => (

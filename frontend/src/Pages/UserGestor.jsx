@@ -17,11 +17,10 @@ import ScheduleDialog from '../components/UserGestor/ScheduleDialog';
 import WeeklyConsultationsDialog from '../components/UserGestor/WeeklyConsultationsDialog';
 import ConsultationDialog from '../components/UserGestor/ConsultationDialog';
 import UpdateDataDialog from '../components/UserGestor/UpdateDataDialog';
-import { 
-  defaultUsers, 
-  computeImc, 
-  initialCirc, 
-  startOfWeek 
+import {
+  defaultUsers,
+  computeImc,
+  initialCirc,
 } from '../utils/userGestorUtils';
 
 export default function UserGestor() {
@@ -65,7 +64,7 @@ export default function UserGestor() {
   const [filterStartDate, setFilterStartDate] = useState(getTodayString());
   const [filterEndDate, setFilterEndDate] = useState(getEndDateString());
   
-  const location = useNavigate ? useLocation() : {};
+  const location = useLocation();
   let userId = location?.state?.user?.id;
   if (!userId) {
     userId = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');

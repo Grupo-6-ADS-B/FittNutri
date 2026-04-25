@@ -8,6 +8,7 @@ import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.PatientRepository;
 import fitt_nutri.example.demo.repository.SchedulingRepository;
 import fitt_nutri.example.demo.repository.UserRepository;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,6 +16,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -45,11 +48,13 @@ class SchedulingServiceTest {
 
     @BeforeEach
     void setUp() {
-        patient = new PatientModel();
-        patient.setId(1);
-
         nutritionist = new UserModel();
         nutritionist.setId(2);
+        nutritionist.setEmail("nutri@test.com");
+
+        patient = new PatientModel();
+        patient.setId(1);
+        patient.setNutricionista(nutritionist);
 
         data = LocalDate.of(2025, 1, 10);
 
@@ -59,6 +64,15 @@ class SchedulingServiceTest {
         scheduling.setNutricionista(nutritionist);
         scheduling.setDataAgendada(data);
         scheduling.setObservacoes("Obs inicial");
+
+        SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken("nutri@test.com", null, List.of())
+        );
+    }
+
+    @AfterEach
+    void tearDown() {
+        SecurityContextHolder.clearContext();
     }
 
     // ---------- createScheduling ----------
@@ -69,16 +83,16 @@ class SchedulingServiceTest {
         SchedulingRequestDTO dto =
                 new SchedulingRequestDTO(patient.getId(), nutritionist.getId(), data, "Consulta");
 
+        when(userRepository.findByEmail("nutri@test.com")).thenReturn(Optional.of(nutritionist));
         when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
-        when(userRepository.findById(nutritionist.getId())).thenReturn(Optional.of(nutritionist));
         when(repository.save(any(SchedulingModel.class))).thenReturn(scheduling);
 
         SchedulingModel result = service.createScheduling(dto);
 
         assertNotNull(result);
         assertEquals(scheduling, result);
+        verify(userRepository).findByEmail("nutri@test.com");
         verify(patientRepository).findById(patient.getId());
-        verify(userRepository).findById(nutritionist.getId());
         verify(repository).save(any(SchedulingModel.class));
     }
 
@@ -88,41 +102,43 @@ class SchedulingServiceTest {
         SchedulingRequestDTO dto =
                 new SchedulingRequestDTO(999, nutritionist.getId(), data, "Consulta");
 
+        when(userRepository.findByEmail("nutri@test.com")).thenReturn(Optional.of(nutritionist));
         when(patientRepository.findById(999)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.createScheduling(dto));
+        verify(userRepository).findByEmail("nutri@test.com");
         verify(patientRepository).findById(999);
-        verifyNoInteractions(userRepository);
         verify(repository, never()).save(any());
     }
 
     @Test
-    @DisplayName("createScheduling - deve lançar NotFoundException quando nutricionista não existe")
+    @DisplayName("createScheduling - deve lançar NotFoundException quando nutricionista não encontrado no banco")
     void createScheduling_DeveLancarExcecaoQuandoNutricionistaNaoExiste() {
         SchedulingRequestDTO dto =
                 new SchedulingRequestDTO(patient.getId(), 999, data, "Consulta");
 
-        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
-        when(userRepository.findById(999)).thenReturn(Optional.empty());
+        when(userRepository.findByEmail("nutri@test.com")).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.createScheduling(dto));
-        verify(patientRepository).findById(patient.getId());
-        verify(userRepository).findById(999);
+        verify(userRepository).findByEmail("nutri@test.com");
+        verify(patientRepository, never()).findById(any());
         verify(repository, never()).save(any());
     }
 
     // ---------- getAllSchedulings ----------
 
     @Test
-    @DisplayName("getAllSchedulings - deve retornar lista de agendamentos")
+    @DisplayName("getAllSchedulings - deve retornar lista de agendamentos do nutricionista logado")
     void getAllSchedulings_DeveRetornarLista() {
-        when(repository.findAll()).thenReturn(List.of(scheduling));
+        when(userRepository.findByEmail("nutri@test.com")).thenReturn(Optional.of(nutritionist));
+        when(repository.findByNutricionistaId(nutritionist.getId())).thenReturn(List.of(scheduling));
 
         List<SchedulingModel> result = service.getAllSchedulings();
 
         assertEquals(1, result.size());
         assertEquals(scheduling, result.get(0));
-        verify(repository).findAll();
+        verify(userRepository).findByEmail("nutri@test.com");
+        verify(repository).findByNutricionistaId(nutritionist.getId());
     }
 
     // ---------- getSchedulingById ----------
@@ -152,52 +168,50 @@ class SchedulingServiceTest {
     @Test
     @DisplayName("getByPatient - deve retornar lista quando paciente existe")
     void getByPatient_DeveRetornarListaQuandoPacienteExiste() {
-        when(patientRepository.existsById(patient.getId())).thenReturn(true);
+        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
         when(repository.findByPacienteId(patient.getId())).thenReturn(List.of(scheduling));
 
         List<SchedulingModel> result = service.getByPatient(patient.getId());
 
         assertEquals(1, result.size());
         assertEquals(scheduling, result.get(0));
-        verify(patientRepository).existsById(patient.getId());
+        verify(patientRepository).findById(patient.getId());
         verify(repository).findByPacienteId(patient.getId());
     }
 
     @Test
     @DisplayName("getByPatient - deve lançar NotFoundException quando paciente não existe")
     void getByPatient_DeveLancarExcecaoQuandoPacienteNaoExiste() {
-        when(patientRepository.existsById(999)).thenReturn(false);
+        when(patientRepository.findById(999)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.getByPatient(999));
-        verify(patientRepository).existsById(999);
+        verify(patientRepository).findById(999);
         verify(repository, never()).findByPacienteId(any());
     }
 
     // ---------- getByNutritionist ----------
 
     @Test
-    @DisplayName("getByNutritionist - deve retornar lista quando nutricionista existe")
+    @DisplayName("getByNutritionist - deve retornar lista quando nutricionista logado existe")
     void getByNutritionist_DeveRetornarListaQuandoNutriExiste() {
-        when(userRepository.existsById(nutritionist.getId())).thenReturn(true);
-        when(repository.findByNutricionistaId(nutritionist.getId()))
-                .thenReturn(List.of(scheduling));
+        when(userRepository.findByEmail("nutri@test.com")).thenReturn(Optional.of(nutritionist));
+        when(repository.findByNutricionistaId(nutritionist.getId())).thenReturn(List.of(scheduling));
 
         List<SchedulingModel> result = service.getByNutritionist(nutritionist.getId());
 
         assertEquals(1, result.size());
         assertEquals(scheduling, result.get(0));
-        verify(userRepository).existsById(nutritionist.getId());
+        verify(userRepository).findByEmail("nutri@test.com");
         verify(repository).findByNutricionistaId(nutritionist.getId());
     }
 
     @Test
-    @DisplayName("getByNutritionist - deve lançar NotFoundException quando nutricionista não existe")
+    @DisplayName("getByNutritionist - deve lançar NotFoundException quando nutricionista logado não existe no banco")
     void getByNutritionist_DeveLancarExcecaoQuandoNutriNaoExiste() {
-        when(userRepository.existsById(999)).thenReturn(false);
+        when(userRepository.findByEmail("nutri@test.com")).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.getByNutritionist(999));
-        verify(userRepository).existsById(999);
-        verify(repository, never()).findByNutricionistaId(any());
+        verify(userRepository).findByEmail("nutri@test.com");
     }
 
     // ---------- updateScheduling ----------
@@ -235,24 +249,25 @@ class SchedulingServiceTest {
     // ---------- deleteScheduling ----------
 
     @Test
-    @DisplayName("deleteScheduling - deve deletar quando existir")
+    @DisplayName("deleteScheduling - deve marcar deletedAt quando existir")
     void deleteScheduling_DeveDeletarQuandoExiste() {
-        when(repository.existsById(100)).thenReturn(true);
+        when(repository.findById(100)).thenReturn(Optional.of(scheduling));
+        when(repository.save(scheduling)).thenReturn(scheduling);
 
         service.deleteScheduling(100);
 
-        verify(repository).existsById(100);
-        verify(repository).deleteById(100);
+        verify(repository).findById(100);
+        verify(repository).save(scheduling);
     }
 
     @Test
     @DisplayName("deleteScheduling - deve lançar NotFoundException quando agendamento não existe")
     void deleteScheduling_DeveLancarExcecaoQuandoNaoExiste() {
-        when(repository.existsById(100)).thenReturn(false);
+        when(repository.findById(100)).thenReturn(Optional.empty());
 
         assertThrows(NotFoundException.class, () -> service.deleteScheduling(100));
-        verify(repository).existsById(100);
-        verify(repository, never()).deleteById(any());
+        verify(repository).findById(100);
+        verify(repository, never()).save(any());
     }
 
     // ---------- updateDate ----------
