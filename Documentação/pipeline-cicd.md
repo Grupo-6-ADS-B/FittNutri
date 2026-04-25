@@ -465,17 +465,60 @@ O CI roda em todo push e deve ser rápido e leve. Provisionar infraestrutura AWS
 ### O que o workflow executa
 
 ```
-1. Checkout do código
-2. Configurar credenciais AWS (via secrets)
-3. Validar credenciais (aws sts get-caller-identity)
-4. Instalar Terraform 1.9.0
-5. Criar lab.tfvars a partir do secret TF_LAB_VARS
-6. terraform init
-7. terraform plan   (sempre roda)
-8. terraform apply  (só se action == apply)
-9. terraform destroy (só se action == destroy)
-10. Mostrar outputs  (só após apply)
+1.  Checkout do código
+2.  Configurar credenciais AWS (via secrets)
+3.  Validar credenciais (aws sts get-caller-identity)
+4.  Instalar Terraform 1.9.0
+5.  Criar lab.tfvars a partir do secret TF_LAB_VARS
+6.  terraform init  (conecta ao backend S3 para buscar o estado)
+7.  terraform plan  (sempre roda)
+8.  terraform apply (só se action == apply)
+9.  terraform destroy (só se action == destroy)
+10. Mostrar outputs (só após apply)
 ```
+
+> **Node.js 24:** o workflow define `FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true` para garantir compatibilidade com a versão atual do runner do GitHub Actions.
+
+### Como o lab.tfvars é criado
+
+O secret `TF_LAB_VARS` contém o conteúdo completo do arquivo `lab.tfvars`. Durante o workflow, ele é escrito em disco usando `printf` via variável de ambiente — essa abordagem evita corrupção de caracteres especiais (`@`, `!`, `─`) que ocorre quando o conteúdo é expandido diretamente no shell:
+
+```yaml
+- name: Criar lab.tfvars a partir do secret
+  env:
+    TF_LAB_VARS: ${{ secrets.TF_LAB_VARS }}
+  run: |
+    printf '%s\n' "$TF_LAB_VARS" > terraform/contas/lab.tfvars
+    head -20 terraform/contas/lab.tfvars   # exibe as primeiras 20 linhas no log
+```
+
+As credenciais AWS **não ficam no `lab.tfvars`** — elas são injetadas pelo step 2 via `configure-aws-credentials`.
+
+---
+
+### Estado do Terraform — backend S3
+
+O Terraform precisa de um **arquivo de estado** (`terraform.tfstate`) para saber quais recursos já existem na AWS. Por padrão esse arquivo ficaria no runner do GitHub Actions, que é destruído ao final de cada execução — fazendo o `destroy` não encontrar nada para deletar.
+
+Para resolver isso, o estado é armazenado em um bucket S3 dedicado:
+
+```
+Bucket: fittnutri-terraform-state-471112790525
+Chave:  fittnutri/terraform.tfstate
+Região: us-east-1
+```
+
+Com o backend S3 configurado, o fluxo funciona corretamente entre sessões:
+
+```
+terraform apply  → cria recursos → salva estado no S3
+                                         ↓
+terraform destroy → lê estado do S3 → destrói exatamente o que foi criado
+```
+
+> **Importante:** nunca delete o bucket `fittnutri-terraform-state-471112790525`. Sem ele o Terraform perde o rastreamento de todos os recursos provisionados.
+
+---
 
 ### Fluxo a cada sessão de lab
 
@@ -543,7 +586,7 @@ Nenhuma senha ou chave fica no código. Tudo está nos **GitHub Secrets**:
 | `JWT_SECRET` | `main.yml` | Chave JWT para os testes do backend |
 | `NVD_API_KEY` | `main.yml` | Chave para o banco de CVEs do OWASP |
 | `VITE_API_URL` | `main.yml` | URL da API injetada no build do frontend |
-| `TF_LAB_VARS` | `terraform.yml` | Conteúdo completo do `lab.tfvars` (senhas, domínio, configurações) |
+| `TF_LAB_VARS` | `terraform.yml` | Conteúdo completo do `lab.tfvars` (senhas, domínio, configurações) — escrito via `printf` para preservar caracteres especiais |
 | `AWS_REGION` | `terraform.yml` | Região AWS (`us-east-1`) |
 
 ### Secrets que mudam a cada sessão de lab
@@ -583,6 +626,7 @@ Os secrets são variáveis criptografadas que o GitHub injeta na máquina virtua
 | terraform plan | ✅ Configurado | Sempre roda — mostra o que será feito |
 | terraform apply | ✅ Configurado | Roda apenas quando ação `apply` é escolhida |
 | terraform destroy | ✅ Configurado | Roda apenas quando ação `destroy` é escolhida |
+| Backend S3 (estado) | ✅ Configurado | Estado salvo em `fittnutri-terraform-state-471112790525` |
 | Credenciais AWS (lab) | ⚠️ Manual | Precisam ser atualizadas a cada ~4h no GitHub Secrets |
 
 ---
