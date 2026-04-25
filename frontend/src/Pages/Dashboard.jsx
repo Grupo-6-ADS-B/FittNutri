@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Container, CssBaseline, Card, Typography, Button, Chip, Tabs, Tab, Grid, Divider, Tooltip as MuiTooltip } from '@mui/material';
+import { Box, Pagination, Container, CssBaseline, Card, Typography, Button, Chip, Tabs, Tab, Grid, Divider, Tooltip as MuiTooltip } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import BalanceIcon from '@mui/icons-material/Balance';
@@ -65,6 +65,8 @@ export default function Dashboard() {
   const [kpiTrends, setKpiTrends] = useState({ imc: null, gordura: null, massaMuscular: null, gorduraVisceral: null });
   const [pdfLoading, setPdfLoading] = useState(false);
   const [latestMotivoConsulta, setLatestMotivoConsulta] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
 
   let userId = location.state?.user?.id || location.state?.pacienteId;
@@ -108,7 +110,7 @@ export default function Dashboard() {
 
   React.useEffect(() => {
     if (userId && startDate && endDate) fetchEvolution(userId);
-  }, [userId, startDate, endDate]);
+  }, [userId, startDate, endDate, currentPage]);
 
   React.useEffect(() => {
     if (evolution.length > 0) {
@@ -174,10 +176,12 @@ export default function Dashboard() {
     }
     try {
       const res = await api.get(`/patient-history/evolucao/${pacienteId}`, {
-        params: { dataInicio: startDate, dataFim: endDate }
+        params: { dataInicio: startDate, dataFim: endDate, page: Math.max(currentPage - 1, 0) }
       });
+      const total = Number(res.data?.totalPages) || 1;
       const data = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
       setEvolution(data);
+      setTotalPages(Math.max(total, 1));
     } catch (err) {
       console.error('Erro ao buscar evolução:', err);
       alert(`Erro: ${err.message}`);
@@ -338,7 +342,10 @@ export default function Dashboard() {
   // ---------------------------------------------------------------------------
   const HistoricoDadosPaciente = () => {
     const [tab, setTab] = useState(0);
-
+const handlePageChange = (_, newPage) => {
+    if (newPage === currentPage) return;
+    setCurrentPage(newPage);
+  };
     return (
       <Box>
         <Typography variant="h6" fontWeight="bold" mb={2}>
@@ -361,6 +368,28 @@ export default function Dashboard() {
               ? <DataTable data={{ ...evolution[tab], motivoConsulta: evolution[tab]?.motivoConsulta || patientMotivoConsulta || '' }} />
               : <Typography>Sem dados</Typography>}
           </Box>
+           <Box
+                            sx={{
+                              mt: 3,
+                              display: 'flex',
+                              flexDirection: { xs: 'column', sm: 'row' },
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: 1.5,
+                            }}
+                          >
+                            <Typography variant="body2" color="text.secondary">
+                              Página {currentPage} de {totalPages}
+                            </Typography>
+                            <Pagination
+                              color="success"
+                              page={currentPage}
+                              count={totalPages}
+                              onChange={handlePageChange}
+                              showFirstButton
+                              showLastButton
+                            />
+                          </Box>
         </Box>
       </Box>
     );

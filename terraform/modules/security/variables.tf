@@ -14,14 +14,14 @@ variable "vpc_id" {
 }
 
 variable "vpc_cidr" {
-  description = "CIDR block da VPC"
+  description = "CIDR block da VPC (usado para trafego interno da route table NAT)"
   type        = string
 }
 
-variable "ssh_allowed_cidrs" {
-  description = "CIDRs permitidos para SSH"
+variable "alb_allowed_cidrs" {
+  description = "CIDRs permitidos nas portas 80/443 do ALB (ex: [\"SEU.IP/32\"])"
   type        = list(string)
-  default     = []
+  default     = ["0.0.0.0/0"]
 }
 
 variable "tags" {

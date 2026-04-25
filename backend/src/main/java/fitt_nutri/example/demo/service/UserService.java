@@ -27,11 +27,11 @@ public class UserService {
 
     public UserModel createUser(UserRequestDTO dto) {
         if (userRepository.existsByEmail(dto.email())) {
-            throw new ConflictException("Email já existe");
+            throw new ConflictException("Email já cadastrado");
         } else if (userRepository.existsByCpf(dto.cpf())) {
-            throw new ConflictException("CPF já existe");
+            throw new ConflictException("CPF já cadastrado");
         } else if (userRepository.findByCrn(dto.crn()).isPresent()) {
-            throw new ConflictException("CRN já existe");
+            throw new ConflictException("CRN já cadastrado");
         }
 
         UserModel user = new UserModel();
@@ -90,11 +90,11 @@ public class UserService {
         UserModel user = userRepository.findById(id).get();
 
         if (!user.getEmail().equals(dto.email()) && userRepository.existsByEmail(dto.email())) {
-            throw new ConflictException("Email já existe");
+            throw new ConflictException("Email já cadastrado");
         } else if (!user.getCpf().equals(dto.cpf()) && userRepository.existsByCpf(dto.cpf())) {
-            throw new ConflictException("CPF já existe");
+            throw new ConflictException("CPF já cadastrado");
         } else if (!user.getCrn().equals(dto.crn()) && userRepository.findByCrn(dto.crn()).isPresent()) {
-            throw new ConflictException("CRN já existe");
+            throw new ConflictException("CRN já cadastrado");
         }
 
         user.setNome(dto.nome());
@@ -122,19 +122,19 @@ public class UserService {
             } else if ("email".equals(key)) {
                 String email = (String) value;
                 if (!user.getEmail().equals(email) && userRepository.existsByEmail(email)) {
-                    throw new ConflictException("Email já existe");
+                    throw new ConflictException("Email já cadastrado");
                 }
                 user.setEmail(email);
             } else if ("cpf".equals(key)) {
                 String cpf = (String) value;
                 if (!user.getCpf().equals(cpf) && userRepository.existsByCpf(cpf)) {
-                    throw new ConflictException("CPF já existe");
+                    throw new ConflictException("CPF já cadastrado");
                 }
                 user.setCpf(cpf);
             } else if ("crn".equals(key)) {
                 String crn = (String) value;
                 if (!user.getCrn().equals(crn) && userRepository.findByCrn(crn).isPresent()) {
-                    throw new ConflictException("CRN já existe");
+                    throw new ConflictException("CRN já cadastrado");
                 }
                 user.setCrn(crn);
             } else if ("senha".equals(key)) {

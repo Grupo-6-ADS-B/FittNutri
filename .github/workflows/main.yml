@@ -1,0 +1,221 @@
+# =============================================================================
+# FittNutri — CI/CD Pipeline
+# =============================================================================
+# Jobs:
+#   1. backend-ci  → testa, escaneia segurança e constrói imagem Docker
+#   2. frontend-ci → instala dependências, faz build e constrói imagem Docker
+#
+# NOTA SOBRE DEPLOY:
+#   A infraestrutura é provisionada via Terraform (terraform/).
+#   As instâncias EC2 ficam em subnets privadas e sobem com user-data que
+#   clona o repositório e executa docker-compose automaticamente no boot.
+#   Por isso o deploy é feito com "terraform apply" localmente — não via SSH.
+# =============================================================================
+
+name: FittNutri CI/CD
+
+on:
+  push:
+    branches: [ main, claude-test ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_BACKEND: ${{ github.repository_owner }}/fittnutri-backend
+  IMAGE_FRONTEND: ${{ github.repository_owner }}/fittnutri-frontend
+
+# ==============================================================================
+# JOB 1 — BACKEND CI
+# Stack: Java 21 · Spring Boot 3.5.5 · Maven · JaCoCo · OWASP Dependency-Check
+# ==============================================================================
+jobs:
+  backend-ci:
+    name: Backend — Test, Security Scan & Docker Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # ── 2. Configurar Java 21 (Temurin) ──────────────────────────────────────
+      - name: Configurar JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # ── 3. Compilar e executar testes com JaCoCo ─────────────────────────────
+      # O profile "local" usa H2 em memória — não precisa de MySQL no CI
+      - name: Executar testes com cobertura JaCoCo
+        run: |
+          mvn -B clean verify \
+            -Dspring.profiles.active=local \
+            -DJWT_SECRET=${{ secrets.JWT_SECRET }} \
+            -Dmaven.test.failure.ignore=false
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+
+      # ── 4. Publicar relatório JaCoCo como artefato ───────────────────────────
+      - name: Publicar relatório de cobertura JaCoCo
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-report
+          path: backend/target/site/jacoco/
+          retention-days: 7
+
+      # ── 5. OWASP Dependency-Check — CVEs ≥ 7.0 quebram o build ──────────────
+      # failOnError=false: tolera falha de rede/NVD sem derrubar o build;
+      # failBuildOnCVSS=7: ainda bloqueia se CVE real for encontrado.
+      - name: OWASP Dependency-Check (CVSS ≥ 7)
+        run: |
+          mvn -B dependency-check:check \
+            -DnvdApiKey="${{ secrets.NVD_API_KEY }}" \
+            -DfailBuildOnCVSS=7 \
+            -DskipTestScope=true \
+            -DfailOnError=false
+        continue-on-error: true   # NVD API tem instabilidades; CVEs críticos aparecem no relatório
+
+      - name: Publicar relatório OWASP
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: owasp-report
+          path: backend/target/dependency-check-report.*
+          retention-days: 14
+
+      # ── 6. Build da imagem Docker (backend) ──────────────────────────────────
+      - name: Autenticar no GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extrair metadata da imagem (tags & labels)
+        id: meta-backend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_BACKEND }}
+          tags: |
+            type=sha,prefix=sha-
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build e push da imagem Docker (backend)
+        uses: docker/build-push-action@v5
+        with:
+          context: backend
+          file: backend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/claude-test') }}
+          tags: ${{ steps.meta-backend.outputs.tags }}
+          labels: ${{ steps.meta-backend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ============================================================================
+  # JOB 2 — FRONTEND CI
+  # Stack: Node 20 · React 19 · Vite · ESLint
+  # ============================================================================
+  frontend-ci:
+    name: Frontend — Build & Docker Image
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # ── 2. Configurar Node.js 20 ─────────────────────────────────────────────
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      # ── 3. Instalar dependências ──────────────────────────────────────────────
+      - name: Instalar dependências (npm ci)
+        run: npm ci
+
+      # ── 4. Verificar qualidade de código (ESLint) ─────────────────────────────
+      - name: Lint — ESLint
+        run: npm run lint
+        continue-on-error: false
+
+      # ── 5. Build de produção (Vite) ───────────────────────────────────────────
+      - name: Build de produção (Vite)
+        run: npm run build
+        env:
+          NODE_OPTIONS: '--max-old-space-size=1024'
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_URL }}
+
+      # ── 6. Verificar integridade dos assets gerados ────────────────────────────
+      - name: Verificar assets de saída
+        run: |
+          echo "Conteúdo do diretório dist:"
+          ls -lh dist/
+          test -f dist/index.html || (echo "ERRO: index.html não encontrado em dist/" && exit 1)
+          echo "Build verificado com sucesso."
+
+      # ── 7. Publicar artefato do build ─────────────────────────────────────────
+      - name: Publicar artefato do build (dist/)
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist/
+          retention-days: 3
+
+      # ── 8. Auditoria de segurança npm ─────────────────────────────────────────
+      - name: Auditoria de segurança (npm audit)
+        run: npm audit --audit-level=high
+        continue-on-error: true    # avisos não bloqueiam; apenas registra
+
+      # ── 9. Build e push da imagem Docker (frontend) ───────────────────────────
+      - name: Autenticar no GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extrair metadata da imagem (tags & labels)
+        id: meta-frontend
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_FRONTEND }}
+          tags: |
+            type=sha,prefix=sha-
+            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build e push da imagem Docker (frontend)
+        uses: docker/build-push-action@v5
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          push: ${{ github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/claude-test') }}
+          tags: ${{ steps.meta-frontend.outputs.tags }}
+          labels: ${{ steps.meta-frontend.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+

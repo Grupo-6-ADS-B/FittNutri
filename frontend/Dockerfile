@@ -14,6 +14,8 @@ RUN npm run build
 FROM nginx:alpine
 
 COPY --from=build /app/dist /usr/share/nginx/html
+RUN chmod -R 644 /usr/share/nginx/html && \
+    find /usr/share/nginx/html -type d -exec chmod 755 {} +
 
 # Configuração para React Router (rotas SPA)
 RUN printf 'server {\n\
