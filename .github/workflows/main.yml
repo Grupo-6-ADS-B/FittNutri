@@ -16,7 +16,7 @@ name: FittNutri CI/CD
 
 on:
   push:
-    branches: [ main, dev, claude-test ]
+    branches: [ main, claude-test ]
   pull_request:
     branches: [ main ]
 
