@@ -56,10 +56,12 @@ Disparado a cada `push` ou `pull_request`:
 ```yaml
 on:
   push:
-    branches: [ main, dev, claude-test ]
+    branches: [ main, claude-test ]
   pull_request:
     branches: [ main ]
 ```
+
+> **A branch `dev` não dispara o pipeline.** O time usa a `dev` com Docker Desktop localmente — push na `dev` não aciona nenhuma verificação automática.
 
 ### terraform.yml — roda manualmente
 
