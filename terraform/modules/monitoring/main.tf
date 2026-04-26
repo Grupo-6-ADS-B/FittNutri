@@ -30,6 +30,7 @@ resource "aws_instance" "monitoring" {
     grafana_admin_password = var.grafana_admin_password
     git_repo               = var.git_repo
     git_branch             = var.git_branch
+    app_domain             = var.app_domain
   })
 
   tags = merge(var.tags, {

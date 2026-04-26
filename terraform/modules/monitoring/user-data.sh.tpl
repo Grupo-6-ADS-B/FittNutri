@@ -24,7 +24,7 @@ mkdir -p /etc/fittnutri
 cat > /etc/fittnutri/grafana.env <<EOF
 GF_SECURITY_ADMIN_USER=${grafana_admin_user}
 GF_SECURITY_ADMIN_PASSWORD=${grafana_admin_password}
-GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana/
+GF_SERVER_ROOT_URL=https://${app_domain}/grafana/
 GF_SERVER_SERVE_FROM_SUB_PATH=true
 EOF
 chmod 600 /etc/fittnutri/grafana.env

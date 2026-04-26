@@ -44,7 +44,7 @@ variable "app_health_check_path" {
 variable "grafana_health_check_path" {
   description = "Caminho de health check para o target group do Grafana"
   type        = string
-  default     = "/api/health"
+  default     = "/grafana/api/health"
 }
 
 variable "tags" {

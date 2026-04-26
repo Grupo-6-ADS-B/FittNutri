@@ -199,6 +199,7 @@ module "monitoring" {
   grafana_admin_password = var.grafana_admin_password
   git_repo               = var.git_repo
   git_branch             = var.git_branch
+  app_domain             = var.acm_domain_name
   register_with_alb      = var.enable_alb
   grafana_target_group_arn = var.enable_alb ? module.alb[0].grafana_target_group_arn : ""
   iam_instance_profile     = var.existing_instance_profile != "" ? var.existing_instance_profile : (var.enable_iam ? module.iam[0].instance_profile_name : "")
