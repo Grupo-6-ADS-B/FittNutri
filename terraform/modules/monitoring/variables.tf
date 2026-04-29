@@ -65,6 +65,12 @@ variable "git_branch" {
   default     = "main"
 }
 
+variable "app_domain" {
+  description = "Domínio público da aplicação (ex: fittnutri.site) usado na ROOT_URL do Grafana"
+  type        = string
+  default     = ""
+}
+
 variable "tags" {
   type    = map(string)
   default = {}

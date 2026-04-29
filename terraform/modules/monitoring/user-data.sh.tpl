@@ -2,7 +2,7 @@
 set -euo pipefail
 exec > /var/log/user-data-monitoring.log 2>&1
 
-echo "=== FittNutri Monitoring boot $$(date) ==="
+echo "=== FittNutri Monitoring boot $(date) ==="
 
 command -v docker >/dev/null 2>&1 || (curl -fsSL https://get.docker.com | sh)
 
@@ -24,7 +24,7 @@ mkdir -p /etc/fittnutri
 cat > /etc/fittnutri/grafana.env <<EOF
 GF_SECURITY_ADMIN_USER=${grafana_admin_user}
 GF_SECURITY_ADMIN_PASSWORD=${grafana_admin_password}
-GF_SERVER_ROOT_URL=%(protocol)s://%(domain)s/grafana/
+GF_SERVER_ROOT_URL=https://${app_domain}/grafana/
 GF_SERVER_SERVE_FROM_SUB_PATH=true
 EOF
 chmod 600 /etc/fittnutri/grafana.env
@@ -60,7 +60,7 @@ EOF
 
 # 5. Dashboard FittNutri — baixa do repositorio e extrai o objeto .dashboard
 DASHBOARD_URL="https://raw.githubusercontent.com/Grupo-6-ADS-B/FittNutri/${git_branch}/terraform/fittnutri-dashboard.json"
-curl -fsSL "$$DASHBOARD_URL" | python3 -c "
+curl -fsSL "$DASHBOARD_URL" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
 dash = data.get('dashboard', data)
@@ -101,7 +101,7 @@ docker run -d \
   --env-file /etc/fittnutri/grafana.env \
   grafana/grafana:latest
 
-echo "=== Containers iniciados $$(date) ==="
+echo "=== Containers iniciados $(date) ==="
 docker ps --format 'table {{.Names}}\t{{.Ports}}'
 
 # 10. Dashboards da comunidade (JVM + Spring Boot) via API em background
@@ -110,31 +110,31 @@ cat > /usr/local/bin/grafana-community-dashboards.sh <<'PROVISION'
 set -euo pipefail
 exec >> /var/log/grafana-provision.log 2>&1
 
-echo "=== Dashboards comunidade: $$(date) ==="
+echo "=== Dashboards comunidade: $(date) ==="
 
-GRAFANA_USER=$$(grep GF_SECURITY_ADMIN_USER /etc/fittnutri/grafana.env | cut -d= -f2 | tr -d '\r\n')
-GRAFANA_PASS=$$(grep GF_SECURITY_ADMIN_PASSWORD /etc/fittnutri/grafana.env | cut -d= -f2 | tr -d '\r\n')
+GRAFANA_USER=$(grep GF_SECURITY_ADMIN_USER /etc/fittnutri/grafana.env | cut -d= -f2 | tr -d '\r\n')
+GRAFANA_PASS=$(grep GF_SECURITY_ADMIN_PASSWORD /etc/fittnutri/grafana.env | cut -d= -f2 | tr -d '\r\n')
 GRAFANA_URL="http://localhost:3000"
 
 echo "Aguardando Grafana..."
-for i in $$(seq 1 40); do
-  if curl -sf "$$GRAFANA_URL/api/health" >/dev/null 2>&1; then
-    echo "Grafana pronto apos $$i tentativas"
+for i in $(seq 1 40); do
+  if curl -sf "$GRAFANA_URL/api/health" >/dev/null 2>&1; then
+    echo "Grafana pronto apos $i tentativas"
     break
   fi
   sleep 5
 done
 
 import_dashboard() {
-  local id=$$1
-  local name=$$2
-  echo "Importando $$name (id=$$id)..."
+  local id=$1
+  local name=$2
+  echo "Importando $name (id=$id)..."
   local json
-  json=$$(curl -fsSL "https://grafana.com/api/dashboards/$$id/revisions/latest/download") || { echo "Falha ao baixar $$name"; return; }
-  curl -sf -X POST "$$GRAFANA_URL/api/dashboards/import" \
-    -u "$$GRAFANA_USER:$$GRAFANA_PASS" \
+  json=$(curl -fsSL "https://grafana.com/api/dashboards/$id/revisions/latest/download") || { echo "Falha ao baixar $name"; return; }
+  curl -sf -X POST "$GRAFANA_URL/api/dashboards/import" \
+    -u "$GRAFANA_USER:$GRAFANA_PASS" \
     -H "Content-Type: application/json" \
-    --data-binary "{\"dashboard\":$$json,\"overwrite\":true,\"inputs\":[{\"name\":\"DS_PROMETHEUS\",\"type\":\"datasource\",\"pluginId\":\"prometheus\",\"value\":\"Prometheus\"}]}" \
+    --data-binary "{\"dashboard\":$json,\"overwrite\":true,\"inputs\":[{\"name\":\"DS_PROMETHEUS\",\"type\":\"datasource\",\"pluginId\":\"prometheus\",\"value\":\"Prometheus\"}]}" \
     2>&1 | head -c 200
   echo ""
 }
@@ -142,10 +142,10 @@ import_dashboard() {
 import_dashboard 4701  "JVM Micrometer"
 import_dashboard 12900 "Spring Boot APM"
 
-echo "=== Dashboards comunidade concluidos: $$(date) ==="
+echo "=== Dashboards comunidade concluidos: $(date) ==="
 PROVISION
 
 chmod +x /usr/local/bin/grafana-community-dashboards.sh
 nohup /usr/local/bin/grafana-community-dashboards.sh &
 
-echo "=== Monitoring up $$(date) ==="
+echo "=== Monitoring up $(date) ==="

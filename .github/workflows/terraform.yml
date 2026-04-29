@@ -30,6 +30,9 @@ on:
 permissions:
   contents: read
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   terraform:
     name: Terraform ${{ github.event.inputs.action }}
@@ -66,10 +69,14 @@ jobs:
       # O secret TF_LAB_VARS contém o conteúdo completo do lab.tfvars local.
       # As credenciais AWS NÃO precisam estar no tfvars — vêm do step 2.
       - name: Criar lab.tfvars a partir do secret
+        env:
+          TF_LAB_VARS: ${{ secrets.TF_LAB_VARS }}
         run: |
           mkdir -p terraform/contas
-          echo "${{ secrets.TF_LAB_VARS }}" > terraform/contas/lab.tfvars
+          printf '%s\n' "$TF_LAB_VARS" > terraform/contas/lab.tfvars
           echo "lab.tfvars criado com sucesso."
+          echo "--- Conteúdo gerado (primeiras 20 linhas) ---"
+          head -20 terraform/contas/lab.tfvars
 
       # ── 6. Terraform Init ─────────────────────────────────────────────────────
       - name: Terraform Init
