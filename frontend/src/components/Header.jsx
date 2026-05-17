@@ -13,6 +13,7 @@ import {
   MenuItem,
   Divider
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import logo from '/logo.jpg';
 import api from '../utils/api'; 
 
@@ -26,6 +27,7 @@ function Header({
   onScrollToReviews
 }) {
   const navigate = useNavigate();
+  const theme = useTheme();
   const location = useLocation();
   const showLinks = location?.pathname === '/';
   const showButtons = location?.pathname === '/login' || location?.pathname === '/auth' || location?.pathname === '/';
@@ -117,9 +119,9 @@ function Header({
       position="sticky" 
       elevation={0}
       sx={{
-        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backgroundColor: alpha(theme.palette.background.paper, 0.96),
         backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+        borderBottom: `1px solid ${theme.palette.divider}`,
         color: 'text.primary'
       }}
     >
@@ -202,7 +204,7 @@ function Header({
                     width: 40, 
                     height: 40, 
                     cursor: 'pointer', 
-                    backgroundColor: '#2e7d32',
+                    backgroundColor: theme.palette.primary.main,
                     img: {
                       referrerPolicy: 'no-referrer'
                     }
@@ -225,9 +227,11 @@ function Header({
                 anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                 transformOrigin={{ vertical: 'top', horizontal: 'right' }}
                 PaperProps={{
-                  className: 'mt-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl',
+                  className: 'mt-2 w-64 overflow-hidden rounded-xl border shadow-xl',
                   sx: {
-                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.16)'
+                    bgcolor: 'background.paper',
+                    borderColor: 'divider',
+                    boxShadow: theme.shadows[4]
                   }
                 }}
               >

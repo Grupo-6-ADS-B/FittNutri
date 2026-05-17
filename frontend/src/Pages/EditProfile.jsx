@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Avatar, Box, Button, Paper, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { alpha, useTheme } from '@mui/material/styles';
 import api from '../utils/api';
 
 export default function EditProfile() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const [name, setName] = useState('');
@@ -89,9 +91,9 @@ export default function EditProfile() {
 
   return (
     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>
-      <Paper component="form" onSubmit={handleSave} sx={{ p: 4, width: 560 }}>
+      <Paper component="form" onSubmit={handleSave} sx={{ p: 4, width: 560, bgcolor: 'background.paper', color: 'text.primary', border: `1px solid ${theme.palette.divider}` }}>
         <Box sx={{ display: 'flex', gap: 3, alignItems: 'center', mb: 2 }}>
-          <Avatar src={preview || ''} sx={{ width: 80, height: 80, bgcolor: '#2e7d32' }} />
+          <Avatar src={preview || ''} sx={{ width: 80, height: 80, bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.28 : 1) }} />
           <Box>
             <Typography variant="h6">Editar perfil</Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>Atualize nome, email e foto</Typography>

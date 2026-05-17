@@ -17,12 +17,13 @@ import {
   Divider,
   Stack
 } from "@mui/material";
-import { ThemeProvider } from "@mui/material/styles";
+import { ThemeProvider, useTheme } from "@mui/material/styles";
 import { theme } from "../theme";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export default function UserRegister() {
+  const muiTheme = useTheme();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -342,7 +343,9 @@ export default function UserRegister() {
       <Box
         sx={{
           minHeight: "88vh",
-          background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
+          background: muiTheme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+            : 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
           display: "flex",
           flexDirection: "column",
         }}
@@ -364,7 +367,10 @@ export default function UserRegister() {
               p: 4, 
               maxWidth: 580, 
               width: "100%",
-              borderRadius: 3
+              borderRadius: 3,
+              bgcolor: 'background.paper',
+              color: 'text.primary',
+              border: `1px solid ${muiTheme.palette.divider}`,
             }}
           >
             <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>

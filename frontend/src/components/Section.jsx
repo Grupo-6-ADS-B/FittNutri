@@ -1,8 +1,9 @@
 import { Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 function Section({ 
   children, 
-  background = '#ffffff',
+  background,
   backgroundImage,
   backgroundSize,
   backgroundPosition,
@@ -11,15 +12,17 @@ function Section({
   overlayOpacity,
   ...props 
 }) {
+  const theme = useTheme();
+  const resolvedBackground = background || theme.palette.background.default;
   const backgroundStyle = backgroundImage 
     ? {
         backgroundImage: `url(${backgroundImage})`,
         backgroundSize: backgroundSize || 'cover',
         backgroundPosition: backgroundPosition || 'center',
         backgroundRepeat: backgroundRepeat  || 'no-repeat',
-        backgroundColor: background, 
+        backgroundColor: resolvedBackground, 
       }
-    : { background };
+    : { background: resolvedBackground };
 
   return (
     <Box 

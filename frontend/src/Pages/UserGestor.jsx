@@ -10,6 +10,7 @@ import {
   CircularProgress,
   Pagination,
 } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
 import SearchHeader from '../components/UserGestor/SearchHeader';
 import PatientCard from '../components/UserGestor/PatientCard';
 import ConfirmDialog from '../components/UserGestor/ConfirmDialog';
@@ -24,6 +25,7 @@ import {
 } from '../utils/userGestorUtils';
 
 export default function UserGestor() {
+  const muiTheme = useTheme();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -720,7 +722,9 @@ export default function UserGestor() {
             display: "flex",
             justifyContent: "center",
             p: 3,
-            background: "linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)",
+            background: muiTheme.palette.mode === 'dark'
+              ? "linear-gradient(135deg, #0b1220 0%, #121a2b 100%)"
+              : "linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)",
           }}
         >
           <Box
@@ -733,7 +737,7 @@ export default function UserGestor() {
             }}
           >
             <Box>
-              <Typography variant="h4" sx={{ mt: 5, fontWeight: 700, mb: 3, color: '#1b5e20' }}>
+              <Typography variant="h4" sx={{ mt: 5, fontWeight: 700, mb: 3, color: muiTheme.palette.text.primary }}>
                 Gerenciamento de Pacientes
               </Typography>
 

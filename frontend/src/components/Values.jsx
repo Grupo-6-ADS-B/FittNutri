@@ -1,4 +1,5 @@
 import { Container, Typography, Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { Section } from "./Section";
 import { CardValues as Card } from './CardValues';
 import EmojiObjectsIcon from '@mui/icons-material/EmojiObjects';
@@ -43,18 +44,20 @@ const valores = [
 
 
 function Values() {
+  const theme = useTheme();
   return (
     <Section
       backgroundImage="/fundo-frutas.jpg"
+      overlay={theme.palette.mode === 'dark' ? 'rgba(2, 6, 23, 0.72)' : 'rgba(255,255,255,0.18)'}
       py={{ xs: 6, md: 10 }}
       id="values"
     >
       <Container maxWidth="xl">
         <Box sx={{ textAlign: 'center', mb: 8 }}>
-          <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: '#1a202c', fontSize: { xs: '2rem', md: '2.5rem' } }}>
+          <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: theme.palette.text.primary, fontSize: { xs: '2rem', md: '2.5rem' } }}>
             Conheça a nossa missão e valores
           </Typography>
-          <Typography variant="h6" sx={{ color: '#4a5568', maxWidth: '900px', mx: 'auto', lineHeight: 1.6, fontWeight: 400 }}>
+          <Typography variant="h6" sx={{ color: theme.palette.text.secondary, maxWidth: '900px', mx: 'auto', lineHeight: 1.6, fontWeight: 400 }}>
             Nossa missão é uma plataforma completa e intuitiva que facilite o trabalho de nutricionistas, promovendo mais eficiência no atendimento e saúde de qualidade para todos.
           </Typography>
         </Box>

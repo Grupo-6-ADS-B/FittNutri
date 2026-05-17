@@ -13,6 +13,7 @@ import {
   Stack,
   Container,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { 
   Email as EmailIcon, 
   Lock as LockIcon, 
@@ -24,6 +25,7 @@ import api from '../utils/api';
 
 
 function LoginForm() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState('');
@@ -60,7 +62,6 @@ function LoginForm() {
     
     sessionStorage.removeItem('token');
     localStorage.removeItem('token');
-    
     try {
       const { data: body } = await api.post('/users/login', {
         email: data.email,
@@ -82,7 +83,6 @@ function LoginForm() {
         localStorage.setItem('nomeUsuario', body.nome);
       }
       const nome = body?.nome;
-      setSuccess(`Login realizado com sucesso${nome ? `! Bem-vindo(a), ${nome}` : '!'}`);
       navigate(from, { replace: true });
     } catch (err) {
        const responseData = err.response?.data;
@@ -217,7 +217,6 @@ function LoginForm() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-       
         py: { xs: 4, md: 8 },
         height: '90vh',
         px: 2,
@@ -227,18 +226,18 @@ function LoginForm() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-    <Box
+      <Box
         sx={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(0,0,0,0.28)',
+          background: theme.palette.mode === 'dark' ? 'rgba(2, 6, 23, 0.72)' : 'rgba(0,0,0,0.28)',
           zIndex: 0,
-          backdropFilter: 'blur(4px)',         
+          backdropFilter: 'blur(4px)',
         }}
       />
 
       <GoogleOAuthProvider clientId={googleClientId}>
-      <Container sx={{ position: 'relative', zIndex: 2, maxWidth: '500px !important', border: '1px solid #ddd', borderRadius: '8px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', backgroundColor: 'rgba(255,255,255,0.96)' }}>
+        <Container sx={{ position: 'relative', zIndex: 2, maxWidth: '500px !important', border: `1px solid ${theme.palette.divider}`, borderRadius: '8px', padding: '24px', boxShadow: theme.shadows[3], backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.9 : 0.96), color: theme.palette.text.primary }}>
         {!showRecovery ? (
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
             <Stack spacing={3}>
