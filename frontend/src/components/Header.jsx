@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   AppBar, 
@@ -7,7 +7,11 @@ import {
   Box, 
   Button,
   Stack,
-  Avatar
+  Avatar,
+  IconButton,
+  Menu,
+  MenuItem,
+  Divider
 } from '@mui/material';
 import logo from '/logo.jpg';
 import api from '../utils/api'; 
@@ -28,6 +32,9 @@ function Header({
   const userName = sessionStorage.getItem('nomeUsuario');
   const userId = sessionStorage.getItem('idUsuario');
   const [userPhoto, setUserPhoto] = useState(sessionStorage.getItem('fotoUsuario') || localStorage.getItem('fotoUsuario'));
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const userMenuRef = useRef(null);
+  const menuOpen = Boolean(anchorEl);
 
   useEffect(() => {
     const loadUserPhoto = async () => {
@@ -62,11 +69,35 @@ function Header({
     if (userId) {
       loadUserPhoto();
     }
+
+    const handleUserPhotoUpdate = () => {
+      const storedPhoto = sessionStorage.getItem('fotoUsuario') || localStorage.getItem('fotoUsuario') || '';
+      setUserPhoto(storedPhoto);
+      if (!storedPhoto && userId) {
+        loadUserPhoto();
+      }
+    };
+
+    window.addEventListener('user-profile-updated', handleUserPhotoUpdate);
+    window.addEventListener('storage', handleUserPhotoUpdate);
+
+    return () => {
+      window.removeEventListener('user-profile-updated', handleUserPhotoUpdate);
+      window.removeEventListener('storage', handleUserPhotoUpdate);
+    };
   }, [userId]);
   
   const handleBack = () => {
     if (onBackToHome) return onBackToHome();
     navigate('/');
+  };
+
+  const handleMenuOpen = (event) => {
+    setAnchorEl(userMenuRef.current || event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
   };
 
   const handleLogout = () => {
@@ -155,28 +186,58 @@ function Header({
               </Button>
             </>
           ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <Avatar 
-                alt="User Avatar" 
-                src={userPhoto || ''}
-                sx={{ 
-                  width: 40, 
-                  height: 40, 
-                  cursor: 'pointer', 
-                  backgroundColor: '#2e7d32',
-                  img: {
-                    referrerPolicy: 'no-referrer'
+            <Box ref={userMenuRef} sx={{ display: 'flex', alignItems: 'center', gap: 2, position: 'relative' }}>
+              <IconButton
+                onClick={handleMenuOpen}
+                size="small"
+                aria-controls={menuOpen ? 'user-menu' : undefined}
+                aria-haspopup="true"
+                aria-expanded={menuOpen ? 'true' : undefined}
+                sx={{ p: 0 }}
+              >
+                <Avatar 
+                  alt="User Avatar" 
+                  src={userPhoto || ''}
+                  sx={{ 
+                    width: 40, 
+                    height: 40, 
+                    cursor: 'pointer', 
+                    backgroundColor: '#2e7d32',
+                    img: {
+                      referrerPolicy: 'no-referrer'
+                    }
+                  }}
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    console.warn('Erro ao carregar foto do usuário. URL:', userPhoto);
+                  }}
+                >
+                  {userName ? userName.charAt(0).toUpperCase() : 'U'}
+                </Avatar>
+              </IconButton>
+              <Typography variant="body1" sx={{ fontWeight: 500 }}>Bem vindo, {userName}!</Typography>
+
+              <Menu
+                anchorEl={anchorEl}
+                open={menuOpen}
+                onClose={handleMenuClose}
+                onClick={handleMenuClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                PaperProps={{
+                  className: 'mt-2 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl',
+                  sx: {
+                    boxShadow: '0 12px 30px rgba(15, 23, 42, 0.16)'
                   }
                 }}
-                crossOrigin="anonymous"
-                onError={(e) => {
-                  console.warn('Erro ao carregar foto do usuário. URL:', userPhoto);
-                }}
               >
-                {userName ? userName.charAt(0).toUpperCase() : 'U'}
-              </Avatar>
-              <Typography variant="body1" sx={{ fontWeight: 500 }}>Bem vindo, {userName}!</Typography>
-              <Button sx={{border: '1px solid rgba(46, 139, 87, 0.3)', borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }} onClick={handleLogout}>Sair</Button>
+                <MenuItem onClick={() => navigate('/profile')}>Ver perfil</MenuItem>
+                <MenuItem onClick={() => navigate('/profile/edit')}>Editar informações</MenuItem>
+                <MenuItem onClick={() => navigate('/profile/password')}>Alterar senha</MenuItem>
+                <MenuItem onClick={() => navigate('/settings')}>Configurações</MenuItem>
+                <Divider />
+                <MenuItem onClick={handleLogout}>Sair</MenuItem>
+              </Menu>
             </Box>
           )}
         </Stack>

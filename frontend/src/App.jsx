@@ -15,6 +15,10 @@ import Diet from "./Pages/Diet";
 import Dashboard from "./Pages/Dashboard";
 import PatientRegister from './Pages/PatientRegister';
 import { restoreUserDataFromBackend } from './utils/userDataRestorer';
+import Profile from './Pages/Profile';
+import EditProfile from './Pages/EditProfile';
+import Settings from './Pages/Settings';
+import ChangePassword from './Pages/ChangePassword';
 
 function isAuthenticated() {
   return Boolean(localStorage.getItem('token') || sessionStorage.getItem('token'));
@@ -101,6 +105,10 @@ function App() {
                 <Route path="/gestor" element={<UserGestor />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/diet" element={<Diet />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/edit" element={<EditProfile />} />
+                <Route path="/profile/password" element={<ChangePassword />} />
+                <Route path="/settings" element={<Settings />} />
               </Route>
             </Route>
           </Routes>

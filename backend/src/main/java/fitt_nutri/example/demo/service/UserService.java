@@ -139,6 +139,8 @@ public class UserService {
                 user.setCrn(crn);
             } else if ("senha".equals(key)) {
                 user.setSenha(passwordEncoder.encode((String) value));
+            } else if ("foto".equals(key)) {
+                user.setFoto((String) value);
             }
         }
 
