@@ -11,11 +11,15 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Divider
+  Divider,
+  Tooltip
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 import logo from '/logo.jpg';
 import api from '../utils/api'; 
+import { useThemeMode } from '../contexts/ThemeModeContext';
 
 function Header({
   onSwitchToLogin,
@@ -28,6 +32,7 @@ function Header({
 }) {
   const navigate = useNavigate();
   const theme = useTheme();
+  const { mode, toggleMode } = useThemeMode();
   const location = useLocation();
   const showLinks = location?.pathname === '/';
   const showButtons = location?.pathname === '/login' || location?.pathname === '/auth' || location?.pathname === '/';
@@ -176,7 +181,26 @@ function Header({
           </Button>
         </Stack>)}
 
+
         <Stack direction="row" spacing={2} alignItems="center">
+          {showLinks && (
+  <Tooltip title={mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}>
+            <IconButton
+              onClick={toggleMode}
+              aria-label={mode === 'dark' ? 'Ativar tema claro' : 'Ativar tema escuro'}
+              sx={{
+                border: `1px solid ${theme.palette.divider}`,
+                bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.4 : 0.9),
+                color: theme.palette.text.primary,
+                '&:hover': {
+                  bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.22 : 0.08),
+                },
+              }}
+            >
+              {mode === 'dark' ? <Brightness7Icon fontSize="small" /> : <Brightness4Icon fontSize="small" />}
+            </IconButton>
+          </Tooltip>
+  )}
           {showButtons ? (
             <>
               <Button variant="outlined" color="primary" onClick={() => onSwitchToLogin?.()} sx={{ borderRadius: 3, px: 3, py: 1.5, borderWidth: 2, '&:hover': { backgroundColor: 'rgba(46,125,50,0.08)', borderWidth: 2, transform: 'translateY(-1px)' } }}>

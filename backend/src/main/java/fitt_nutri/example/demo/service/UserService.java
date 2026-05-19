@@ -25,8 +25,21 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private String normalizarEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
+    }
+
+    private boolean emailEmUsoPorOutroUsuario(Integer id, String email) {
+        String emailNormalizado = normalizarEmail(email);
+        return userRepository.findByEmail(emailNormalizado)
+                .filter(usuario -> !usuario.getId().equals(id))
+                .isPresent();
+    }
+
     public UserModel createUser(UserRequestDTO dto) {
-        if (userRepository.existsByEmail(dto.email())) {
+        String email = normalizarEmail(dto.email());
+
+        if (userRepository.existsByEmail(email)) {
             throw new ConflictException("Email já cadastrado");
         } else if (userRepository.existsByCpf(dto.cpf())) {
             throw new ConflictException("CPF já cadastrado");
@@ -36,7 +49,7 @@ public class UserService {
 
         UserModel user = new UserModel();
         user.setNome(dto.nome());
-        user.setEmail(dto.email());
+        user.setEmail(email);
         user.setCpf(dto.cpf());
         user.setCrn(dto.crn());
         user.setSenha(passwordEncoder.encode(dto.senha()));
@@ -88,8 +101,9 @@ public class UserService {
         }
 
         UserModel user = userRepository.findById(id).get();
+        String email = normalizarEmail(dto.email());
 
-        if (!user.getEmail().equals(dto.email()) && userRepository.existsByEmail(dto.email())) {
+        if (emailEmUsoPorOutroUsuario(id, email)) {
             throw new ConflictException("Email já cadastrado");
         } else if (!user.getCpf().equals(dto.cpf()) && userRepository.existsByCpf(dto.cpf())) {
             throw new ConflictException("CPF já cadastrado");
@@ -98,7 +112,7 @@ public class UserService {
         }
 
         user.setNome(dto.nome());
-        user.setEmail(dto.email());
+        user.setEmail(email);
         user.setCpf(dto.cpf());
         user.setCrn(dto.crn());
         user.setSenha(passwordEncoder.encode(dto.senha()));
@@ -120,8 +134,8 @@ public class UserService {
             if ("nome".equals(key)) {
                 user.setNome((String) value);
             } else if ("email".equals(key)) {
-                String email = (String) value;
-                if (!user.getEmail().equals(email) && userRepository.existsByEmail(email)) {
+                String email = normalizarEmail((String) value);
+                if (emailEmUsoPorOutroUsuario(id, email)) {
                     throw new ConflictException("Email já cadastrado");
                 }
                 user.setEmail(email);

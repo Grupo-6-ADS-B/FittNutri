@@ -338,20 +338,26 @@ function LoginForm() {
                       sx={{
                         py: 2,
                         px: 4,
-                        borderColor: '#2e7d32', // verde do tema
-                        color: '#2e7d32',
+                        borderColor: theme.palette.divider,
+                        color: theme.palette.text.primary,
+                        backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.16 : 0.96),
                         fontWeight: 600,
                         fontSize: '1.1rem',
                         borderRadius: '30px',
-                        boxShadow: '0 2px 8px rgba(46,125,50,0.08)',
+                        boxShadow: theme.shadows[1],
                         minWidth: 260,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 2,
                         '&:hover': {
-                          borderColor: '#1b5e20',
-                          background: 'rgba(46,125,50,0.04)'
+                          borderColor: theme.palette.primary.main,
+                          background: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.18 : 0.06),
+                          boxShadow: theme.shadows[2],
+                        },
+                        '&:focus-visible': {
+                          outline: `2px solid ${theme.palette.primary.main}`,
+                          outlineOffset: 2,
                         }
                       }}
                       fullWidth={false}

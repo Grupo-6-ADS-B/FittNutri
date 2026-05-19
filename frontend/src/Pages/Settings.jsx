@@ -27,7 +27,6 @@ export default function Settings() {
             Alternar para {mode === 'dark' ? 'claro' : 'escuro'}
           </Button>
           <Button variant="outlined" onClick={() => navigate('/gestor')}>Voltar ao gerenciamento</Button>
-          <Button variant="outlined" onClick={() => navigate('/profile/password')}>Alterar senha</Button>
         </Box>
       </Paper>
     </Box>
