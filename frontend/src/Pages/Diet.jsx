@@ -175,16 +175,16 @@ const handleSendToS3 = async () => {
     try {
       await api.delete(`/meals/${id}`);
       setMeals(prev => prev.filter(m => m.id !== id));
-      alert('Refeição deletada com sucesso!');
+      openSnack('Refeição deletada com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao deletar refeição:', error);
-      alert('Erro ao deletar refeição.');
+      openSnack('Erro ao deletar refeição.', 'error');
     }
   };
 
   const handleClearDiet = async () => {
     if (meals.length === 0) {
-      alert('Não há refeições para limpar.');
+      openSnack('Não há refeições para limpar.', 'info');
       return;
     }
 
@@ -197,10 +197,10 @@ const handleSendToS3 = async () => {
     try {
       await Promise.all(meals.map(meal => api.delete(`/meals/${meal.id}`)));
       setMeals([]);
-      alert('Todas as refeições foram removidas com sucesso!');
+      openSnack('Todas as refeições foram removidas com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao limpar dieta:', error);
-      alert('Erro ao limpar algumas refeições. Verifique o console.');
+      openSnack('Erro ao limpar algumas refeições. Verifique o console.', 'error');
       loadMeals();
     }
   };
