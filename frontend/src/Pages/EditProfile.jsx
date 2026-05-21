@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Avatar, Box, Button, Paper, TextField, Typography } from '@mui/material';
+import { Alert, Avatar, Box, Button, Paper, Snackbar, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { alpha, useTheme } from '@mui/material/styles';
 import api from '../utils/api';
@@ -82,7 +82,6 @@ export default function EditProfile() {
 
       setSuccess('Informações atualizadas com sucesso.');
       setAvatarFile(null);
-      navigate('/profile');
     } catch (err) {
       const message = err?.response?.data?.message || err?.response?.data?.error || 'Erro ao atualizar o usuário.';
       setError(message);
@@ -101,7 +100,6 @@ export default function EditProfile() {
         </Box>
 
         {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-        {success && <Alert severity="success" sx={{ mb: 2 }}>{success}</Alert>}
 
         <TextField fullWidth label="Nome" value={name} onChange={(e) => setName(e.target.value)} sx={{ mb: 2 }} />
         <TextField fullWidth label="Email" value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2 }} />
@@ -120,6 +118,17 @@ export default function EditProfile() {
           <Button variant="outlined" onClick={() => navigate('/gestor')}>Voltar ao gerenciamento</Button>
         </Box>
       </Paper>
+
+      <Snackbar
+        open={!!success}
+        autoHideDuration={3500}
+        onClose={() => setSuccess('')}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={() => setSuccess('')} severity="success" variant="filled" sx={{ width: '100%' }}>
+          {success}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

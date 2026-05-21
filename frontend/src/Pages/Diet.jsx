@@ -108,6 +108,10 @@ const handleSendToS3 = async () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [sendingToS3, setSendingToS3] = useState(false);
 
+  const openSnack = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const handleOpenMeal = () => { setSelectedMeal(null); setOpenMeal(true); };
   const handleCloseMeal = () => setOpenMeal(false);
   const handleSaveMeal = async (meal) => {
@@ -116,7 +120,7 @@ const handleSendToS3 = async () => {
     console.log('alimentos:', meal.alimentos);
 
     if (!patientId) {
-      alert('Erro: ID do paciente não encontrado. Volte e selecione o paciente novamente.');
+      openSnack('Não foi possível identificar o paciente. Selecione o paciente novamente.', 'error');
       return;
     }
 
@@ -138,12 +142,12 @@ const handleSendToS3 = async () => {
         
         console.log('Fazendo PATCH para /meals/' + meal.id);
         await api.put(`/meals/${meal.id}`, payload);
-        alert('Refeição atualizada com sucesso!');
+        openSnack(`Refeição "${meal.descricao || 'sem título'}" atualizada com sucesso no plano de ${userName}.`, 'success');
       } else {
         
         console.log('Fazendo POST para /meals/meal-by-type/' + patientId);
         await api.post(`/meals/meal-by-type/${patientId}`, payload);
-        alert('Refeição adicionada com sucesso!');
+        openSnack(`Refeição "${meal.descricao || 'sem título'}" adicionada ao plano de ${userName}.`, 'success');
       }
 
       
@@ -153,7 +157,7 @@ const handleSendToS3 = async () => {
       setOpenMeal(false);
     } catch (error) {
       console.error('Erro ao salvar refeição:', error);
-      alert('Erro ao salvar refeição.');
+      openSnack('Não foi possível salvar a refeição agora. Verifique os dados e tente novamente.', 'error');
     }
   };
 

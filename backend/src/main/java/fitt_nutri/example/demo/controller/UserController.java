@@ -134,7 +134,7 @@ public class UserController {
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id:\\d+}")
     @PreAuthorize("hasRole('NUTRI')")
     @SecurityRequirement(name = "Bearer")
     @Operation(summary = "Busca dados do próprio usuário por ID")
@@ -160,7 +160,7 @@ public class UserController {
         return ResponseEntity.ok(adapter.getUserByEmail(email));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id:\\d+}")
     @PreAuthorize("hasRole('NUTRI')")
     @Operation(summary = "Atualiza usuário por ID")
     @ApiResponses(value = {
@@ -172,7 +172,7 @@ public class UserController {
         return ResponseEntity.ok(adapter.updateUser(id, dto));
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/{id:\\d+}")
     @PreAuthorize("hasRole('NUTRI')")
     @Operation(summary = "Atualiza parcialmente um usuário por ID")
     @ApiResponses(value = {
@@ -184,7 +184,7 @@ public class UserController {
         return ResponseEntity.ok(adapter.patchUser(id, updates));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id:\\d+}")
     @PreAuthorize("hasRole('NUTRI')")
     @Operation(summary = "Exclui usuário por ID")
     @ApiResponses(value = {
@@ -316,6 +316,25 @@ public class UserController {
         service.atualizarSenha(user, newPassword);
         passwordResetTokenRepository.delete(resetToken);
         return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso!"));
+    }
+
+    @PatchMapping("/change-password")
+    @Operation(summary = "Altera a senha do usuário autenticado")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Senha alterada com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Senha atual incorreta ou dados inválidos"),
+            @ApiResponse(responseCode = "401", description = "Não autenticado")
+    })
+    public ResponseEntity<?> changePassword(@RequestBody Map<String, String> body) {
+        String currentPassword = body.get("currentPassword");
+        String newPassword = body.get("newPassword");
+
+        if (currentPassword == null || currentPassword.isBlank() || newPassword == null || newPassword.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Senha atual e nova senha são obrigatórias"));
+        }
+
+        userService.changePassword(currentPassword, newPassword);
+        return ResponseEntity.ok(Map.of("message", "Senha alterada com sucesso"));
     }
 
 }

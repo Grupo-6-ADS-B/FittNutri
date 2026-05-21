@@ -80,7 +80,7 @@ public class UserService {
         if (!emailLogado.equals(email)) {
             throw new AccessDeniedException("Acesso negado: você só pode consultar seus próprios dados");
         }
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
     }
 
@@ -178,7 +178,7 @@ public class UserService {
      */
     private void verificarPropriedade(Integer id) {
         String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserModel logado = userRepository.findByEmail(emailLogado)
+        UserModel logado = userRepository.findByEmailIgnoreCase(emailLogado)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED, "Usuário não autenticado"));
         if (!logado.getId().equals(id)) {
@@ -187,8 +187,8 @@ public class UserService {
     }
 
     public UserModel login(LoginRequestDTO dto) {
-        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            UserModel user = userRepository.findByEmail(dto.getEmail()).get();
+        if (userRepository.findByEmailIgnoreCase(dto.getEmail()).isPresent()) {
+            UserModel user = userRepository.findByEmailIgnoreCase(dto.getEmail()).get();
             if (!passwordEncoder.matches(dto.getSenha(), user.getSenha())) {
                 throw new ConflictException("Senha incorreta");
             }
@@ -196,5 +196,18 @@ public class UserService {
         } else {
             throw new NotFoundException("Usuário não encontrado");
         }
+    }
+
+    public void changePassword(String currentPassword, String newPassword) {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userRepository.findByEmailIgnoreCase(emailLogado)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não autenticado"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getSenha())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha atual incorreta");
+        }
+
+        user.setSenha(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Alert, Box, Button, Paper, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import api from '../utils/api';
 
 export default function ChangePassword() {
   const navigate = useNavigate();
@@ -10,20 +11,13 @@ export default function ChangePassword() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  const getStoredPassword = () => sessionStorage.getItem('mockPassword') || localStorage.getItem('mockPassword') || 'password123';
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
     setSuccess('');
 
     if (!currentPassword) {
       setError('Informe a senha atual.');
-      return;
-    }
-
-    if (currentPassword !== getStoredPassword()) {
-      setError('Senha atual incorreta.');
       return;
     }
 
@@ -37,13 +31,20 @@ export default function ChangePassword() {
       return;
     }
 
-    sessionStorage.setItem('mockPassword', newPassword);
-    localStorage.setItem('mockPassword', newPassword);
+    try {
+      const { data } = await api.patch('/users/change-password', {
+        currentPassword,
+        newPassword,
+      });
 
-    setSuccess('Senha alterada com sucesso.');
-    setCurrentPassword('');
-    setNewPassword('');
-    setConfirmPassword('');
+      setSuccess(data?.message || 'Senha alterada com sucesso.');
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+    } catch (err) {
+      const message = err.response?.data?.error || err.response?.data?.message || err.message;
+      setError(message || 'Não foi possível alterar a senha.');
+    }
   };
 
   return (
