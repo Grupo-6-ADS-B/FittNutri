@@ -45,7 +45,8 @@ public class UserModel extends AuditableEntity {
     @Column(nullable = false)
     private String role = "NUTRI";
 
-    @Column(nullable = true, length = 512)
+    @Lob
+    @Column(nullable = true, columnDefinition = "LONGTEXT")
     private String foto;
 
     @OneToMany(mappedBy = "nutricionista", cascade = CascadeType.ALL)

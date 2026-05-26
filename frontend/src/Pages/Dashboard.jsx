@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Pagination, Container, CssBaseline, Card, Typography, Button, Chip, Tabs, Tab, Grid, Divider, Tooltip as MuiTooltip } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import BalanceIcon from '@mui/icons-material/Balance';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
@@ -22,21 +22,21 @@ function getKpiBadge(type, value) {
   if (isNaN(v)) return null;
 
   if (type === 'imc') {
-    if (v < 18.5) return { label: 'Abaixo do peso', color: '#1565c0', bg: '#e3f2fd' };
-    if (v < 25)   return { label: 'Normal',          color: '#2e7d32', bg: '#e8f5e9' };
-    if (v < 30)   return { label: 'Sobrepeso',        color: '#e65100', bg: '#fff3e0' };
-    return               { label: 'Obeso',            color: '#c62828', bg: '#ffebee' };
+    if (v < 18.5) return { label: 'Abaixo do peso', tone: 'info' };
+    if (v < 25)   return { label: 'Normal',          tone: 'success' };
+    if (v < 30)   return { label: 'Sobrepeso',       tone: 'warning' };
+    return               { label: 'Obeso',           tone: 'error' };
   }
   if (type === 'gordura') {
-    if (v < 15)  return { label: 'Baixo',   color: '#1565c0', bg: '#e3f2fd' };
-    if (v < 25)  return { label: 'Normal',  color: '#2e7d32', bg: '#e8f5e9' };
-    if (v <= 32) return { label: 'Alto',    color: '#e65100', bg: '#fff3e0' };
-    return              { label: 'Crítico', color: '#c62828', bg: '#ffebee' };
+    if (v < 15)  return { label: 'Baixo',   tone: 'info' };
+    if (v < 25)  return { label: 'Normal',  tone: 'success' };
+    if (v <= 32) return { label: 'Alto',    tone: 'warning' };
+    return              { label: 'Crítico', tone: 'error' };
   }
   if (type === 'gorduraVisceral') {
-    if (v <= 9)  return { label: 'Normal',  color: '#2e7d32', bg: '#e8f5e9' };
-    if (v <= 14) return { label: 'Alto',    color: '#e65100', bg: '#fff3e0' };
-    return              { label: 'Crítico', color: '#c62828', bg: '#ffebee' };
+    if (v <= 9)  return { label: 'Normal',  tone: 'success' };
+    if (v <= 14) return { label: 'Alto',    tone: 'warning' };
+    return              { label: 'Crítico', tone: 'error' };
   }
   return null;
 }
@@ -47,6 +47,25 @@ function getKpiBadge(type, value) {
 export default function Dashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const pageBackground = theme.palette.mode === 'dark'
+    ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+    : 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)';
+  const mutedSurface = alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.06);
+  const getToneStyles = (tone) => {
+    switch (tone) {
+      case 'success':
+        return { bgcolor: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.18 : 0.12), color: theme.palette.success.main, border: `1px solid ${alpha(theme.palette.success.main, 0.28)}` };
+      case 'warning':
+        return { bgcolor: alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.18 : 0.12), color: theme.palette.warning.main, border: `1px solid ${alpha(theme.palette.warning.main, 0.28)}` };
+      case 'info':
+        return { bgcolor: alpha(theme.palette.info.main, theme.palette.mode === 'dark' ? 0.18 : 0.12), color: theme.palette.info.main, border: `1px solid ${alpha(theme.palette.info.main, 0.28)}` };
+      case 'error':
+        return { bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.18 : 0.12), color: theme.palette.error.main, border: `1px solid ${alpha(theme.palette.error.main, 0.28)}` };
+      default:
+        return { bgcolor: theme.palette.action.hover, color: theme.palette.text.secondary, border: `1px solid ${theme.palette.divider}` };
+    }
+  };
 
   const [dateRange, setDateRange] = React.useState(() => {
     const today = new Date();
@@ -232,7 +251,7 @@ export default function Dashboard() {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           {trendVal !== null ? (
             <Typography variant="caption" sx={{
-              color: trendDown ? '#2e7d32' : '#e65100',
+              color: trendDown ? theme.palette.success.main : theme.palette.warning.main,
               fontWeight: 700,
               fontSize: '0.75rem',
             }}>
@@ -246,12 +265,10 @@ export default function Dashboard() {
               label={badge.label}
               size="small"
               sx={{
-                bgcolor: badge.bg,
-                color: badge.color,
+                ...getToneStyles(badge.tone),
                 fontWeight: 700,
                 fontSize: '0.65rem',
                 height: 20,
-                border: `1px solid ${badge.color}44`,
               }}
             />
           )}
@@ -298,7 +315,7 @@ export default function Dashboard() {
       return (
         <Card sx={{ p: 2, boxShadow: 3, mb: 2 }}>
           <Typography variant="h6" fontWeight="bold" sx={{ opacity: 0.8, mb: 2 }}>Evolução do Peso</Typography>
-          <Box sx={{ width: '100%', minHeight: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f5f5', borderRadius: 1, px: 2 }}>
+          <Box sx={{ width: '100%', minHeight: 220, display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: mutedSurface, borderRadius: 1, px: 2 }}>
             <Typography variant="body2" color="text.secondary" textAlign="center">
               Nenhum dado de peso encontrado para o período selecionado.
             </Typography>
@@ -320,11 +337,11 @@ export default function Dashboard() {
             />
           ) : (
             <Box sx={{ display: 'flex', gap: 1.2, flexWrap: 'wrap' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#ff9800', color: 'white', px: 1.5, py: 0.5, borderRadius: 1.5, fontWeight: 'bold', fontSize: 14, boxShadow: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.2 : 0.16), color: theme.palette.warning.contrastText, px: 1.5, py: 0.5, borderRadius: 1.5, fontWeight: 'bold', fontSize: 14, boxShadow: 1 }}>
                 Peso Atual:&nbsp;{pesoAtual} kg
               </Box>
               {pesoIdeal !== '-' && (
-                <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#43a047', color: 'white', px: 1.5, py: 0.5, borderRadius: 1.5, fontWeight: 'bold', fontSize: 14, boxShadow: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.2 : 0.16), color: theme.palette.success.contrastText, px: 1.5, py: 0.5, borderRadius: 1.5, fontWeight: 'bold', fontSize: 14, boxShadow: 1 }}>
                   Peso Ideal:&nbsp;{pesoIdeal} kg
                 </Box>
               )}
@@ -351,7 +368,7 @@ const handlePageChange = (_, newPage) => {
         <Typography variant="h6" fontWeight="bold" mb={2}>
           Histórico de dados do paciente
         </Typography>
-        <Box sx={{ bgcolor: '#f8fff9', borderRadius: 2, boxShadow: 1, p: 2, width: '100%' }}>
+        <Box sx={{ bgcolor: theme.palette.background.paper, borderRadius: 2, boxShadow: 1, p: 2, width: '100%', border: `1px solid ${theme.palette.divider}` }}>
           <Tabs
             value={tab}
             onChange={(_, value) => setTab(value)}
@@ -402,7 +419,7 @@ const handlePageChange = (_, newPage) => {
     return (
       <Box sx={{ width: '100%' }}>
         <Typography variant="h6" fontWeight="bold" mb={2}>Calendário</Typography>
-        <Box sx={{ border: '1px solid #e0e0e0', borderRadius: 2, p: 2, bgcolor: '#f8fff9', boxShadow: 1 }}>
+        <Box sx={{ border: `1px solid ${theme.palette.divider}`, borderRadius: 2, p: 2, bgcolor: theme.palette.background.paper, boxShadow: 1 }}>
           <Box sx={{ mb: 2 }}>
             <Typography variant="caption" color="text.secondary">Data Início</Typography>
             <input
@@ -412,7 +429,7 @@ const handlePageChange = (_, newPage) => {
                 const newFrom = new Date(e.target.value);
                 setDateRange({ from: newFrom, to: dateRange.to < newFrom ? newFrom : dateRange.to });
               }}
-              style={{ width: '100%', fontSize: 16, padding: 8, borderRadius: 8, border: '1px solid #e0e0e0', marginTop: 4 }}
+              style={{ width: '100%', fontSize: 16, padding: 8, borderRadius: 8, border: `1px solid ${theme.palette.divider}`, marginTop: 4, background: theme.palette.background.default, color: theme.palette.text.primary }}
             />
           </Box>
           <Box sx={{ mb: 2 }}>
@@ -424,10 +441,10 @@ const handlePageChange = (_, newPage) => {
                 const newTo = new Date(e.target.value);
                 setDateRange({ from: dateRange.from > newTo ? newTo : dateRange.from, to: newTo });
               }}
-              style={{ width: '100%', fontSize: 16, padding: 8, borderRadius: 8, border: '1px solid #e0e0e0', marginTop: 4 }}
+              style={{ width: '100%', fontSize: 16, padding: 8, borderRadius: 8, border: `1px solid ${theme.palette.divider}`, marginTop: 4, background: theme.palette.background.default, color: theme.palette.text.primary }}
             />
           </Box>
-          <Box sx={{ mt: 3, p: 2, bgcolor: '#e8f5e9', borderRadius: 2, mb: 2 }}>
+          <Box sx={{ mt: 3, p: 2, bgcolor: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.12 : 0.08), borderRadius: 2, mb: 2 }}>
             <Typography variant="body2" fontWeight="bold">
               Período: {dateRange.from.toLocaleDateString('pt-BR')} até {dateRange.to.toLocaleDateString('pt-BR')}
             </Typography>
@@ -466,7 +483,7 @@ const handlePageChange = (_, newPage) => {
     ].filter(i => i.d !== null);
 
     return (
-      <Card sx={{ px: 3, py: 1.5, mb: 2.5, boxShadow: 1, borderRadius: 2, bgcolor: '#f8fff9', border: '1px solid #c8e6c9', width: '100%' }}>
+      <Card sx={{ px: 3, py: 1.5, mb: 2.5, boxShadow: 1, borderRadius: 2, bgcolor: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, width: '100%' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, flexWrap: 'wrap' }}>
           <Typography variant="caption" sx={{ fontWeight: 700, color: 'text.secondary', textTransform: 'uppercase', fontSize: '0.68rem', letterSpacing: 0.5, whiteSpace: 'nowrap' }}>
             Progresso ({sorted.length} consultas)
@@ -518,7 +535,7 @@ const handlePageChange = (_, newPage) => {
             {latestMotivoConsulta && (
               <Typography
                 variant="body1"
-                sx={{ mb: 2, px: 2, py: 1, borderRadius: 2, bgcolor: '#f1f8e9', textAlign: 'center', width: '100%', maxWidth: 900 }}
+                sx={{ mb: 2, px: 2, py: 1, borderRadius: 2, bgcolor: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.16 : 0.1), textAlign: 'center', width: '100%', maxWidth: 900 }}
               >
                 <strong>Motivo da consulta:</strong> {latestMotivoConsulta}
               </Typography>
@@ -558,14 +575,14 @@ const handlePageChange = (_, newPage) => {
 
   if (!userId) {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', bgcolor: '#f8fff9' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', bgcolor: theme.palette.background.default }}>
         <Typography variant="h6" color="text.secondary">Carregando...</Typography>
       </Box>
     );
   }
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100vh', background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', width: '100%' }}>
+    <Box sx={{ display: 'flex', minHeight: '100vh', background: pageBackground, width: '100%' }}>
       <CssBaseline />
       <Box
         component="main"

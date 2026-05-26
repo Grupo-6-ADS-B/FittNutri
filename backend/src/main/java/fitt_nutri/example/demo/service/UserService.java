@@ -25,8 +25,21 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    private String normalizarEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
+    }
+
+    private boolean emailEmUsoPorOutroUsuario(Integer id, String email) {
+        String emailNormalizado = normalizarEmail(email);
+        return userRepository.findByEmail(emailNormalizado)
+                .filter(usuario -> !usuario.getId().equals(id))
+                .isPresent();
+    }
+
     public UserModel createUser(UserRequestDTO dto) {
-        if (userRepository.existsByEmail(dto.email())) {
+        String email = normalizarEmail(dto.email());
+
+        if (userRepository.existsByEmail(email)) {
             throw new ConflictException("Email já cadastrado");
         } else if (userRepository.existsByCpf(dto.cpf())) {
             throw new ConflictException("CPF já cadastrado");
@@ -36,7 +49,7 @@ public class UserService {
 
         UserModel user = new UserModel();
         user.setNome(dto.nome());
-        user.setEmail(dto.email());
+        user.setEmail(email);
         user.setCpf(dto.cpf());
         user.setCrn(dto.crn());
         user.setSenha(passwordEncoder.encode(dto.senha()));
@@ -67,7 +80,7 @@ public class UserService {
         if (!emailLogado.equals(email)) {
             throw new AccessDeniedException("Acesso negado: você só pode consultar seus próprios dados");
         }
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new NotFoundException("Usuário não encontrado"));
     }
 
@@ -88,8 +101,9 @@ public class UserService {
         }
 
         UserModel user = userRepository.findById(id).get();
+        String email = normalizarEmail(dto.email());
 
-        if (!user.getEmail().equals(dto.email()) && userRepository.existsByEmail(dto.email())) {
+        if (emailEmUsoPorOutroUsuario(id, email)) {
             throw new ConflictException("Email já cadastrado");
         } else if (!user.getCpf().equals(dto.cpf()) && userRepository.existsByCpf(dto.cpf())) {
             throw new ConflictException("CPF já cadastrado");
@@ -98,7 +112,7 @@ public class UserService {
         }
 
         user.setNome(dto.nome());
-        user.setEmail(dto.email());
+        user.setEmail(email);
         user.setCpf(dto.cpf());
         user.setCrn(dto.crn());
         user.setSenha(passwordEncoder.encode(dto.senha()));
@@ -120,8 +134,8 @@ public class UserService {
             if ("nome".equals(key)) {
                 user.setNome((String) value);
             } else if ("email".equals(key)) {
-                String email = (String) value;
-                if (!user.getEmail().equals(email) && userRepository.existsByEmail(email)) {
+                String email = normalizarEmail((String) value);
+                if (emailEmUsoPorOutroUsuario(id, email)) {
                     throw new ConflictException("Email já cadastrado");
                 }
                 user.setEmail(email);
@@ -139,6 +153,8 @@ public class UserService {
                 user.setCrn(crn);
             } else if ("senha".equals(key)) {
                 user.setSenha(passwordEncoder.encode((String) value));
+            } else if ("foto".equals(key)) {
+                user.setFoto((String) value);
             }
         }
 
@@ -162,7 +178,7 @@ public class UserService {
      */
     private void verificarPropriedade(Integer id) {
         String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserModel logado = userRepository.findByEmail(emailLogado)
+        UserModel logado = userRepository.findByEmailIgnoreCase(emailLogado)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.UNAUTHORIZED, "Usuário não autenticado"));
         if (!logado.getId().equals(id)) {
@@ -171,8 +187,8 @@ public class UserService {
     }
 
     public UserModel login(LoginRequestDTO dto) {
-        if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
-            UserModel user = userRepository.findByEmail(dto.getEmail()).get();
+        if (userRepository.findByEmailIgnoreCase(dto.getEmail()).isPresent()) {
+            UserModel user = userRepository.findByEmailIgnoreCase(dto.getEmail()).get();
             if (!passwordEncoder.matches(dto.getSenha(), user.getSenha())) {
                 throw new ConflictException("Senha incorreta");
             }
@@ -180,5 +196,18 @@ public class UserService {
         } else {
             throw new NotFoundException("Usuário não encontrado");
         }
+    }
+
+    public void changePassword(String currentPassword, String newPassword) {
+        String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserModel user = userRepository.findByEmailIgnoreCase(emailLogado)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não autenticado"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getSenha())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha atual incorreta");
+        }
+
+        user.setSenha(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }
