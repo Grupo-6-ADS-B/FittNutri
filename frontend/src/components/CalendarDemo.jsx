@@ -20,6 +20,7 @@ function Calendar({ mode, selected, onSelect, className, captionLayout }) {
 
 
 export default function CalendarDemo({ pacienteId }) {
+  const theme = useTheme();
   const [date, setDate] = React.useState(new Date());
   
   const id = pacienteId || 1;

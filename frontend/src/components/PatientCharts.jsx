@@ -77,6 +77,7 @@ export function WeightEvolutionChart({ data, pesoIdeal }) {
 }
 
 export function ConsultationDaysChart({ data }) {
+  const theme = useTheme();
   const dayCounts = Object.values(data.reduce((acc, item) => {
     const day = item.date;
     acc[day] = (acc[day] || 0) + 1;

@@ -152,14 +152,6 @@ export const commonComponents = {
       }),
     },
   },
-  MuiDialog: {
-    styleOverrides: {
-      paper: ({ theme }) => ({
-        backgroundColor: theme.palette.background.paper,
-        color: theme.palette.text.primary,
-      }),
-    },
-  },
   MuiMenu: {
     styleOverrides: {
       paper: ({ theme }) => ({

@@ -393,7 +393,6 @@ const handleResumoClick = async () => {
           display: "flex",
           flexDirection: "column",
           minHeight: "88vh",
-          background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
           background: theme.palette.mode === 'dark'
             ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
             : 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
