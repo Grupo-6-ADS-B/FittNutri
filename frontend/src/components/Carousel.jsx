@@ -2,6 +2,7 @@ import { Section } from "./Section";
 import { Card } from "./Card";
 import { Container, Typography, Box, IconButton } from '@mui/material';
 import { useState, useEffect } from 'react';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   RestaurantMenu as DietIcon,
   TrendingUp as ProgressIcon,
@@ -23,6 +24,7 @@ const funcionalidades = [
 ];
 
 function Carousel() {
+  const theme = useTheme();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [cardsToShow, setCardsToShow] = useState(getCardsToShow());
 
@@ -46,23 +48,26 @@ function Carousel() {
   const prevSlide = () => setCurrentIndex(prev => (prev <= 0 ? maxIndex : prev - 1));
 
   const iconButtonStyles = {
-    backgroundColor: 'white',
-    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+    backgroundColor: theme.palette.background.paper,
+    boxShadow: theme.shadows[2],
     width: 50,
     height: 50,
-    '&:hover:not(:disabled)': { backgroundColor: 'primary.main', color: 'white', transform: 'scale(1.1)' },
-    '&:disabled': { backgroundColor: 'rgba(0,0,0,0.1)', color: 'rgba(0,0,0,0.3)', boxShadow: 'none' },
+    border: `1px solid ${theme.palette.divider}`,
+    '&:hover:not(:disabled)': { backgroundColor: theme.palette.primary.main, color: theme.palette.primary.contrastText, transform: 'scale(1.1)' },
+    '&:disabled': { backgroundColor: alpha(theme.palette.text.primary, theme.palette.mode === 'dark' ? 0.08 : 0.06), color: theme.palette.text.disabled, boxShadow: 'none' },
     transition: 'all 0.3s ease',
   };
 
   return (
-    <Section background="linear-gradient(135deg, #f8f9fa 0%, #ffffffeb 100%)" py={{ xs: 8, md: 12 }} data-section="carousel" id="carousel">
+    <Section background={theme.palette.mode === 'dark'
+      ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+      : 'linear-gradient(135deg, #f8f9fa 0%, #ffffffeb 100%)'} py={{ xs: 8, md: 12 }} data-section="carousel" id="carousel">
       <Container maxWidth="xl">
         <Box sx={{ textAlign: 'center', mb: 8 }}>
-          <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: '#1a202c', fontSize: { xs: '2rem', md: '2.5rem' } }}>
+          <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: theme.palette.text.primary, fontSize: { xs: '2rem', md: '2.5rem' } }}>
             Tudo que você precisa <Typography component="span" variant="h3" sx={{ color: 'primary.main', fontSize: { xs: '2rem', md: '2.5rem' } }}>em um só lugar</Typography>
           </Typography>
-          <Typography variant="h6" sx={{ color: '#4a5568', maxWidth: '900px', mx: 'auto', lineHeight: 1.6, fontWeight: 400 }}>
+          <Typography variant="h6" sx={{ color: theme.palette.text.secondary, maxWidth: '900px', mx: 'auto', lineHeight: 1.6, fontWeight: 400 }}>
             Desde a criação de dietas personalizadas até o acompanhamento detalhado da evolução dos pacientes, oferecemos as melhores ferramentas para otimizar a sua performance no consultório
           </Typography>
         </Box>

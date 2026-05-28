@@ -4,12 +4,14 @@ import {
   Grid, TextField, Button, IconButton, List, ListItem, ListItemText, Box, FormControl, InputLabel, Select, MenuItem,
   Autocomplete, CircularProgress
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import api from '../utils/api';
 
 const units = ['g', 'kg', 'ml', 'L', 'unidade', 'colher de sopa', 'colher de chá', 'xícara'];
 
 export default function MealModal({ open, onClose, onSave, initial = null, patientId = null }) {
+  const theme = useTheme();
   const [meal, setMeal] = useState({ horario: '', descricao: '', alimentos: [], observacao: '' });
   const [error, setError] = useState('');
   const [selectedFood, setSelectedFood] = useState(null);
@@ -172,7 +174,7 @@ export default function MealModal({ open, onClose, onSave, initial = null, patie
   }, []);
 
   return (
-    <Dialog open={!!open} onClose={onClose} fullWidth maxWidth="md">
+      <Dialog open={!!open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         Adicionar refeição
         <IconButton onClick={onClose}><CloseIcon /></IconButton>
@@ -180,7 +182,7 @@ export default function MealModal({ open, onClose, onSave, initial = null, patie
 
       <DialogContent dividers>
         {error && (
-          <Box sx={{ mb: 2, p: 2, bgcolor: '#ffebee', color: '#c62828', borderRadius: 1 }}>
+          <Box sx={{ mb: 2, p: 2, bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.18 : 0.08), color: theme.palette.error.main, borderRadius: 1 }}>
             {error}
           </Box>
         )}

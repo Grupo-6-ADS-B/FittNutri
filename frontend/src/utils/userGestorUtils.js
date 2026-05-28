@@ -20,14 +20,14 @@ export const getConsultationStatus = (dateString) => {
     consultDate.setHours(0, 0, 0, 0);
 
     if (consultDate.getTime() === today.getTime()) {
-      return { icon: '🟢', label: 'Hoje', color: '#4caf50', bgColor: '#e8f5e9' };
+      return { icon: '🟢', label: 'Hoje', tone: 'success' };
     } else if (consultDate > today) {
-      return { icon: '🔵', label: 'Próxima', color: '#2196f3', bgColor: '#e3f2fd' };
+      return { icon: '🔵', label: 'Próxima', tone: 'info' };
     } else {
-      return { icon: '🔴', label: 'Atrasada', color: '#f44336', bgColor: '#ffebee' };
+      return { icon: '🔴', label: 'Atrasada', tone: 'error' };
     }
   } catch {
-    return { icon: '⚪', label: 'Data inválida', color: '#9e9e9e', bgColor: '#f5f5f5' };
+    return { icon: '⚪', label: 'Data inválida', tone: 'neutral' };
   }
 };
 

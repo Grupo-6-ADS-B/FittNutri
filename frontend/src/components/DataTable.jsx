@@ -6,37 +6,74 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
+import { alpha, useTheme } from '@mui/material/styles';
 
 function getClassificacao(type, value) {
   if (value == null || value === '' || isNaN(Number(value))) return null;
   const v = Number(value);
 
   if (type === 'imc') {
-    if (v < 18.5) return { label: 'Abaixo do peso', color: '#1565c0', bg: '#e3f2fd' };
-    if (v < 25)   return { label: 'Normal',          color: '#2e7d32', bg: '#e8f5e9' };
-    if (v < 30)   return { label: 'Sobrepeso',        color: '#e65100', bg: '#fff3e0' };
-    return               { label: 'Obeso',            color: '#c62828', bg: '#ffebee' };
+    if (v < 18.5) return { label: 'Abaixo do peso', tone: 'info' };
+    if (v < 25)   return { label: 'Normal',          tone: 'success' };
+    if (v < 30)   return { label: 'Sobrepeso',        tone: 'warning' };
+    return               { label: 'Obeso',            tone: 'error' };
   }
   if (type === 'gordura') {
-    if (v < 15)  return { label: 'Baixo',   color: '#1565c0', bg: '#e3f2fd' };
-    if (v < 25)  return { label: 'Normal',  color: '#2e7d32', bg: '#e8f5e9' };
-    if (v <= 32) return { label: 'Alto',    color: '#e65100', bg: '#fff3e0' };
-    return              { label: 'Crítico', color: '#c62828', bg: '#ffebee' };
+    if (v < 15)  return { label: 'Baixo',   tone: 'info' };
+    if (v < 25)  return { label: 'Normal',  tone: 'success' };
+    if (v <= 32) return { label: 'Alto',    tone: 'warning' };
+    return              { label: 'Crítico', tone: 'error' };
   }
   if (type === 'gorduraVisceral') {
-    if (v <= 9)  return { label: 'Normal',  color: '#2e7d32', bg: '#e8f5e9' };
-    if (v <= 14) return { label: 'Alto',    color: '#e65100', bg: '#fff3e0' };
-    return              { label: 'Crítico', color: '#c62828', bg: '#ffebee' };
+    if (v <= 9)  return { label: 'Normal',  tone: 'success' };
+    if (v <= 14) return { label: 'Alto',    tone: 'warning' };
+    return              { label: 'Crítico', tone: 'error' };
   }
   if (type === 'massaMuscular') {
-    if (v >= 75) return { label: 'Ótimo',  color: '#2e7d32', bg: '#e8f5e9' };
-    if (v >= 60) return { label: 'Normal', color: '#2e7d32', bg: '#e8f5e9' };
-    return              { label: 'Baixo',  color: '#e65100', bg: '#fff3e0' };
+    if (v >= 75) return { label: 'Ótimo',  tone: 'success' };
+    if (v >= 60) return { label: 'Normal', tone: 'success' };
+    return              { label: 'Baixo',  tone: 'warning' };
   }
   return null;
 }
 
 export default function DataTable({ data }) {
+  const theme = useTheme();
+  const getToneStyles = (tone) => {
+    switch (tone) {
+      case 'success':
+        return {
+          bgcolor: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.18 : 0.12),
+          color: theme.palette.success.main,
+          border: `1px solid ${alpha(theme.palette.success.main, 0.28)}`,
+        };
+      case 'warning':
+        return {
+          bgcolor: alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.18 : 0.12),
+          color: theme.palette.warning.main,
+          border: `1px solid ${alpha(theme.palette.warning.main, 0.28)}`,
+        };
+      case 'info':
+        return {
+          bgcolor: alpha(theme.palette.info.main, theme.palette.mode === 'dark' ? 0.18 : 0.12),
+          color: theme.palette.info.main,
+          border: `1px solid ${alpha(theme.palette.info.main, 0.28)}`,
+        };
+      case 'error':
+        return {
+          bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.18 : 0.12),
+          color: theme.palette.error.main,
+          border: `1px solid ${alpha(theme.palette.error.main, 0.28)}`,
+        };
+      default:
+        return {
+          bgcolor: theme.palette.action.hover,
+          color: theme.palette.text.secondary,
+          border: `1px solid ${theme.palette.divider}`,
+        };
+    }
+  };
+
   const capitalizeFirstLetter = (text) => {
     if (!text || typeof text !== 'string') return text;
     return text.charAt(0).toUpperCase() + text.slice(1);
@@ -76,22 +113,22 @@ export default function DataTable({ data }) {
   ];
 
   return (
-    <TableContainer component={Paper} sx={{ p: 0, borderRadius: 2, maxHeight: 440 }}>
+    <TableContainer component={Paper} sx={{ p: 0, borderRadius: 2, maxHeight: 440, border: `1px solid ${theme.palette.divider}` }}>
       <Table
         stickyHeader
         size="small"
         aria-label="dados do paciente"
-        sx={{ '& .MuiTableCell-root': { borderColor: '#e8f5e9' } }}
+        sx={{ '& .MuiTableCell-root': { borderColor: theme.palette.divider } }}
       >
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: 'bold', bgcolor: '#2e7d32', color: '#fff', fontSize: '0.82rem', py: 1 }}>
+            <TableCell sx={{ fontWeight: 'bold', bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, fontSize: '0.82rem', py: 1 }}>
               Indicador
             </TableCell>
-            <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: '#2e7d32', color: '#fff', fontSize: '0.82rem', py: 1 }}>
+            <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, fontSize: '0.82rem', py: 1 }}>
               Resultado
             </TableCell>
-            <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#2e7d32', color: '#fff', fontSize: '0.82rem', py: 1, width: 130 }}>
+            <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, fontSize: '0.82rem', py: 1, width: 130 }}>
               Status
             </TableCell>
           </TableRow>
@@ -104,9 +141,9 @@ export default function DataTable({ data }) {
               <TableRow
                 key={row.label}
                 sx={{
-                  bgcolor: index % 2 === 0 ? '#f0f7f1' : '#ffffff',
+                  bgcolor: index % 2 === 0 ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.05) : theme.palette.background.paper,
                   '&:last-child td, &:last-child th': { border: 0 },
-                  '&:hover': { bgcolor: '#dcedc8' },
+                  '&:hover': { bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.18 : 0.12) },
                   transition: 'background-color 0.15s',
                 }}
               >
@@ -122,12 +159,10 @@ export default function DataTable({ data }) {
                       label={badge.label}
                       size="small"
                       sx={{
-                        bgcolor: badge.bg,
-                        color: badge.color,
+                        ...getToneStyles(badge.tone),
                         fontWeight: 700,
                         fontSize: '0.7rem',
                         height: 22,
-                        border: `1px solid ${badge.color}33`,
                       }}
                     />
                   ) : null}

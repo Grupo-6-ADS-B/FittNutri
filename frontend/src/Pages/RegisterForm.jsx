@@ -11,6 +11,7 @@ import {
   Container,
   Grid
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { 
   Person as PersonIcon,
   Email as EmailIcon, 
@@ -24,6 +25,7 @@ import api from '../utils/api';
 
 
 function RegisterForm() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -34,7 +36,6 @@ function RegisterForm() {
     handleSubmit,
     watch,
     setValue,
-    clearErrors,
     setError: setFieldError,
     formState: { errors }
   } = useForm({
@@ -61,7 +62,7 @@ function RegisterForm() {
 
   const handleCrnChange = (value) => {
     let v = value.replace(/[^\dA-Za-z]/g, '');
-    v = v.replace(/(\d{1,6})([A-Za-z]{0,2})/, (m, n, uf) => uf ? n + '/' + uf.toUpperCase() : n);
+    v = v.replace(/(\d{1,6})([A-Za-z]{0,2})/, (m, n, uf) => (uf ? `${n}/${uf.toUpperCase()}` : n));
     return v;
   };
 
@@ -119,7 +120,6 @@ function RegisterForm() {
     };
 
     try {
-     
       const resp = await api.post('/users', payload);
       sessionStorage.setItem('emailUsuario', data.email);
       sessionStorage.setItem('nomeUsuario', data.name);
@@ -150,7 +150,8 @@ function RegisterForm() {
   };
 
   return (
-    <Box component="main"
+    <Box
+      component="main"
       sx={{
         position: 'relative',
         display: 'flex',
@@ -170,21 +171,32 @@ function RegisterForm() {
         sx={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(0,0,0,0.28)',
+          background: theme.palette.mode === 'dark' ? 'rgba(2, 6, 23, 0.72)' : 'rgba(0,0,0,0.28)',
           zIndex: 0,
-          backdropFilter: 'blur(4px)',         
+          backdropFilter: 'blur(4px)',
         }}
       />
-      <Container sx={{ position: 'relative', zIndex: 2, maxWidth: '600px !important', backgroundColor: 'rgba(255,255,255,0.96)', p: 3, borderRadius: 0.5, boxShadow: '0 2px 12px rgba(0,0,0,0.08)' }}>
+      <Container
+        sx={{
+          position: 'relative',
+          zIndex: 2,
+          maxWidth: '600px !important',
+          backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.9 : 0.96),
+          p: 3,
+          borderRadius: 0.5,
+          boxShadow: theme.shadows[3],
+          border: `1px solid ${theme.palette.divider}`,
+          color: theme.palette.text.primary,
+        }}
+      >
         <Box id="register-form" component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
           <Stack spacing={3}>
-            {/* Todos os Controllers e campos do formulário */}
             <Controller
               name="name"
               control={control}
               rules={{
                 required: 'Nome é obrigatório',
-                minLength: { value: 2, message: 'Nome deve ter pelo menos 2 caracteres' }
+                minLength: { value: 2, message: 'Nome deve ter pelo menos 2 caracteres' },
               }}
               render={({ field }) => (
                 <TextField
@@ -200,6 +212,7 @@ function RegisterForm() {
                 />
               )}
             />
+
             <Controller
               name="email"
               control={control}
@@ -207,10 +220,9 @@ function RegisterForm() {
                 required: 'E-mail é obrigatório',
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'E-mail inválido'
+                  message: 'E-mail inválido',
                 },
-                validate: value =>
-                  value.toLowerCase().endsWith('.com') || 'O e-mail deve terminar com ".com"'
+                validate: value => value.toLowerCase().endsWith('.com') || 'O e-mail deve terminar com ".com"',
               }}
               render={({ field }) => (
                 <TextField
@@ -227,6 +239,7 @@ function RegisterForm() {
                 />
               )}
             />
+
             <Grid container spacing={2} sx={{ '& .MuiGrid-item': { paddingLeft: '0 !important' } }}>
               <Grid item xs={12} sm={6} sx={{ pr: 1 }}>
                 <Controller
@@ -234,7 +247,7 @@ function RegisterForm() {
                   control={control}
                   rules={{
                     required: 'CPF é obrigatório',
-                    minLength: { value: 14, message: 'CPF deve estar completo' }
+                    minLength: { value: 14, message: 'CPF deve estar completo' },
                   }}
                   render={({ field }) => (
                     <TextField
@@ -258,13 +271,14 @@ function RegisterForm() {
                   )}
                 />
               </Grid>
+
               <Grid item xs={12} sm={6} sx={{ pl: 1, pr: 2 }}>
                 <Controller
                   name="crn"
                   control={control}
                   rules={{
                     required: 'CRN é obrigatório',
-                    minLength: { value: 5, message: 'CRN deve ter pelo menos 5 caracteres' }
+                    minLength: { value: 5, message: 'CRN deve ter pelo menos 5 caracteres' },
                   }}
                   render={({ field }) => (
                     <TextField
@@ -289,6 +303,7 @@ function RegisterForm() {
                 />
               </Grid>
             </Grid>
+
             <Controller
               name="password"
               control={control}
@@ -301,7 +316,7 @@ function RegisterForm() {
                   if (!/[0-9]/.test(value)) requisitos.push('um número');
                   if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) requisitos.push('um caractere especial');
                   return requisitos.length === 0 || `A senha precisa de: ${requisitos.join(', ')}`;
-                }
+                },
               }}
               render={({ field }) => {
                 const requisitos = [];
@@ -310,6 +325,7 @@ function RegisterForm() {
                 if (!/[0-9]/.test(field.value)) requisitos.push('um número');
                 if (!/[!@#$%^&*(),.?":{}|<>]/.test(field.value)) requisitos.push('um caractere especial');
                 const senhaValida = requisitos.length === 0;
+
                 return (
                   <TextField
                     {...field}
@@ -319,7 +335,7 @@ function RegisterForm() {
                     error={passwordTouched && !senhaValida}
                     helperText={passwordTouched && !senhaValida ? `A senha precisa de: ${requisitos.join(', ')}` : ''}
                     InputProps={{
-                      startAdornment: <LockIcon sx={{ color: 'action.active', mr: 1 }} />, 
+                      startAdornment: <LockIcon sx={{ color: 'action.active', mr: 1 }} />,
                     }}
                     variant="outlined"
                     sx={{
@@ -328,9 +344,9 @@ function RegisterForm() {
                       },
                       '& .MuiFormHelperText-root': {
                         color: passwordTouched && !senhaValida ? 'error.main' : undefined,
-                      }
+                      },
                     }}
-                    onChange={e => {
+                    onChange={(e) => {
                       field.onChange(e);
                       if (!passwordTouched) setPasswordTouched(true);
                     }}
@@ -338,12 +354,13 @@ function RegisterForm() {
                 );
               }}
             />
+
             <Controller
               name="confirmPassword"
               control={control}
               rules={{
                 required: 'Confirmação de senha é obrigatória',
-                validate: value => value === password || 'As senhas não coincidem'
+                validate: value => value === password || 'As senhas não coincidem',
               }}
               render={({ field }) => (
                 <TextField
@@ -360,6 +377,7 @@ function RegisterForm() {
                 />
               )}
             />
+
             <Button
               type="submit"
               fullWidth
@@ -370,24 +388,23 @@ function RegisterForm() {
             >
               Cadastre-se
             </Button>
+
             {error && (
               <Alert severity="error" sx={{ mt: 2 }}>
                 {error}
               </Alert>
             )}
+
             {success && (
               <Alert severity="success" sx={{ mt: 2 }}>
                 {success}
               </Alert>
             )}
+
             <Box sx={{ textAlign: 'center', mt: 2 }}>
               <Typography variant="body2">
                 Já tem uma conta?{' '}
-                <Link 
-                  href="#" 
-                  onClick={() => navigate('/login')}
-                  sx={{ cursor: 'pointer' }}
-                >
+                <Link href="#" onClick={() => navigate('/login')} sx={{ cursor: 'pointer' }}>
                   Faça login
                 </Link>
               </Typography>

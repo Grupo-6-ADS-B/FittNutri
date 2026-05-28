@@ -9,6 +9,7 @@ import {
   Typography,
   Divider
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 export default function ScheduleDialog({ 
   open, 
@@ -22,6 +23,7 @@ export default function ScheduleDialog({
   apptNote,
   setApptNote
 }) {
+  const theme = useTheme();
   const minAppointmentDate = new Date().toLocaleDateString('en-CA');
 
   return (
@@ -32,8 +34,9 @@ export default function ScheduleDialog({
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: 1,
-          boxShadow: 24
+          borderRadius: 2,
+          boxShadow: 24,
+          border: `1px solid ${theme.palette.divider}`,
         }
       }}
     >
@@ -54,7 +57,7 @@ export default function ScheduleDialog({
             variant="outlined"
             sx={{
               '& .MuiOutlinedInput-root': {
-                backgroundColor: 'grey.50'
+                backgroundColor: theme.palette.action.hover
               }
             }}
           />
