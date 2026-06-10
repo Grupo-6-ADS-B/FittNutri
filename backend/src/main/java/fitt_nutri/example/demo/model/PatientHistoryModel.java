@@ -2,13 +2,15 @@ package fitt_nutri.example.demo.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "historico_paciente")
 @Data
-public class PatientHistoryModel {
+@EqualsAndHashCode(callSuper = false)
+public class PatientHistoryModel extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,4 +29,7 @@ public class PatientHistoryModel {
     private DataCircleModel dataCircleModel;
 
     private LocalDate dataConsulta;
+
+    @Column(name = "motivo_consulta")
+    private String motivoConsulta;
 }

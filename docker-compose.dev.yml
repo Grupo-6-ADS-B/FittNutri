@@ -1,0 +1,83 @@
+# docker-compose.dev.yml
+# ============================================================
+# Ambiente de desenvolvimento local — "One-Command-Run"
+# Uso: ./manage.sh dev
+#
+# Diferenças em relação ao docker-compose.yml (produção):
+#   - SPRING_PROFILES_ACTIVE: dev  → sem RabbitMQ, sem AWS S3
+#   - build: local                 → não precisa de imagem no ECR
+#   - Frontend com Vite dev server → proxy /api → backend funciona
+#   - Sem nginx/certbot/prometheus/grafana → stack mínima para dev
+#   - Portas expostas localmente   → MySQL acessível em localhost:3306
+# ============================================================
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-dev
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-fittnutri}
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --skip-character-set-client-handshake
+    volumes:
+      - mysql_dev_data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "3307:3306"
+    networks:
+      - fittnutri-dev-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend-dev
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-fittnutri}?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=true
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-root}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-root}
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret-insecure-change-in-prod-min32}
+      JWT_VALIDITY: ${JWT_VALIDITY:-86400000}
+      APP_AES_KEY: ${APP_AES_KEY:-dev-aes-key-32chars-insecure!!}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - fittnutri-dev-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: frontend-dev
+    restart: unless-stopped
+    environment:
+      # Vite dev server usa esta variável para configurar o proxy /api → backend
+      VITE_API_TARGET: http://backend:8080
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    networks:
+      - fittnutri-dev-network
+
+volumes:
+  mysql_dev_data:
+
+networks:
+  fittnutri-dev-network:
+    driver: bridge

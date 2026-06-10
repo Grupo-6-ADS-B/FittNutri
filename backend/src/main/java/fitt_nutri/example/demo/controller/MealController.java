@@ -13,11 +13,15 @@ import fitt_nutri.example.demo.dto.response.PatientMealsResponseDTO;
 import fitt_nutri.example.demo.model.MealModel;
 import fitt_nutri.example.demo.service.MealService;
 import fitt_nutri.example.demo.usecase.*;
+import fitt_nutri.example.demo.service.PdfProducerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,10 +32,29 @@ import java.util.stream.Collectors;
 @RequestMapping("/meals")
 @Tag(name = "Refeições", description = "CRUD de refeições")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('NUTRI')")
 public class MealController {
 
     private final MealService service;
 
+    @Autowired(required = false)
+    private PdfProducerService pdfProducerService;
+
+    @Operation(summary = "Solicita geração assíncrona do PDF via RabbitMQ")
+    @ApiResponse(responseCode = "200", description = "Solicitação enviada para fila")
+    @SecurityRequirement(name = "Bearer")
+    @PostMapping("/patient/{patientId}/pdf/request")
+    public ResponseEntity<String> requestPdf(
+            @PathVariable Integer patientId,
+            @RequestParam String patientName,
+            @RequestParam Integer agendamentoId,
+            @RequestParam String dataAgendamento) {
+        if (pdfProducerService == null) {
+            return ResponseEntity.status(503).body("Geração de PDF via fila não disponível neste ambiente.");
+        }
+        pdfProducerService.requestPdfGeneration(patientId, patientName, agendamentoId, dataAgendamento);
+        return ResponseEntity.ok("PDF sendo gerado e enviado para o S3!");
+    }
     private final CreateMealUseCase createMealUseCase;
     private final CalculateMealMacrosUseCase calculateMealMacrosUseCase;
     private final SaveFullDietUseCase saveFullDietUseCase;

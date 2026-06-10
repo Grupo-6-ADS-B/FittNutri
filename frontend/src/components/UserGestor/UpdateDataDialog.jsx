@@ -22,11 +22,13 @@ export default function UpdateDataDialog({
   selectedUser
 }) {
   useEffect(() => {
-    if (!selectedUser || !open) return;
+    if (!open) return;
 
     const peso = parseFloat(String(updateForm.peso || '').replace(',', '.'));
     const altura = parseFloat(String(updateForm.altura || '').replace(',', '.'));
-    const idade = parseFloat(String(updateForm.idadeMetabolica || selectedUser?.idade || '').replace(',', '.'));
+    const idade = parseFloat(
+      String(updateForm.idade || updateForm.idadeMetabolica || selectedUser?.idade || '').replace(',', '.')
+    );
     const sexo = selectedUser?.sexo || 'feminino';
     const atividade = updateForm.atividade || selectedUser?.atividade || 'sedentário';
 
@@ -42,7 +44,7 @@ export default function UpdateDataDialog({
         }
       }
     }
-  }, [updateForm.peso, updateForm.altura, updateForm.idadeMetabolica, updateForm.atividade, selectedUser, open]);
+  }, [updateForm.peso, updateForm.altura, updateForm.idade, updateForm.idadeMetabolica, updateForm.atividade, selectedUser, open]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -55,8 +57,16 @@ export default function UpdateDataDialog({
           onChange={(e) => setUpdateForm(f => ({ ...f, name: e.target.value }))} 
           fullWidth 
         />
+        <TextField
+          sx={{ mt: 4 }}
+          label="Motivo da Consulta"
+          value={updateForm.motivoConsulta || ""}
+          onChange={(e) => setUpdateForm(f => ({ ...f, motivoConsulta: e.target.value }))}
+          fullWidth
+          minRows={2}
+        />
         <TextField 
-          sx={{ mt: 4 }} 
+          sx={{ mt: 0 }} 
           label="IMC" 
           value={computeImc(updateForm.peso, updateForm.altura)} 
           disabled 
@@ -65,31 +75,48 @@ export default function UpdateDataDialog({
         />
 
         <TextField 
-          label="Peso (kg)" 
+          label="Peso (kg)"
+          type="number"
+          inputProps={{ min: 0, step: 'any' }} 
           value={updateForm.peso} 
           onChange={(e) => setUpdateForm(f => ({ ...f, peso: e.target.value }))} 
           fullWidth 
         />
         <TextField 
-          label="Altura (cm)" 
+          label="Altura (cm)"
+          type="number"
+          inputProps={{ min: 0, step: 'any' }}
           value={updateForm.altura} 
           onChange={(e) => setUpdateForm(f => ({ ...f, altura: e.target.value }))} 
           fullWidth 
         />
-        <TextField 
-          label="Idade Metabólica" 
-          value={updateForm.idadeMetabolica} 
-          onChange={(e) => setUpdateForm(f => ({ ...f, idadeMetabolica: e.target.value }))} 
-          fullWidth 
+        <TextField
+          label="Idade (anos)"
+          type="number"
+          value={updateForm.idade}
+          onChange={(e) => setUpdateForm(f => ({ ...f, idade: e.target.value }))}
+          fullWidth
+        />
+        <TextField
+          label="Idade Metabólica"
+          type="number"
+          inputProps={{ min: 0, step: 1 }}
+          value={updateForm.idadeMetabolica}
+          onChange={(e) => setUpdateForm(f => ({ ...f, idadeMetabolica: e.target.value }))}
+          fullWidth
         />
         <TextField 
-          label="Massa Muscular (kg)" 
+          label="Massa Muscular (kg)"
+          type="number"
+          inputProps={{ min: 0, step: 'any' }}
           value={updateForm.massaMuscular} 
           onChange={(e) => setUpdateForm(f => ({ ...f, massaMuscular: e.target.value }))} 
           fullWidth 
         />
         <TextField 
-          label="Gordura (%)" 
+          label="Gordura (%)"
+          type="number"
+          inputProps={{ min: 0, max: 100, step: 'any' }}
           value={updateForm.porcentagemGordura} 
           onChange={(e) => setUpdateForm(f => ({ ...f, porcentagemGordura: e.target.value }))} 
           fullWidth 
@@ -129,6 +156,7 @@ export default function UpdateDataDialog({
               <TextField
                 key={k}
                 label={k}
+                type="number"
                 value={updateForm.circ[k] || ""}
                 onChange={(e) => setUpdateForm(f => ({ 
                   ...f, 

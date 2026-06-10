@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import api from '../utils/api';
 import axios from "axios";
+import { cidadesPorEstado } from '../utils/cidadesFallback';
 import {
   Box,
   TextField,
@@ -16,17 +17,18 @@ import {
   Divider,
   Stack
 } from "@mui/material";
-import { ThemeProvider } from "@mui/material/styles";
-import { theme } from "../theme";
+import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export default function UserRegister() {
+  const muiTheme = useTheme();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     cpf: "",
     phone: "",
+    motivoConsulta: "",
     estado: "",
     cidade: "",
     sexo: "",
@@ -38,11 +40,45 @@ export default function UserRegister() {
   const [notification, setNotification] = useState({
     open: false,
     message: "",
+    severity: "success",
   });
   const [cidades, setCidades] = useState([]);
   const [loadingCidades, setLoadingCidades] = useState(false);
+  const [erroCidades, setErroCidades] = useState(false);
+  const [cidadesModoOffline, setCidadesModoOffline] = useState(false);
 
   const navigate = useNavigate();
+
+   const extractApiMessage = (responseData) => {
+    if (!responseData) return '';
+    if (typeof responseData === 'string') return responseData;
+    return (
+      responseData.mensagem ||
+      responseData.message ||
+      responseData.detalhes ||
+      responseData.detail ||
+      responseData.erro ||
+      responseData.error ||
+      responseData.title ||
+      ''
+    );
+  };
+
+  const applyServerError = (message) => {
+    const normalized = (message || '').toLowerCase();
+
+    if (normalized.includes('email')) {
+      setErrors((prev) => ({ ...prev, email: message || 'Email já cadastrado' }));
+      return true;
+    }
+
+    if (normalized.includes('cpf')) {
+      setErrors((prev) => ({ ...prev, cpf: message || 'CPF já cadastrado' }));
+      return true;
+    }
+
+    return false;
+  };
 
   const estados = [
     { uf: "AC", nome: "Acre" },
@@ -127,11 +163,21 @@ export default function UserRegister() {
 
   const hasAtSign = (email) => email.includes("@");
 
+  const aplicarFallback = (uf) => {
+    const cidadesLocais = cidadesPorEstado[uf] || [];
+    setCidades(cidadesLocais);
+    setCidadesModoOffline(cidadesLocais.length > 0);
+    setErroCidades(cidadesLocais.length === 0);
+  };
+
   const fetchCidades = async (uf) => {
     setLoadingCidades(true);
+    setErroCidades(false);
+    setCidadesModoOffline(false);
     try {
       const response = await axios.get(
-        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`
+        `https://servicodados.ibge.gov.br/api/v1/localidades/estados/${uf}/municipios`,
+        { timeout: 5000 }
       );
       let cidadesOrdenadas = response.data
         .map(cidade => cidade.nome)
@@ -144,13 +190,19 @@ export default function UserRegister() {
       }
 
       setCidades(cidadesOrdenadas);
-    } catch (error) {
-      console.error('Erro ao buscar cidades:', error);
-      setCidades([]);
+    } catch {
+      console.warn('API do IBGE indisponível, usando dados locais.');
+      aplicarFallback(uf);
     } finally {
       setLoadingCidades(false);
     }
   };
+
+  useEffect(() => {
+    if (formData.estado) {
+      fetchCidades(formData.estado);
+    }
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -203,6 +255,7 @@ export default function UserRegister() {
       const phoneDigits = formData.phone.replace(/\D/g, "");
       if (phoneDigits.length < 10 || phoneDigits.length > 11) newErrors.phone = "Telefone deve ter 10 ou 11 dígitos";
     }
+    if (!formData.motivoConsulta.trim()) newErrors.motivoConsulta = "Campo obrigatório";
     if (!formData.estado) newErrors.estado = "Campo obrigatório";
     if (!formData.cidade) newErrors.cidade = "Campo obrigatório";
     if (!formData.autorizaCadastro) newErrors.autorizaCadastro = "É necessário autorizar o cadastro das informações no sistema";
@@ -221,6 +274,7 @@ export default function UserRegister() {
       email: formData.email,
       cpf: formData.cpf,
       telefone: formData.phone,
+      motivoConsulta: formData.motivoConsulta.trim(),
       cidade: formData.cidade,
       estado: formData.estado,
       sexo: formData.sexo,
@@ -238,62 +292,97 @@ export default function UserRegister() {
         setNotification({
           open: true,
           message: `Sucesso! Novo usuário ${formData.name} registrado`,
+          severity: 'success',
         });
         setTimeout(() => navigate("/questionario", { state: { user: resp.data } }), 1200);
       } catch (err) {
         console.error('Erro ao registrar usuário:', err);
+         const status = err.response?.status;
+        const msg = extractApiMessage(err.response?.data) || err.message;
+
+        if (status === 409 && applyServerError(msg)) {
+          setNotification({
+            open: true,
+            message: msg || 'Verifique os campos do cadastro.',
+            severity: 'error',
+          });
+          return;
+        }
+
+        if (status === 400) {
+              if ((msg || '').toLowerCase().includes('cpf')) {
+                setErrors((prev) => ({ ...prev, cpf: msg || 'CPF inválido' }));
+                setNotification({
+                  open: true,
+                  message: msg || 'CPF inválido. Verifique o número informado.',
+                  severity: 'error',
+                });
+                return;
+              }
+
+          setNotification({
+            open: true,
+            message: msg || 'Dados inválidos. Verifique o preenchimento do formulário.',
+            severity: 'error',
+          });
+          return;
+        }
         setNotification({
           open: true,
-          message: `Erro ao registrar usuário: ${err.response?.data?.message || err.message || 'Erro desconhecido'}`,
+          message: `Erro ao registrar usuário: ${msg || 'Erro desconhecido'}`,
+          severity: 'error',
         });
       }
     })();
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <Box
+      sx={{
+        minHeight: "88vh",
+        background: muiTheme.palette.mode === 'dark'
+          ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+          : 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Box sx={{ p: 2, alignSelf: "flex-start" }}>
+      </Box>
       <Box
         sx={{
-          minHeight: "88vh",
-          background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
+          flex: 1,
           display: "flex",
-          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          py: 4,
         }}
       >
-        <Box sx={{ p: 2, alignSelf: "flex-start" }}>
-        </Box>
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            py: 4,
+        <Paper 
+          elevation={12} 
+          sx={{ 
+            p: 4, 
+            maxWidth: 580, 
+            width: "100%",
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            border: `1px solid ${muiTheme.palette.divider}`,
           }}
         >
-          <Paper 
-            elevation={12} 
-            sx={{ 
-              p: 4, 
-              maxWidth: 580, 
-              width: "100%",
-              borderRadius: 3
-            }}
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
+            Cadastro de Paciente
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Preencha os dados do novo paciente
+          </Typography>
+          <Divider sx={{ mb: 3 }} />
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
+            sx={{ display: "flex", flexDirection: "column", gap: 3 }}
           >
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
-              Cadastro de Paciente
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Preencha os dados do novo paciente
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
-            <Box
-              component="form"
-              onSubmit={handleSubmit}
-              noValidate
-              sx={{ display: "flex", flexDirection: "column", gap: 3 }}
-            >
               <TextField
                 label="Nome"
                 name="name"
@@ -337,6 +426,17 @@ export default function UserRegister() {
                 helperText={errors.phone || ""}
                 inputProps={{ inputMode: 'tel' }}
               />
+              <TextField
+                label="Motivo da consulta"
+                name="motivoConsulta"
+                value={formData.motivoConsulta}
+                onChange={handleChange}
+                fullWidth
+                variant="outlined"
+                error={!!errors.motivoConsulta}
+                helperText={errors.motivoConsulta || ""}
+                minRows={3}
+              />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <TextField
                   select
@@ -363,12 +463,16 @@ export default function UserRegister() {
                   onChange={handleChange}
                   fullWidth
                   variant="outlined"
-                  error={!!errors.cidade}
                   helperText={
-                    loadingCidades 
-                      ? "Carregando cidades..." 
-                      : errors.cidade || "Selecione a cidade"
+                    loadingCidades
+                      ? "Carregando cidades..."
+                      : erroCidades
+                      ? "Sem conexão e sem dados locais para este estado."
+                      : cidadesModoOffline
+                      ? "Lista offline (principais cidades). Cidade não encontrada? Digite abaixo."
+                      : errors.cidade || (formData.estado ? "Selecione a cidade" : "Selecione o estado primeiro")
                   }
+                  error={!!errors.cidade || erroCidades}
                   disabled={!formData.estado || loadingCidades}
                 >
                   {cidades.map((cidade) => (
@@ -479,25 +583,24 @@ export default function UserRegister() {
                   Cadastrar
                 </Button>
               </Stack>
-            </Box>
-          </Paper>
-        </Box>
-        <Snackbar
-          open={notification.open}
-          autoHideDuration={3000}
-          onClose={() => setNotification({ open: false, message: "" })}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-          sx={{ mt: 8 }}
-        >
-          <Alert
-            onClose={() => setNotification({ open: false, message: "" })}
-            severity="success"
-            sx={{ width: "100%" }}
-          >
-            {notification.message}
-          </Alert>
-        </Snackbar>
+          </Box>
+        </Paper>
       </Box>
-    </ThemeProvider>
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={3000}
+        onClose={() => setNotification({ open: false, message: "", severity: "success" })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{ mt: 8 }}
+      >
+        <Alert
+          onClose={() => setNotification({ open: false, message: "", severity: "success"  })}
+          severity={notification.severity}
+          sx={{ width: "100%" }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }

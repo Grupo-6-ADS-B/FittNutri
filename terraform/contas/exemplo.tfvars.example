@@ -1,0 +1,84 @@
+# ============================================================
+# FittNutri — Template de configuração por conta
+# Copie este arquivo: cp exemplo.tfvars.example minha-conta.tfvars
+# Preencha os valores e use: terraform plan -var-file="contas/minha-conta.tfvars"
+# ============================================================
+
+aws_region  = "us-east-1"
+environment = "prod"
+project     = "fittnutri"
+
+# Compute
+instance_type = "t3.small"       # t3.micro para free tier
+ami_id        = ""               # Vazio = Ubuntu 22.04 mais recente
+key_name      = "SEU-KEY-PAIR"   # Nome do Key Pair na sua conta AWS
+volume_size   = 20
+
+# Aplicação
+git_branch = "main"
+
+# S3 (vazio = gera automaticamente com account ID)
+s3_bucket_name = ""
+
+# Flags de resiliência — desabilite se a conta bloquear o serviço
+enable_iam            = true    # false se IAM bloqueado
+enable_s3             = true    # false se S3 bloqueado
+enable_ebs_encryption = true    # false se EBS encryption bloqueado
+
+# ─── ALB ───
+enable_alb = true
+
+# Restringe acesso ao ALB ao seu IP. Mude para ["0.0.0.0/0"] para acesso público.
+# Descubra seu IP: curl -s https://ifconfig.me
+alb_allowed_cidrs = ["SEU.IP.AQUI/32"]
+
+# ─── HTTPS ───
+# Modo 1 — HTTP-only (sem domínio, acesso via http://<alb-dns>):
+#   enable_https      = false
+#   acm_domain_name   = ""
+#   acm_certificate_arn = ""
+#
+# Modo 2 — HTTPS com Let's Encrypt + DuckDNS (rode scripts/pre-apply-ssl.sh primeiro):
+#   enable_https        = true
+#   acm_domain_name     = "fittnutri.duckdns.org"
+#   acm_certificate_arn = "arn:aws:acm:us-east-1:ACCOUNT:certificate/XXXX"
+#
+# Modo 3 — HTTPS com ACM nativo (requer Route53 + domínio próprio):
+#   enable_https                  = true
+#   acm_domain_name               = "fittnutri.com.br"
+#   acm_subject_alternative_names = ["*.fittnutri.com.br"]
+#   route53_zone_id               = "Z0123456789ABCDEF"
+
+enable_https          = false
+acm_domain_name       = ""
+acm_certificate_arn   = ""
+
+# Apenas para Modo 3 (ACM nativo + Route53):
+acm_subject_alternative_names = []
+route53_zone_id               = ""
+
+# ─── Networking privado ───
+enable_nat_gateway              = true
+private_app_subnet_cidrs        = ["10.0.10.0/24", "10.0.11.0/24"]
+private_db_subnet_cidrs         = ["10.0.20.0/24", "10.0.21.0/24"]
+private_monitoring_subnet_cidrs = ["10.0.30.0/24"]
+
+# ─── Database ───
+db_instance_type    = "t3.small"
+db_data_volume_size = 30
+
+# ─── Aplicacao (.env) — NAO COMMITAR VALORES REAIS ───
+# Copie para contas/<conta>.tfvars (gitignorado) e preencha.
+# Alternativa: export TF_VAR_app_db_password=... no shell/CI.
+app_db_password        = "SUBSTITUA_ANTES_DO_APPLY"
+app_jwt_secret         = "SUBSTITUA_ANTES_DO_APPLY"
+app_aes_key            = "SUBSTITUA_ANTES_DO_APPLY"
+app_jwt_validity       = 3600000
+app_rabbitmq_url       = "amqps://USUARIO:SENHA@HOST/VHOST"
+app_s3_bucket          = ""   # vazio = usa local.resolved_s3_bucket do modulo storage
+app_spring_profile     = "prod"
+
+# ─── Monitoring ───
+enable_monitoring      = true
+grafana_admin_user     = "admin"
+grafana_admin_password = "SUBSTITUA_ANTES_DO_APPLY"

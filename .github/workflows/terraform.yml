@@ -1,0 +1,117 @@
+# =============================================================================
+# FittNutri — Workflow Terraform (deploy manual)
+# =============================================================================
+# Uso: Actions → "FittNutri Terraform" → Run workflow → escolher ação
+#
+# Antes de rodar, atualize os secrets AWS no GitHub:
+#   Settings → Secrets → Actions
+#   → AWS_ACCESS_KEY_ID
+#   → AWS_SECRET_ACCESS_KEY
+#   → AWS_SESSION_TOKEN
+#
+# O conteúdo do lab.tfvars fica no secret TF_LAB_VARS (salvo uma única vez).
+# =============================================================================
+
+name: FittNutri Terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Ação Terraform'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+
+permissions:
+  contents: read
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  terraform:
+    name: Terraform ${{ github.event.inputs.action }}
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # ── 2. Configurar credenciais AWS (STS — expira a cada 4h no lab) ────────
+      - name: Configurar credenciais AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token:     ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region:            ${{ secrets.AWS_REGION }}
+
+      # ── 3. Validar que as credenciais estão ativas ────────────────────────────
+      - name: Validar credenciais AWS
+        run: |
+          echo "Verificando identidade AWS..."
+          aws sts get-caller-identity
+          echo "Credenciais válidas."
+
+      # ── 4. Instalar Terraform ─────────────────────────────────────────────────
+      - name: Instalar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      # ── 5. Escrever o lab.tfvars a partir do secret ───────────────────────────
+      # O secret TF_LAB_VARS contém o conteúdo completo do lab.tfvars local.
+      # As credenciais AWS NÃO precisam estar no tfvars — vêm do step 2.
+      - name: Criar lab.tfvars a partir do secret
+        env:
+          TF_LAB_VARS: ${{ secrets.TF_LAB_VARS }}
+        run: |
+          mkdir -p terraform/contas
+          printf '%s\n' "$TF_LAB_VARS" > terraform/contas/lab.tfvars
+          echo "lab.tfvars criado com sucesso."
+          echo "--- Conteúdo gerado (primeiras 20 linhas) ---"
+          head -20 terraform/contas/lab.tfvars
+
+      # ── 6. Terraform Init ─────────────────────────────────────────────────────
+      - name: Terraform Init
+        working-directory: terraform
+        run: terraform init
+
+      # ── 7. Terraform Plan ─────────────────────────────────────────────────────
+      - name: Terraform Plan
+        working-directory: terraform
+        run: terraform plan -var-file="contas/lab.tfvars" -out=tfplan
+        env:
+          TF_IN_AUTOMATION: "true"
+
+      # ── 8. Terraform Apply (apenas se action == apply) ────────────────────────
+      - name: Terraform Apply
+        if: github.event.inputs.action == 'apply'
+        working-directory: terraform
+        run: terraform apply -auto-approve tfplan
+        env:
+          TF_IN_AUTOMATION: "true"
+
+      # ── 9. Terraform Destroy (apenas se action == destroy) ───────────────────
+      - name: Terraform Destroy
+        if: github.event.inputs.action == 'destroy'
+        working-directory: terraform
+        run: terraform destroy -var-file="contas/lab.tfvars" -refresh=false -auto-approve
+        env:
+          TF_IN_AUTOMATION: "true"
+
+      # ── 10. Mostrar outputs (apenas após apply) ───────────────────────────────
+      - name: Terraform Outputs
+        if: github.event.inputs.action == 'apply'
+        working-directory: terraform
+        run: |
+          echo "=========================================="
+          echo "  Infraestrutura provisionada com sucesso "
+          echo "=========================================="
+          terraform output 2>/dev/null || echo "(outputs não disponíveis)"

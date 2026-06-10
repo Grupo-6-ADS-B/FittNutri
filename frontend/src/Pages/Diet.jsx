@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import {
   Box, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip, Snackbar, Alert, CircularProgress
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -15,6 +16,7 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import api from '../utils/api';
 
 export default function Diet() {
+  const theme = useTheme();
 
     const navigate = useNavigate();
   const location = useLocation();
@@ -106,13 +108,22 @@ const handleSendToS3 = async () => {
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [sendingToS3, setSendingToS3] = useState(false);
 
+  const openSnack = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
+
   const handleOpenMeal = () => { setSelectedMeal(null); setOpenMeal(true); };
   const handleCloseMeal = () => setOpenMeal(false);
   const handleSaveMeal = async (meal) => {
     console.log('handleSaveMeal recebeu:', meal);
     console.log('meal.id:', meal.id);
-    console.log('alimentos:', meal.alimentos); 
-    
+    console.log('alimentos:', meal.alimentos);
+
+    if (!patientId) {
+      openSnack('Não foi possível identificar o paciente. Selecione o paciente novamente.', 'error');
+      return;
+    }
+
     try {
       const payload = {
         descricao: meal.descricao,
@@ -131,12 +142,12 @@ const handleSendToS3 = async () => {
         
         console.log('Fazendo PATCH para /meals/' + meal.id);
         await api.put(`/meals/${meal.id}`, payload);
-        alert('Refeição atualizada com sucesso!');
+        openSnack(`Refeição "${meal.descricao || 'sem título'}" atualizada com sucesso no plano de ${userName}.`, 'success');
       } else {
         
         console.log('Fazendo POST para /meals/meal-by-type/' + patientId);
         await api.post(`/meals/meal-by-type/${patientId}`, payload);
-        alert('Refeição adicionada com sucesso!');
+        openSnack(`Refeição "${meal.descricao || 'sem título'}" adicionada ao plano de ${userName}.`, 'success');
       }
 
       
@@ -146,7 +157,7 @@ const handleSendToS3 = async () => {
       setOpenMeal(false);
     } catch (error) {
       console.error('Erro ao salvar refeição:', error);
-      alert('Erro ao salvar refeição.');
+      openSnack('Não foi possível salvar a refeição agora. Verifique os dados e tente novamente.', 'error');
     }
   };
 
@@ -164,16 +175,16 @@ const handleSendToS3 = async () => {
     try {
       await api.delete(`/meals/${id}`);
       setMeals(prev => prev.filter(m => m.id !== id));
-      alert('Refeição deletada com sucesso!');
+      openSnack('Refeição deletada com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao deletar refeição:', error);
-      alert('Erro ao deletar refeição.');
+      openSnack('Erro ao deletar refeição.', 'error');
     }
   };
 
   const handleClearDiet = async () => {
     if (meals.length === 0) {
-      alert('Não há refeições para limpar.');
+      openSnack('Não há refeições para limpar.', 'info');
       return;
     }
 
@@ -186,10 +197,10 @@ const handleSendToS3 = async () => {
     try {
       await Promise.all(meals.map(meal => api.delete(`/meals/${meal.id}`)));
       setMeals([]);
-      alert('Todas as refeições foram removidas com sucesso!');
+      openSnack('Todas as refeições foram removidas com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao limpar dieta:', error);
-      alert('Erro ao limpar algumas refeições. Verifique o console.');
+      openSnack('Erro ao limpar algumas refeições. Verifique o console.', 'error');
       loadMeals();
     }
   };
@@ -226,13 +237,16 @@ const handleSendToS3 = async () => {
 
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, background: '#f5f8fa', minHeight: '100vh' }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, background: theme.palette.background.default, minHeight: '100vh', color: theme.palette.text.primary }}>
       <Paper 
         elevation={2} 
         sx={{ 
           p: 3, 
           mb: 4, 
           borderRadius: 2,
+          bgcolor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          border: `1px solid ${theme.palette.divider}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -307,6 +321,9 @@ const handleSendToS3 = async () => {
                 sx={{ 
                   p: 3, 
                   borderRadius: 2,
+                  bgcolor: theme.palette.background.paper,
+                  color: theme.palette.text.primary,
+                  border: `1px solid ${theme.palette.divider}`,
                   transition: 'all 0.2s ease',
                   '&:hover': {
                     boxShadow: 6,
@@ -355,7 +372,9 @@ const handleSendToS3 = async () => {
                     InputProps={{ readOnly: true }}
                     sx={{ 
                       '& .MuiOutlinedInput-root': { 
-                        backgroundColor: '#f9fafb'
+                        backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.default, 0.7) : theme.palette.background.default,
+                        color: theme.palette.text.primary,
+                        '& textarea': { color: theme.palette.text.primary }
                       }
                     }}
                   />
@@ -380,10 +399,12 @@ const handleSendToS3 = async () => {
               justifyContent: 'center',
               borderRadius: 2,
               border: '2px dashed',
-              borderColor: 'divider'
+              borderColor: theme.palette.divider,
+              bgcolor: theme.palette.background.paper,
+              color: theme.palette.text.primary,
             }}
           >
-            <Avatar sx={{ bgcolor: '#e8f5e9', width: 96, height: 96, mb: 3 }}>
+            <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.22 : 0.12), width: 96, height: 96, mb: 3 }}>
               <AddCircleOutlineIcon color="success" sx={{ fontSize: 48 }} />
             </Avatar>
             <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
@@ -395,7 +416,7 @@ const handleSendToS3 = async () => {
           </Paper>
         )}
 
-        <Paper sx={{ p: 3, '@media print': { display: 'none' }, borderRadius: 2 }} elevation={1}>
+        <Paper sx={{ p: 3, '@media print': { display: 'none' }, borderRadius: 2, bgcolor: theme.palette.background.paper, color: theme.palette.text.primary, border: `1px solid ${theme.palette.divider}` }} elevation={1}>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
             Quer agilizar a elaboração da dieta?
           </Typography>

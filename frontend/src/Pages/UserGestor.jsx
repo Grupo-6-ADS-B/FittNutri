@@ -7,7 +7,10 @@ import {
   Box,
   Typography,
   Grid,
+  CircularProgress,
+  Pagination,
 } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
 import SearchHeader from '../components/UserGestor/SearchHeader';
 import PatientCard from '../components/UserGestor/PatientCard';
 import ConfirmDialog from '../components/UserGestor/ConfirmDialog';
@@ -15,21 +18,26 @@ import ScheduleDialog from '../components/UserGestor/ScheduleDialog';
 import WeeklyConsultationsDialog from '../components/UserGestor/WeeklyConsultationsDialog';
 import ConsultationDialog from '../components/UserGestor/ConsultationDialog';
 import UpdateDataDialog from '../components/UserGestor/UpdateDataDialog';
-import { 
-  defaultUsers, 
-  computeImc, 
-  initialCirc, 
-  startOfWeek 
+import {
+  defaultUsers,
+  computeImc,
+  initialCirc,
 } from '../utils/userGestorUtils';
 
 export default function UserGestor() {
+  const muiTheme = useTheme();
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterType, setFilterType] = useState("name");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
   const [appointments, setAppointments] = useState([]);
+  const [appointmentsPage, setAppointmentsPage] = useState(1);
+  const [appointmentsTotalPages, setAppointmentsTotalPages] = useState(1);
   const [scheduleOpen, setScheduleOpen] = useState(false);
   const [scheduleUser, setScheduleUser] = useState(null);
   const [apptDate, setApptDate] = useState("");
@@ -58,7 +66,7 @@ export default function UserGestor() {
   const [filterStartDate, setFilterStartDate] = useState(getTodayString());
   const [filterEndDate, setFilterEndDate] = useState(getEndDateString());
   
-  const location = useNavigate ? useLocation() : {};
+  const location = useLocation();
   let userId = location?.state?.user?.id;
   if (!userId) {
     userId = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
@@ -74,6 +82,8 @@ export default function UserGestor() {
   const [updateForm, setUpdateForm] = useState({
     id: null,
     name: "",
+    idade: "",
+    motivoConsulta: "",
     peso: "",
     altura: "",
     idadeMetabolica: "",
@@ -83,7 +93,7 @@ export default function UserGestor() {
     taxaMetabolicaBasal: "",
     atividade: "",
     circ: { ...initialCirc },
-    date: "" 
+    date: ""
   });
 
   const navigate = useNavigate();
@@ -106,25 +116,6 @@ export default function UserGestor() {
   };
 
   useEffect(() => {
-    const loadUsers = () => {
-      const stored = localStorage.getItem("users");
-      if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          setUsers(Array.isArray(parsed) ? parsed : defaultUsers);
-        } catch {
-          setUsers(defaultUsers);
-        }
-      } else {
-        setUsers(defaultUsers);
-        localStorage.setItem("users", JSON.stringify(defaultUsers));
-      }
-    };
-    loadUsers();
-  }, []);
-
-  
-  useEffect(() => {
     const loadAppointments = async () => {
       try {
         let localAppointments = [];
@@ -132,9 +123,31 @@ export default function UserGestor() {
           const stored = localStorage.getItem("appointments");
           if (stored) localAppointments = JSON.parse(stored);
         } catch {}
-        
-        const res = await api.get('/schedulings');
-        const list = Array.isArray(res.data) ? res.data : [];
+
+        const resolvedUserId = Number(userId);
+        const pageSize = 10;
+        const backendPage = Math.max(appointmentsPage - 1, 0);
+        let list = [];
+        let totalPages = 1;
+
+        if (Number.isFinite(resolvedUserId) && resolvedUserId > 0) {
+          const res = await api.get(`/schedulings/nutritionist/${resolvedUserId}`, {
+            params: {
+              page: backendPage,
+              size: pageSize,
+            },
+          });
+
+          list = Array.isArray(res.data?.content) ? res.data.content : [];
+          totalPages = Number(res.data?.totalPages) || 1;
+        } else {
+          const res = await api.get('/schedulings');
+          const allList = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
+          totalPages = Math.max(Math.ceil(allList.length / pageSize), 1);
+          const startIndex = backendPage * pageSize;
+          list = allList.slice(startIndex, startIndex + pageSize);
+        }
+
         const mapped = list.map((a) => {
           const localAppt = localAppointments.find(la => la.id === a.id);
           
@@ -150,6 +163,7 @@ export default function UserGestor() {
           };
         });
         setAppointments(mapped);
+        setAppointmentsTotalPages(Math.max(totalPages, 1));
         try { localStorage.setItem("appointments", JSON.stringify(mapped)); } catch {}
       } catch (e) {
         console.error("Erro ao carregar agendamentos:", e);
@@ -157,27 +171,37 @@ export default function UserGestor() {
           const stored = localStorage.getItem("appointments");
           if (stored) setAppointments(JSON.parse(stored));
         } catch {}
+        setAppointmentsTotalPages(1);
       }
     };
     loadAppointments();
-  }, []);
+  }, [userId, appointmentsPage]);
 
-  const fetchUsers = async () => {
+  const handleAppointmentsPageChange = (_, newPage) => {
+    if (newPage === appointmentsPage) return;
+    setAppointmentsPage(newPage);
+  };
+
+  const fetchUsers = async (pageUi = 1) => {
+    setLoading(true);
     try {
-      const response = await api.get('/patients');
-      const mapped = Array.isArray(response.data)
-        ? response.data.map(u => ({
+      const backendPage = Math.max(pageUi - 1, 0);
+      const response = await api.get('/patients', { params: { page: backendPage } });
+      const list = Array.isArray(response.data) ? response.data : (response.data?.content ?? []);
+      const total = Number(response.data?.totalPages) || 1;
+      const mapped = list.map(u => ({
             id: u.id ?? u.ID ?? u.idUsuario ?? u.codigo ?? undefined,
             name: u.name ?? u.nome ?? '',
             email: u.email ?? '',
             telefone: u.telefone ?? u.phone ?? '',
             cidade: u.cidade ?? u.city ?? '',
+            motivoConsulta: u.motivoConsulta ?? '',
             avatar: u.avatar ?? '',
             cpf: u.cpf ?? '',
             crn: u.crn ?? '',
-          }))
-        : [];
+          }));
       setUsers(mapped);
+      setTotalPages(Math.max(total, 1));
       try { localStorage.setItem("users", JSON.stringify(mapped)); } catch {}
     } catch (error) {
       const stored = localStorage.getItem("users");
@@ -191,21 +215,30 @@ export default function UserGestor() {
         setUsers(defaultUsers);
         try { localStorage.setItem("users", JSON.stringify(defaultUsers)); } catch {}
       }
+      setCurrentPage(1);
+      setTotalPages(1);
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(currentPage);
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        fetchUsers();
+        fetchUsers(currentPage);
       }
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => {
       document.removeEventListener('visibilitychange', handleVisibility);
     };
-  }, []);
+  }, [currentPage]);
+
+  const handlePageChange = (_, newPage) => {
+    if (newPage === currentPage) return;
+    setCurrentPage(newPage);
+  };
 
   const handleAddUser = () => {
     navigate("/register-patient");
@@ -260,6 +293,8 @@ export default function UserGestor() {
     setUpdateForm({
       id: patientId,
       name: name,
+      idade: userFromList.idade ?? "",
+      motivoConsulta: userFromList.motivoConsulta ?? startAppointment?.note ?? "",
       peso: userFromList.peso ?? "",
       altura: userFromList.altura ?? "",
       idadeMetabolica: userFromList.idadeMetabolica ?? "",
@@ -310,6 +345,8 @@ export default function UserGestor() {
           return {
             ...prev,
             date: dateValue || prev.date,
+            idade: anthropo.idade ?? prev.idade,
+            motivoConsulta: latest.motivoConsulta ?? latest.motivo_consulta ?? prev.motivoConsulta,
             peso: anthropo.peso ?? prev.peso,
             altura: anthropo.altura ?? prev.altura,
             idadeMetabolica: anthropo.idadeMetabolica ?? prev.idadeMetabolica,
@@ -361,9 +398,11 @@ export default function UserGestor() {
 
     const payload = {
       dataConsulta: adjustedDate,
+      motivoConsulta: (updateForm.motivoConsulta || '').trim(),
       antropometria: {
         peso: Number(updateForm.peso),
         altura: Number(updateForm.altura),
+        idade: updateForm.idade ? Number(updateForm.idade) : null,
         imc: Number(computeImc(updateForm.peso, updateForm.altura)),
         idadeMetabolica: Number(updateForm.idadeMetabolica),
         massaMuscular: Number(updateForm.massaMuscular),
@@ -398,6 +437,8 @@ export default function UserGestor() {
     const updatedUser = {
       id: updateForm.id,
       name: updateForm.name,
+      idade: updateForm.idade,
+      motivoConsulta: updateForm.motivoConsulta,
       peso: updateForm.peso,
       altura: updateForm.altura,
       idadeMetabolica: updateForm.idadeMetabolica,
@@ -515,19 +556,6 @@ export default function UserGestor() {
     setConfirmOpen(false);
     setUserToDelete(null);
   };
-
-  useEffect(() => {
-    const onFocus = () => {
-      const stored = localStorage.getItem("users");
-      if (stored) {
-        try {
-          setUsers(JSON.parse(stored));
-        } catch {}
-      }
-    };
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, []);
 
   useEffect(() => {
     const storedAppointment = sessionStorage.getItem('activeConsultation');
@@ -694,7 +722,9 @@ export default function UserGestor() {
             display: "flex",
             justifyContent: "center",
             p: 3,
-            background: "linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)",
+            background: muiTheme.palette.mode === 'dark'
+              ? "linear-gradient(135deg, #0b1220 0%, #121a2b 100%)"
+              : "linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)",
           }}
         >
           <Box
@@ -707,7 +737,7 @@ export default function UserGestor() {
             }}
           >
             <Box>
-              <Typography variant="h4" sx={{ mt: 5, fontWeight: 700, mb: 3, color: '#1b5e20' }}>
+              <Typography variant="h4" sx={{ mt: 5, fontWeight: 700, mb: 3, color: muiTheme.palette.text.primary }}>
                 Gerenciamento de Pacientes
               </Typography>
 
@@ -721,7 +751,11 @@ export default function UserGestor() {
               />
             </Box>
 
-            {filteredUsers.length === 0 ? (
+            {loading ? (
+              <Box sx={{ textAlign: 'center', py: 8 }}>
+                <CircularProgress color="success" />
+              </Box>
+            ) : filteredUsers.length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 8 }}>
                 <Typography variant="h6" color="text.secondary" sx={{ mb: 1 }}>
                   Nenhum paciente encontrado
@@ -731,18 +765,43 @@ export default function UserGestor() {
                 </Typography>
               </Box>
             ) : (
-              <Grid container spacing={3}>
-                {filteredUsers.map((user) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={user?.id}>
-                    <PatientCard
-                      user={user}
-                      onViewData={handleViewUserData}
-                      onSchedule={openScheduleDialog}
-                      onDelete={requestDeleteUser}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
+              <>
+                <Grid container spacing={3}>
+                  {filteredUsers.map((user) => (
+                    <Grid item xs={12} sm={6} md={4} lg={3} key={user?.id}>
+                      <PatientCard
+                        user={user}
+                        onViewData={handleViewUserData}
+                        onSchedule={openScheduleDialog}
+                        onDelete={requestDeleteUser}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+
+                <Box
+                  sx={{
+                    mt: 3,
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 1.5,
+                  }}
+                >
+                  <Typography variant="body2" color="text.secondary">
+                    Página {currentPage} de {totalPages}
+                  </Typography>
+                  <Pagination
+                    color="success"
+                    page={currentPage}
+                    count={totalPages}
+                    onChange={handlePageChange}
+                    showFirstButton
+                    showLastButton
+                  />
+                </Box>
+              </>
             )}
           </Box>
         </Box>
@@ -772,6 +831,9 @@ export default function UserGestor() {
         open={weekDialogOpen}
         onClose={closeWeekDialog}
         weeklyAppointments={weeklyAppointments}
+        appointmentsPage={appointmentsPage}
+        appointmentsTotalPages={appointmentsTotalPages}
+        onAppointmentsPageChange={handleAppointmentsPageChange}
         users={users}
         onStartConsultation={handleStartConsultation}
         persistActivePatient={persistActivePatient}

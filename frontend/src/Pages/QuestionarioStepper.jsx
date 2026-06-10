@@ -16,6 +16,7 @@ import {
   Snackbar,
   Alert
 } from "@mui/material";
+import { alpha, useTheme } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -53,6 +54,7 @@ export default function QuestionarioStepper() {
   const [saveToastOpen, setSaveToastOpen] = useState(false);
   const hydrationRef = React.useRef(false);
   const debounceRef = React.useRef(null);
+  const theme = useTheme();
   const persistData = React.useCallback((uid, aData, cData, comp) => {
     if (!uid) return;
     try {
@@ -62,7 +64,11 @@ export default function QuestionarioStepper() {
   }, []);
   const location = useLocation();
 
-  const selectedUser = location.state?.user || mockUsers[0];
+  const selectedUser = location.state?.user || (() => {
+    const pid = sessionStorage.getItem('pacienteId') || localStorage.getItem('pacienteId') || localStorage.getItem('lastUserId');
+    const pname = sessionStorage.getItem('pacienteNome') || localStorage.getItem('pacienteNome') || '';
+    return pid ? { id: pid, name: pname } : null;
+  })();
   const [userInfo, setUserInfo] = useState(selectedUser);
   const [isEditingUser, setIsEditingUser] = useState(false);
   const [userDraft, setUserDraft] = useState({
@@ -97,7 +103,11 @@ const [circData, setCircData] = useState(() => ({
   
   useEffect(() => {
     if (!selectedUser?.id) return;
-  try { localStorage.setItem('lastUserId', String(selectedUser.id)); } catch { /* ignore */ }
+  try {
+      localStorage.setItem('lastUserId', String(selectedUser.id));
+      sessionStorage.setItem('pacienteId', String(selectedUser.id));
+      if (selectedUser.name) sessionStorage.setItem('pacienteNome', selectedUser.name);
+    } catch { /* ignore */ }
     const stored = localStorage.getItem(`questionario_${selectedUser.id}`);
     if (stored) {
       try {
@@ -384,6 +394,9 @@ const handleResumoClick = async () => {
           flexDirection: "column",
           minHeight: "88vh",
           background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
+          background: theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+            : 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
         }}
       >
         <Box sx={{mt: 8, flex: 1, display: "flex", flexDirection: "column", alignItems: "center", p: 2 }}>
@@ -655,7 +668,6 @@ const handleResumoClick = async () => {
               </Paper>
               {openModal && (
                 <Paper elevation={3} sx={{ width: 320, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
-                  <Box component="img" src="/medida.jpg" alt="Ajuda - Circunferências" sx={{ width: '100%', borderRadius: 2, mb: 2 }} />
                   <Typography variant="body1" sx={{ textAlign: 'center' }}>
                     Este questionário coleta dados de circunferências corporais. Preencha os campos para prosseguir.
                   </Typography>

@@ -9,7 +9,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -17,8 +20,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/schedulings")
-@CrossOrigin(origins = "http://localhost:5173")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('NUTRI')")
 @Tag(name = "Agendamentos", description = "CRUD de agendamentos")
 public class SchedulingController {
 
@@ -64,13 +67,18 @@ public class SchedulingController {
     }
 
     @GetMapping("/nutritionist/{usuarioId}")
-    @Operation(summary = "Lista agendamentos de um nutricionista")
+    @Operation(summary = "Lista agendamentos de um nutricionista (paginado para infinite scroll)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Lista de agendamentos retornada"),
             @ApiResponse(responseCode = "404", description = "Nutricionista não encontrado")
     })
-    public ResponseEntity<List<SchedulingResponseDTO>> getByNutritionist(@PathVariable Integer usuarioId) {
-        return ResponseEntity.ok(adapter.getByNutritionist(usuarioId));
+    public ResponseEntity<Page<SchedulingResponseDTO>> getByNutritionist(
+            @PathVariable Integer usuarioId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+
+        var pageable = PageRequest.of(Math.max(page, 0), Math.max(size, 1));
+        return ResponseEntity.ok(adapter.getByNutritionist(usuarioId, pageable));
     }
 
     @PutMapping("/{id}")

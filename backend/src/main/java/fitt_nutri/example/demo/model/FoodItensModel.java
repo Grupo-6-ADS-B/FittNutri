@@ -2,15 +2,24 @@ package fitt_nutri.example.demo.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Entity
 @Table(name = "alimentos")
-public class FoodItensModel {
+public class FoodItensModel extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
+
+    @Column(name = "fonte", nullable = false, length = 10)
+    private String fonte = "TACO";
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "nutricionista_id")
+    private UserModel nutricionista;
 
     @Column(name = "nome")
     private String nome;

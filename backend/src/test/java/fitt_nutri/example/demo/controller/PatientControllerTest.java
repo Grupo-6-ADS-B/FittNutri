@@ -9,6 +9,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 
 import java.util.List;
@@ -48,16 +51,17 @@ class PatientControllerTest {
     // ---------- GET /patients ----------
 
     @Test
-    @DisplayName("getAllPatients - deve retornar 200 e lista de pacientes")
+    @DisplayName("getAllPatients - deve retornar 200 e página de pacientes")
     void getAllPatients_DeveRetornar200ELista() {
         List<PatientResponseDTO> lista = List.of(mock(PatientResponseDTO.class));
-        when(adapter.getAll()).thenReturn(lista);
+        Page<PatientResponseDTO> page = new PageImpl<>(lista);
+        when(adapter.getAll(any(Pageable.class))).thenReturn(page);
 
-        ResponseEntity<List<PatientResponseDTO>> response = controller.getAllPatients();
+        ResponseEntity<Page<PatientResponseDTO>> response = controller.getAllPatients(0);
 
         assertEquals(200, response.getStatusCodeValue());
-        assertEquals(lista, response.getBody());
-        verify(adapter).getAll();
+        assertEquals(page, response.getBody());
+        verify(adapter).getAll(any(Pageable.class));
     }
 
     // ---------- GET /patients/{id} ----------

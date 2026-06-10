@@ -7,9 +7,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/patients")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('NUTRI')")
 @Tag(name = "Patients", description = "CRUD de pacientes")
 public class PatientController {
 
@@ -30,7 +35,7 @@ public class PatientController {
             @ApiResponse(responseCode = "400", description = "Dados inválidos"),
             @ApiResponse(responseCode = "409", description = "Conflito de dados (Email, CPF ou Nome já cadastrado)")
     })
-    public ResponseEntity<PatientResponseDTO> createPatient(@RequestBody PatientRequestDTO dto) {
+    public ResponseEntity<PatientResponseDTO> createPatient(@Valid @RequestBody PatientRequestDTO dto) {
         PatientResponseDTO response = adapter.create(dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -41,8 +46,10 @@ public class PatientController {
             @ApiResponse(responseCode = "200", description = "Lista de pacientes retornada"),
             @ApiResponse(responseCode = "404", description = "Nenhum paciente cadastrado")
     })
-    public ResponseEntity<List<PatientResponseDTO>> getAllPatients() {
-        List<PatientResponseDTO> response = adapter.getAll();
+    public ResponseEntity<Page<PatientResponseDTO>> getAllPatients(
+            @RequestParam(name = "page", defaultValue = "0") int page) {
+        PageRequest pageable = PageRequest.of(Math.max(page, 0), 12);
+        Page<PatientResponseDTO> response = adapter.getAll(pageable);
         return ResponseEntity.ok(response);
     }
 
@@ -65,7 +72,7 @@ public class PatientController {
             @ApiResponse(responseCode = "409", description = "Conflito de dados (Email, CPF ou Nome já cadastrado)")
     })
     public ResponseEntity<PatientResponseDTO> updatePatient(@PathVariable Integer id,
-                                                            @RequestBody PatientRequestDTO dto) {
+                                                            @Valid @RequestBody PatientRequestDTO dto) {
         PatientResponseDTO response = adapter.update(id, dto);
         return ResponseEntity.ok(response);
     }

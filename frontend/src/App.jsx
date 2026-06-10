@@ -1,10 +1,12 @@
 import React from 'react';
 import { ThemeProvider } from '@mui/material/styles';
 import { CssBaseline, Box } from '@mui/material';
-import { theme } from './theme';
+import { lightTheme } from './theme/lightTheme';
+import { darkTheme } from './theme/darkTheme';
 import { BrowserRouter as Router, Routes, Route, useNavigate, Outlet, Navigate, useLocation } from "react-router-dom";
 import { LoginForm } from './Pages/LoginForm';
 import { RegisterForm } from './Pages/RegisterForm';
+import ResetPassword from './Pages/ResetPassword';
 import { Header } from './components/Header';
 import { Main } from './Pages/Main';
 import UserGestor from "./Pages/UserGestor";
@@ -12,8 +14,13 @@ import QuestionarioStepper from "./Pages/QuestionarioStepper";
 import ResumoCircunferencia from "./Pages/ResumoCircunferencia";
 import Diet from "./Pages/Diet";
 import Dashboard from "./Pages/Dashboard";
-
 import PatientRegister from './Pages/PatientRegister';
+import { restoreUserDataFromBackend } from './utils/userDataRestorer';
+import Profile from './Pages/Profile';
+import EditProfile from './Pages/EditProfile';
+import Settings from './Pages/Settings';
+import ChangePassword from './Pages/ChangePassword';
+import { useThemeMode } from './contexts/ThemeModeContext';
 
 function isAuthenticated() {
   return Boolean(localStorage.getItem('token') || sessionStorage.getItem('token'));
@@ -71,11 +78,22 @@ function Layout() {
 }
 
 function App() {
+  const { mode } = useThemeMode();
+
+  React.useEffect(() => {
+    // Restaura dados do usuário ao recarregar a página
+    if (localStorage.getItem('token') || sessionStorage.getItem('token')) {
+      restoreUserDataFromBackend();
+    }
+  }, []);
+
+  const theme = React.useMemo(() => (mode === 'dark' ? darkTheme : lightTheme), [mode]);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary', transition: 'background-color 180ms ease, color 180ms ease' }}>
           <Routes>
             <Route element={<Layout />}>
               <Route path="/" element={<Main />} />
@@ -86,12 +104,17 @@ function App() {
               </Route>
 
               <Route element={<ProtectedRoute />}>
-                <Route path="/register-patient" element={<PatientRegister />} />
+                <Route path="/resetar-senha" element={<ResetPassword />} />
+              <Route path="/register-patient" element={<PatientRegister />} />
                 <Route path="/questionario" element={<QuestionarioStepper />} />
                 <Route path="/resumo-circunferencia" element={<ResumoCircunferencia />} />
                 <Route path="/gestor" element={<UserGestor />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/diet" element={<Diet />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/profile/edit" element={<EditProfile />} />
+                <Route path="/profile/password" element={<ChangePassword />} />
+                <Route path="/settings" element={<Settings />} />
               </Route>
             </Route>
           </Routes>

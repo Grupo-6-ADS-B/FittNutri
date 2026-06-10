@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { Box, Container, Typography, TextField, Button, Paper } from '@mui/material';
 import { Section } from './Section';
 import { useForm, Controller } from 'react-hook-form';
+import { alpha, useTheme } from '@mui/material/styles';
 
 function ContactForm() {
+  const theme = useTheme();
   const { control, handleSubmit, formState: { errors } } = useForm();
   const [submitting, setSubmitting] = useState(false);
 
@@ -17,13 +19,15 @@ function ContactForm() {
   };
 
   return (
-    <Section background="linear-gradient(135deg, #f8f9fa 0%, #ffffffeb 100%)" id="contact" py={{ xs: 6, md: 10 }}>
+    <Section background={theme.palette.mode === 'dark'
+      ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+      : 'linear-gradient(135deg, #f8f9fa 0%, #ffffffeb 100%)'} id="contact" py={{ xs: 6, md: 10 }}>
       <Container maxWidth="xl">
         <Box sx={{ textAlign: 'center', mb: 8 }}>
-          <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: '#1a202c', fontSize: { xs: '2rem', md: '2.5rem' } }}>
+          <Typography variant="h3" sx={{ mb: 3, fontWeight: 700, color: theme.palette.text.primary, fontSize: { xs: '2rem', md: '2.5rem' } }}>
             Tem alguma dúvida?
           </Typography>
-          <Typography variant="h6" sx={{ color: '#4a5568', maxWidth: '900px', mx: 'auto', lineHeight: 1.6, fontWeight: 400 }}>
+          <Typography variant="h6" sx={{ color: theme.palette.text.secondary, maxWidth: '900px', mx: 'auto', lineHeight: 1.6, fontWeight: 400 }}>
             Fale conosco e tire todas as suas dúvidas sobre o nosso software para nutricionistas. Estamos aqui para ajudar você a entender como nossa plataforma pode transformar sua prática clínica e melhorar o atendimento aos seus pacientes.
           </Typography> 
         </Box>
@@ -35,7 +39,8 @@ function ContactForm() {
             mx: 'auto',
             p: { xs: 2, sm: 3 },
             borderRadius: 2,
-            boxShadow: '0 10px 30px rgba(14,30,37,0.06)'
+            boxShadow: theme.shadows[2],
+            border: `1px solid ${theme.palette.divider}`,
           }}
         >
           <Box
@@ -63,9 +68,9 @@ function ContactForm() {
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 1.5,
-                      '& fieldset': { borderColor: 'rgba(0,0,0,0.12)' },
-                      '&:hover fieldset': { borderColor: 'primary.main' },
-                      '&.Mui-focused fieldset': { borderColor: 'primary.main', boxShadow: '0 0 0 6px rgba(46,125,50,0.06)' }
+                      '& fieldset': { borderColor: theme.palette.divider },
+                      '&:hover fieldset': { borderColor: theme.palette.primary.main },
+                      '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main, boxShadow: `0 0 0 6px ${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.16 : 0.06)}` }
                     }
                   }}
                 />
@@ -110,8 +115,8 @@ function ContactForm() {
                   sx={{
                     '& .MuiOutlinedInput-root': {
                       borderRadius: 1.5,
-                      '& fieldset': { borderColor: 'rgba(0,0,0,0.12)' },
-                      '&.Mui-focused fieldset': { borderColor: 'primary.main', boxShadow: '0 0 0 6px rgba(46,125,50,0.06)' }
+                      '& fieldset': { borderColor: theme.palette.divider },
+                      '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main, boxShadow: `0 0 0 6px ${alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.16 : 0.06)}` }
                     }
                   }}
                 />
