@@ -149,11 +149,14 @@ function LoginForm() {
       const userName = response.data.nome || decoded.name || 'Google User';
       const foto = response.data.foto || photoUrl;
       const userId = response.data.id;
+      const perfilCompleto = response.data.perfilCompleto !== false;
 
       sessionStorage.setItem('token', backendToken);
       localStorage.setItem('token', backendToken);
       sessionStorage.setItem('nomeUsuario', userName);
       localStorage.setItem('nomeUsuario', userName);
+      sessionStorage.setItem('perfilCompleto', perfilCompleto ? 'true' : 'false');
+      localStorage.setItem('perfilCompleto', perfilCompleto ? 'true' : 'false');
       if (foto) {
         sessionStorage.setItem('fotoUsuario', foto);
         localStorage.setItem('fotoUsuario', foto);
@@ -165,7 +168,7 @@ function LoginForm() {
 
       setSuccess(`Login Google realizado com sucesso! Bem-vindo(a), ${userName}`);
       setTimeout(() => {
-        navigate('/gestor', { replace: true });
+        navigate(perfilCompleto ? '/gestor' : '/completar-perfil', { replace: true });
       }, 500);
     } catch (err) {
       console.error('Erro ao autenticar com Google:', err);

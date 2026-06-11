@@ -20,10 +20,16 @@ import Profile from './Pages/Profile';
 import EditProfile from './Pages/EditProfile';
 import Settings from './Pages/Settings';
 import ChangePassword from './Pages/ChangePassword';
+import CompleteGoogleProfile from './Pages/CompleteGoogleProfile';
 import { useThemeMode } from './contexts/ThemeModeContext';
 
 function isAuthenticated() {
   return Boolean(localStorage.getItem('token') || sessionStorage.getItem('token'));
+}
+
+function isProfileComplete() {
+  const val = sessionStorage.getItem('perfilCompleto') ?? localStorage.getItem('perfilCompleto');
+  return val !== 'false';
 }
 
 // Redireciona usuários autenticados que tentam acessar rotas públicas exclusivas
@@ -32,10 +38,18 @@ function PublicOnlyRoute() {
   return <Outlet />;
 }
 
-// Redireciona usuários não autenticados para login
+// Redireciona usuários não autenticados; redireciona para /completar-perfil se perfil incompleto
 function ProtectedRoute() {
   const location = useLocation();
   if (!isAuthenticated()) return <Navigate to="/login" replace state={{ from: location }} />;
+  if (!isProfileComplete()) return <Navigate to="/completar-perfil" replace />;
+  return <Outlet />;
+}
+
+// Acessível apenas quando autenticado E perfil ainda incompleto
+function CompleteProfileRoute() {
+  if (!isAuthenticated()) return <Navigate to="/login" replace />;
+  if (isProfileComplete()) return <Navigate to="/gestor" replace />;
   return <Outlet />;
 }
 
@@ -115,6 +129,10 @@ function App() {
 
             {/* Rotas privadas */}
             <Route element={<PrivateLayout />}>
+              {/* Completar perfil Google — acessível apenas com perfil incompleto */}
+              <Route element={<CompleteProfileRoute />}>
+                <Route path="/completar-perfil" element={<CompleteGoogleProfile />} />
+              </Route>
               <Route element={<ProtectedRoute />}>
                 <Route path="/gestor" element={<UserGestor />} />
                 <Route path="/register-patient" element={<PatientRegister />} />

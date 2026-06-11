@@ -3,6 +3,7 @@ package fitt_nutri.example.demo.controller;
 import fitt_nutri.example.demo.adapter.UserAdapter;
 import fitt_nutri.example.demo.config.GerenciadorTokenJwt;
 import fitt_nutri.example.demo.dto.login.*;
+import fitt_nutri.example.demo.dto.request.CompleteProfileDTO;
 import fitt_nutri.example.demo.dto.request.UserRequestDTO;
 import fitt_nutri.example.demo.dto.response.UserResponseDTO;
 import fitt_nutri.example.demo.model.RefreshTokenModel;
@@ -277,9 +278,11 @@ public class UserController {
 
             String jwt = service.gerarToken(user);
             RefreshTokenModel refreshToken = refreshTokenService.createRefreshToken(user);
+            boolean perfilCompleto = user.getCpf() != null && !user.getCpf().startsWith("GOOGLE-");
             Map<String, Object> responseData = new java.util.HashMap<>();
             responseData.put("token", jwt);
             responseData.put("refreshToken", refreshToken.getToken());
+            responseData.put("perfilCompleto", perfilCompleto);
             responseData.put("id", user.getId());
             responseData.put("nome", user.getNome());
             responseData.put("email", user.getEmail());
@@ -292,6 +295,29 @@ public class UserController {
                 : "Token inválido ou expirado";
             return ResponseEntity.status(401).body(Map.of("error", "Falha na autenticação Google: " + motivo));
         }
+    }
+
+    @PatchMapping("/complete-profile")
+    @PreAuthorize("hasRole('NUTRI')")
+    @SecurityRequirement(name = "Bearer")
+    @Operation(summary = "Completa o perfil de um usuário criado via Google (adiciona CPF e CRN)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Perfil completado com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Perfil já completo ou dados inválidos"),
+            @ApiResponse(responseCode = "409", description = "CPF ou CRN já cadastrado")
+    })
+    public ResponseEntity<?> completarPerfil(@Valid @RequestBody CompleteProfileDTO dto) {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var userOpt = service.getUserByEmail(auth.getName());
+        if (userOpt.isEmpty()) {
+            return ResponseEntity.status(404).body(Map.of("error", "Usuário não encontrado"));
+        }
+        var user = userOpt.get();
+        if (user.getCpf() == null || !user.getCpf().startsWith("GOOGLE-")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Perfil já completo"));
+        }
+        service.completarPerfil(user, dto.cpf(), dto.crn());
+        return ResponseEntity.ok(Map.of("message", "Perfil completado com sucesso"));
     }
 
     @PostMapping("/reset-password")

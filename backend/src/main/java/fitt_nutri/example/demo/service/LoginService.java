@@ -125,4 +125,17 @@ public class LoginService {
         user.setSenha(senhaCriptografada);
         userRepository.save(user);
     }
+
+    @Transactional
+    public void completarPerfil(UserModel user, String cpf, String crn) {
+        if (userRepository.existsByCpf(cpf)) {
+            throw new ConflictException("CPF já cadastrado");
+        }
+        if (userRepository.existsByCrn(crn)) {
+            throw new ConflictException("CRN já cadastrado");
+        }
+        user.setCpf(cpf);
+        user.setCrn(crn);
+        userRepository.save(user);
+    }
 }
