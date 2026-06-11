@@ -46,6 +46,7 @@ public class FormAdapter {
         return new FormResponseDTO(
                 form.getId(),
                 form.getNome(),
+                form.getEmail(),
                 form.getMensagem()
         );
     }
