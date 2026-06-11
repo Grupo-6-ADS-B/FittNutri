@@ -276,8 +276,10 @@ public class UserController {
             }
 
             String jwt = service.gerarToken(user);
+            RefreshTokenModel refreshToken = refreshTokenService.createRefreshToken(user);
             Map<String, Object> responseData = new java.util.HashMap<>();
             responseData.put("token", jwt);
+            responseData.put("refreshToken", refreshToken.getToken());
             responseData.put("id", user.getId());
             responseData.put("nome", user.getNome());
             responseData.put("email", user.getEmail());

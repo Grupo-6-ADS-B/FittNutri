@@ -109,7 +109,7 @@ public class LoginService {
     public String gerarToken(UserModel user) {
         org.springframework.security.core.userdetails.User springUser =
             new org.springframework.security.core.userdetails.User(
-                user.getEmail(), "", java.util.List.of(() -> user.getRole()));
+                user.getEmail(), "", java.util.List.of(() -> "ROLE_" + user.getRole()));
         org.springframework.security.authentication.UsernamePasswordAuthenticationToken authentication =
             new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
                 springUser, null, springUser.getAuthorities());
