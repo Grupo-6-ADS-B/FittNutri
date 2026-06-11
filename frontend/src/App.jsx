@@ -120,6 +120,7 @@ function App() {
             {/* Rotas públicas */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<AuthRedirect />} />
+              <Route path="/inicio" element={<Main />} />
               <Route path="/resetar-senha" element={<ResetPassword />} />
               <Route element={<PublicOnlyRoute />}>
                 <Route path="/login" element={<LoginForm />} />

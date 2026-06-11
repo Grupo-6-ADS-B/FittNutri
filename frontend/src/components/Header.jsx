@@ -247,6 +247,7 @@ function Header({
                 }}
               >
                 <MenuItem onClick={() => navigate('/gestor')}>Meus pacientes</MenuItem>
+                <MenuItem onClick={() => navigate('/inicio')}>Página inicial do site</MenuItem>
                 <Divider />
                 <MenuItem onClick={() => navigate('/profile')}>Ver perfil</MenuItem>
                 <MenuItem onClick={() => navigate('/profile/edit')}>Editar informações</MenuItem>
