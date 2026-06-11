@@ -8,7 +8,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 @Slf4j
 @Service
@@ -44,6 +47,39 @@ public class EmailService {
         }
     }
 
+    public void sendAppointmentConfirmationEmail(
+            String toEmail, String patientName, String nutritionistName,
+            LocalDate date, String notes) {
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(from)
+                .to(List.of(toEmail))
+                .subject("Consulta confirmada — FittNutri")
+                .html(buildAppointmentConfirmationHtml(patientName, nutritionistName, date, notes))
+                .build();
+        try {
+            resend.emails().send(params);
+            log.info("[email] confirmação de agendamento enviada para {}", toEmail);
+        } catch (ResendException e) {
+            log.error("[email] falha ao enviar confirmação de agendamento: {}", e.getMessage());
+        }
+    }
+
+    public void sendAppointmentReminderEmail(
+            String toEmail, String patientName, String nutritionistName, LocalDate date) {
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(from)
+                .to(List.of(toEmail))
+                .subject("Lembrete: sua consulta é amanhã — FittNutri")
+                .html(buildAppointmentReminderHtml(patientName, nutritionistName, date))
+                .build();
+        try {
+            resend.emails().send(params);
+            log.info("[email] lembrete de consulta enviado para {}", toEmail);
+        } catch (ResendException e) {
+            log.error("[email] falha ao enviar lembrete de consulta: {}", e.getMessage());
+        }
+    }
+
     public void sendContactNotificationEmail(String nome, String emailRemetente, String mensagem) {
         CreateEmailOptions params = CreateEmailOptions.builder()
                 .from(from)
@@ -58,6 +94,56 @@ public class EmailService {
         } catch (ResendException e) {
             log.error("[email] falha ao enviar notificação de contato: {}", e.getMessage());
         }
+    }
+
+    private String buildAppointmentConfirmationHtml(
+            String patientName, String nutritionistName, LocalDate date, String notes) {
+        String formattedDate = date.format(
+                DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM 'de' yyyy", Locale.of("pt", "BR")));
+        String notesBlock = (notes != null && !notes.isBlank())
+                ? "<p><strong>Observações:</strong></p>" +
+                  "<p style=\"background:#f9fafb;border-left:4px solid #16a34a;padding:12px 16px;" +
+                  "border-radius:4px;white-space:pre-wrap;\">" + notes + "</p>"
+                : "";
+        return """
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head><meta charset="UTF-8"></head>
+                <body style="font-family:sans-serif;color:#1f2937;padding:32px;max-width:560px;margin:0 auto;">
+                  <h2 style="color:#16a34a;margin-bottom:4px;">FittNutri</h2>
+                  <p style="color:#6b7280;font-size:13px;margin-top:0;">Plataforma Inteligente para Nutricionistas</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
+                  <p>Olá, <strong>%s</strong>!</p>
+                  <p>Sua consulta com <strong>%s</strong> foi confirmada.</p>
+                  <p><strong>Data:</strong> %s</p>
+                  %s
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+                  <p style="color:#9ca3af;font-size:11px;">© FittNutri — Em caso de dúvidas, entre em contato com seu nutricionista.</p>
+                </body>
+                </html>
+                """.formatted(patientName, nutritionistName, formattedDate, notesBlock);
+    }
+
+    private String buildAppointmentReminderHtml(
+            String patientName, String nutritionistName, LocalDate date) {
+        String formattedDate = date.format(
+                DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM 'de' yyyy", Locale.of("pt", "BR")));
+        return """
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head><meta charset="UTF-8"></head>
+                <body style="font-family:sans-serif;color:#1f2937;padding:32px;max-width:560px;margin:0 auto;">
+                  <h2 style="color:#16a34a;margin-bottom:4px;">FittNutri</h2>
+                  <p style="color:#6b7280;font-size:13px;margin-top:0;">Plataforma Inteligente para Nutricionistas</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
+                  <p>Olá, <strong>%s</strong>!</p>
+                  <p>Este é um lembrete de que sua consulta com <strong>%s</strong> está marcada para <strong>amanhã</strong>.</p>
+                  <p><strong>Data:</strong> %s</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+                  <p style="color:#9ca3af;font-size:11px;">© FittNutri — Em caso de dúvidas, entre em contato com seu nutricionista.</p>
+                </body>
+                </html>
+                """.formatted(patientName, nutritionistName, formattedDate);
     }
 
     private String buildContactHtml(String nome, String emailRemetente, String mensagem) {

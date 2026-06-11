@@ -26,6 +26,7 @@ public class SchedulingService {
     private final SchedulingRepository repository;
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     private UserModel getNutricionistaLogado() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -55,7 +56,15 @@ public class SchedulingService {
         scheduling.setDataAgendada(dto.dataAgendada());
         scheduling.setObservacoes(dto.observacoes());
 
-        return repository.save(scheduling);
+        SchedulingModel saved = repository.save(scheduling);
+        emailService.sendAppointmentConfirmationEmail(
+                patient.getEmail(),
+                patient.getNome(),
+                nutritionist.getNome(),
+                saved.getDataAgendada(),
+                saved.getObservacoes()
+        );
+        return saved;
     }
 
     public List<SchedulingModel> getAllSchedulings() {
