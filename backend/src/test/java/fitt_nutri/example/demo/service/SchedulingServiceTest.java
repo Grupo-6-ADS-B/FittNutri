@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import fitt_nutri.example.demo.service.EmailService;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -40,6 +41,9 @@ class SchedulingServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private EmailService emailService;
 
     private PatientModel patient;
     private UserModel nutritionist;
