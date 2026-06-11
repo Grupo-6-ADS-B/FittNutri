@@ -11,7 +11,14 @@
       "Bash(curl -s http://100.25.153.210)",
       "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" taint:*)",
       "Bash(\"/c/Users/lucas/AppData/Local/Microsoft/WinGet/Links/terraform.exe\" destroy:*)",
-      "Bash(docker start:*)"
+      "Bash(docker start:*)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lucas\\\\Downloads\\\\fitNutri\\\\FittNutri\" -Recurse -Directory -ErrorAction SilentlyContinue)",
+      "Bash(Select-Object -First 20 FullName)",
+      "Bash(Copy-Item *)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "grafana"
+  ]
 }

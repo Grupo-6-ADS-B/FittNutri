@@ -130,9 +130,10 @@ const handleSendToS3 = async () => {
         horario: meal.horario,
         observacao: meal.observacao,
         alimentos: meal.alimentos.map(a => ({
-          alimento: a.nome || a.alimento, 
+          alimento: a.nome || a.alimento,
           quantidade: parseFloat(a.quantidade),
-          unidade: a.unidade
+          unidade: a.unidade,
+          foodItemId: a.foodItemId ?? null
         }))
       };
 

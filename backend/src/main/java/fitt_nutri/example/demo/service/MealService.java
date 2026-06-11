@@ -137,6 +137,26 @@ public class MealService {
         return repository.save(existingMeal);
     }
 
+    public MealResponseDTO updateMealFromDto(Integer mealId, MealRequestDTO dto) {
+        MealModel existingMeal = repository.findById(mealId)
+                .orElseThrow(() -> new NotFoundException("Refeição não encontrada"));
+        verificarPropriedadeRefeicao(existingMeal);
+
+        existingMeal.setDescricao(dto.getDescricao());
+        existingMeal.setHorario(dto.getHorario());
+        existingMeal.setObservacao(dto.getObservacao());
+
+        existingMeal.getAlimentos().clear();
+        if (dto.getAlimentos() != null) {
+            List<MealItemModel> itens = dto.getAlimentos().stream()
+                    .map(itemDto -> buildMealItem(itemDto, existingMeal))
+                    .collect(Collectors.toList());
+            existingMeal.setAlimentos(itens);
+        }
+
+        return toMealResponseDTO(repository.save(existingMeal));
+    }
+
     public MealModel patchMeal(Integer mealId, MealModel mealPatch) {
         MealModel existingMeal = repository.findById(mealId)
                 .orElseThrow(() -> new NotFoundException("Refeição não encontrada"));

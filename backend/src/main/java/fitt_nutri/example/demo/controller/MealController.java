@@ -204,6 +204,7 @@ public class MealController {
         i.setAlimento(dto.getAlimento());
         i.setQuantidade(dto.getQuantidade());
         i.setUnidade(dto.getUnidade());
+        i.setFoodItemId(dto.getFoodItemId());
         return i;
     }
 }
