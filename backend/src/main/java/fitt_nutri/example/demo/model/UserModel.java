@@ -31,7 +31,6 @@ public class UserModel extends AuditableEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @CPF
     @Column(nullable = false, unique = true)
     @Convert(converter = CpfConverter.class)
     private String cpf;

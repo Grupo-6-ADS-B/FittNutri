@@ -45,7 +45,7 @@ public class LoginService {
             throw new ConflictException("CPF já cadastrado");
         }
 
-        if (userRepository.existsByCrn(novoUser.getCrn())) {
+        if (novoUser.getCrn() != null && !novoUser.getCrn().equals("GOOGLE") && !novoUser.getCrn().startsWith("GOOGLE-") && userRepository.existsByCrn(novoUser.getCrn())) {
             throw new ConflictException("CRN já cadastrado");
         }
         // Apenas criptografa a senha se ela não estiver vazia (usuários do Google têm senha vazia)

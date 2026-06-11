@@ -10,6 +10,7 @@ import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.service.LoginService;
 import fitt_nutri.example.demo.service.RefreshTokenService;
 import fitt_nutri.example.demo.service.UserService;
+import fitt_nutri.example.demo.util.GoogleTokenVerifierUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -45,6 +46,7 @@ public class UserController {
     private final GerenciadorTokenJwt gerenciadorTokenJwt;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailService emailService;
+    private final GoogleTokenVerifierUtil googleTokenVerifierUtil;
 
 
     @PostMapping("/recover-password")
@@ -252,7 +254,7 @@ public class UserController {
     })
     public ResponseEntity<?> googleLogin(@RequestBody GoogleLoginDTO dto) {
         try {
-            var payload = fitt_nutri.example.demo.util.GoogleTokenVerifierUtil.verify(dto.token);
+            var payload = googleTokenVerifierUtil.verify(dto.token);
             String email = payload.getEmail();
             String name = (String) payload.get("name");
             String picture = (String) payload.get("picture");
@@ -274,15 +276,19 @@ public class UserController {
             }
 
             String jwt = service.gerarToken(user);
-            return ResponseEntity.ok(Map.of(
-                "token", jwt,
-                "id", user.getId(),
-                "nome", user.getNome(),
-                "email", user.getEmail(),
-                "foto", user.getFoto()
-            ));
+            Map<String, Object> responseData = new java.util.HashMap<>();
+            responseData.put("token", jwt);
+            responseData.put("id", user.getId());
+            responseData.put("nome", user.getNome());
+            responseData.put("email", user.getEmail());
+            responseData.put("foto", user.getFoto());
+            return ResponseEntity.ok(responseData);
         } catch (Exception e) {
-            return ResponseEntity.status(401).body(Map.of("error", "Token Google inválido ou erro de autenticação: " + e.getMessage()));
+            e.printStackTrace(); // PRINT STACK TRACE FOR DEBUGGING
+            String motivo = (e.getMessage() != null && !e.getMessage().isBlank())
+                ? e.getMessage()
+                : "Token inválido ou expirado";
+            return ResponseEntity.status(401).body(Map.of("error", "Falha na autenticação Google: " + motivo));
         }
     }
 

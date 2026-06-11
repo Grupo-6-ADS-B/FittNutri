@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 function Hero(){
   const theme = useTheme();
   const navigate = useNavigate();
+  const isLoggedIn = Boolean(localStorage.getItem('token') || sessionStorage.getItem('token'));
     return (
         <Section 
           backgroundImage="/fundo-nutri.png"
@@ -52,7 +53,7 @@ function Hero(){
                 color="primary"
                 endIcon={<ArrowForwardIcon />}
                 size="large"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate(isLoggedIn ? '/gestor' : '/auth')}
                 sx={{
                   py: 2,
                   px: 5,

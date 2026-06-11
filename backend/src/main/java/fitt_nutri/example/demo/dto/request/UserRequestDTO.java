@@ -1,4 +1,5 @@
 package fitt_nutri.example.demo.dto.request;
+import org.hibernate.validator.constraints.br.CPF;
 
 import jakarta.validation.constraints.*;
 
@@ -13,6 +14,7 @@ public record UserRequestDTO(
         String email,
 
         @NotBlank(message = "CPF não pode estar vazio")
+        @CPF(message = "CPF inválido")
         @Size(max = 14, message = "CPF deve ter no máximo 14 caracteres")
         String cpf,
 

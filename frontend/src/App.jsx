@@ -26,25 +26,27 @@ function isAuthenticated() {
   return Boolean(localStorage.getItem('token') || sessionStorage.getItem('token'));
 }
 
+// Redireciona usuários autenticados que tentam acessar rotas públicas exclusivas
+function PublicOnlyRoute() {
+  if (isAuthenticated()) return <Navigate to="/gestor" replace />;
+  return <Outlet />;
+}
+
+// Redireciona usuários não autenticados para login
 function ProtectedRoute() {
   const location = useLocation();
-
-  if (!isAuthenticated()) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
-  }
-
+  if (!isAuthenticated()) return <Navigate to="/login" replace state={{ from: location }} />;
   return <Outlet />;
 }
 
-function PublicOnlyRoute() {
-  if (isAuthenticated()) {
-    return <Navigate to="/gestor" replace />;
-  }
-
-  return <Outlet />;
+// Redireciona usuários autenticados que chegam na home para o gestor
+function AuthRedirect() {
+  if (isAuthenticated()) return <Navigate to="/gestor" replace />;
+  return <Main />;
 }
 
-function Layout() {
+// Layout para páginas públicas: home, login, cadastro, resetar-senha
+function PublicLayout() {
   const navigate = useNavigate();
 
   const navigateAndScroll = (section) => {
@@ -63,15 +65,24 @@ function Layout() {
   return (
     <>
       <Header
+        isPublic
         onSwitchToLogin={() => navigate('/login')}
         onSwitchToRegister={() => navigate('/auth')}
-        onScrollToReviews={() => navigateAndScroll('reviews')}
-        onScrollToContact={() => navigateAndScroll('contact')}
-        onBackToHome={() => navigate('/')}
         onScrollToCarousel={() => navigateAndScroll('carousel')}
         onScrollToValues={() => navigateAndScroll('values')}
-
+        onScrollToReviews={() => navigateAndScroll('reviews')}
+        onScrollToContact={() => navigateAndScroll('contact')}
       />
+      <Outlet />
+    </>
+  );
+}
+
+// Layout para páginas privadas: gestor, perfil, configurações, etc.
+function PrivateLayout() {
+  return (
+    <>
+      <Header isPublic={false} />
       <Outlet />
     </>
   );
@@ -81,10 +92,7 @@ function App() {
   const { mode } = useThemeMode();
 
   React.useEffect(() => {
-    // Restaura dados do usuário ao recarregar a página
-    if (localStorage.getItem('token') || sessionStorage.getItem('token')) {
-      restoreUserDataFromBackend();
-    }
+    if (isAuthenticated()) restoreUserDataFromBackend();
   }, []);
 
   const theme = React.useMemo(() => (mode === 'dark' ? darkTheme : lightTheme), [mode]);
@@ -95,20 +103,23 @@ function App() {
       <Router>
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default', color: 'text.primary', transition: 'background-color 180ms ease, color 180ms ease' }}>
           <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<Main />} />
-
+            {/* Rotas públicas */}
+            <Route element={<PublicLayout />}>
+              <Route path="/" element={<AuthRedirect />} />
+              <Route path="/resetar-senha" element={<ResetPassword />} />
               <Route element={<PublicOnlyRoute />}>
                 <Route path="/login" element={<LoginForm />} />
                 <Route path="/auth" element={<RegisterForm />} />
               </Route>
+            </Route>
 
+            {/* Rotas privadas */}
+            <Route element={<PrivateLayout />}>
               <Route element={<ProtectedRoute />}>
-                <Route path="/resetar-senha" element={<ResetPassword />} />
-              <Route path="/register-patient" element={<PatientRegister />} />
+                <Route path="/gestor" element={<UserGestor />} />
+                <Route path="/register-patient" element={<PatientRegister />} />
                 <Route path="/questionario" element={<QuestionarioStepper />} />
                 <Route path="/resumo-circunferencia" element={<ResumoCircunferencia />} />
-                <Route path="/gestor" element={<UserGestor />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/diet" element={<Diet />} />
                 <Route path="/profile" element={<Profile />} />

@@ -9,20 +9,37 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+@Component
 public class GoogleTokenVerifierUtil {
-    private static final String CLIENT_ID = "857800617390-jioede29n3luve0u0svvp2mnfatu35j0.apps.googleusercontent.com";
+
+    @Value("${google.client-id}")
+    private String clientId;
+
     private static final JsonFactory jsonFactory = GsonFactory.getDefaultInstance();
 
-    public static GoogleIdToken.Payload verify(String idTokenString) throws GeneralSecurityException, IOException {
-        GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(GoogleNetHttpTransport.newTrustedTransport(), jsonFactory)
-                .setAudience(Collections.singletonList(CLIENT_ID))
+    // Verifier criado uma vez na inicialização — reutiliza o transport e cache de certificados
+    private GoogleIdTokenVerifier verifier;
+
+    @PostConstruct
+    public void init() throws GeneralSecurityException, IOException {
+        verifier = new GoogleIdTokenVerifier.Builder(
+                GoogleNetHttpTransport.newTrustedTransport(), jsonFactory)
+                .setAudience(Collections.singletonList(clientId))
                 .build();
+    }
+
+    public GoogleIdToken.Payload verify(String idTokenString) throws GeneralSecurityException, IOException {
+        if (idTokenString == null || idTokenString.isBlank()) {
+            throw new GeneralSecurityException("Token Google ausente ou vazio");
+        }
         GoogleIdToken idToken = verifier.verify(idTokenString);
         if (idToken != null) {
             return idToken.getPayload();
-        } else {
-            throw new GeneralSecurityException("ID Token inválido");
         }
+        throw new GeneralSecurityException("ID Token inválido ou expirado");
     }
 }

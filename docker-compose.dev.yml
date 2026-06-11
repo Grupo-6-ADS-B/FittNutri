@@ -51,6 +51,9 @@ services:
       JWT_VALIDITY: ${JWT_VALIDITY:-86400000}
       APP_AES_KEY: ${APP_AES_KEY:-dev-aes-key-32chars-insecure!!}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      RESEND_API_KEY: ${RESEND_API_KEY:-re_dev_placeholder_nao_envia}
+      EMAIL_FROM: ${EMAIL_FROM:-FittNutri <no-reply@fittnutri.site>}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-654251176082-2bbn9dp6vhee4o2efkmc8t73q8ga8t7g.apps.googleusercontent.com}
     ports:
       - "8080:8080"
     depends_on:
@@ -63,10 +66,11 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
+      args:
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID:-654251176082-2bbn9dp6vhee4o2efkmc8t73q8ga8t7g.apps.googleusercontent.com}
     container_name: frontend-dev
     restart: unless-stopped
     environment:
-      # Vite dev server usa esta variável para configurar o proxy /api → backend
       VITE_API_TARGET: http://backend:8080
     ports:
       - "5173:5173"
