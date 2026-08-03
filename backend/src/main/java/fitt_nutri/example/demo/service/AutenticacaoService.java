@@ -17,9 +17,14 @@ public class AutenticacaoService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
+    private String normalizarEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase();
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Optional<UserModel> userOpt = userRepository.findByEmail(username);
+        String email = normalizarEmail(username);
+        Optional<UserModel> userOpt = userRepository.findByEmailIgnoreCase(email);
         if (userOpt.isEmpty()) {
         throw new UsernameNotFoundException(String.format( "Usuário: %s não encontrado", username));
         } else {

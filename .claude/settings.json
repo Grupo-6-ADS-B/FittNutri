@@ -1,4 +1,5 @@
 {
+  "awsCredentialExport": "/c/Users/lucas/.aws/export-creds.sh",
   "permissions": {
     "allow": [
       "Bash(winget --version)",

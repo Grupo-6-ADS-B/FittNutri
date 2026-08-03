@@ -1,12 +1,13 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # ============================================================
 # FittNutri — User Data (provisionamento via Terraform)
-# Baseado no setup-ec2.sh original, com SSL/Certbot integrado
+# SSL terminado no ALB — sem Certbot/Let's Encrypt na EC2
 # ============================================================
 
 exec > /var/log/user-data.log 2>&1
+umask 077
 
 echo "=============================="
 echo " FittNutri — User Data Init"
@@ -16,30 +17,32 @@ echo "=============================="
 APP_DIR="/home/ubuntu/FittNutri"
 
 # --- 1. Atualizar sistema ---
-echo "[1/8] Atualizando sistema..."
-apt-get update -y && apt-get upgrade -y
+echo "[1/7] Atualizando sistema..."
+apt-get update -y
 
-# --- 2. Instalar Docker ---
-echo "[2/8] Instalando Docker..."
+# --- 2. Instalar Docker (com guard) ---
+echo "[2/7] Verificando Docker..."
 if ! command -v docker &> /dev/null; then
+  echo "Docker não encontrado — instalando..."
   curl -fsSL https://get.docker.com | sh
   usermod -aG docker ubuntu
 fi
 
-# --- 3. Instalar docker-compose (com hífen) ---
-echo "[3/8] Instalando docker-compose..."
+# --- 3. Instalar docker-compose (com guard) ---
+echo "[3/7] Verificando docker-compose..."
 if ! command -v docker-compose &> /dev/null; then
+  echo "docker-compose não encontrado — instalando..."
   curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" \
     -o /usr/local/bin/docker-compose
   chmod +x /usr/local/bin/docker-compose
 fi
 
-# --- 4. Instalar Git e utilitários ---
-echo "[4/8] Instalando Git e utilitários..."
-apt-get install -y git awscli jq
+# --- 4. Instalar dependências ---
+echo "[4/7] Instalando git e jq..."
+apt-get install -y git jq
 
-# --- 5. Clonar repositório ---
-echo "[5/8] Clonando repositório..."
+# --- 5. Clonar ou atualizar repositório ---
+echo "[5/7] Clonando/atualizando repositório..."
 if [ ! -d "$APP_DIR" ]; then
   git clone -b ${git_branch} ${git_repo} "$APP_DIR"
   chown -R ubuntu:ubuntu "$APP_DIR"
@@ -52,68 +55,37 @@ fi
 
 cd "$APP_DIR"
 
-# --- 6. Configurar .env ---
-echo "[6/8] Configurando .env..."
-if aws secretsmanager get-secret-value --secret-id ${project}/env --region ${aws_region} --query 'SecretString' --output text > /tmp/env_secret 2>/dev/null; then
-  echo "Secrets encontrados no Secrets Manager"
-  jq -r 'to_entries[] | "\(.key)=\(.value)"' /tmp/env_secret > "$APP_DIR/.env"
-  rm -f /tmp/env_secret
-else
-  echo "Secrets Manager não disponível. Usando .env.example como base."
-  if [ ! -f "$APP_DIR/.env" ]; then
-    cp "$APP_DIR/.env.example" "$APP_DIR/.env"
-  fi
-fi
+# --- 6. Gerar .env com variáveis injetadas pelo Terraform ---
+echo "[6/7] Gerando .env..."
+cat > "$APP_DIR/.env" <<'ENVEOF'
+DB_HOST=${app_db_host}
+DB_PORT=${app_db_port}
+MYSQL_ROOT_PASSWORD=${app_db_password}
+MYSQL_DATABASE=${app_db_name}
+SPRING_DATASOURCE_URL=jdbc:mysql://${app_db_host}:${app_db_port}/${app_db_name}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+SPRING_DATASOURCE_USERNAME=${app_db_username}
+SPRING_DATASOURCE_PASSWORD=${app_db_password}
+JWT_SECRET=${app_jwt_secret}
+JWT_VALIDITY=${app_jwt_validity}
+APP_AES_KEY=${app_aes_key}
+FRONTEND_URL=${app_frontend_url}
+RABBITMQ_URL=${app_rabbitmq_url}
+AWS_REGION=${aws_region}
+AWS_S3_BUCKET=${app_s3_bucket}
+SPRING_PROFILES_ACTIVE=${app_spring_profile}
+ENVEOF
 
-# --- 7. Build das imagens Docker ---
-echo "[7/8] Construindo imagens Docker..."
+chown ubuntu:ubuntu "$APP_DIR/.env"
+chmod 600 "$APP_DIR/.env"
+
+# --- 7. Build e subir containers com compose.prod.yml ---
+echo "[7/7] Build + up via docker-compose.prod.yml (pode levar 5-10 min no primeiro build)..."
 cd "$APP_DIR"
-sg docker -c "bash manage.sh build" 2>/dev/null || bash manage.sh build
-
-# --- 8. SSL/Certbot + Start ---
-echo "[8/8] Configurando SSL e iniciando aplicação..."
-
-%{ if app_email != "" ~}
-# Email configurado — emitir certificado SSL
-echo "Emitindo certificado SSL para ${domain}..."
-
-# Sobe nginx em HTTP temporariamente para challenge do Certbot
-sg docker -c "docker-compose --env-file .env up -d nginx" 2>/dev/null || \
-  docker-compose --env-file .env up -d nginx
-
-sleep 5
-
-# Emite certificado via Certbot
-sg docker -c "docker-compose run --rm certbot certonly \
-  --webroot --webroot-path=/var/www/certbot \
-  -d ${domain} \
-  --email ${app_email} --agree-tos --no-eff-email --non-interactive" 2>/dev/null || \
-  docker-compose run --rm certbot certonly \
-    --webroot --webroot-path=/var/www/certbot \
-    -d "${domain}" \
-    --email "${app_email}" --agree-tos --no-eff-email --non-interactive
-
-# Derrubar nginx para reiniciar com SSL completo
-sg docker -c "docker-compose down" 2>/dev/null || docker-compose down
-
-echo "Certificado SSL obtido! Iniciando aplicação completa..."
-%{ else ~}
-echo "Email não configurado — pulando SSL. Aplicação rodará em HTTP."
-%{ endif ~}
-
-# Start completo
-sg docker -c "bash manage.sh start" 2>/dev/null || bash manage.sh start
+docker compose -f docker-compose.prod.yml --env-file .env up -d --build
 
 echo ""
 echo "=============================="
 echo " Deploy concluído! $(date)"
-echo " Domínio: ${domain}"
-%{ if app_email != "" ~}
-echo " SSL: Habilitado"
-%{ else ~}
-echo " SSL: Desabilitado (configure app_email para habilitar)"
-%{ endif ~}
 echo "=============================="
 
-# Mostrar containers rodando
-docker ps
+docker compose -f docker-compose.prod.yml ps

@@ -1,0 +1,210 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "fittnutri-main",
+    "title": "FittNutri - Monitoramento",
+    "tags": ["fittnutri", "spring-boot", "production"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "time": { "from": "now-1h", "to": "now" },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Status da API",
+        "type": "stat",
+        "gridPos": { "x": 0, "y": 0, "w": 4, "h": 4 },
+        "options": {
+          "reduceOptions": { "calcs": ["lastNotNull"] },
+          "colorMode": "background",
+          "graphMode": "none",
+          "textMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              { "type": "value", "options": { "1": { "text": "Online", "color": "green" }, "0": { "text": "Offline", "color": "red" } } }
+            ],
+            "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "red" }, { "value": 1, "color": "green" }] },
+            "color": { "mode": "thresholds" }
+          }
+        },
+        "targets": [{ "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "up{job=\"fittnutri-backend\"}", "legendFormat": "Backend" }]
+      },
+      {
+        "id": 2,
+        "title": "Requisicoes por Minuto",
+        "type": "timeseries",
+        "gridPos": { "x": 4, "y": 0, "w": 10, "h": 8 },
+        "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "palette-classic" },
+            "custom": { "lineWidth": 2, "fillOpacity": 10 },
+            "unit": "reqps"
+          }
+        },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "sum(rate(http_server_requests_seconds_count{job=\"fittnutri-backend\"}[1m])) by (uri, status)", "legendFormat": "{{method}} {{uri}} ({{status}})" }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Latencia p99 (ms)",
+        "type": "timeseries",
+        "gridPos": { "x": 14, "y": 0, "w": 10, "h": 8 },
+        "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "palette-classic" },
+            "custom": { "lineWidth": 2, "fillOpacity": 10 },
+            "unit": "ms"
+          }
+        },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "histogram_quantile(0.99, sum(rate(http_server_requests_seconds_bucket{job=\"fittnutri-backend\"}[5m])) by (le, uri)) * 1000", "legendFormat": "p99 {{uri}}" },
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "histogram_quantile(0.50, sum(rate(http_server_requests_seconds_bucket{job=\"fittnutri-backend\"}[5m])) by (le, uri)) * 1000", "legendFormat": "p50 {{uri}}" }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Total de Requisicoes (1h)",
+        "type": "stat",
+        "gridPos": { "x": 0, "y": 4, "w": 4, "h": 4 },
+        "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "area" },
+        "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "blue" }] } } },
+        "targets": [{ "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "sum(increase(http_server_requests_seconds_count{job=\"fittnutri-backend\"}[1h]))", "legendFormat": "Requisicoes" }]
+      },
+      {
+        "id": 5,
+        "title": "Uso de Memoria JVM",
+        "type": "timeseries",
+        "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+        "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "palette-classic" },
+            "custom": { "lineWidth": 2, "fillOpacity": 20 },
+            "unit": "bytes"
+          }
+        },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "jvm_memory_used_bytes{job=\"fittnutri-backend\", area=\"heap\"}", "legendFormat": "Heap Usada ({{id}})" },
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "jvm_memory_max_bytes{job=\"fittnutri-backend\", area=\"heap\"}", "legendFormat": "Heap Maxima ({{id}})" }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "CPU",
+        "type": "timeseries",
+        "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+        "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "palette-classic" },
+            "custom": { "lineWidth": 2, "fillOpacity": 10 },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "process_cpu_usage{job=\"fittnutri-backend\"}", "legendFormat": "CPU Processo" },
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "system_cpu_usage{job=\"fittnutri-backend\"}", "legendFormat": "CPU Sistema" }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Threads JVM",
+        "type": "timeseries",
+        "gridPos": { "x": 0, "y": 16, "w": 8, "h": 6 },
+        "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+        "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "lineWidth": 2 }, "unit": "short" } },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "jvm_threads_live_threads{job=\"fittnutri-backend\"}", "legendFormat": "Threads Ativas" },
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "jvm_threads_peak_threads{job=\"fittnutri-backend\"}", "legendFormat": "Threads Pico" }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Erros HTTP (4xx/5xx)",
+        "type": "timeseries",
+        "gridPos": { "x": 8, "y": 16, "w": 8, "h": 6 },
+        "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+        "fieldConfig": {
+          "defaults": {
+            "color": { "mode": "palette-classic" },
+            "custom": { "lineWidth": 2, "fillOpacity": 20 },
+            "unit": "reqps"
+          },
+          "overrides": [
+            { "matcher": { "id": "byName", "options": "5xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "red", "mode": "fixed" } }] },
+            { "matcher": { "id": "byName", "options": "4xx" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] }
+          ]
+        },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "sum(rate(http_server_requests_seconds_count{job=\"fittnutri-backend\", status=~\"5..\"}[5m]))", "legendFormat": "5xx" },
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "sum(rate(http_server_requests_seconds_count{job=\"fittnutri-backend\", status=~\"4..\"}[5m]))", "legendFormat": "4xx" }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "GC Pausas",
+        "type": "timeseries",
+        "gridPos": { "x": 16, "y": 16, "w": 8, "h": 6 },
+        "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+        "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "lineWidth": 2 }, "unit": "ms" } },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "rate(jvm_gc_pause_seconds_sum{job=\"fittnutri-backend\"}[5m]) * 1000", "legendFormat": "GC {{action}} ({{cause}})" }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Conexoes DB (HikariCP)",
+        "type": "timeseries",
+        "gridPos": { "x": 0, "y": 22, "w": 12, "h": 6 },
+        "options": { "legend": { "displayMode": "list", "placement": "bottom" } },
+        "fieldConfig": { "defaults": { "color": { "mode": "palette-classic" }, "custom": { "lineWidth": 2 }, "unit": "short" } },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "hikaricp_connections_active{job=\"fittnutri-backend\"}", "legendFormat": "Ativas" },
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "hikaricp_connections_idle{job=\"fittnutri-backend\"}", "legendFormat": "Ociosas" },
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "hikaricp_connections_pending{job=\"fittnutri-backend\"}", "legendFormat": "Aguardando" },
+          { "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "hikaricp_connections_max{job=\"fittnutri-backend\"}", "legendFormat": "Maximo" }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Uptime da Aplicacao",
+        "type": "stat",
+        "gridPos": { "x": 12, "y": 22, "w": 6, "h": 6 },
+        "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "value", "graphMode": "none" },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "color": { "mode": "thresholds" },
+            "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "red" }, { "value": 60, "color": "yellow" }, { "value": 3600, "color": "green" }] }
+          }
+        },
+        "targets": [{ "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "process_uptime_seconds{job=\"fittnutri-backend\"}", "legendFormat": "Uptime" }]
+      },
+      {
+        "id": 12,
+        "title": "Taxa de Erros (%)",
+        "type": "stat",
+        "gridPos": { "x": 18, "y": 22, "w": 6, "h": 6 },
+        "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "color": { "mode": "thresholds" },
+            "thresholds": { "mode": "absolute", "steps": [{ "value": null, "color": "green" }, { "value": 1, "color": "yellow" }, { "value": 5, "color": "red" }] }
+          }
+        },
+        "targets": [{ "datasource": { "type": "prometheus", "uid": "dfjsyvo04l4w0d" }, "expr": "sum(rate(http_server_requests_seconds_count{job=\"fittnutri-backend\",status=~\"5..\"}[5m])) / sum(rate(http_server_requests_seconds_count{job=\"fittnutri-backend\"}[5m])) * 100", "legendFormat": "Erro %" }]
+      }
+    ]
+  },
+  "overwrite": true,
+  "folderId": 0
+}

@@ -597,6 +597,8 @@ INSERT IGNORE INTO alimentos (nome, umidade, energia_kcal, proteina, lipideos, c
 ('Pupunha, cozida', 54.46, 218.53, 2.52, 12.76, NULL, 29.57, 4.25, 0.69, 27.59, 25.29, 0.13, 48.77, 0.52, 0.91, 303.36, 0.28, 0.29, NULL, NULL, 0.09, 0.03, NULL, 2.18),
 ('Noz, crua', 6.24, 620.06, 13.97, 59.36, NULL, 18.36, 7.25, 2.06, 105.31, 152.89, 4.05, 396.28, 2.04, 4.57, 533.25, 0.75, 2.06, NULL, 0.38, NULL, 0.13, 1.08, NULL);
 
+-- Divide os valores apenas nos registros recém-inseridos (fonte ainda vazia = nunca processados)
+-- Esta condição torna o script idempotente: reruns não afetam dados já normalizados
 UPDATE alimentos
 SET
     umidade = umidade / 100,
@@ -621,7 +623,8 @@ SET
     riboflavina = riboflavina / 100,
     piridoxina = piridoxina / 100,
     niacina = niacina / 100,
-    vitaminaC = vitaminaC / 100;
+    vitaminaC = vitaminaC / 100
+WHERE fonte IS NULL OR fonte = '';
 
--- Marca todos os alimentos existentes como pertencentes à base TACO
-UPDATE alimentos SET fonte = 'TACO' WHERE fonte IS NULL;
+-- Marca todos os alimentos recém-normalizados como pertencentes à base TACO
+UPDATE alimentos SET fonte = 'TACO' WHERE fonte IS NULL OR fonte = '';
