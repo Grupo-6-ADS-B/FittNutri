@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip, Snackbar, Alert, CircularProgress
+  Box, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip, Snackbar, Alert, CircularProgress, Chip,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { alpha, useTheme } from '@mui/material/styles';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
@@ -9,10 +10,12 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import MealModal from '../components/MealModal';
+import DietModelsModal from '../components/DietModelsModal';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import api from '../utils/api';
 
 export default function Diet() {
@@ -103,6 +106,9 @@ const handleSendToS3 = async () => {
   }
 };
   const [openMeal, setOpenMeal] = useState(false);
+  const [openModelsModal, setOpenModelsModal] = useState(false);
+  const [openConfirmClear, setOpenConfirmClear] = useState(false);
+  const [clearingDiet, setClearingDiet] = useState(false);
   const [meals, setMeals] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
@@ -182,26 +188,27 @@ const handleSendToS3 = async () => {
     }
   };
 
-  const handleClearDiet = async () => {
+  const handleClearDiet = () => {
     if (meals.length === 0) {
       openSnack('Não há refeições para limpar.', 'info');
       return;
     }
+    setOpenConfirmClear(true);
+  };
 
-    const confirmacao = window.confirm(
-      `Tem certeza que deseja limpar TODAS as ${meals.length} refeições desta dieta?\n\nEsta ação não pode ser desfeita!`
-    );
-
-    if (!confirmacao) return;
-
+  const confirmClearDiet = async () => {
+    setClearingDiet(true);
     try {
       await Promise.all(meals.map(meal => api.delete(`/meals/${meal.id}`)));
       setMeals([]);
+      setOpenConfirmClear(false);
       openSnack('Todas as refeições foram removidas com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao limpar dieta:', error);
       openSnack('Erro ao limpar algumas refeições. Verifique o console.', 'error');
       loadMeals();
+    } finally {
+      setClearingDiet(false);
     }
   };
 
@@ -332,12 +339,21 @@ const handleSendToS3 = async () => {
                 }}
               >
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-                  <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: 700, display: 'inline-block' }}>
                       {m.descricao || 'Refeição'}
                     </Typography>
+                    {(m.descricao?.includes('Dieta Modelo') || m.descricao?.includes('📋')) && (
+                      <Chip
+                        label="Modelo de Dieta"
+                        size="small"
+                        color="success"
+                        variant="outlined"
+                        sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                      />
+                    )}
                     {m.horario && (
-                      <Typography variant="body2" component="span" sx={{ color: 'text.secondary', ml: 2, fontWeight: 500 }}>
+                      <Typography variant="body2" component="span" sx={{ color: 'text.secondary', ml: 1, fontWeight: 500 }}>
                         {m.horario}
                       </Typography>
                     )}
@@ -423,7 +439,7 @@ const handleSendToS3 = async () => {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Experimente visualizar e carregar um plano alimentar já salvo.
           </Typography>
-          <Button variant="contained" color="primary">
+          <Button variant="contained" color="primary" onClick={() => setOpenModelsModal(true)}>
             Ver modelos
           </Button>
         </Paper>
@@ -447,6 +463,58 @@ const handleSendToS3 = async () => {
         onSave={handleSaveMeal} 
         initial={selectedMeal} 
       />
+
+      <DietModelsModal
+        open={openModelsModal}
+        onClose={() => setOpenModelsModal(false)}
+        patientId={patientId}
+        onDietSaved={() => {
+          loadMeals();
+          openSnack('Dieta modelo aplicada com sucesso ao plano do paciente!', 'success');
+        }}
+      />
+
+      {/* Modal Estilizado de Confirmação para Limpar Dieta */}
+      <Dialog
+        open={openConfirmClear}
+        onClose={() => !clearingDiet && setOpenConfirmClear(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 1
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1.5, color: 'error.main' }}>
+          <DeleteSweepIcon color="error" />
+          Limpar toda a dieta?
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 1.5 }}>
+            Tem certeza de que deseja remover todas as <strong>{meals.length}</strong> refeições deste plano alimentar?
+          </Typography>
+          <Alert severity="warning" sx={{ borderRadius: 2 }}>
+            Esta ação não poderá ser desfeita!
+          </Alert>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setOpenConfirmClear(false)} color="inherit" disabled={clearingDiet}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={confirmClearDiet}
+            variant="contained"
+            color="error"
+            disabled={clearingDiet}
+            startIcon={clearingDiet ? <CircularProgress size={18} color="inherit" /> : <DeleteSweepIcon />}
+            sx={{ fontWeight: 600, borderRadius: 2 }}
+          >
+            {clearingDiet ? 'Limpando...' : 'Sim, limpar tudo'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
