@@ -38,13 +38,13 @@ export default function DietEditorModal({ open, onClose, dietModel, patientId, o
         observacao: dietModel.observacao || '',
         refeicoes: (dietModel.refeicoes || []).map(ref => ({
           id: ref.id,
-          nome: ref.nome || ref.descricao || '',
+          nome: (ref.nome || ref.descricao || '').replace(/^📋\s*Dieta\s*Modelo:[^-]+-\s*/i, '').replace(/^📋\s*Dieta\s*Modelo\s*-\s*/i, '').trim(),
           horario: ref.horario || '',
           observacao: ref.observacao || '',
           itens: (ref.itens || ref.alimentos || []).map(item => ({
             id: item.id,
             alimentoId: item.alimentoId || null,
-            nomeAlimento: item.nomeAlimento || item.alimento || item.nome || item.descricao || '',
+            nomeAlimento: item.descricao || item.nomeAlimento || item.alimento || item.nome || '',
             quantidade: item.quantidade !== undefined && item.quantidade !== null ? item.quantidade : 100,
             unidade: item.unidade || 'g',
             observacao: item.observacao || ''
@@ -182,14 +182,10 @@ export default function DietEditorModal({ open, onClose, dietModel, patientId, o
     try {
       const requestPayload = {
         refeicoes: formData.refeicoes.map(ref => {
-          const nomeRefeicao = ref.nome || 'Refeição';
-          const prefixo = formData.nome ? `📋 Dieta Modelo: ${formData.nome} - ` : '📋 Dieta Modelo - ';
-          const descricaoFinal = nomeRefeicao.startsWith('📋 Dieta Modelo')
-            ? nomeRefeicao
-            : `${prefixo}${nomeRefeicao}`;
+          const nomeRefeicao = (ref.nome || 'Refeição').replace(/^📋\s*Dieta\s*Modelo:[^-]+-\s*/i, '').replace(/^📋\s*Dieta\s*Modelo\s*-\s*/i, '').trim();
 
           return {
-            descricao: descricaoFinal,
+            descricao: nomeRefeicao,
             horario: ref.horario || '',
             observacao: ref.observacao || '',
             alimentos: ref.itens.map(item => ({
