@@ -632,20 +632,21 @@ UPDATE alimentos SET fonte = 'TACO' WHERE fonte IS NULL OR fonte = '';
 -- ============================================================
 -- PURGE OLD OBSOLETE DIET MODELS
 -- ============================================================
-DELETE FROM dieta_refeicao_itens WHERE refeicao_id IN (SELECT r.id FROM dieta_refeicoes r JOIN dietas d ON r.dieta_id = d.id WHERE d.nome NOT LIKE 'Dieta modelo - %');
-DELETE FROM dieta_refeicoes WHERE dieta_id IN (SELECT id FROM dietas WHERE nome NOT LIKE 'Dieta modelo - %');
-DELETE FROM dietas WHERE nome NOT LIKE 'Dieta modelo - %';
+DELETE FROM dieta_refeicao_itens WHERE refeicao_id IN (SELECT r.id FROM dieta_refeicoes r JOIN dietas d ON r.dieta_id = d.id WHERE d.nome NOT IN ('Dieta para paciente feminina que toma monjaro', 'Dieta para pré-diabetes, paciente masculino', 'Dieta para obesidade', 'Dieta para lipedema'));
+DELETE FROM dieta_refeicoes WHERE dieta_id IN (SELECT id FROM dietas WHERE nome NOT IN ('Dieta para paciente feminina que toma monjaro', 'Dieta para pré-diabetes, paciente masculino', 'Dieta para obesidade', 'Dieta para lipedema'));
+DELETE FROM dietas WHERE nome NOT IN ('Dieta para paciente feminina que toma monjaro', 'Dieta para pré-diabetes, paciente masculino', 'Dieta para obesidade', 'Dieta para lipedema');
+
 
 -- ============================================================
 -- DIETAS MODELO EXTRAÍDAS DOS 4 PLANOS ALIMENTARES
 -- ============================================================
 
--- 1. Dieta modelo - Angélica
+-- 1. Dieta para paciente feminina que toma monjaro
 INSERT INTO dietas (nome, observacao)
-SELECT 'Dieta modelo - Angélica', 'Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.'
-WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta modelo - Angélica');
+SELECT 'Dieta para paciente feminina que toma monjaro', 'Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.'
+WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta para paciente feminina que toma monjaro');
 
-SET @dieta_angelica = (SELECT id FROM dietas WHERE nome = 'Dieta modelo - Angélica');
+SET @dieta_angelica = (SELECT id FROM dietas WHERE nome = 'Dieta para paciente feminina que toma monjaro');
 
 INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
 SELECT @dieta_angelica, '08:30:00', 'Café da manhã'
@@ -731,12 +732,12 @@ INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidad
 SELECT @ref_angelica_jantar, NULL, 'Tilápia assada', 100.00, 'g', 'Receita da Nutri Jane'
 WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_jantar AND descricao = 'Tilápia assada');
 
--- 2. Dieta modelo - José Milton
+-- 2. Dieta para pré-diabetes, paciente masculino
 INSERT INTO dietas (nome, observacao)
-SELECT 'Dieta modelo - José Milton', 'Modelo baseado no plano alimentar de José Milton dos Santos.'
-WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta modelo - José Milton');
+SELECT 'Dieta para pré-diabetes, paciente masculino', 'Modelo baseado no plano alimentar de José Milton dos Santos.'
+WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta para pré-diabetes, paciente masculino');
 
-SET @dieta_jose = (SELECT id FROM dietas WHERE nome = 'Dieta modelo - José Milton');
+SET @dieta_jose = (SELECT id FROM dietas WHERE nome = 'Dieta para pré-diabetes, paciente masculino');
 
 INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
 SELECT @dieta_jose, '07:00:00', 'Café da manhã'
@@ -842,12 +843,12 @@ INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidad
 SELECT @ref_jose_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Goiaba%vermelha%' OR nome LIKE '%Goiaba%' LIMIT 1), 'Goiaba vermelha com casca crua', 1.00, 'unidade', 'Unidade pequena (170 g)'
 WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_jantar AND descricao = 'Goiaba vermelha com casca crua');
 
--- 3. Dieta modelo - Samuel
+-- 3. Dieta para obesidade
 INSERT INTO dietas (nome, observacao)
-SELECT 'Dieta modelo - Samuel', 'Modelo baseado no plano alimentar de Samuel Rocha Chaves.'
-WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta modelo - Samuel');
+SELECT 'Dieta para obesidade', 'Modelo baseado no plano alimentar de Samuel Rocha Chaves.'
+WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta para obesidade');
 
-SET @dieta_samuel = (SELECT id FROM dietas WHERE nome = 'Dieta modelo - Samuel');
+SET @dieta_samuel = (SELECT id FROM dietas WHERE nome = 'Dieta para obesidade');
 
 INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
 SELECT @dieta_samuel, '06:00:00', 'Café da manhã'
@@ -957,12 +958,12 @@ INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidad
 SELECT @ref_samuel_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Laranja%lima%' OR nome LIKE '%Laranja%' LIMIT 1), 'Laranja lima crua', 1.00, 'unidade', 'Unidade pequena (90 g)'
 WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_jantar AND descricao = 'Laranja lima crua');
 
--- 4. Dieta modelo - Vaneide
+-- 4. Dieta para lipedema
 INSERT INTO dietas (nome, observacao)
-SELECT 'Dieta modelo - Vaneide', 'Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.'
-WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta modelo - Vaneide');
+SELECT 'Dieta para lipedema', 'Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.'
+WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta para lipedema');
 
-SET @dieta_vaneide = (SELECT id FROM dietas WHERE nome = 'Dieta modelo - Vaneide');
+SET @dieta_vaneide = (SELECT id FROM dietas WHERE nome = 'Dieta para lipedema');
 
 INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
 SELECT @dieta_vaneide, '05:40:00', 'Café da manhã'

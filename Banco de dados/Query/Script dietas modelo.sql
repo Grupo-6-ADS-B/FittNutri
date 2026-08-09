@@ -4,20 +4,20 @@ START TRANSACTION;
 
 -- ============================================================
 -- DIETAS MODELO EXTRAÍDAS DOS 4 PLANOS ALIMENTARES
--- 1. Dieta modelo - Angélica
--- 2. Dieta modelo - José Milton
--- 3. Dieta modelo - Samuel
--- 4. Dieta modelo - Vaneide
+-- 1. Dieta para paciente feminina que toma monjaro
+-- 2. Dieta para pré-diabetes, paciente masculino
+-- 3. Dieta para obesidade
+-- 4. Dieta para lipedema
 -- ============================================================
 
 
 -- ============================================================
--- DIETA MODELO - ANGÉLICA
+-- DIETA PARA PACIENTE FEMININA QUE TOMA MONJARO
 -- ============================================================
 
 INSERT INTO dietas (nome, observacao)
 VALUES (
-    'Dieta modelo - Angélica',
+    'Dieta para paciente feminina que toma monjaro',
     'Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.'
 );
 
@@ -185,12 +185,12 @@ VALUES
 
 
 -- ============================================================
--- DIETA MODELO - JOSÉ MILTON
+-- DIETA PARA PRÉ-DIABETES, PACIENTE MASCULINO
 -- ============================================================
 
 INSERT INTO dietas (nome, observacao)
 VALUES (
-    'Dieta modelo - José Milton',
+    'Dieta para pré-diabetes, paciente masculino',
     'Modelo baseado no plano alimentar de José Milton dos Santos.'
 );
 
@@ -398,12 +398,12 @@ VALUES
 
 
 -- ============================================================
--- DIETA MODELO - SAMUEL
+-- DIETA PARA OBESIDADE
 -- ============================================================
 
 INSERT INTO dietas (nome, observacao)
 VALUES (
-    'Dieta modelo - Samuel',
+    'Dieta para obesidade',
     'Modelo baseado no plano alimentar de Samuel Rocha Chaves.'
 );
 
@@ -619,12 +619,12 @@ VALUES
 
 
 -- ============================================================
--- DIETA MODELO - VANEIDE
+-- DIETA PARA LIPEDEMA
 -- ============================================================
 
 INSERT INTO dietas (nome, observacao)
 VALUES (
-    'Dieta modelo - Vaneide',
+    'Dieta para lipedema',
     'Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.'
 );
 
