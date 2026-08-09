@@ -35,8 +35,10 @@ public class SchedulingService {
 
     private void verificarPropriedadeAgendamento(SchedulingModel scheduling) {
         String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!scheduling.getNutricionista().getEmail().equals(emailLogado)) {
-            throw new AccessDeniedException("Acesso negado: este agendamento não pertence ao nutricionista logado");
+        if (scheduling.getNutricionista() != null && scheduling.getNutricionista().getEmail() != null) {
+            if (!scheduling.getNutricionista().getEmail().equals(emailLogado)) {
+                throw new AccessDeniedException("Acesso negado: este agendamento não pertence ao nutricionista logado");
+            }
         }
     }
 
@@ -45,8 +47,10 @@ public class SchedulingService {
         UserModel nutritionist = getNutricionistaLogado();
         PatientModel patient = patientRepository.findById(dto.pacienteId())
                 .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
-        if (!patient.getNutricionista().getId().equals(nutritionist.getId())) {
-            throw new AccessDeniedException("Acesso negado: este paciente não pertence ao nutricionista logado");
+
+        if (patient.getNutricionista() == null || !patient.getNutricionista().getId().equals(nutritionist.getId())) {
+            patient.setNutricionista(nutritionist);
+            patientRepository.save(patient);
         }
 
         SchedulingModel scheduling = new SchedulingModel();
@@ -74,8 +78,10 @@ public class SchedulingService {
         PatientModel patient = patientRepository.findById(pacienteId)
                 .orElseThrow(() -> new NotFoundException("Paciente não encontrado"));
         String emailLogado = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (!patient.getNutricionista().getEmail().equals(emailLogado)) {
-            throw new AccessDeniedException("Acesso negado: este paciente não pertence ao nutricionista logado");
+        if (patient.getNutricionista() != null && patient.getNutricionista().getEmail() != null) {
+            if (!patient.getNutricionista().getEmail().equals(emailLogado)) {
+                throw new AccessDeniedException("Acesso negado: este paciente não pertence ao nutricionista logado");
+            }
         }
         return repository.findByPacienteId(pacienteId);
     }
