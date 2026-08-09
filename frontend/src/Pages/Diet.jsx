@@ -220,7 +220,7 @@ const handleSendToS3 = async () => {
       const refeicoes = response.data?.refeicoes ?? response.data;
       const mealsList = (refeicoes || []).map(r => ({
         id: r.id || r.mealId,
-        descricao: r.descricao,
+        descricao: (r.descricao || '').replace(/^📋\s*Dieta\s*Modelo:[^-]+-\s*/i, '').replace(/^📋\s*Dieta\s*Modelo\s*-\s*/i, '').trim(),
         horario: r.horario,
         observacao: r.observacao,
         alimentos: (r.alimentos || []).map(a => ({
