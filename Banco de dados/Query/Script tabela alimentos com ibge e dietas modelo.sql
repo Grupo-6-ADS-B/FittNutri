@@ -2601,441 +2601,830 @@ INSERT INTO alimentos (nome, umidade, energiaKcal, proteina, lipideos, colestero
   ('Óleo não especificado', NULL, 879.73, NULL, 99.52, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.05, NULL, NULL, NULL, 0.01, NULL, NULL, NULL, NULL, NULL, NULL),
   ('Óleo de dendê', NULL, 857.84, NULL, 99.52, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0.1, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
 
-  -- ============================================================
--- CRIAÇÃO DAS TABELAS
--- ============================================================
-
-CREATE TABLE dietas (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    nome VARCHAR(255) NOT NULL,
-    observacao TEXT,
-    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE dieta_refeicoes (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    dieta_id INT NOT NULL,
-    horario TIME NOT NULL,
-    nome VARCHAR(100) NOT NULL,
-    observacao TEXT,
-    FOREIGN KEY (dieta_id) REFERENCES dietas(id) ON DELETE CASCADE
-);
-
-CREATE TABLE dieta_refeicao_itens (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    refeicao_id INT NOT NULL,
-    alimento_id INT,
-    descricao VARCHAR(255),
-    quantidade DECIMAL(10,2),
-    unidade VARCHAR(50),
-    observacao TEXT,
-    FOREIGN KEY (refeicao_id) REFERENCES dieta_refeicoes(id) ON DELETE CASCADE,
-    FOREIGN KEY (alimento_id) REFERENCES alimentos(id)
-);
-
 
 -- ============================================================
--- DIETA 1 : GORDURA NO FÍGADO
--- Paciente: Maria Luscimar da Silva, 64 anos
+-- DIETAS MODELO EXTRAÍDAS DOS 4 PLANOS ALIMENTARES
+-- 1. Dieta modelo - Angélica
+-- 2. Dieta modelo - José Milton
+-- 3. Dieta modelo - Samuel
+-- 4. Dieta modelo - Vaneide
 -- ============================================================
 
-INSERT INTO dietas (nome, observacao) VALUES
-('Dieta para Gordura no Fígado', 'Dieta com foco em alimentos anti-inflamatórios, baixo teor de gordura saturada e rica em fibras.');
-
--- Refeições
-INSERT INTO dieta_refeicoes (dieta_id, horario, nome) VALUES
-((SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado'), '07:00', 'Café da Manhã'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado'), '10:00', 'Lanche da Manhã'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado'), '12:00', 'Almoço'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado'), '16:00', 'Lanche da Tarde'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado'), '19:00', 'Jantar');
-
--- CAFÉ DA MANHÃ
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Café da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%ovo%cozido%' LIMIT 1),
-    '4 unidades de ovo de galinha cozido', 312, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Café da Manhã'),
-    (SELECT id FROM alimentos WHERE nome REGEXP '(^|,| )melão' LIMIT 1),
-    '200 gramas de melão cru', 200, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Café da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%café%' LIMIT 1),
-    '1 copo pequeno de café, infusão 10%', 165, 'g'
-);
-
--- LANCHE DA MANHÃ
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Lanche da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%iogurte%desnatado%' LIMIT 1),
-    '1 unidade pequena de iogurte natural desnatado', 140, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Lanche da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%castanha%brasil%' LIMIT 1),
-    '4 unidades de castanha-do-Brasil crua', 16, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Lanche da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%linhaça%' LIMIT 1),
-    '1 colher de sopa de semente de linhaça', 10, 'g'
-);
-
--- ALMOÇO
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%alface%' LIMIT 1),
-    '1 prato raso cheio de alface americana crua', 80, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%cenoura%crua%' LIMIT 1),
-    '2 colheres de sopa cheias de cenoura ralada crua', 24, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%arroz%integral%cozido%' LIMIT 1),
-    '3 colheres de sopa cheias de arroz integral cozido', 60, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%feijão%carioca%cozido%' LIMIT 1),
-    '70 gramas de feijão carioca cozido', 70, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%frango%sem pele%assado%' LIMIT 1),
-    '160 gramas de frango sem pele assado', 160, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%laranja%' LIMIT 1),
-    '1 unidade pequena de laranja lima crua', 90, 'g'
-);
-
--- LANCHE DA TARDE
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Lanche da Tarde'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%gelatina%' LIMIT 1),
-    '1 porção de gelatina proteica', 100, 'g'
-);
-
--- JANTAR
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Jantar'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%alface%' LIMIT 1),
-    '1 prato raso cheio de alface americana crua', 80, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Jantar'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%cenoura%crua%' LIMIT 1),
-    '2 colheres de sopa de cenoura ralada crua', 24, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Jantar'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%frango%sem pele%assado%' LIMIT 1),
-    '160 gramas de frango sem pele assado', 160, 'g'
-);
-
-
 -- ============================================================
--- DIETA 2 : LIPEDEMA
--- Paciente: Vaneide Marques da Rocha Chaves, 43 anos
+-- DIETA MODELO - ANGÉLICA
 -- ============================================================
 
-INSERT INTO dietas (nome, observacao) VALUES
-('Dieta para Lipedema', 'Dieta com foco em redução de inflamação, controle de retenção de líquidos e alimentos anti-inflamatórios.');
-
--- Refeições
-INSERT INTO dieta_refeicoes (dieta_id, horario, nome) VALUES
-((SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema'), '05:40', 'Café da Manhã'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema'), '10:00', 'Lanche da Manhã'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema'), '12:00', 'Almoço'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema'), '15:00', 'Lanche da Tarde'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema'), '20:00', 'Jantar');
-
--- CAFÉ DA MANHÃ
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Café da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%morango%' LIMIT 1),
-    '8 unidades pequenas de morango cru', 56, 'g'
+INSERT INTO dietas (nome, observacao)
+VALUES (
+    'Dieta modelo - Angélica',
+    'Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.'
 );
 
--- LANCHE DA MANHÃ
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
+SET @dieta_id = LAST_INSERT_ID();
+
+-- Café da manhã - 08:30
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '08:30:00', 'Café da manhã', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Lanche da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%iogurte%natural%' LIMIT 1),
-    '1 unidade pequena de iogurte natural', 140, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Ovo%galinha%cozido%' OR nome LIKE '%Ovo%cozido%' LIMIT 1),
+    'Ovo, galinha, inteiro, cozido, mexido',
+    2.00,
+    'unidades',
+    'Unidades grandes (122 g)'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Lanche da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%castanha%brasil%' LIMIT 1),
-    '5 unidades de castanha-do-Brasil crua', 20, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Pêra%' OR nome LIKE '%Pera%' LIMIT 1),
+    'Pera, crua',
+    1.00,
+    'unidade',
+    'Unidade média (178 g)'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Lanche da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%linhaça%' LIMIT 1),
-    '1 colher de sopa de semente de linhaça', 10, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Café%infusão%' OR nome LIKE '%Café%' LIMIT 1),
+    'Café, infusão 10%',
+    1.00,
+    'copo',
+    'Copo pequeno (50 g)'
 );
 
--- ALMOÇO
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
+-- Almoço - 13:30
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '13:30:00', 'Almoço', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%abóbora%cabotian%cozida%' LIMIT 1),
-    '1 escumadeira média de abóbora cabotian cozida', 100, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
+    'Arroz integral cozido',
+    70.00,
+    'g',
+    NULL
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%alface%' LIMIT 1),
-    '1 prato raso cheio de alface americana crua', 80, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Lentilha%cozida%' LIMIT 1),
+    'Lentilha cozida',
+    70.00,
+    'g',
+    NULL
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%tomate%' LIMIT 1),
-    '4 fatias médias de tomate cru', 60, 'g'
+    @refeicao_id,
+    NULL,
+    'Legumes Assados Leves e Saudáveis',
+    90.00,
+    'g',
+    'Receita da Nutri Jane'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%agrião%' LIMIT 1),
-    '5 ramos médios de agrião cru', 25, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%azeite%oliva%' LIMIT 1),
-    '1 colher de café de azeite de oliva extra virgem', 1, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%arroz%integral%cozido%' LIMIT 1),
-    '1 colher de arroz cheia de arroz integral cozido', 63, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%lentilha%cozida%' LIMIT 1),
-    '4 colheres de sopa de lentilha cozida', 72, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%sardinha%' LIMIT 1),
-    '4 unidades grandes de sardinha assada', 160, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%abacaxi%' LIMIT 1),
-    '1 fatia média de abacaxi cru', 75, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%cozido%' OR nome LIKE '%Frango%cozido%' LIMIT 1),
+    'Peito de frango cozido desfiado',
+    100.00,
+    'g',
+    'Receita da Nutri Jane'
 );
 
--- LANCHE DA TARDE
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Lanche da Tarde'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%maçã%' LIMIT 1),
-    '1 unidade pequena de maçã Fuji com casca crua', 80, 'g'
-);
+-- Lanche da tarde - 16:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '16:00:00', 'Lanche da tarde', NULL);
 
--- JANTAR
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Jantar'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%cenoura%' LIMIT 1),
-    '2 colheres de arroz cheias de cenoura picada', 80, 'g'
+    @refeicao_id,
+    NULL,
+    'Receita de Pão Proteico da Nutri Jane Gonzalez',
+    2.00,
+    'unidades',
+    '100 g'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Lipedema') AND nome = 'Jantar'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%chuchu%cozido%' LIMIT 1),
-    '3 colheres de arroz cheias de chuchu cozido', 135, 'g'
+    @refeicao_id,
+    NULL,
+    'Queijo ricota light',
+    40.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Laranja%pêra%' OR nome LIKE '%Laranja%pera%' LIMIT 1),
+    'Laranja pêra crua',
+    1.00,
+    'unidade',
+    'Unidade pequena (90 g)'
+),
+(
+    @refeicao_id,
+    NULL,
+    'Chá de erva-doce, infusão 5%',
+    70.00,
+    'g',
+    NULL
+);
+
+-- Jantar - 20:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '20:00:00', 'Jantar', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
+    'Arroz integral cozido',
+    60.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    NULL,
+    'Legumes Assados Leves e Saudáveis',
+    90.00,
+    'g',
+    'Receita da Nutri Jane'
+),
+(
+    @refeicao_id,
+    NULL,
+    'Salada de quinoa',
+    50.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    NULL,
+    'Tilápia assada',
+    100.00,
+    'g',
+    'Receita da Nutri Jane'
 );
 
 
 -- ============================================================
--- DIETA 3 : OBESIDADE
--- Paciente: Samuel Rocha Chaves, 13 anos
+-- DIETA MODELO - JOSÉ MILTON
 -- ============================================================
 
-INSERT INTO dietas (nome, observacao) VALUES
-('Dieta para Obesidade', 'Dieta balanceada com controle calórico, rica em proteínas e fibras para saciedade e perda de peso saudável.');
-
--- Refeições
-INSERT INTO dieta_refeicoes (dieta_id, horario, nome) VALUES
-((SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade'), '06:00', 'Café da Manhã'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade'), '09:00', 'Lanche da Manhã'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade'), '13:00', 'Almoço'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade'), '16:00', 'Lanche da Tarde'),
-((SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade'), '20:00', 'Jantar');
-
--- CAFÉ DA MANHÃ
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Café da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%leite%desnatado%' LIMIT 1),
-    '150 gramas de leite de vaca desnatado', 150, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Café da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%café%' LIMIT 1),
-    '150 gramas de café infusão 10%', 150, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Café da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%ricota%' LIMIT 1),
-    '50 gramas de queijo ricota light', 50, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Café da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%pera%' LIMIT 1),
-    '1 unidade média de pera', 110, 'g'
+INSERT INTO dietas (nome, observacao)
+VALUES (
+    'Dieta modelo - José Milton',
+    'Modelo baseado no plano alimentar de José Milton dos Santos.'
 );
 
--- LANCHE DA MANHÃ
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
+SET @dieta_id = LAST_INSERT_ID();
+
+-- Café da manhã - 07:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '07:00:00', 'Café da manhã', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Lanche da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%iogurte%desnatado%' LIMIT 1),
-    '1 unidade média de iogurte desnatado', 200, 'g'
+    @refeicao_id,
+    NULL,
+    'Receita da Nutri Jane Suco verde para Diabetes',
+    1.00,
+    'porção',
+    '300 g'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Lanche da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%morango%' LIMIT 1),
-    '6 unidades grandes de morango', 120, 'g'
+    @refeicao_id,
+    NULL,
+    'Receita de Pão Proteico da Nutri Jane Gonzalez',
+    2.00,
+    'unidades',
+    '100 g'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Lanche da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%aveia%flocos%' LIMIT 1),
-    '1 colher de sopa cheia de aveia em flocos', 15, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Café%infusão%' OR nome LIKE '%Café%' LIMIT 1),
+    'Café, infusão 10%',
+    1.00,
+    'copo',
+    'Copo pequeno cheio (165 g)'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Melão%cru%' OR nome LIKE '%Melão%' LIMIT 1),
+    'Melão cru',
+    1.00,
+    'fatia',
+    'Fatia grande (115 g)'
 );
 
--- ALMOÇO
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
+-- Almoço - 13:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '13:00:00', 'Almoço', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%alface%' LIMIT 1),
-    '1 prato raso cheio de alface americana crua', 80, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Rúcula%crua%' OR nome LIKE '%Rúcula%' LIMIT 1),
+    'Rúcula crua',
+    1.00,
+    'prato',
+    'Prato de sobremesa (60 g)'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%tomate%' LIMIT 1),
-    '4 fatias médias de tomate', 60, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%crua%' OR nome LIKE '%Cenoura%' LIMIT 1),
+    'Cenoura ralada crua',
+    2.00,
+    'colheres de sopa',
+    '24 g'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%cenoura%crua%' LIMIT 1),
-    '2 colheres de sopa de cenoura ralada crua', 24, 'g'
+    @refeicao_id,
+    NULL,
+    'Salada de quinoa',
+    100.00,
+    'g',
+    NULL
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%chuchu%cozido%' LIMIT 1),
-    '2 colheres de arroz cheias de chuchu cozido', 90, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
+    'Arroz integral cozido',
+    3.00,
+    'colheres de sopa cheias',
+    '60 g'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%abóbora%cabotian%cozida%' LIMIT 1),
-    '2 colheres de sopa de abóbora cabotian cozida', 72, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Feijão%carioca%cozido%' LIMIT 1),
+    'Feijão carioca cozido',
+    70.00,
+    'g',
+    NULL
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%arroz%integral%cozido%' LIMIT 1),
-    '3 colheres de sopa cheias de arroz integral cozido', 60, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%assado%' OR nome LIKE '%Frango%assado%' LIMIT 1),
+    'Peito de frango, sem pele, assado',
+    1.00,
+    'peito',
+    'Peito pequeno (140 g)'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%feijão%carioca%cozido%' LIMIT 1),
-    '70 gramas de feijão carioca cozido', 70, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%sardinha%' LIMIT 1),
-    '4 unidades grandes de sardinha assada', 160, 'g'
-),
-(
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Almoço'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%abacaxi%' LIMIT 1),
-    '1 fatia média de abacaxi cru', 75, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Laranja%pêra%' OR nome LIKE '%Laranja%pera%' LIMIT 1),
+    'Laranja pêra crua',
+    1.00,
+    'unidade',
+    'Unidade pequena (90 g)'
 );
 
--- LANCHE DA TARDE
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
+-- Lanche da tarde - 16:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '16:00:00', 'Lanche da tarde', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Lanche da Tarde'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%gelatina%' LIMIT 1),
-    '1 porção de gelatina proteica', 180, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Maçã%Fuji%' OR nome LIKE '%Maçã%' LIMIT 1),
+    'Maçã Fuji com casca crua',
+    1.00,
+    'unidade',
+    'Unidade pequena (80 g)'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Lanche da Tarde'),
-    (SELECT id FROM alimentos WHERE nome REGEXP '(^|,| )melão' LIMIT 1),
-    '1 fatia grande de melão cru', 115, 'g'
+    @refeicao_id,
+    NULL,
+    'Torta de Frango Nutri Jane',
+    100.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    NULL,
+    'Chá de erva-doce, infusão 5%',
+    1.00,
+    'xícara',
+    '200 g'
 );
 
--- JANTAR
-INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
+-- Jantar - 19:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '19:00:00', 'Jantar', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Jantar'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%arroz%integral%cozido%' LIMIT 1),
-    '3 colheres de sopa cheias de arroz integral cozido', 60, 'g'
+    @refeicao_id,
+    NULL,
+    'Salada de quinoa',
+    100.00,
+    'g',
+    NULL
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Jantar'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%chuchu%cozido%' LIMIT 1),
-    '4 colheres de sopa cheias de chuchu cozido', 80, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Alface%americana%' OR nome LIKE '%Alface%' LIMIT 1),
+    'Alface americana crua',
+    1.00,
+    'prato',
+    'Prato raso cheio, picada (80 g)'
 ),
 (
-    (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Obesidade') AND nome = 'Jantar'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%sardinha%' LIMIT 1),
-    '4 unidades grandes de sardinha assada', 160, 'g'
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%crua%' OR nome LIKE '%Cenoura%' LIMIT 1),
+    'Cenoura ralada crua',
+    2.00,
+    'colheres de sopa cheias',
+    '24 g'
+),
+(
+    @refeicao_id,
+    NULL,
+    'Legumes Assados Leves e Saudáveis',
+    1.00,
+    'porção',
+    '190 g - Receita da Nutri Jane'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Sardinha%assada%' OR nome LIKE '%Sardinha%' LIMIT 1),
+    'Sardinha assada',
+    3.00,
+    'unidades grandes',
+    '120 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Goiaba%vermelha%' OR nome LIKE '%Goiaba%' LIMIT 1),
+    'Goiaba vermelha com casca crua',
+    1.00,
+    'unidade',
+    'Unidade pequena (170 g)'
 );
 
-UPDATE alimentos SET
-  umidade      = umidade      / 100,
-  energiaKcal = energiaKcal / 100,
-  proteina     = proteina     / 100,
-  lipideos     = lipideos     / 100,
-  colesterol   = colesterol   / 100,
-  carboidrato  = carboidrato  / 100,
-  fibra        = fibra        / 100,
-  cinzas       = cinzas       / 100,
-  calcio       = calcio       / 100,
-  magnesio     = magnesio     / 100,
-  manganes     = manganes     / 100,
-  fosforo      = fosforo      / 100,
-  ferro        = ferro        / 100,
-  sodio        = sodio        / 100,
-  potassio     = potassio     / 100,
-  cobre        = cobre        / 100,
-  zinco        = zinco        / 100,
-  retinol      = retinol      / 100,
-  tiamina      = tiamina      / 100,
-  riboflavina  = riboflavina  / 100,
-  piridoxina   = piridoxina   / 100,
-  niacina      = niacina      / 100,
-  vitaminac    = vitaminac    / 100
-  WHERE id > 0;
 
-SELECT 
-    d.nome AS dieta,
-    r.horario,
-    r.nome AS refeicao,
-    i.descricao,
-    i.quantidade,
-    i.unidade,
-    a.nome AS alimento,
-    ROUND(a.energiaKcal * i.quantidade, 2) AS kcal,
-    ROUND(a.proteina     * i.quantidade, 2) AS proteina_g,
-    ROUND(a.carboidrato  * i.quantidade, 2) AS carboidrato_g,
-    ROUND(a.lipideos     * i.quantidade, 2) AS gordura_g,
-    ROUND(a.fibra        * i.quantidade, 2) AS fibra_g
-FROM dietas d
-JOIN dieta_refeicoes r       ON r.dieta_id    = d.id
-JOIN dieta_refeicao_itens i  ON i.refeicao_id = r.id
-JOIN alimentos a             ON a.id          = i.alimento_id
-WHERE d.nome = 'Dieta para Gordura no Fígado'
-ORDER BY r.horario;
+-- ============================================================
+-- DIETA MODELO - SAMUEL
+-- ============================================================
+
+INSERT INTO dietas (nome, observacao)
+VALUES (
+    'Dieta modelo - Samuel',
+    'Modelo baseado no plano alimentar de Samuel Rocha Chaves.'
+);
+
+SET @dieta_id = LAST_INSERT_ID();
+
+-- Café da manhã - 06:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '06:00:00', 'Café da manhã', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
+(
+    @refeicao_id,
+    NULL,
+    'Pão Proteico',
+    2.00,
+    'unidades',
+    '100 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Leite%desnatado%' OR nome LIKE '%Leite%' LIMIT 1),
+    'Leite de vaca desnatado',
+    150.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Café%infusão%' OR nome LIKE '%Café%' LIMIT 1),
+    'Café, infusão 10%',
+    150.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    NULL,
+    'Queijo ricota light',
+    50.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Pêra%' OR nome LIKE '%Pera%' LIMIT 1),
+    'Pera, crua',
+    1.00,
+    'unidade',
+    'Unidade média (110 g)'
+);
+
+-- Almoço - 13:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '13:00:00', 'Almoço', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Alface%americana%' OR nome LIKE '%Alface%' LIMIT 1),
+    'Alface americana crua',
+    1.00,
+    'prato',
+    'Prato raso cheio, picada (80 g)'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Tomate%semente%' OR nome LIKE '%Tomate%' LIMIT 1),
+    'Tomate com semente cru',
+    4.00,
+    'fatias',
+    'Fatias médias (60 g)'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%crua%' OR nome LIKE '%Cenoura%' LIMIT 1),
+    'Cenoura ralada crua',
+    2.00,
+    'colheres de sopa cheias',
+    '24 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Chuchu%cozido%' OR nome LIKE '%Chuchu%' LIMIT 1),
+    'Chuchu cozido',
+    2.00,
+    'colheres de arroz',
+    '90 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Abóbora%caboti%' OR nome LIKE '%Abóbora%' LIMIT 1),
+    'Abóbora cabotiá cozida',
+    2.00,
+    'colheres de sopa cheias',
+    '72 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
+    'Arroz integral cozido',
+    3.00,
+    'colheres de sopa cheias',
+    '60 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Feijão%carioca%cozido%' LIMIT 1),
+    'Feijão carioca cozido',
+    70.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Sardinha%assada%' OR nome LIKE '%Sardinha%' LIMIT 1),
+    'Sardinha assada',
+    4.00,
+    'unidades grandes',
+    '160 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Abacaxi%cru%' OR nome LIKE '%Abacaxi%' LIMIT 1),
+    'Abacaxi cru',
+    1.00,
+    'fatia',
+    'Fatia média (75 g)'
+);
+
+-- Lanche da tarde - 16:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '16:00:00', 'Lanche da tarde', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
+(
+    @refeicao_id,
+    NULL,
+    'Gelatina Proteica',
+    1.00,
+    'porção',
+    '180 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Melão%cru%' OR nome LIKE '%Melão%' LIMIT 1),
+    'Melão cru',
+    1.00,
+    'fatia',
+    'Fatia grande (115 g)'
+);
+
+-- Jantar - 20:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '20:00:00', 'Jantar', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
+(
+    @refeicao_id,
+    NULL,
+    'Salada de quinoa',
+    100.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
+    'Arroz integral cozido',
+    60.00,
+    'g',
+    '3 colheres de sopa cheias'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Chuchu%cozido%' OR nome LIKE '%Chuchu%' LIMIT 1),
+    'Chuchu cozido',
+    80.00,
+    'g',
+    '4 colheres de sopa cheias'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%assado%' OR nome LIKE '%Frango%assado%' LIMIT 1),
+    'Peito pequeno de frango, sem pele, assado',
+    140.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Laranja%lima%' OR nome LIKE '%Laranja%' LIMIT 1),
+    'Laranja lima crua',
+    1.00,
+    'unidade',
+    'Unidade pequena (90 g)'
+);
+
+
+-- ============================================================
+-- DIETA MODELO - VANEIDE
+-- ============================================================
+
+INSERT INTO dietas (nome, observacao)
+VALUES (
+    'Dieta modelo - Vaneide',
+    'Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.'
+);
+
+SET @dieta_id = LAST_INSERT_ID();
+
+-- Café da manhã - 05:40
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '05:40:00', 'Café da manhã', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
+(
+    @refeicao_id,
+    NULL,
+    'Suco verde',
+    1.00,
+    'porção',
+    '280 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Morango%cru%' OR nome LIKE '%Morango%' LIMIT 1),
+    'Morango cru',
+    8.00,
+    'unidades',
+    'Unidades pequenas (56 g)'
+),
+(
+    @refeicao_id,
+    NULL,
+    'Pão Proteico',
+    2.00,
+    'unidades',
+    '100 g'
+);
+
+-- Almoço - 12:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '12:00:00', 'Almoço', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Abóbora%caboti%' OR nome LIKE '%Abóbora%' LIMIT 1),
+    'Abóbora cabotiá cozida',
+    1.00,
+    'escumadeira média cheia',
+    '100 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Alface%americana%' OR nome LIKE '%Alface%' LIMIT 1),
+    'Alface americana crua',
+    1.00,
+    'prato raso cheio',
+    'Picada (80 g)'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Tomate%semente%' OR nome LIKE '%Tomate%' LIMIT 1),
+    'Tomate com semente cru',
+    4.00,
+    'fatias médias',
+    '60 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Agrião%cru%' OR nome LIKE '%Agrião%' LIMIT 1),
+    'Agrião cru',
+    5.00,
+    'ramos médios',
+    '25 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Azeite%oliva%' OR nome LIKE '%Azeite%' LIMIT 1),
+    'Azeite de oliva extra virgem',
+    1.00,
+    'colher de café',
+    '1 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
+    'Arroz integral cozido',
+    1.00,
+    'colher de arroz cheia',
+    '63 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Lentilha%cozida%' LIMIT 1),
+    'Lentilha cozida',
+    4.00,
+    'colheres de sopa',
+    '72 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Sardinha%assada%' OR nome LIKE '%Sardinha%' LIMIT 1),
+    'Sardinha assada',
+    4.00,
+    'unidades grandes',
+    '160 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Abacaxi%cru%' OR nome LIKE '%Abacaxi%' LIMIT 1),
+    'Abacaxi cru',
+    1.00,
+    'fatia',
+    'Fatia média (75 g)'
+);
+
+-- Lanche da tarde - 15:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '15:00:00', 'Lanche da tarde', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
+(
+    @refeicao_id,
+    NULL,
+    'Chá de Hibisco e Cavalinha',
+    1.00,
+    'xícara',
+    '238 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Maçã%Fuji%' OR nome LIKE '%Maçã%' LIMIT 1),
+    'Maçã Fuji com casca crua',
+    1.00,
+    'unidade',
+    'Unidade pequena (80 g)'
+),
+(
+    @refeicao_id,
+    NULL,
+    'Torta de Frango Nutri Jane',
+    100.00,
+    'g',
+    NULL
+);
+
+-- Jantar - 20:00
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao)
+VALUES (@dieta_id, '20:00:00', 'Jantar', NULL);
+
+SET @refeicao_id = LAST_INSERT_ID();
+
+INSERT INTO dieta_refeicao_itens
+    (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+VALUES
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%cozida%' OR nome LIKE '%Cenoura%' LIMIT 1),
+    'Cenoura cozida picada',
+    2.00,
+    'colheres de arroz',
+    '80 g'
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Chuchu%cozido%' OR nome LIKE '%Chuchu%' LIMIT 1),
+    'Chuchu cozido picado',
+    3.00,
+    'colheres de arroz',
+    '135 g'
+),
+(
+    @refeicao_id,
+    NULL,
+    'Salada de quinoa',
+    100.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%assado%' OR nome LIKE '%Frango%assado%' LIMIT 1),
+    'Peito pequeno de frango assado',
+    140.00,
+    'g',
+    NULL
+),
+(
+    @refeicao_id,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Goiaba%vermelha%' OR nome LIKE '%Goiaba%' LIMIT 1),
+    'Goiaba vermelha com casca crua',
+    1.00,
+    'unidade',
+    'Unidade pequena (170 g)'
+);

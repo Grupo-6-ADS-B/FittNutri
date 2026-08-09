@@ -4,18 +4,10 @@ START TRANSACTION;
 
 -- ============================================================
 -- DIETAS MODELO EXTRAÍDAS DOS 4 PLANOS ALIMENTARES
--- Fonte: PDFs enviados na conversa.
---
--- Observação:
--- * alimento_id é preenchido quando existe correspondência
---   exata na tabela TACO cadastrada em "alimentos".
--- * Para receitas/alimentos que não existem na TACO enviada
---   (ex.: Pão Proteico, Salada de Quinoa, Torta de Frango
---   Nutri Jane, Gelatina Proteica), alimento_id fica NULL
---   e a descrição preserva o nome do PDF.
--- * Foram incluídas somente as refeições solicitadas:
---   Café da manhã, Almoço, Lanche da tarde e Jantar.
--- * Lanche da manhã e Ceia foram deixados de fora.
+-- 1. Dieta modelo - Angélica
+-- 2. Dieta modelo - José Milton
+-- 3. Dieta modelo - Samuel
+-- 4. Dieta modelo - Vaneide
 -- ============================================================
 
 
@@ -42,7 +34,7 @@ INSERT INTO dieta_refeicao_itens
 VALUES
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Ovo, de galinha, inteiro, cozido/10minutos' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Ovo%galinha%cozido%' OR nome LIKE '%Ovo%cozido%' LIMIT 1),
     'Ovo, galinha, inteiro, cozido, mexido',
     2.00,
     'unidades',
@@ -50,7 +42,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    NULL,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Pêra%' OR nome LIKE '%Pera%' LIMIT 1),
     'Pera, crua',
     1.00,
     'unidade',
@@ -58,7 +50,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Café, infusão 10%' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Café%infusão%' OR nome LIKE '%Café%' LIMIT 1),
     'Café, infusão 10%',
     1.00,
     'copo',
@@ -76,7 +68,7 @@ INSERT INTO dieta_refeicao_itens
 VALUES
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Arroz, integral, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
     'Arroz integral cozido',
     70.00,
     'g',
@@ -84,7 +76,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Lentilha, cozida' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Lentilha%cozida%' LIMIT 1),
     'Lentilha cozida',
     70.00,
     'g',
@@ -100,7 +92,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Frango, peito, sem pele, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%cozido%' OR nome LIKE '%Frango%cozido%' LIMIT 1),
     'Peito de frango cozido desfiado',
     100.00,
     'g',
@@ -134,7 +126,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Laranja, pêra, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Laranja%pêra%' OR nome LIKE '%Laranja%pera%' LIMIT 1),
     'Laranja pêra crua',
     1.00,
     'unidade',
@@ -160,7 +152,7 @@ INSERT INTO dieta_refeicao_itens
 VALUES
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Arroz, integral, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
     'Arroz integral cozido',
     60.00,
     'g',
@@ -231,7 +223,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Café, infusão 10%' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Café%infusão%' OR nome LIKE '%Café%' LIMIT 1),
     'Café, infusão 10%',
     1.00,
     'copo',
@@ -239,7 +231,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Melão, cru' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Melão%cru%' OR nome LIKE '%Melão%' LIMIT 1),
     'Melão cru',
     1.00,
     'fatia',
@@ -257,7 +249,7 @@ INSERT INTO dieta_refeicao_itens
 VALUES
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Rúcula, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Rúcula%crua%' OR nome LIKE '%Rúcula%' LIMIT 1),
     'Rúcula crua',
     1.00,
     'prato',
@@ -265,7 +257,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Cenoura, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%crua%' OR nome LIKE '%Cenoura%' LIMIT 1),
     'Cenoura ralada crua',
     2.00,
     'colheres de sopa',
@@ -281,7 +273,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Arroz, integral, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
     'Arroz integral cozido',
     3.00,
     'colheres de sopa cheias',
@@ -289,7 +281,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Feijão, carioca, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Feijão%carioca%cozido%' LIMIT 1),
     'Feijão carioca cozido',
     70.00,
     'g',
@@ -297,7 +289,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Frango, peito, sem pele, assado' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%assado%' OR nome LIKE '%Frango%assado%' LIMIT 1),
     'Peito de frango, sem pele, assado',
     1.00,
     'peito',
@@ -305,7 +297,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Laranja, pêra, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Laranja%pêra%' OR nome LIKE '%Laranja%pera%' LIMIT 1),
     'Laranja pêra crua',
     1.00,
     'unidade',
@@ -323,7 +315,7 @@ INSERT INTO dieta_refeicao_itens
 VALUES
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Maçã, Fuji, com casca, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Maçã%Fuji%' OR nome LIKE '%Maçã%' LIMIT 1),
     'Maçã Fuji com casca crua',
     1.00,
     'unidade',
@@ -365,7 +357,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Alface, americana, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Alface%americana%' OR nome LIKE '%Alface%' LIMIT 1),
     'Alface americana crua',
     1.00,
     'prato',
@@ -373,7 +365,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Cenoura, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%crua%' OR nome LIKE '%Cenoura%' LIMIT 1),
     'Cenoura ralada crua',
     2.00,
     'colheres de sopa cheias',
@@ -389,7 +381,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Sardinha, assada' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Sardinha%assada%' OR nome LIKE '%Sardinha%' LIMIT 1),
     'Sardinha assada',
     3.00,
     'unidades grandes',
@@ -397,7 +389,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Goiaba, vermelha, com casca, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Goiaba%vermelha%' OR nome LIKE '%Goiaba%' LIMIT 1),
     'Goiaba vermelha com casca crua',
     1.00,
     'unidade',
@@ -436,7 +428,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    NULL,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Leite%desnatado%' OR nome LIKE '%Leite%' LIMIT 1),
     'Leite de vaca desnatado',
     150.00,
     'g',
@@ -444,7 +436,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Café, infusão 10%' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Café%infusão%' OR nome LIKE '%Café%' LIMIT 1),
     'Café, infusão 10%',
     150.00,
     'g',
@@ -460,7 +452,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    NULL,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Pêra%' OR nome LIKE '%Pera%' LIMIT 1),
     'Pera, crua',
     1.00,
     'unidade',
@@ -478,7 +470,7 @@ INSERT INTO dieta_refeicao_itens
 VALUES
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Alface, americana, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Alface%americana%' OR nome LIKE '%Alface%' LIMIT 1),
     'Alface americana crua',
     1.00,
     'prato',
@@ -486,7 +478,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Tomate, com semente, cru' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Tomate%semente%' OR nome LIKE '%Tomate%' LIMIT 1),
     'Tomate com semente cru',
     4.00,
     'fatias',
@@ -494,7 +486,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Cenoura, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%crua%' OR nome LIKE '%Cenoura%' LIMIT 1),
     'Cenoura ralada crua',
     2.00,
     'colheres de sopa cheias',
@@ -502,7 +494,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Chuchu, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Chuchu%cozido%' OR nome LIKE '%Chuchu%' LIMIT 1),
     'Chuchu cozido',
     2.00,
     'colheres de arroz',
@@ -510,7 +502,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Abóbora, cabotian, cozida' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Abóbora%caboti%' OR nome LIKE '%Abóbora%' LIMIT 1),
     'Abóbora cabotiá cozida',
     2.00,
     'colheres de sopa cheias',
@@ -518,7 +510,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Arroz, integral, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
     'Arroz integral cozido',
     3.00,
     'colheres de sopa cheias',
@@ -526,7 +518,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Feijão, carioca, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Feijão%carioca%cozido%' LIMIT 1),
     'Feijão carioca cozido',
     70.00,
     'g',
@@ -534,7 +526,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Sardinha, assada' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Sardinha%assada%' OR nome LIKE '%Sardinha%' LIMIT 1),
     'Sardinha assada',
     4.00,
     'unidades grandes',
@@ -542,7 +534,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Abacaxi, cru' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Abacaxi%cru%' OR nome LIKE '%Abacaxi%' LIMIT 1),
     'Abacaxi cru',
     1.00,
     'fatia',
@@ -568,7 +560,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Melão, cru' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Melão%cru%' OR nome LIKE '%Melão%' LIMIT 1),
     'Melão cru',
     1.00,
     'fatia',
@@ -594,7 +586,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Arroz, integral, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
     'Arroz integral cozido',
     60.00,
     'g',
@@ -602,7 +594,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Chuchu, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Chuchu%cozido%' OR nome LIKE '%Chuchu%' LIMIT 1),
     'Chuchu cozido',
     80.00,
     'g',
@@ -610,7 +602,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Frango, peito, sem pele, assado' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%assado%' OR nome LIKE '%Frango%assado%' LIMIT 1),
     'Peito pequeno de frango, sem pele, assado',
     140.00,
     'g',
@@ -618,7 +610,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Laranja, lima, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Laranja%lima%' OR nome LIKE '%Laranja%' LIMIT 1),
     'Laranja lima crua',
     1.00,
     'unidade',
@@ -657,7 +649,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Morango, cru' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Morango%cru%' OR nome LIKE '%Morango%' LIMIT 1),
     'Morango cru',
     8.00,
     'unidades',
@@ -683,7 +675,7 @@ INSERT INTO dieta_refeicao_itens
 VALUES
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Abóbora, cabotian, cozida' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Abóbora%caboti%' OR nome LIKE '%Abóbora%' LIMIT 1),
     'Abóbora cabotiá cozida',
     1.00,
     'escumadeira média cheia',
@@ -691,7 +683,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Alface, americana, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Alface%americana%' OR nome LIKE '%Alface%' LIMIT 1),
     'Alface americana crua',
     1.00,
     'prato raso cheio',
@@ -699,7 +691,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Tomate, com semente, cru' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Tomate%semente%' OR nome LIKE '%Tomate%' LIMIT 1),
     'Tomate com semente cru',
     4.00,
     'fatias médias',
@@ -707,7 +699,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Agrião, cru' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Agrião%cru%' OR nome LIKE '%Agrião%' LIMIT 1),
     'Agrião cru',
     5.00,
     'ramos médios',
@@ -715,7 +707,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    NULL,
+    (SELECT id FROM alimentos WHERE nome LIKE '%Azeite%oliva%' OR nome LIKE '%Azeite%' LIMIT 1),
     'Azeite de oliva extra virgem',
     1.00,
     'colher de café',
@@ -723,7 +715,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Arroz, integral, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1),
     'Arroz integral cozido',
     1.00,
     'colher de arroz cheia',
@@ -731,7 +723,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Lentilha, cozida' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Lentilha%cozida%' LIMIT 1),
     'Lentilha cozida',
     4.00,
     'colheres de sopa',
@@ -739,7 +731,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Sardinha, assada' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Sardinha%assada%' OR nome LIKE '%Sardinha%' LIMIT 1),
     'Sardinha assada',
     4.00,
     'unidades grandes',
@@ -747,7 +739,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Abacaxi, cru' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Abacaxi%cru%' OR nome LIKE '%Abacaxi%' LIMIT 1),
     'Abacaxi cru',
     1.00,
     'fatia',
@@ -773,7 +765,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Maçã, Fuji, com casca, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Maçã%Fuji%' OR nome LIKE '%Maçã%' LIMIT 1),
     'Maçã Fuji com casca crua',
     1.00,
     'unidade',
@@ -799,7 +791,7 @@ INSERT INTO dieta_refeicao_itens
 VALUES
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Cenoura, cozida' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%cozida%' OR nome LIKE '%Cenoura%' LIMIT 1),
     'Cenoura cozida picada',
     2.00,
     'colheres de arroz',
@@ -807,7 +799,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Chuchu, cozido' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Chuchu%cozido%' OR nome LIKE '%Chuchu%' LIMIT 1),
     'Chuchu cozido picado',
     3.00,
     'colheres de arroz',
@@ -823,7 +815,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Frango, peito, sem pele, assado' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%assado%' OR nome LIKE '%Frango%assado%' LIMIT 1),
     'Peito pequeno de frango assado',
     140.00,
     'g',
@@ -831,7 +823,7 @@ VALUES
 ),
 (
     @refeicao_id,
-    (SELECT id FROM alimentos WHERE nome = 'Goiaba, vermelha, com casca, crua' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%Goiaba%vermelha%' OR nome LIKE '%Goiaba%' LIMIT 1),
     'Goiaba vermelha com casca crua',
     1.00,
     'unidade',
