@@ -2654,7 +2654,7 @@ INSERT INTO dieta_refeicoes (dieta_id, horario, nome) VALUES
 INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade) VALUES
 (
     (SELECT id FROM dieta_refeicoes WHERE dieta_id = (SELECT id FROM dietas WHERE nome = 'Dieta para Gordura no Fígado') AND nome = 'Café da Manhã'),
-    (SELECT id FROM alimentos WHERE nome LIKE '%ovo%galinha%cozido%' LIMIT 1),
+    (SELECT id FROM alimentos WHERE nome LIKE '%ovo%cozido%' LIMIT 1),
     '4 unidades de ovo de galinha cozido', 312, 'g'
 ),
 (
