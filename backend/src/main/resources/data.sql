@@ -628,3 +628,443 @@ WHERE fonte IS NULL OR fonte = '';
 
 -- Marca todos os alimentos recém-normalizados como pertencentes à base TACO
 UPDATE alimentos SET fonte = 'TACO' WHERE fonte IS NULL OR fonte = '';
+
+-- ============================================================
+-- PURGE OLD OBSOLETE DIET MODELS
+-- ============================================================
+DELETE FROM dieta_refeicao_itens WHERE refeicao_id IN (SELECT r.id FROM dieta_refeicoes r JOIN dietas d ON r.dieta_id = d.id WHERE d.nome NOT LIKE 'Dieta modelo - %');
+DELETE FROM dieta_refeicoes WHERE dieta_id IN (SELECT id FROM dietas WHERE nome NOT LIKE 'Dieta modelo - %');
+DELETE FROM dietas WHERE nome NOT LIKE 'Dieta modelo - %';
+
+-- ============================================================
+-- DIETAS MODELO EXTRAÍDAS DOS 4 PLANOS ALIMENTARES
+-- ============================================================
+
+-- 1. Dieta modelo - Angélica
+INSERT INTO dietas (nome, observacao)
+SELECT 'Dieta modelo - Angélica', 'Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.'
+WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta modelo - Angélica');
+
+SET @dieta_angelica = (SELECT id FROM dietas WHERE nome = 'Dieta modelo - Angélica');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_angelica, '08:30:00', 'Café da manhã'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_angelica AND nome = 'Café da manhã');
+
+SET @ref_angelica_cafe = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_angelica AND nome = 'Café da manhã');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_cafe, (SELECT id FROM alimentos WHERE nome LIKE '%Ovo%galinha%cozido%' OR nome LIKE '%Ovo%cozido%' LIMIT 1), 'Ovo, galinha, inteiro, cozido, mexido', 2.00, 'unidades', 'Unidades grandes (122 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_cafe AND descricao = 'Ovo, galinha, inteiro, cozido, mexido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_cafe, (SELECT id FROM alimentos WHERE nome LIKE '%Pêra%' OR nome LIKE '%Pera%' LIMIT 1), 'Pera, crua', 1.00, 'unidade', 'Unidade média (178 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_cafe AND descricao = 'Pera, crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_cafe, (SELECT id FROM alimentos WHERE nome LIKE '%Café%infusão%' OR nome LIKE '%Café%' LIMIT 1), 'Café, infusão 10%', 1.00, 'copo', 'Copo pequeno (50 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_cafe AND descricao = 'Café, infusão 10%');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_angelica, '13:30:00', 'Almoço'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_angelica AND nome = 'Almoço');
+
+SET @ref_angelica_almoco = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_angelica AND nome = 'Almoço');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1), 'Arroz integral cozido', 70.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_almoco AND descricao = 'Arroz integral cozido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Lentilha%cozida%' LIMIT 1), 'Lentilha cozida', 70.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_almoco AND descricao = 'Lentilha cozida');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_almoco, NULL, 'Legumes Assados Leves e Saudáveis', 90.00, 'g', 'Receita da Nutri Jane'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_almoco AND descricao = 'Legumes Assados Leves e Saudáveis');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%cozido%' OR nome LIKE '%Frango%cozido%' LIMIT 1), 'Peito de frango cozido desfiado', 100.00, 'g', 'Receita da Nutri Jane'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_almoco AND descricao = 'Peito de frango cozido desfiado');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_angelica, '16:00:00', 'Lanche da tarde'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_angelica AND nome = 'Lanche da tarde');
+
+SET @ref_angelica_lanche = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_angelica AND nome = 'Lanche da tarde');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_lanche, NULL, 'Receita de Pão Proteico da Nutri Jane Gonzalez', 2.00, 'unidades', '100 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_lanche AND descricao = 'Receita de Pão Proteico da Nutri Jane Gonzalez');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_lanche, NULL, 'Queijo ricota light', 40.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_lanche AND descricao = 'Queijo ricota light');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_lanche, (SELECT id FROM alimentos WHERE nome LIKE '%Laranja%pêra%' OR nome LIKE '%Laranja%pera%' LIMIT 1), 'Laranja pêra crua', 1.00, 'unidade', 'Unidade pequena (90 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_lanche AND descricao = 'Laranja pêra crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_lanche, NULL, 'Chá de erva-doce, infusão 5%', 70.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_lanche AND descricao = 'Chá de erva-doce, infusão 5%');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_angelica, '20:00:00', 'Jantar'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_angelica AND nome = 'Jantar');
+
+SET @ref_angelica_jantar = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_angelica AND nome = 'Jantar');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1), 'Arroz integral cozido', 60.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_jantar AND descricao = 'Arroz integral cozido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_jantar, NULL, 'Legumes Assados Leves e Saudáveis', 90.00, 'g', 'Receita da Nutri Jane'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_jantar AND descricao = 'Legumes Assados Leves e Saudáveis');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_jantar, NULL, 'Salada de quinoa', 50.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_jantar AND descricao = 'Salada de quinoa');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_angelica_jantar, NULL, 'Tilápia assada', 100.00, 'g', 'Receita da Nutri Jane'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_angelica_jantar AND descricao = 'Tilápia assada');
+
+-- 2. Dieta modelo - José Milton
+INSERT INTO dietas (nome, observacao)
+SELECT 'Dieta modelo - José Milton', 'Modelo baseado no plano alimentar de José Milton dos Santos.'
+WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta modelo - José Milton');
+
+SET @dieta_jose = (SELECT id FROM dietas WHERE nome = 'Dieta modelo - José Milton');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_jose, '07:00:00', 'Café da manhã'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_jose AND nome = 'Café da manhã');
+
+SET @ref_jose_cafe = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_jose AND nome = 'Café da manhã');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_cafe, NULL, 'Receita da Nutri Jane Suco verde para Diabetes', 1.00, 'porção', '300 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_cafe AND descricao = 'Receita da Nutri Jane Suco verde para Diabetes');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_cafe, NULL, 'Receita de Pão Proteico da Nutri Jane Gonzalez', 2.00, 'unidades', '100 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_cafe AND descricao = 'Receita de Pão Proteico da Nutri Jane Gonzalez');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_cafe, (SELECT id FROM alimentos WHERE nome LIKE '%Café%infusão%' OR nome LIKE '%Café%' LIMIT 1), 'Café, infusão 10%', 1.00, 'copo', 'Copo pequeno cheio (165 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_cafe AND descricao = 'Café, infusão 10%');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_cafe, (SELECT id FROM alimentos WHERE nome LIKE '%Melão%cru%' OR nome LIKE '%Melão%' LIMIT 1), 'Melão cru', 1.00, 'fatia', 'Fatia grande (115 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_cafe AND descricao = 'Melão cru');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_jose, '13:00:00', 'Almoço'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_jose AND nome = 'Almoço');
+
+SET @ref_jose_almoco = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_jose AND nome = 'Almoço');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Rúcula%crua%' OR nome LIKE '%Rúcula%' LIMIT 1), 'Rúcula crua', 1.00, 'prato', 'Prato de sobremesa (60 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_almoco AND descricao = 'Rúcula crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%crua%' OR nome LIKE '%Cenoura%' LIMIT 1), 'Cenoura ralada crua', 2.00, 'colheres de sopa', '24 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_almoco AND descricao = 'Cenoura ralada crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_almoco, NULL, 'Salada de quinoa', 100.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_almoco AND descricao = 'Salada de quinoa');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1), 'Arroz integral cozido', 3.00, 'colheres de sopa cheias', '60 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_almoco AND descricao = 'Arroz integral cozido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Feijão%carioca%cozido%' LIMIT 1), 'Feijão carioca cozido', 70.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_almoco AND descricao = 'Feijão carioca cozido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%assado%' OR nome LIKE '%Frango%assado%' LIMIT 1), 'Peito de frango, sem pele, assado', 1.00, 'peito', 'Peito pequeno (140 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_almoco AND descricao = 'Peito de frango, sem pele, assado');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Laranja%pêra%' OR nome LIKE '%Laranja%pera%' LIMIT 1), 'Laranja pêra crua', 1.00, 'unidade', 'Unidade pequena (90 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_almoco AND descricao = 'Laranja pêra crua');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_jose, '16:00:00', 'Lanche da tarde'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_jose AND nome = 'Lanche da tarde');
+
+SET @ref_jose_lanche = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_jose AND nome = 'Lanche da tarde');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_lanche, (SELECT id FROM alimentos WHERE nome LIKE '%Maçã%Fuji%' OR nome LIKE '%Maçã%' LIMIT 1), 'Maçã Fuji com casca crua', 1.00, 'unidade', 'Unidade pequena (80 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_lanche AND descricao = 'Maçã Fuji com casca crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_lanche, NULL, 'Torta de Frango Nutri Jane', 100.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_lanche AND descricao = 'Torta de Frango Nutri Jane');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_lanche, NULL, 'Chá de erva-doce, infusão 5%', 1.00, 'xícara', '200 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_lanche AND descricao = 'Chá de erva-doce, infusão 5%');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_jose, '19:00:00', 'Jantar'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_jose AND nome = 'Jantar');
+
+SET @ref_jose_jantar = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_jose AND nome = 'Jantar');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_jantar, NULL, 'Salada de quinoa', 100.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_jantar AND descricao = 'Salada de quinoa');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Alface%americana%' OR nome LIKE '%Alface%' LIMIT 1), 'Alface americana crua', 1.00, 'prato', 'Prato raso cheio, picada (80 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_jantar AND descricao = 'Alface americana crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%crua%' OR nome LIKE '%Cenoura%' LIMIT 1), 'Cenoura ralada crua', 2.00, 'colheres de sopa cheias', '24 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_jantar AND descricao = 'Cenoura ralada crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_jantar, NULL, 'Legumes Assados Leves e Saudáveis', 1.00, 'porção', '190 g - Receita da Nutri Jane'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_jantar AND descricao = 'Legumes Assados Leves e Saudáveis');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Sardinha%assada%' OR nome LIKE '%Sardinha%' LIMIT 1), 'Sardinha assada', 3.00, 'unidades grandes', '120 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_jantar AND descricao = 'Sardinha assada');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_jose_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Goiaba%vermelha%' OR nome LIKE '%Goiaba%' LIMIT 1), 'Goiaba vermelha com casca crua', 1.00, 'unidade', 'Unidade pequena (170 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_jose_jantar AND descricao = 'Goiaba vermelha com casca crua');
+
+-- 3. Dieta modelo - Samuel
+INSERT INTO dietas (nome, observacao)
+SELECT 'Dieta modelo - Samuel', 'Modelo baseado no plano alimentar de Samuel Rocha Chaves.'
+WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta modelo - Samuel');
+
+SET @dieta_samuel = (SELECT id FROM dietas WHERE nome = 'Dieta modelo - Samuel');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_samuel, '06:00:00', 'Café da manhã'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_samuel AND nome = 'Café da manhã');
+
+SET @ref_samuel_cafe = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_samuel AND nome = 'Café da manhã');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_cafe, NULL, 'Pão Proteico', 2.00, 'unidades', '100 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_cafe AND descricao = 'Pão Proteico');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_cafe, (SELECT id FROM alimentos WHERE nome LIKE '%Leite%desnatado%' OR nome LIKE '%Leite%' LIMIT 1), 'Leite de vaca desnatado', 150.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_cafe AND descricao = 'Leite de vaca desnatado');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_cafe, (SELECT id FROM alimentos WHERE nome LIKE '%Café%infusão%' OR nome LIKE '%Café%' LIMIT 1), 'Café, infusão 10%', 150.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_cafe AND descricao = 'Café, infusão 10%');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_cafe, NULL, 'Queijo ricota light', 50.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_cafe AND descricao = 'Queijo ricota light');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_cafe, (SELECT id FROM alimentos WHERE nome LIKE '%Pêra%' OR nome LIKE '%Pera%' LIMIT 1), 'Pera, crua', 1.00, 'unidade', 'Unidade média (110 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_cafe AND descricao = 'Pera, crua');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_samuel, '13:00:00', 'Almoço'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_samuel AND nome = 'Almoço');
+
+SET @ref_samuel_almoco = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_samuel AND nome = 'Almoço');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Alface%americana%' OR nome LIKE '%Alface%' LIMIT 1), 'Alface americana crua', 1.00, 'prato', 'Prato raso cheio, picada (80 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_almoco AND descricao = 'Alface americana crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Tomate%semente%' OR nome LIKE '%Tomate%' LIMIT 1), 'Tomate com semente cru', 4.00, 'fatias', 'Fatias médias (60 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_almoco AND descricao = 'Tomate com semente cru');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%crua%' OR nome LIKE '%Cenoura%' LIMIT 1), 'Cenoura ralada crua', 2.00, 'colheres de sopa cheias', '24 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_almoco AND descricao = 'Cenoura ralada crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Chuchu%cozido%' OR nome LIKE '%Chuchu%' LIMIT 1), 'Chuchu cozido', 2.00, 'colheres de arroz', '90 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_almoco AND descricao = 'Chuchu cozido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Abóbora%caboti%' OR nome LIKE '%Abóbora%' LIMIT 1), 'Abóbora cabotiá cozida', 2.00, 'colheres de sopa cheias', '72 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_almoco AND descricao = 'Abóbora cabotiá cozida');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1), 'Arroz integral cozido', 3.00, 'colheres de sopa cheias', '60 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_almoco AND descricao = 'Arroz integral cozido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Feijão%carioca%cozido%' LIMIT 1), 'Feijão carioca cozido', 70.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_almoco AND descricao = 'Feijão carioca cozido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Sardinha%assada%' OR nome LIKE '%Sardinha%' LIMIT 1), 'Sardinha assada', 4.00, 'unidades grandes', '160 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_almoco AND descricao = 'Sardinha assada');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Abacaxi%cru%' OR nome LIKE '%Abacaxi%' LIMIT 1), 'Abacaxi cru', 1.00, 'fatia', 'Fatia média (75 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_almoco AND descricao = 'Abacaxi cru');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_samuel, '16:00:00', 'Lanche da tarde'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_samuel AND nome = 'Lanche da tarde');
+
+SET @ref_samuel_lanche = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_samuel AND nome = 'Lanche da tarde');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_lanche, NULL, 'Gelatina Proteica', 1.00, 'porção', '180 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_lanche AND descricao = 'Gelatina Proteica');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_lanche, (SELECT id FROM alimentos WHERE nome LIKE '%Melão%cru%' OR nome LIKE '%Melão%' LIMIT 1), 'Melão cru', 1.00, 'fatia', 'Fatia grande (115 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_lanche AND descricao = 'Melão cru');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_samuel, '20:00:00', 'Jantar'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_samuel AND nome = 'Jantar');
+
+SET @ref_samuel_jantar = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_samuel AND nome = 'Jantar');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_jantar, NULL, 'Salada de quinoa', 100.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_jantar AND descricao = 'Salada de quinoa');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1), 'Arroz integral cozido', 60.00, 'g', '3 colheres de sopa cheias'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_jantar AND descricao = 'Arroz integral cozido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Chuchu%cozido%' OR nome LIKE '%Chuchu%' LIMIT 1), 'Chuchu cozido', 80.00, 'g', '4 colheres de sopa cheias'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_jantar AND descricao = 'Chuchu cozido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%assado%' OR nome LIKE '%Frango%assado%' LIMIT 1), 'Peito pequeno de frango, sem pele, assado', 140.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_jantar AND descricao = 'Peito pequeno de frango, sem pele, assado');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_samuel_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Laranja%lima%' OR nome LIKE '%Laranja%' LIMIT 1), 'Laranja lima crua', 1.00, 'unidade', 'Unidade pequena (90 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_samuel_jantar AND descricao = 'Laranja lima crua');
+
+-- 4. Dieta modelo - Vaneide
+INSERT INTO dietas (nome, observacao)
+SELECT 'Dieta modelo - Vaneide', 'Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.'
+WHERE NOT EXISTS (SELECT 1 FROM dietas WHERE nome = 'Dieta modelo - Vaneide');
+
+SET @dieta_vaneide = (SELECT id FROM dietas WHERE nome = 'Dieta modelo - Vaneide');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_vaneide, '05:40:00', 'Café da manhã'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_vaneide AND nome = 'Café da manhã');
+
+SET @ref_vaneide_cafe = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_vaneide AND nome = 'Café da manhã');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_cafe, NULL, 'Suco verde', 1.00, 'porção', '280 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_cafe AND descricao = 'Suco verde');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_cafe, (SELECT id FROM alimentos WHERE nome LIKE '%Morango%cru%' OR nome LIKE '%Morango%' LIMIT 1), 'Morango cru', 8.00, 'unidades', 'Unidades pequenas (56 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_cafe AND descricao = 'Morango cru');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_cafe, NULL, 'Pão Proteico', 2.00, 'unidades', '100 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_cafe AND descricao = 'Pão Proteico');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_vaneide, '12:00:00', 'Almoço'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_vaneide AND nome = 'Almoço');
+
+SET @ref_vaneide_almoco = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_vaneide AND nome = 'Almoço');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Abóbora%caboti%' OR nome LIKE '%Abóbora%' LIMIT 1), 'Abóbora cabotiá cozida', 1.00, 'escumadeira média cheia', '100 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_almoco AND descricao = 'Abóbora cabotiá cozida');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Alface%americana%' OR nome LIKE '%Alface%' LIMIT 1), 'Alface americana crua', 1.00, 'prato raso cheio', 'Picada (80 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_almoco AND descricao = 'Alface americana crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Tomate%semente%' OR nome LIKE '%Tomate%' LIMIT 1), 'Tomate com semente cru', 4.00, 'fatias médias', '60 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_almoco AND descricao = 'Tomate com semente cru');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Agrião%cru%' OR nome LIKE '%Agrião%' LIMIT 1), 'Agrião cru', 5.00, 'ramos médios', '25 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_almoco AND descricao = 'Agrião cru');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Azeite%oliva%' OR nome LIKE '%Azeite%' LIMIT 1), 'Azeite de oliva extra virgem', 1.00, 'colher de café', '1 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_almoco AND descricao = 'Azeite de oliva extra virgem');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Arroz%integral%cozido%' LIMIT 1), 'Arroz integral cozido', 1.00, 'colher de arroz cheia', '63 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_almoco AND descricao = 'Arroz integral cozido');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Lentilha%cozida%' LIMIT 1), 'Lentilha cozida', 4.00, 'colheres de sopa', '72 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_almoco AND descricao = 'Lentilha cozida');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Sardinha%assada%' OR nome LIKE '%Sardinha%' LIMIT 1), 'Sardinha assada', 4.00, 'unidades grandes', '160 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_almoco AND descricao = 'Sardinha assada');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_almoco, (SELECT id FROM alimentos WHERE nome LIKE '%Abacaxi%cru%' OR nome LIKE '%Abacaxi%' LIMIT 1), 'Abacaxi cru', 1.00, 'fatia', 'Fatia média (75 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_almoco AND descricao = 'Abacaxi cru');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_vaneide, '15:00:00', 'Lanche da tarde'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_vaneide AND nome = 'Lanche da tarde');
+
+SET @ref_vaneide_lanche = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_vaneide AND nome = 'Lanche da tarde');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_lanche, NULL, 'Chá de Hibisco e Cavalinha', 1.00, 'xícara', '238 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_lanche AND descricao = 'Chá de Hibisco e Cavalinha');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_lanche, (SELECT id FROM alimentos WHERE nome LIKE '%Maçã%Fuji%' OR nome LIKE '%Maçã%' LIMIT 1), 'Maçã Fuji com casca crua', 1.00, 'unidade', 'Unidade pequena (80 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_lanche AND descricao = 'Maçã Fuji com casca crua');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_lanche, NULL, 'Torta de Frango Nutri Jane', 100.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_lanche AND descricao = 'Torta de Frango Nutri Jane');
+
+INSERT INTO dieta_refeicoes (dieta_id, horario, nome)
+SELECT @dieta_vaneide, '20:00:00', 'Jantar'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicoes WHERE dieta_id = @dieta_vaneide AND nome = 'Jantar');
+
+SET @ref_vaneide_jantar = (SELECT id FROM dieta_refeicoes WHERE dieta_id = @dieta_vaneide AND nome = 'Jantar');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Cenoura%cozida%' OR nome LIKE '%Cenoura%' LIMIT 1), 'Cenoura cozida picada', 2.00, 'colheres de arroz', '80 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_jantar AND descricao = 'Cenoura cozida picada');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Chuchu%cozido%' OR nome LIKE '%Chuchu%' LIMIT 1), 'Chuchu cozido picado', 3.00, 'colheres de arroz', '135 g'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_jantar AND descricao = 'Chuchu cozido picado');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_jantar, NULL, 'Salada de quinoa', 100.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_jantar AND descricao = 'Salada de quinoa');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Frango%peito%assado%' OR nome LIKE '%Frango%assado%' LIMIT 1), 'Peito pequeno de frango assado', 140.00, 'g', NULL
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_jantar AND descricao = 'Peito pequeno de frango assado');
+
+INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao)
+SELECT @ref_vaneide_jantar, (SELECT id FROM alimentos WHERE nome LIKE '%Goiaba%vermelha%' OR nome LIKE '%Goiaba%' LIMIT 1), 'Goiaba vermelha com casca crua', 1.00, 'unidade', 'Unidade pequena (170 g)'
+WHERE NOT EXISTS (SELECT 1 FROM dieta_refeicao_itens WHERE refeicao_id = @ref_vaneide_jantar AND descricao = 'Goiaba vermelha com casca crua');
+
