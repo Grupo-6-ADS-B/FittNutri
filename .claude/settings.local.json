@@ -14,7 +14,11 @@
       "Bash(docker start:*)",
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\lucas\\\\Downloads\\\\fitNutri\\\\FittNutri\" -Recurse -Directory -ErrorAction SilentlyContinue)",
       "Bash(Select-Object -First 20 FullName)",
-      "Bash(Copy-Item *)"
+      "Bash(Copy-Item *)",
+      "Skill(project)",
+      "Skill(project:*)",
+      "Bash(ls \"C:/Users/Ivand/Downloads/segundo-cerebro/projects/\" 2>/dev/null | head -50)",
+      "Read(//c/Users/Ivand/Downloads/segundo-cerebro/projects/**)"
     ]
   },
   "enableAllProjectMcpServers": true,
