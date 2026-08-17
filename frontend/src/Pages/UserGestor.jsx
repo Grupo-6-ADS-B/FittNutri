@@ -636,12 +636,12 @@ export default function UserGestor() {
     }
   
     try {
-      const usuarioIdStr = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
-      const usuarioId = usuarioIdStr ? parseInt(usuarioIdStr, 10) : null;
-      const pacienteId = scheduleUser?.id ? parseInt(scheduleUser.id, 10) : 1;
+      const usuarioIdStr = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario') || sessionStorage.getItem('userId') || localStorage.getItem('userId');
+      const usuarioId = usuarioIdStr ? parseInt(usuarioIdStr, 10) : 1;
+      const pacienteId = scheduleUser?.id ? parseInt(scheduleUser.id, 10) : null;
     
-      if (!usuarioId || !pacienteId) {
-        alert('Erro ao identificar paciente ou nutricionista.');
+      if (!pacienteId) {
+        alert('Erro ao identificar o paciente selecionado.');
         return;
       }
 
