@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 
 @Service
@@ -101,8 +103,9 @@ public class SchedulingService {
     }
 
     public Page<SchedulingModel> getByNutritionist(Integer usuarioId, Pageable pageable) {
-        if (!userRepository.existsById(usuarioId)) {
-            throw new NotFoundException("Nutricionista não encontrado");
+        UserModel nutriLogado = getNutricionistaLogado();
+        if (!nutriLogado.getId().equals(usuarioId)) {
+            throw new AccessDeniedException("Acesso negado: esta agenda não pertence ao nutricionista logado");
         }
         return repository.findByNutricionistaId(usuarioId, pageable);
     }
@@ -135,7 +138,9 @@ public class SchedulingService {
         SchedulingModel scheduling = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Agendamento não encontrado"));
         verificarPropriedadeAgendamento(scheduling);
-        scheduling.setDataAgendada(newDate);
+        LocalTime horaAtual = scheduling.getDataAgendada() != null
+                ? scheduling.getDataAgendada().toLocalTime() : LocalTime.MIDNIGHT;
+        scheduling.setDataAgendada(LocalDateTime.of(newDate, horaAtual));
         return repository.save(scheduling);
     }
 
@@ -157,7 +162,7 @@ public class SchedulingService {
 
     public Long countByDate(LocalDate date) {
         return repository.findAll().stream()
-                .filter(s -> s.getDataAgendada().equals(date))
+                .filter(s -> s.getDataAgendada().toLocalDate().equals(date))
                 .count();
     }
 }

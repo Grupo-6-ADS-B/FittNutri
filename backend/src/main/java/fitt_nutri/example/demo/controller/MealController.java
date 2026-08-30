@@ -4,6 +4,7 @@ import fitt_nutri.example.demo.domain.entity.Macros;
 import fitt_nutri.example.demo.domain.entity.Meal;
 import fitt_nutri.example.demo.domain.entity.MealItem;
 import fitt_nutri.example.demo.dto.MacrosDTO;
+import fitt_nutri.example.demo.dto.request.AiDietSuggestionRequestDTO;
 import fitt_nutri.example.demo.dto.request.FullDietRequestDTO;
 import fitt_nutri.example.demo.dto.request.MealItemDTO;
 import fitt_nutri.example.demo.dto.request.MealRequestDTO;
@@ -27,7 +28,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/meals")
 @Tag(name = "Refeições", description = "CRUD de refeições")
@@ -62,6 +62,7 @@ public class MealController {
     private final PatchMealUseCase patchMealUseCase;
     private final DeleteMealUseCase deleteMealUseCase;
     private final GenerateDietPdfUseCase generateDietPdfUseCase;
+    private final SuggestDietUseCase suggestDietUseCase;
 
     @Operation(summary = "Cria uma refeição (com vários alimentos) para um paciente")
     @ApiResponse(responseCode = "200", description = "Refeição criada com sucesso")
@@ -137,6 +138,18 @@ public class MealController {
 
         saveFullDietUseCase.execute(patientId, request);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Gera uma sugestão de dieta via IA (rascunho — não salva automaticamente)")
+    @ApiResponse(responseCode = "200", description = "Rascunho gerado com sucesso")
+    @PostMapping("/suggest-diet/{patientId}")
+    public ResponseEntity<FullDietRequestDTO> suggestDiet(
+            @PathVariable Integer patientId,
+            @RequestBody(required = false) AiDietSuggestionRequestDTO request) {
+
+        String observacoes = request != null ? request.getObservacoes() : null;
+        FullDietRequestDTO draft = suggestDietUseCase.execute(patientId, observacoes);
+        return ResponseEntity.ok(draft);
     }
 
     @Operation(summary = "Atualiza uma refeição existente")
