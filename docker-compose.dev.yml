@@ -53,6 +53,8 @@ services:
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
       RESEND_API_KEY: ${RESEND_API_KEY:-re_dev_placeholder_nao_envia}
       EMAIL_FROM: ${EMAIL_FROM:-FittNutri <no-reply@fittnutri.site>}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-120b}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-654251176082-2bbn9dp6vhee4o2efkmc8t73q8ga8t7g.apps.googleusercontent.com}
     ports:
       - "8080:8080"
