@@ -6,74 +6,37 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Chip from '@mui/material/Chip';
-import { alpha, useTheme } from '@mui/material/styles';
 
 function getClassificacao(type, value) {
   if (value == null || value === '' || isNaN(Number(value))) return null;
   const v = Number(value);
 
   if (type === 'imc') {
-    if (v < 18.5) return { label: 'Abaixo do peso', tone: 'info' };
-    if (v < 25)   return { label: 'Normal',          tone: 'success' };
-    if (v < 30)   return { label: 'Sobrepeso',        tone: 'warning' };
-    return               { label: 'Obeso',            tone: 'error' };
+    if (v < 18.5) return { label: 'Abaixo do peso', color: '#1565c0', bg: '#e3f2fd' };
+    if (v < 25)   return { label: 'Normal',          color: '#2e7d32', bg: '#e8f5e9' };
+    if (v < 30)   return { label: 'Sobrepeso',        color: '#e65100', bg: '#fff3e0' };
+    return               { label: 'Obeso',            color: '#c62828', bg: '#ffebee' };
   }
   if (type === 'gordura') {
-    if (v < 15)  return { label: 'Baixo',   tone: 'info' };
-    if (v < 25)  return { label: 'Normal',  tone: 'success' };
-    if (v <= 32) return { label: 'Alto',    tone: 'warning' };
-    return              { label: 'Crítico', tone: 'error' };
+    if (v < 15)  return { label: 'Baixo',   color: '#1565c0', bg: '#e3f2fd' };
+    if (v < 25)  return { label: 'Normal',  color: '#2e7d32', bg: '#e8f5e9' };
+    if (v <= 32) return { label: 'Alto',    color: '#e65100', bg: '#fff3e0' };
+    return              { label: 'Crítico', color: '#c62828', bg: '#ffebee' };
   }
   if (type === 'gorduraVisceral') {
-    if (v <= 9)  return { label: 'Normal',  tone: 'success' };
-    if (v <= 14) return { label: 'Alto',    tone: 'warning' };
-    return              { label: 'Crítico', tone: 'error' };
+    if (v <= 9)  return { label: 'Normal',  color: '#2e7d32', bg: '#e8f5e9' };
+    if (v <= 14) return { label: 'Alto',    color: '#e65100', bg: '#fff3e0' };
+    return              { label: 'Crítico', color: '#c62828', bg: '#ffebee' };
   }
   if (type === 'massaMuscular') {
-    if (v >= 75) return { label: 'Ótimo',  tone: 'success' };
-    if (v >= 60) return { label: 'Normal', tone: 'success' };
-    return              { label: 'Baixo',  tone: 'warning' };
+    if (v >= 75) return { label: 'Ótimo',  color: '#2e7d32', bg: '#e8f5e9' };
+    if (v >= 60) return { label: 'Normal', color: '#2e7d32', bg: '#e8f5e9' };
+    return              { label: 'Baixo',  color: '#e65100', bg: '#fff3e0' };
   }
   return null;
 }
 
-export default function DataTable({ data }) {
-  const theme = useTheme();
-  const getToneStyles = (tone) => {
-    switch (tone) {
-      case 'success':
-        return {
-          bgcolor: alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.18 : 0.12),
-          color: theme.palette.success.main,
-          border: `1px solid ${alpha(theme.palette.success.main, 0.28)}`,
-        };
-      case 'warning':
-        return {
-          bgcolor: alpha(theme.palette.warning.main, theme.palette.mode === 'dark' ? 0.18 : 0.12),
-          color: theme.palette.warning.main,
-          border: `1px solid ${alpha(theme.palette.warning.main, 0.28)}`,
-        };
-      case 'info':
-        return {
-          bgcolor: alpha(theme.palette.info.main, theme.palette.mode === 'dark' ? 0.18 : 0.12),
-          color: theme.palette.info.main,
-          border: `1px solid ${alpha(theme.palette.info.main, 0.28)}`,
-        };
-      case 'error':
-        return {
-          bgcolor: alpha(theme.palette.error.main, theme.palette.mode === 'dark' ? 0.18 : 0.12),
-          color: theme.palette.error.main,
-          border: `1px solid ${alpha(theme.palette.error.main, 0.28)}`,
-        };
-      default:
-        return {
-          bgcolor: theme.palette.action.hover,
-          color: theme.palette.text.secondary,
-          border: `1px solid ${theme.palette.divider}`,
-        };
-    }
-  };
-
+export default function DataTable({ data, embedded = false }) {
   const capitalizeFirstLetter = (text) => {
     if (!text || typeof text !== 'string') return text;
     return text.charAt(0).toUpperCase() + text.slice(1);
@@ -112,57 +75,89 @@ export default function DataTable({ data }) {
     { label: 'Pulso',                 value: `${data?.pulso} cm`,                         rawValue: null,                  type: null },
   ];
 
+  const headerCellSx = {
+    fontWeight: 700,
+    bgcolor: 'rgba(46, 125, 50, 0.06)',
+    color: '#2e7d32',
+    fontSize: '0.78rem',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    py: 1.4,
+    borderBottom: '2px solid #2e7d32',
+  };
+
   return (
-    <TableContainer component={Paper} sx={{ p: 0, borderRadius: 2, maxHeight: 440, border: `1px solid ${theme.palette.divider}` }}>
+    <TableContainer
+      component={Paper}
+      elevation={0}
+      sx={{
+        p: 0,
+        borderRadius: embedded ? 2 : 2.5,
+        maxHeight: 440,
+        border: embedded ? 'none' : '1px solid rgba(46, 125, 50, 0.08)',
+        boxShadow: 'none',
+        bgcolor: 'transparent',
+      }}
+    >
       <Table
         stickyHeader
         size="small"
         aria-label="dados do paciente"
-        sx={{ '& .MuiTableCell-root': { borderColor: theme.palette.divider } }}
+        sx={{ '& .MuiTableCell-root': { borderColor: 'rgba(46, 125, 50, 0.06)' } }}
       >
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: 'bold', bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, fontSize: '0.82rem', py: 1 }}>
-              Indicador
-            </TableCell>
-            <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, fontSize: '0.82rem', py: 1 }}>
-              Resultado
-            </TableCell>
-            <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, fontSize: '0.82rem', py: 1, width: 130 }}>
-              Status
-            </TableCell>
+            <TableCell sx={headerCellSx}>Indicador</TableCell>
+            <TableCell align="right" sx={headerCellSx}>Resultado</TableCell>
+            <TableCell align="center" sx={{ ...headerCellSx, width: 130 }}>Status</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, index) => {
+          {rows.map((row) => {
             const badge = row.type ? getClassificacao(row.type, row.rawValue) : null;
             const isEmpty = row.value === null || row.value === undefined || row.value === '' || String(row.value).startsWith('null') || String(row.value).startsWith('undefined');
             return (
               <TableRow
                 key={row.label}
                 sx={{
-                  bgcolor: index % 2 === 0 ? alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.05) : theme.palette.background.paper,
+                  bgcolor: '#ffffff',
                   '&:last-child td, &:last-child th': { border: 0 },
-                  '&:hover': { bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.18 : 0.12) },
+                  '&:hover': { bgcolor: 'rgba(46, 125, 50, 0.04)' },
                   transition: 'background-color 0.15s',
                 }}
               >
-                <TableCell component="th" scope="row" sx={{ fontWeight: badge ? 600 : 400, fontSize: '0.82rem', py: 0.8 }}>
+                <TableCell
+                  component="th"
+                  scope="row"
+                  sx={{ fontWeight: 500, fontSize: '0.85rem', py: 1.2, color: 'text.secondary' }}
+                >
                   {row.label}
                 </TableCell>
-                <TableCell align="right" sx={{ fontSize: '0.85rem', fontWeight: badge ? 700 : 400, py: 0.8 }}>
+                <TableCell
+                  align="right"
+                  sx={{
+                    fontSize: '0.9rem',
+                    fontWeight: badge ? 700 : 600,
+                    py: 1.2,
+                    fontVariantNumeric: 'tabular-nums',
+                    color: 'text.primary',
+                  }}
+                >
                   {isEmpty ? '—' : row.value}
                 </TableCell>
-                <TableCell align="center" sx={{ py: 0.8 }}>
+                <TableCell align="center" sx={{ py: 1.2 }}>
                   {badge ? (
                     <Chip
                       label={badge.label}
                       size="small"
                       sx={{
-                        ...getToneStyles(badge.tone),
+                        bgcolor: badge.bg,
+                        color: badge.color,
                         fontWeight: 700,
                         fontSize: '0.7rem',
                         height: 22,
+                        borderRadius: 1.5,
+                        border: 'none',
                       }}
                     />
                   ) : null}

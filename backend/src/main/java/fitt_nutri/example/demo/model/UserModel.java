@@ -1,5 +1,6 @@
 package fitt_nutri.example.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import fitt_nutri.example.demo.config.CpfConverter;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -31,7 +32,6 @@ public class UserModel extends AuditableEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @CPF
     @Column(nullable = false, unique = true)
     @Convert(converter = CpfConverter.class)
     private String cpf;
@@ -40,6 +40,7 @@ public class UserModel extends AuditableEntity {
     private String crn;
 
     @Column(nullable = false)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String senha;
 
     @Column(nullable = false)

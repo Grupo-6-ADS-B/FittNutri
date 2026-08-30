@@ -73,6 +73,9 @@ RABBITMQ_URL=${app_rabbitmq_url}
 AWS_REGION=${aws_region}
 AWS_S3_BUCKET=${app_s3_bucket}
 SPRING_PROFILES_ACTIVE=${app_spring_profile}
+RESEND_API_KEY=${app_resend_api_key}
+EMAIL_FROM=${app_email_from}
+GOOGLE_CLIENT_ID=${app_google_client_id}
 ENVEOF
 
 chown ubuntu:ubuntu "$APP_DIR/.env"

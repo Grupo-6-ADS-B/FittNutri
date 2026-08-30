@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from '../utils/api';
 import axios from "axios";
 import { cidadesPorEstado } from '../utils/cidadesFallback';
+import { MOTIVOS_CONSULTA } from '../utils/motivosConsulta';
 import {
   Box,
   TextField,
@@ -29,6 +30,7 @@ export default function UserRegister() {
     cpf: "",
     phone: "",
     motivoConsulta: "",
+    motivoConsultaOutro: "",
     estado: "",
     cidade: "",
     sexo: "",
@@ -256,6 +258,9 @@ export default function UserRegister() {
       if (phoneDigits.length < 10 || phoneDigits.length > 11) newErrors.phone = "Telefone deve ter 10 ou 11 dígitos";
     }
     if (!formData.motivoConsulta.trim()) newErrors.motivoConsulta = "Campo obrigatório";
+    if (formData.motivoConsulta === "Outro" && !formData.motivoConsultaOutro.trim()) {
+      newErrors.motivoConsultaOutro = "Especifique o motivo";
+    }
     if (!formData.estado) newErrors.estado = "Campo obrigatório";
     if (!formData.cidade) newErrors.cidade = "Campo obrigatório";
     if (!formData.autorizaCadastro) newErrors.autorizaCadastro = "É necessário autorizar o cadastro das informações no sistema";
@@ -274,7 +279,9 @@ export default function UserRegister() {
       email: formData.email,
       cpf: formData.cpf,
       telefone: formData.phone,
-      motivoConsulta: formData.motivoConsulta.trim(),
+      motivoConsulta: formData.motivoConsulta === "Outro"
+        ? formData.motivoConsultaOutro.trim()
+        : formData.motivoConsulta.trim(),
       cidade: formData.cidade,
       estado: formData.estado,
       sexo: formData.sexo,
@@ -427,6 +434,7 @@ export default function UserRegister() {
                 inputProps={{ inputMode: 'tel' }}
               />
               <TextField
+                select
                 label="Motivo da consulta"
                 name="motivoConsulta"
                 value={formData.motivoConsulta}
@@ -435,8 +443,23 @@ export default function UserRegister() {
                 variant="outlined"
                 error={!!errors.motivoConsulta}
                 helperText={errors.motivoConsulta || ""}
-                minRows={3}
-              />
+              >
+                {MOTIVOS_CONSULTA.map((motivo) => (
+                  <MenuItem key={motivo} value={motivo}>{motivo}</MenuItem>
+                ))}
+              </TextField>
+              {formData.motivoConsulta === "Outro" && (
+                <TextField
+                  label="Especifique o motivo"
+                  name="motivoConsultaOutro"
+                  value={formData.motivoConsultaOutro}
+                  onChange={handleChange}
+                  fullWidth
+                  variant="outlined"
+                  error={!!errors.motivoConsultaOutro}
+                  helperText={errors.motivoConsultaOutro || ""}
+                />
+              )}
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <TextField
                   select

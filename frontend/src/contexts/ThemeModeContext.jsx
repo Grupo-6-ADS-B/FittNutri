@@ -58,6 +58,7 @@ export function ThemeModeProvider({ children }) {
   return <ThemeModeContext.Provider value={value}>{children}</ThemeModeContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useThemeMode() {
   return useContext(ThemeModeContext);
 }

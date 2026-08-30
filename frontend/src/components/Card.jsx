@@ -56,7 +56,6 @@ function Card({ title, description, icon: IconComponent, image, color = 'primary
           left: 0,
           right: 0,
           bottom: 0,
-          background: `linear-gradient(135deg, ${color === 'primary' ? 'rgba(46, 125, 50, 0.02)' : 'rgba(25, 118, 210, 0.02)'} 0%, transparent 100%)`,
           background: `linear-gradient(135deg, ${alpha(paletteColor.main, 0.06)} 0%, transparent 100%)`,
           opacity: 0,
           transition: 'opacity 0.3s ease',

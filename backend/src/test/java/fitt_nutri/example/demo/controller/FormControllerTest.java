@@ -3,6 +3,7 @@ package fitt_nutri.example.demo.controller;
 import fitt_nutri.example.demo.adapter.FormAdapter;
 import fitt_nutri.example.demo.dto.request.FormRequestDTO;
 import fitt_nutri.example.demo.dto.response.FormResponseDTO;
+import fitt_nutri.example.demo.service.EmailService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -25,6 +26,9 @@ class FormControllerTest {
 
     @Mock
     private FormAdapter formAdapter;
+
+    @Mock
+    private EmailService emailService;
 
     // ---------- POST /forms ----------
 

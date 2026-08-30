@@ -1,5 +1,6 @@
 import React, { useMemo, useEffect } from "react";
 import api from '../utils/api';
+import { toLocalDateString } from '../utils/dateUtils';
 import { useNavigate, useLocation } from "react-router-dom";
 import {
     Box, Typography, Paper, Card, CardMedia, CardContent, Button, Grid
@@ -126,20 +127,12 @@ export default function ResumoCircunferencia() {
             console.log('Buscando dados para usuário:', selectedUser.id);
             try {
                 const today = new Date();
-                today.setDate(today.getDate() + 1);
-                
+
                 const manyYearsAgo = new Date(today);
-                manyYearsAgo.setFullYear(today.getFullYear() - 10); 
-                
-                const fromYear = manyYearsAgo.getFullYear();
-                const fromMonth = String(manyYearsAgo.getMonth() + 1).padStart(2, '0');
-                const fromDay = String(manyYearsAgo.getDate()).padStart(2, '0');
-                const startDate = `${fromYear}-${fromMonth}-${fromDay}`;
-                
-                const toYear = today.getFullYear();
-                const toMonth = String(today.getMonth() + 1).padStart(2, '0');
-                const toDay = String(today.getDate()).padStart(2, '0');
-                const endDate = `${toYear}-${toMonth}-${toDay}`;
+                manyYearsAgo.setFullYear(today.getFullYear() - 10);
+
+                const startDate = toLocalDateString(manyYearsAgo);
+                const endDate = toLocalDateString(today);
                 
                 console.log('Buscando com datas:', startDate, 'até', endDate);
                 
