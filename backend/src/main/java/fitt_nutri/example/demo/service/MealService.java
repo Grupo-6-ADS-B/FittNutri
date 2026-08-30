@@ -269,7 +269,6 @@ public class MealService {
         String dataConsulta = "-";
         if (latestHistory != null && latestHistory.getDataConsulta() != null) {
             dataConsulta = latestHistory.getDataConsulta()
-                    .minusDays(1)
                     .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
         }
 

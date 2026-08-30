@@ -114,7 +114,6 @@ export default function Dashboard() {
 
   const [dateRange, setDateRange] = React.useState(() => {
     const today = new Date();
-    today.setDate(today.getDate() + 1);
     const sixtyDaysAgo = new Date(today);
     sixtyDaysAgo.setDate(today.getDate() - 60);
     return { from: sixtyDaysAgo, to: today };
@@ -245,7 +244,7 @@ export default function Dashboard() {
   };
 
   const applyQuickRange = (days) => {
-    const today = new Date(); today.setDate(today.getDate() + 1);
+    const today = new Date();
     const past = new Date(today); past.setDate(today.getDate() - days);
     setDateRange({ from: past, to: today });
     setActiveQuickRange(days);

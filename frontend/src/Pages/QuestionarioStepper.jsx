@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import api from '../utils/api';
+import { toLocalDateString } from '../utils/dateUtils';
 import {
   Box,
   Button,
@@ -305,14 +306,8 @@ const handleResumoClick = async () => {
       };
 
       try {
-        const now = new Date();
-        now.setDate(now.getDate() + 1); 
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const today = `${year}-${month}-${day}T00:00:00Z`;
         const historyPayload = {
-          dataConsulta: today,
+          dataConsulta: toLocalDateString(),
           antropometria: {
             peso,
             altura: alturaMeters,
