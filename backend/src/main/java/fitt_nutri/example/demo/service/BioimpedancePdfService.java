@@ -28,6 +28,15 @@ public class BioimpedancePdfService {
     private final PatientRepository patientRepository;
     private final PatientHistoryRepository historyRepository;
     private final UserRepository userRepository;
+    private final GroqAiService groqAiService;
+
+    private static final String SYSTEM_PROMPT_EVOLUCAO = """
+            Você é um assistente que ajuda nutricionistas a comunicar a evolução de pacientes de forma
+            clara, acolhedora e fácil de entender. Escreva um único parágrafo corrido (3 a 5 frases) em
+            português do Brasil, em linguagem simples, sem jargão técnico e sem markdown ou listas.
+            Destaque o que evoluiu bem desde a última consulta e, se houver, o que ainda merece atenção,
+            com tom profissional e encorajador. Este texto será lido diretamente pelo paciente.
+            """;
 
     // === Cores ===
     private static final Color GREEN_DARK = new Color(46, 125, 50);
@@ -106,6 +115,12 @@ public class BioimpedancePdfService {
         }
 
         addConclusao(doc, latest.getAnthropometricDataModel(), patient.getSexo());
+
+        if (historicos.size() > 1) {
+            PatientHistoryModel anterior = historicos.get(historicos.size() - 2);
+            addResumoEvolucaoIA(doc, latest, anterior, patient.getSexo());
+        }
+
         addFooter(doc, nutri);
 
         doc.close();
@@ -752,6 +767,73 @@ public class BioimpedancePdfService {
         p.setSpacingAfter(16f);
         p.setLeading(16f);
         doc.add(p);
+    }
+
+    /**
+     * Adiciona um parágrafo em linguagem natural comparando a consulta atual com a anterior,
+     * gerado via IA (Groq). Nunca falha a geração do PDF: se a IA não responder ou der erro,
+     * a seção é simplesmente omitida — o restante do relatório (incluindo a tabela de
+     * "Evolução" numérica e a "Conclusão" fixa) já cobre a informação essencial.
+     */
+    private void addResumoEvolucaoIA(Document doc, PatientHistoryModel atual, PatientHistoryModel anterior,
+                                      String sexo) throws DocumentException {
+        String prompt = buildEvolucaoPrompt(atual, anterior, sexo);
+        String resumo;
+        try {
+            resumo = groqAiService.generateText(SYSTEM_PROMPT_EVOLUCAO, prompt);
+        } catch (Exception e) {
+            resumo = null;
+        }
+        if (resumo == null || resumo.isBlank()) return;
+
+        addSectionTitle(doc, "Evolução em Palavras");
+        Paragraph p = new Paragraph(resumo.trim(), CONCLUSION_FONT);
+        p.setSpacingAfter(16f);
+        p.setLeading(16f);
+        doc.add(p);
+    }
+
+    private String buildEvolucaoPrompt(PatientHistoryModel atualHist, PatientHistoryModel anteriorHist, String sexo) {
+        AnthropometricDataModel atual = atualHist.getAnthropometricDataModel();
+        AnthropometricDataModel anterior = anteriorHist.getAnthropometricDataModel();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Sexo do paciente: ").append(safe(sexo)).append("\n\n");
+
+        sb.append("Consulta anterior");
+        if (anteriorHist.getDataConsulta() != null) {
+            sb.append(" (").append(anteriorHist.getDataConsulta().format(DATE_FMT)).append(")");
+        }
+        sb.append(":\n");
+        appendMetricas(sb, anterior);
+
+        sb.append("\nConsulta atual");
+        if (atualHist.getDataConsulta() != null) {
+            sb.append(" (").append(atualHist.getDataConsulta().format(DATE_FMT)).append(")");
+        }
+        sb.append(":\n");
+        appendMetricas(sb, atual);
+
+        sb.append("\nEscreva o parágrafo comparando a consulta atual com a anterior.");
+        return sb.toString();
+    }
+
+    private void appendMetricas(StringBuilder sb, AnthropometricDataModel a) {
+        if (a == null) {
+            sb.append("- Sem dados registrados.\n");
+            return;
+        }
+        if (a.getPeso() != null) sb.append("- Peso: ").append(format(a.getPeso())).append(" kg\n");
+        if (a.getImc() != null) sb.append("- IMC: ").append(format(a.getImc())).append(" kg/m²\n");
+        if (a.getPorcentagemGordura() != null) {
+            sb.append("- Gordura corporal: ").append(format(a.getPorcentagemGordura())).append("%\n");
+        }
+        if (a.getMassaMuscular() != null) {
+            sb.append("- Massa muscular: ").append(format(a.getMassaMuscular())).append("%\n");
+        }
+        if (a.getGorduraVisceral() != null) {
+            sb.append("- Gordura visceral: ").append(format(a.getGorduraVisceral())).append("\n");
+        }
     }
 
     private void addFooter(Document doc, UserModel nutri) throws DocumentException {

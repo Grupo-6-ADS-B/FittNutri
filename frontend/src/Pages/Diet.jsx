@@ -11,12 +11,15 @@ import PrintIcon from '@mui/icons-material/Print';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import MealModal from '../components/MealModal';
 import DietModelsModal from '../components/DietModelsModal';
+import AiDietSuggestionModal from '../components/AiDietSuggestionModal';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import api from '../utils/api';
+import { toLocalDateString } from '../utils/dateUtils';
 
 export default function Diet() {
   const theme = useTheme();
@@ -45,7 +48,7 @@ export default function Diet() {
   const patientId = selectedUser?.id || parsedPatientId || null;
   const appointment = location.state?.appointment || null;
   const agendamentoId = appointment?.id || appointment?.appointmentId || null;
-  const dataAgendamento = appointment?.date || appointment?.dataAgendada || new Date().toISOString().split("T")[0];
+  const dataAgendamento = appointment?.date || appointment?.dataAgendada || toLocalDateString();
 console.log('Diet page - selectedUser:', selectedUser);
   const initials = userName
     ? userName.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
@@ -107,6 +110,8 @@ const handleSendToS3 = async () => {
 };
   const [openMeal, setOpenMeal] = useState(false);
   const [openModelsModal, setOpenModelsModal] = useState(false);
+  const [openAiModal, setOpenAiModal] = useState(false);
+  const [patientMotivoConsulta, setPatientMotivoConsulta] = useState('');
   const [openConfirmClear, setOpenConfirmClear] = useState(false);
   const [clearingDiet, setClearingDiet] = useState(false);
   const [meals, setMeals] = useState([]);
@@ -243,6 +248,13 @@ const handleSendToS3 = async () => {
     if (patientId) loadMeals();
   }, [patientId]);
 
+  useEffect(() => {
+    if (!patientId) return;
+    api.get(`/patients/${patientId}`)
+      .then(response => setPatientMotivoConsulta(response.data?.motivoConsulta || ''))
+      .catch(err => console.error('Erro ao carregar motivo da consulta do paciente:', err));
+  }, [patientId]);
+
 
   return (
     <Box sx={{ p: { xs: 2, md: 4 }, background: theme.palette.background.default, minHeight: '100vh', color: theme.palette.text.primary }}>
@@ -307,14 +319,23 @@ const handleSendToS3 = async () => {
           >
             Limpar Dieta
           </Button>
-          <Button 
-            variant="contained" 
-            color="success" 
-            startIcon={<AddCircleOutlineIcon />} 
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<AddCircleOutlineIcon />}
             onClick={handleOpenMeal}
             sx={{ fontWeight: 600 }}
           >
             Adicionar Refeição
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<AutoAwesomeIcon />}
+            onClick={() => setOpenAiModal(true)}
+            sx={{ fontWeight: 600 }}
+          >
+            Sugerir com IA
           </Button>
         </Stack>
       </Paper>
@@ -472,6 +493,17 @@ const handleSendToS3 = async () => {
         onDietSaved={() => {
           loadMeals();
           openSnack('Dieta modelo aplicada com sucesso ao plano do paciente!', 'success');
+        }}
+      />
+
+      <AiDietSuggestionModal
+        open={openAiModal}
+        onClose={() => setOpenAiModal(false)}
+        patientId={patientId}
+        motivoConsulta={patientMotivoConsulta}
+        onDietSaved={() => {
+          loadMeals();
+          openSnack('Sugestão da IA aplicada com sucesso ao plano do paciente!', 'success');
         }}
       />
 
