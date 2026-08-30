@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Slf4j
@@ -22,7 +23,8 @@ public class AppointmentReminderJob {
     @Scheduled(cron = "0 0 8 * * *", zone = "America/Sao_Paulo")
     public void sendDailyReminders() {
         LocalDate tomorrow = LocalDate.now().plusDays(1);
-        List<SchedulingModel> agendamentos = schedulingRepository.findByDataAgendada(tomorrow);
+        List<SchedulingModel> agendamentos = schedulingRepository.findByDataAgendadaBetween(
+                tomorrow.atStartOfDay(), tomorrow.atTime(LocalTime.MAX));
         log.info("[reminder-job] {} agendamento(s) encontrado(s) para amanhã ({})", agendamentos.size(), tomorrow);
         for (SchedulingModel s : agendamentos) {
             emailService.sendAppointmentReminderEmail(

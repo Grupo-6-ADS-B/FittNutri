@@ -1,14 +1,13 @@
 package fitt_nutri.example.demo.service;
 
 import com.resend.Resend;
-import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -42,14 +41,17 @@ public class EmailService {
         try {
             resend.emails().send(params);
             log.info("[email] recuperação de senha enviada para {}", to);
-        } catch (ResendException e) {
+        } catch (Exception e) {
+            // Captura qualquer falha do SDK do Resend, não só ResendException — validações da
+            // API (domínio não verificado, etc.) podem chegar como RuntimeException genérica,
+            // e essa chamada nunca pode derrubar o fluxo de quem a invocou.
             log.error("[email] falha ao enviar recuperação de senha para {}: {}", to, e.getMessage());
         }
     }
 
     public void sendAppointmentConfirmationEmail(
             String toEmail, String patientName, String nutritionistName,
-            LocalDate date, String notes) {
+            LocalDateTime date, String notes) {
         CreateEmailOptions params = CreateEmailOptions.builder()
                 .from(from)
                 .to(List.of(toEmail))
@@ -59,13 +61,15 @@ public class EmailService {
         try {
             resend.emails().send(params);
             log.info("[email] confirmação de agendamento enviada para {}", toEmail);
-        } catch (ResendException e) {
+        } catch (Exception e) {
+            // Nunca deixar uma falha de e-mail (domínio não verificado, rate limit, etc.)
+            // reverter a criação do agendamento — ela roda dentro de uma transação.
             log.error("[email] falha ao enviar confirmação de agendamento: {}", e.getMessage());
         }
     }
 
     public void sendAppointmentReminderEmail(
-            String toEmail, String patientName, String nutritionistName, LocalDate date) {
+            String toEmail, String patientName, String nutritionistName, LocalDateTime date) {
         CreateEmailOptions params = CreateEmailOptions.builder()
                 .from(from)
                 .to(List.of(toEmail))
@@ -75,7 +79,7 @@ public class EmailService {
         try {
             resend.emails().send(params);
             log.info("[email] lembrete de consulta enviado para {}", toEmail);
-        } catch (ResendException e) {
+        } catch (Exception e) {
             log.error("[email] falha ao enviar lembrete de consulta: {}", e.getMessage());
         }
     }
@@ -91,15 +95,15 @@ public class EmailService {
         try {
             resend.emails().send(params);
             log.info("[email] notificação de contato enviada para {}", contactDestination);
-        } catch (ResendException e) {
+        } catch (Exception e) {
             log.error("[email] falha ao enviar notificação de contato: {}", e.getMessage());
         }
     }
 
     private String buildAppointmentConfirmationHtml(
-            String patientName, String nutritionistName, LocalDate date, String notes) {
+            String patientName, String nutritionistName, LocalDateTime date, String notes) {
         String formattedDate = date.format(
-                DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM 'de' yyyy", Locale.of("pt", "BR")));
+                DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm", Locale.of("pt", "BR")));
         String notesBlock = (notes != null && !notes.isBlank())
                 ? "<p><strong>Observações:</strong></p>" +
                   "<p style=\"background:#f9fafb;border-left:4px solid #16a34a;padding:12px 16px;" +
@@ -125,9 +129,9 @@ public class EmailService {
     }
 
     private String buildAppointmentReminderHtml(
-            String patientName, String nutritionistName, LocalDate date) {
+            String patientName, String nutritionistName, LocalDateTime date) {
         String formattedDate = date.format(
-                DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM 'de' yyyy", Locale.of("pt", "BR")));
+                DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm", Locale.of("pt", "BR")));
         return """
                 <!DOCTYPE html>
                 <html lang="pt-BR">

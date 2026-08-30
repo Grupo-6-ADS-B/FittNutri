@@ -1,5 +1,16 @@
 // Funções utilitárias para o UserGestor
 
+/**
+ * Separa um LocalDateTime serializado pelo backend (ex: "2026-08-29T14:30:00")
+ * em { date: "2026-08-29", time: "14:30" }. Aceita também só a data (sem "T")
+ * por segurança com dados antigos.
+ */
+export const splitDateTime = (isoString) => {
+  if (!isoString) return { date: "", time: "" };
+  const [date, timePart] = String(isoString).split('T');
+  return { date: date || "", time: timePart ? timePart.slice(0, 5) : "" };
+};
+
 export const formatDateHuman = (dateString, timeString) => {
   try {
     const [year, month, day] = dateString.split('-').map(Number);

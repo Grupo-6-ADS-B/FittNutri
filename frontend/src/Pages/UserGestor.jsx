@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Snackbar from '@mui/material/Snackbar';
 import api from '../utils/api';
+import { toLocalDateString } from '../utils/dateUtils';
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   CssBaseline,
@@ -22,6 +23,7 @@ import {
   defaultUsers,
   computeImc,
   initialCirc,
+  splitDateTime,
 } from '../utils/userGestorUtils';
 
 export default function UserGestor() {
@@ -45,14 +47,11 @@ export default function UserGestor() {
   const [apptNote, setApptNote] = useState("");
   const [weekDialogOpen, setWeekDialogOpen] = useState(false);
   
-  const getTodayString = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  };
+  const getTodayString = () => toLocalDateString();
   const getEndDateString = () => {
     const end = new Date();
     end.setDate(end.getDate() + 7);
-    return end.toISOString().split('T')[0];
+    return toLocalDateString(end);
   };
   const isPastAppointmentDate = (dateValue) => {
     if (!dateValue) return false;
@@ -150,14 +149,15 @@ export default function UserGestor() {
 
         const mapped = list.map((a) => {
           const localAppt = localAppointments.find(la => la.id === a.id);
-          
+          const { date, time } = splitDateTime(a.dataAgendada);
+
           return {
             id: a.id,
             userId: a.pacienteId ?? a.usuarioId ?? null,
             userName: a.pacienteNome ?? "",
             nutricionistaName: a.nutricionistaNome ?? "",
-            date: a.dataAgendada ?? "",
-            time: "09:00",
+            date,
+            time: time || "09:00",
             note: a.observacoes ?? "",
             status: localAppt?.status || undefined
           };
@@ -388,16 +388,8 @@ export default function UserGestor() {
       return;
     }
 
-    const dateParts = updateForm.date.split('-');
-    const adjustDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-    adjustDate.setDate(adjustDate.getDate() + 1);
-    const year = adjustDate.getFullYear();
-    const month = String(adjustDate.getMonth() + 1).padStart(2, '0');
-    const day = String(adjustDate.getDate()).padStart(2, '0');
-    const adjustedDate = `${year}-${month}-${day}T00:00:00Z`;
-
     const payload = {
-      dataConsulta: adjustedDate,
+      dataConsulta: updateForm.date,
       motivoConsulta: (updateForm.motivoConsulta || '').trim(),
       antropometria: {
         peso: Number(updateForm.peso),
@@ -648,19 +640,20 @@ export default function UserGestor() {
       const payload = {
         pacienteId,
         usuarioId,
-        dataAgendada: apptDate,
+        dataAgendada: `${apptDate}T${apptTime || '09:00'}:00`,
         observacoes: apptNote || ""
       };
 
       const response = await api.post('/schedulings', payload);
-    
+      const { date: savedDate, time: savedTime } = splitDateTime(response.data.dataAgendada);
+
       const appt = {
         id: response.data.id,
         userId: pacienteId,
         userName: response.data.pacienteNome,
         nutricionistaName: response.data.nutricionistaNome,
-        date: response.data.dataAgendada,
-        time: apptTime,
+        date: savedDate || apptDate,
+        time: savedTime || apptTime,
         note: response.data.observacoes || "",
       };
     
