@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import api from '../utils/api';
 import axios from "axios";
 import { cidadesPorEstado } from '../utils/cidadesFallback';
+import { MOTIVOS_CONSULTA } from '../utils/motivosConsulta';
 import {
   Box,
   TextField,
@@ -17,18 +18,19 @@ import {
   Divider,
   Stack
 } from "@mui/material";
-import { ThemeProvider } from "@mui/material/styles";
-import { theme } from "../theme";
+import { useTheme } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 export default function UserRegister() {
+  const muiTheme = useTheme();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     cpf: "",
     phone: "",
     motivoConsulta: "",
+    motivoConsultaOutro: "",
     estado: "",
     cidade: "",
     sexo: "",
@@ -256,6 +258,9 @@ export default function UserRegister() {
       if (phoneDigits.length < 10 || phoneDigits.length > 11) newErrors.phone = "Telefone deve ter 10 ou 11 dígitos";
     }
     if (!formData.motivoConsulta.trim()) newErrors.motivoConsulta = "Campo obrigatório";
+    if (formData.motivoConsulta === "Outro" && !formData.motivoConsultaOutro.trim()) {
+      newErrors.motivoConsultaOutro = "Especifique o motivo";
+    }
     if (!formData.estado) newErrors.estado = "Campo obrigatório";
     if (!formData.cidade) newErrors.cidade = "Campo obrigatório";
     if (!formData.autorizaCadastro) newErrors.autorizaCadastro = "É necessário autorizar o cadastro das informações no sistema";
@@ -274,7 +279,9 @@ export default function UserRegister() {
       email: formData.email,
       cpf: formData.cpf,
       telefone: formData.phone,
-      motivoConsulta: formData.motivoConsulta.trim(),
+      motivoConsulta: formData.motivoConsulta === "Outro"
+        ? formData.motivoConsultaOutro.trim()
+        : formData.motivoConsulta.trim(),
       cidade: formData.cidade,
       estado: formData.estado,
       sexo: formData.sexo,
@@ -337,49 +344,52 @@ export default function UserRegister() {
   };
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <Box
+      sx={{
+        minHeight: "88vh",
+        background: muiTheme.palette.mode === 'dark'
+          ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+          : 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <Box sx={{ p: 2, alignSelf: "flex-start" }}>
+      </Box>
       <Box
         sx={{
-          minHeight: "88vh",
-          background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
+          flex: 1,
           display: "flex",
-          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          py: 4,
         }}
       >
-        <Box sx={{ p: 2, alignSelf: "flex-start" }}>
-        </Box>
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            py: 4,
+        <Paper 
+          elevation={12} 
+          sx={{ 
+            p: 4, 
+            maxWidth: 580, 
+            width: "100%",
+            borderRadius: 3,
+            bgcolor: 'background.paper',
+            color: 'text.primary',
+            border: `1px solid ${muiTheme.palette.divider}`,
           }}
         >
-          <Paper 
-            elevation={12} 
-            sx={{ 
-              p: 4, 
-              maxWidth: 580, 
-              width: "100%",
-              borderRadius: 3
-            }}
+          <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
+            Cadastro de Paciente
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            Preencha os dados do novo paciente
+          </Typography>
+          <Divider sx={{ mb: 3 }} />
+          <Box
+            component="form"
+            onSubmit={handleSubmit}
+            noValidate
+            sx={{ display: "flex", flexDirection: "column", gap: 3 }}
           >
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1, color: 'text.primary' }}>
-              Cadastro de Paciente
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              Preencha os dados do novo paciente
-            </Typography>
-            <Divider sx={{ mb: 3 }} />
-            <Box
-              component="form"
-              onSubmit={handleSubmit}
-              noValidate
-              sx={{ display: "flex", flexDirection: "column", gap: 3 }}
-            >
               <TextField
                 label="Nome"
                 name="name"
@@ -424,6 +434,7 @@ export default function UserRegister() {
                 inputProps={{ inputMode: 'tel' }}
               />
               <TextField
+                select
                 label="Motivo da consulta"
                 name="motivoConsulta"
                 value={formData.motivoConsulta}
@@ -432,8 +443,23 @@ export default function UserRegister() {
                 variant="outlined"
                 error={!!errors.motivoConsulta}
                 helperText={errors.motivoConsulta || ""}
-                minRows={3}
-              />
+              >
+                {MOTIVOS_CONSULTA.map((motivo) => (
+                  <MenuItem key={motivo} value={motivo}>{motivo}</MenuItem>
+                ))}
+              </TextField>
+              {formData.motivoConsulta === "Outro" && (
+                <TextField
+                  label="Especifique o motivo"
+                  name="motivoConsultaOutro"
+                  value={formData.motivoConsultaOutro}
+                  onChange={handleChange}
+                  fullWidth
+                  variant="outlined"
+                  error={!!errors.motivoConsultaOutro}
+                  helperText={errors.motivoConsultaOutro || ""}
+                />
+              )}
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <TextField
                   select
@@ -580,25 +606,24 @@ export default function UserRegister() {
                   Cadastrar
                 </Button>
               </Stack>
-            </Box>
-          </Paper>
-        </Box>
-        <Snackbar
-          open={notification.open}
-          autoHideDuration={3000}
-          onClose={() => setNotification({ open: false, message: "", severity: "success" })}
-          anchorOrigin={{ vertical: "top", horizontal: "center" }}
-          sx={{ mt: 8 }}
-        >
-          <Alert
-            onClose={() => setNotification({ open: false, message: "", severity: "success"  })}
-            severity={notification.severity}
-            sx={{ width: "100%" }}
-          >
-            {notification.message}
-          </Alert>
-        </Snackbar>
+          </Box>
+        </Paper>
       </Box>
-    </ThemeProvider>
+      <Snackbar
+        open={notification.open}
+        autoHideDuration={3000}
+        onClose={() => setNotification({ open: false, message: "", severity: "success" })}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        sx={{ mt: 8 }}
+      >
+        <Alert
+          onClose={() => setNotification({ open: false, message: "", severity: "success"  })}
+          severity={notification.severity}
+          sx={{ width: "100%" }}
+        >
+          {notification.message}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 }

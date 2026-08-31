@@ -18,8 +18,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
+import fitt_nutri.example.demo.service.EmailService;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,10 +44,13 @@ class SchedulingServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private EmailService emailService;
+
     private PatientModel patient;
     private UserModel nutritionist;
     private SchedulingModel scheduling;
-    private LocalDate data;
+    private LocalDateTime data;
 
     @BeforeEach
     void setUp() {
@@ -56,7 +62,7 @@ class SchedulingServiceTest {
         patient.setId(1);
         patient.setNutricionista(nutritionist);
 
-        data = LocalDate.of(2025, 1, 10);
+        data = LocalDateTime.of(2025, 1, 10, 9, 0);
 
         scheduling = new SchedulingModel();
         scheduling.setId(100);
@@ -123,6 +129,22 @@ class SchedulingServiceTest {
         verify(userRepository).findByEmail("nutri@test.com");
         verify(patientRepository, never()).findById(any());
         verify(repository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("createScheduling - deve persistir a hora informada, não só a data (regressão do bug de horário perdido)")
+    void createScheduling_DevePersistirHoraInformada() {
+        LocalDateTime dataComHora = LocalDateTime.of(2026, 9, 1, 14, 30);
+        SchedulingRequestDTO dto =
+                new SchedulingRequestDTO(patient.getId(), nutritionist.getId(), dataComHora, "Consulta");
+
+        when(userRepository.findByEmail("nutri@test.com")).thenReturn(Optional.of(nutritionist));
+        when(patientRepository.findById(patient.getId())).thenReturn(Optional.of(patient));
+        when(repository.save(any(SchedulingModel.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        SchedulingModel result = service.createScheduling(dto);
+
+        assertEquals(LocalTime.of(14, 30), result.getDataAgendada().toLocalTime());
     }
 
     // ---------- getAllSchedulings ----------
@@ -214,6 +236,36 @@ class SchedulingServiceTest {
         verify(userRepository).findByEmail("nutri@test.com");
     }
 
+    // ---------- getByNutritionist (paginado) ----------
+
+    @Test
+    @DisplayName("getByNutritionist(paginado) - deve retornar a página quando usuarioId é o nutricionista logado")
+    void getByNutritionistPaginado_DeveRetornarQuandoIdBateComLogado() {
+        when(userRepository.findByEmail("nutri@test.com")).thenReturn(Optional.of(nutritionist));
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        org.springframework.data.domain.Page<SchedulingModel> page =
+                new org.springframework.data.domain.PageImpl<>(List.of(scheduling));
+        when(repository.findByNutricionistaId(nutritionist.getId(), pageable)).thenReturn(page);
+
+        org.springframework.data.domain.Page<SchedulingModel> result =
+                service.getByNutritionist(nutritionist.getId(), pageable);
+
+        assertEquals(1, result.getContent().size());
+        verify(repository).findByNutricionistaId(nutritionist.getId(), pageable);
+    }
+
+    @Test
+    @DisplayName("getByNutritionist(paginado) - deve lançar AccessDeniedException quando usuarioId é de OUTRO nutricionista (IDOR)")
+    void getByNutritionistPaginado_DeveNegarAcessoQuandoIdEDeOutroNutricionista() {
+        when(userRepository.findByEmail("nutri@test.com")).thenReturn(Optional.of(nutritionist));
+        org.springframework.data.domain.Pageable pageable = org.springframework.data.domain.PageRequest.of(0, 20);
+        Integer idDeOutroNutricionista = nutritionist.getId() + 999;
+
+        assertThrows(org.springframework.security.access.AccessDeniedException.class,
+                () -> service.getByNutritionist(idDeOutroNutricionista, pageable));
+        verify(repository, never()).findByNutricionistaId(any(Integer.class), eq(pageable));
+    }
+
     // ---------- updateScheduling ----------
 
     @Test
@@ -273,15 +325,17 @@ class SchedulingServiceTest {
     // ---------- updateDate ----------
 
     @Test
-    @DisplayName("updateDate - deve atualizar data e salvar")
-    void updateDate_DeveAtualizarData() {
-        LocalDate novaData = data.plusDays(3);
+    @DisplayName("updateDate - deve atualizar a data preservando a hora já existente")
+    void updateDate_DeveAtualizarDataPreservandoHora() {
+        LocalDate novaData = data.toLocalDate().plusDays(3);
         when(repository.findById(100)).thenReturn(Optional.of(scheduling));
         when(repository.save(any(SchedulingModel.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         SchedulingModel result = service.updateDate(100, novaData);
 
-        assertEquals(novaData, result.getDataAgendada());
+        assertEquals(novaData, result.getDataAgendada().toLocalDate());
+        assertEquals(data.toLocalTime(), result.getDataAgendada().toLocalTime(),
+                "a hora original do agendamento deve ser preservada ao atualizar só a data");
         verify(repository).findById(100);
         verify(repository).save(any(SchedulingModel.class));
     }
@@ -338,7 +392,7 @@ class SchedulingServiceTest {
 
         when(repository.findAll()).thenReturn(List.of(scheduling, outro, scheduling));
 
-        Long count = service.countByDate(data);
+        Long count = service.countByDate(data.toLocalDate());
 
         // temos 2 agendamentos com 'data' e 1 com outra data
         assertEquals(2L, count);

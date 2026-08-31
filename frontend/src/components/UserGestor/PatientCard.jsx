@@ -7,6 +7,7 @@ import {
   Button,
   IconButton
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function PatientCard({ 
@@ -15,11 +16,13 @@ export default function PatientCard({
   onSchedule, 
   onDelete 
 }) {
+  const theme = useTheme();
+
   return (
     <Card
       sx={{
         borderRadius: 3,
-        backgroundColor: "white",
+        backgroundColor: theme.palette.background.paper,
         boxShadow: 2,
         transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
         height: "100%",
@@ -31,7 +34,7 @@ export default function PatientCard({
         "&:hover": {
           transform: "translateY(-6px)",
           boxShadow: 5,
-          borderColor: "#2e7d32",
+          borderColor: theme.palette.primary.main,
         },
       }}
     >
@@ -42,8 +45,8 @@ export default function PatientCard({
           flexDirection: "column",
           alignItems: "center",
           gap: 2,
-          borderBottom: "3px solid #2e7d32",
-          backgroundColor: "#fafafa",
+          borderBottom: `3px solid ${theme.palette.primary.main}`,
+          backgroundColor: theme.palette.action.hover,
         }}
       >
         <Avatar
@@ -51,10 +54,10 @@ export default function PatientCard({
           sx={{
             width: 80,
             height: 80,
-            border: "3px solid #2e7d32",
+            border: `3px solid ${theme.palette.primary.main}`,
             fontSize: "2rem",
             fontWeight: 700,
-            backgroundColor: "#2e7d32",
+            backgroundColor: theme.palette.primary.main,
           }}
         >
           {user.name?.charAt(0)}
@@ -62,7 +65,7 @@ export default function PatientCard({
         <Box sx={{ textAlign: "center" }}>
           <Typography
             variant="h6"
-            sx={{ fontWeight: 700, color: "#1b5e20", mb: 1 }}
+            sx={{ fontWeight: 700, color: theme.palette.text.primary, mb: 1 }}
           >
             {user.name}
           </Typography>
@@ -70,8 +73,8 @@ export default function PatientCard({
             label={user.cidade}
             size="small"
             sx={{
-              backgroundColor: "#e8f5e9",
-              color: "#2e7d32",
+              backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.18 : 0.12),
+              color: theme.palette.primary.main,
               fontWeight: 600,
               fontSize: "0.75rem",
               height: 24,
@@ -86,7 +89,7 @@ export default function PatientCard({
             <Typography
               variant="caption"
               sx={{ 
-                color: "#666", 
+                color: theme.palette.text.secondary, 
                 fontWeight: 600, 
                 fontSize: "0.75rem", 
                 textTransform: "uppercase", 
@@ -99,7 +102,7 @@ export default function PatientCard({
               variant="body2"
               sx={{
                 fontWeight: 500,
-                color: "#333",
+                color: theme.palette.text.primary,
                 mt: 0.5,
                 wordBreak: "break-word",
                 fontSize: "0.9rem",
@@ -113,7 +116,7 @@ export default function PatientCard({
             <Typography
               variant="caption"
               sx={{ 
-                color: "#666", 
+                color: theme.palette.text.secondary, 
                 fontWeight: 600, 
                 fontSize: "0.75rem", 
                 textTransform: "uppercase", 
@@ -126,7 +129,7 @@ export default function PatientCard({
               variant="body2"
               sx={{
                 fontWeight: 500,
-                color: "#333",
+                color: theme.palette.text.primary,
                 mt: 0.5,
                 fontSize: "0.9rem",
               }}
@@ -142,7 +145,7 @@ export default function PatientCard({
           display: "flex",
           gap: 1,
           p: 2.5,
-          borderTop: "1px solid #f0f0f0",
+          borderTop: `1px solid ${theme.palette.divider}`,
           alignItems: "center",
           justifyContent: "space-between",
         }}
@@ -152,13 +155,13 @@ export default function PatientCard({
           size="small"
           onClick={() => onViewData(user)}
           sx={{
-            color: "#2e7d32",
+            color: theme.palette.primary.main,
             textTransform: "none",
             fontWeight: 600,
             fontSize: "0.85rem",
             flex: 1,
             "&:hover": {
-              backgroundColor: "#f1f8e9",
+              backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.18 : 0.08),
             },
           }}
         >
@@ -169,12 +172,12 @@ export default function PatientCard({
           size="small"
           onClick={() => onSchedule(user)}
           sx={{
-            backgroundColor: "#2e7d32",
+            backgroundColor: theme.palette.primary.main,
             textTransform: "none",
             fontWeight: 600,
             fontSize: "0.85rem",
             flex: 1,
-            "&:hover": { backgroundColor: "#256026" },
+            "&:hover": { backgroundColor: theme.palette.primary.dark },
           }}
         >
           Agendar
@@ -183,10 +186,10 @@ export default function PatientCard({
           size="small"
           onClick={() => onDelete(user)}
           sx={{
-            color: "#d32f2f",
+            color: theme.palette.error.main,
             padding: "8px",
             "&:hover": {
-              backgroundColor: "rgba(211, 47, 47, 0.08)",
+              backgroundColor: alpha(theme.palette.error.main, 0.08),
             },
           }}
         >

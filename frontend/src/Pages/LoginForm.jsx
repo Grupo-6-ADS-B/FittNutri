@@ -13,6 +13,7 @@ import {
   Stack,
   Container,
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { 
   Email as EmailIcon, 
   Lock as LockIcon, 
@@ -24,6 +25,7 @@ import api from '../utils/api';
 
 
 function LoginForm() {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState('');
@@ -34,8 +36,7 @@ function LoginForm() {
   const [recoveryError, setRecoveryError] = useState('');
   const from = location.state?.from?.pathname || '/gestor';
 
-  // Google Client ID
-  const googleClientId = '857800617390-jioede29n3luve0u0svvp2mnfatu35j0.apps.googleusercontent.com';
+  const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '654251176082-2bbn9dp6vhee4o2efkmc8t73q8ga8t7g.apps.googleusercontent.com';
 
   // Recupera email do sessionStorage se existir
   const emailSession = sessionStorage.getItem('emailUsuario') || '';
@@ -60,7 +61,6 @@ function LoginForm() {
     
     sessionStorage.removeItem('token');
     localStorage.removeItem('token');
-    
     try {
       const { data: body } = await api.post('/users/login', {
         email: data.email,
@@ -82,7 +82,6 @@ function LoginForm() {
         localStorage.setItem('nomeUsuario', body.nome);
       }
       const nome = body?.nome;
-      setSuccess(`Login realizado com sucesso${nome ? `! Bem-vindo(a), ${nome}` : '!'}`);
       navigate(from, { replace: true });
     } catch (err) {
        const responseData = err.response?.data;
@@ -124,41 +123,19 @@ function LoginForm() {
   };
 
   const handleGoogleLogin = async (credentialResponse) => {
-    console.log('Google credentialResponse:', credentialResponse);
     setError('');
     setSuccess('');
     let decoded;
     try {
       decoded = jwtDecode(credentialResponse.credential);
-      console.log('Google decoded:', decoded);
-      console.log('Google picture URL:', decoded.picture);
-      console.log('Todos os campos:', Object.keys(decoded));
     } catch (decodeErr) {
       console.error('Erro ao decodificar JWT do Google:', decodeErr);
       setError('Erro ao decodificar dados do Google.');
       return;
     }
     try {
-      sessionStorage.setItem('token', credentialResponse.credential);
-      localStorage.setItem('token', credentialResponse.credential);
-      sessionStorage.setItem('nomeUsuario', decoded.name || 'Google User');
-      localStorage.setItem('nomeUsuario', decoded.name || 'Google User');
-      
-      const photoUrl = decoded.picture;
-      if (photoUrl && photoUrl.trim()) {
-        console.log('✓ Salvando foto do Google:', photoUrl);
-        sessionStorage.setItem('fotoUsuario', photoUrl);
-        localStorage.setItem('fotoUsuario', photoUrl);
-      } else {
-        console.warn('✗ Foto não encontrada no JWT do Google ou está vazia');
-      }
-      
-      console.log('Enviando para backend /users/google-login:', {
-        name: decoded.name,
-        email: decoded.email,
-        picture: photoUrl,
-        sub: decoded.sub,
-      });
+      const photoUrl = decoded.picture || '';
+
       const response = await api.post('/users/google-login', {
         name: decoded.name,
         email: decoded.email,
@@ -166,25 +143,35 @@ function LoginForm() {
         sub: decoded.sub,
         token: credentialResponse.credential
       });
-      
-      console.log('Resposta do backend:', response.data);
-      
-      if (response.data?.foto) {
-        console.log('✓ Foto retornada do backend:', response.data.foto);
-        sessionStorage.setItem('fotoUsuario', response.data.foto);
-        localStorage.setItem('fotoUsuario', response.data.foto);
+
+      // Armazena o JWT emitido pelo backend (não o credential do Google)
+      const backendToken = response.data.token;
+      const userName = response.data.nome || decoded.name || 'Google User';
+      const foto = response.data.foto || photoUrl;
+      const userId = response.data.id;
+      const perfilCompleto = response.data.perfilCompleto !== false;
+
+      sessionStorage.setItem('token', backendToken);
+      localStorage.setItem('token', backendToken);
+      sessionStorage.setItem('nomeUsuario', userName);
+      localStorage.setItem('nomeUsuario', userName);
+      sessionStorage.setItem('perfilCompleto', perfilCompleto ? 'true' : 'false');
+      localStorage.setItem('perfilCompleto', perfilCompleto ? 'true' : 'false');
+      if (foto) {
+        sessionStorage.setItem('fotoUsuario', foto);
+        localStorage.setItem('fotoUsuario', foto);
       }
-      if (response.data?.id) {
-        sessionStorage.setItem('idUsuario', response.data.id);
-        localStorage.setItem('idUsuario', response.data.id);
+      if (userId) {
+        sessionStorage.setItem('idUsuario', String(userId));
+        localStorage.setItem('idUsuario', String(userId));
       }
-      
-      setSuccess(`Login Google realizado com sucesso! Bem-vindo(a), ${decoded.name || ''}`);
+
+      setSuccess(`Login Google realizado com sucesso! Bem-vindo(a), ${userName}`);
       setTimeout(() => {
-        navigate('/gestor', { replace: true });
+        navigate(perfilCompleto ? '/gestor' : '/completar-perfil', { replace: true });
       }, 500);
     } catch (err) {
-      console.error('Erro ao salvar usuário Google ou redirecionar:', err);
+      console.error('Erro ao autenticar com Google:', err);
       setError('Erro ao autenticar com o Google. ' + (err.response?.data?.error || err.message));
     }
   };
@@ -217,7 +204,6 @@ function LoginForm() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-       
         py: { xs: 4, md: 8 },
         height: '90vh',
         px: 2,
@@ -227,18 +213,18 @@ function LoginForm() {
         backgroundRepeat: 'no-repeat',
       }}
     >
-    <Box
+      <Box
         sx={{
           position: 'absolute',
           inset: 0,
-          background: 'rgba(0,0,0,0.28)',
+          background: theme.palette.mode === 'dark' ? 'rgba(2, 6, 23, 0.72)' : 'rgba(0,0,0,0.28)',
           zIndex: 0,
-          backdropFilter: 'blur(4px)',         
+          backdropFilter: 'blur(4px)',
         }}
       />
 
       <GoogleOAuthProvider clientId={googleClientId}>
-      <Container sx={{ position: 'relative', zIndex: 2, maxWidth: '500px !important', border: '1px solid #ddd', borderRadius: '8px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.12)', backgroundColor: 'rgba(255,255,255,0.96)' }}>
+        <Container sx={{ position: 'relative', zIndex: 2, maxWidth: '500px !important', border: `1px solid ${theme.palette.divider}`, borderRadius: '8px', padding: '24px', boxShadow: theme.shadows[3], backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.9 : 0.96), color: theme.palette.text.primary }}>
         {!showRecovery ? (
           <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ mt: 2 }}>
             <Stack spacing={3}>
@@ -339,20 +325,26 @@ function LoginForm() {
                       sx={{
                         py: 2,
                         px: 4,
-                        borderColor: '#2e7d32', // verde do tema
-                        color: '#2e7d32',
+                        borderColor: theme.palette.divider,
+                        color: theme.palette.text.primary,
+                        backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.16 : 0.96),
                         fontWeight: 600,
                         fontSize: '1.1rem',
                         borderRadius: '30px',
-                        boxShadow: '0 2px 8px rgba(46,125,50,0.08)',
+                        boxShadow: theme.shadows[1],
                         minWidth: 260,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: 2,
                         '&:hover': {
-                          borderColor: '#1b5e20',
-                          background: 'rgba(46,125,50,0.04)'
+                          borderColor: theme.palette.primary.main,
+                          background: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.18 : 0.06),
+                          boxShadow: theme.shadows[2],
+                        },
+                        '&:focus-visible': {
+                          outline: `2px solid ${theme.palette.primary.main}`,
+                          outlineOffset: 2,
                         }
                       }}
                       fullWidth={false}

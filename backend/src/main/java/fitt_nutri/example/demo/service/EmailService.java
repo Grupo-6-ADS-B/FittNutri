@@ -1,28 +1,197 @@
 package fitt_nutri.example.demo.service;
 
+import com.resend.Resend;
+import com.resend.services.emails.model.CreateEmailOptions;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Locale;
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
-    @Value("${spring.mail.username:no-reply@fittnutri.com}")
+    private final Resend resend;
+
+    @Value("${email.from}")
     private String from;
 
-    public void sendPasswordRecoveryEmail(String to, String token) {
-        String subject = "Recuperação de senha - FittNutri";
-        String resetUrl = "http://localhost:5173/resetar-senha?token=" + token;
-        String text = "Olá!\n\nRecebemos uma solicitação para redefinir sua senha. Clique no link abaixo para criar uma nova senha:\n" + resetUrl + "\n\nSe você não solicitou, ignore este e-mail.";
+    @Value("${frontend.url:http://localhost:5173}")
+    private String frontendUrl;
 
-        // Log do email que seria enviado (até que as dependências sejam carregadas)
-        System.out.println("[EMAIL] Para: " + to);
-        System.out.println("[EMAIL] Assunto: " + subject);
-        System.out.println("[EMAIL] Corpo: " + text);
-        System.out.println("[EMAIL] De: " + from);
+    @Value("${email.contact:suporte.fittnutri@gmail.com}")
+    private String contactDestination;
+
+    public void sendPasswordRecoveryEmail(String to, String token) {
+        String resetUrl = frontendUrl + "/resetar-senha?token=" + token;
+
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(from)
+                .to(List.of(to))
+                .subject("Recuperação de senha — FittNutri")
+                .html(buildPasswordResetHtml(resetUrl))
+                .build();
+
+        try {
+            resend.emails().send(params);
+            log.info("[email] recuperação de senha enviada para {}", to);
+        } catch (Exception e) {
+            // Captura qualquer falha do SDK do Resend, não só ResendException — validações da
+            // API (domínio não verificado, etc.) podem chegar como RuntimeException genérica,
+            // e essa chamada nunca pode derrubar o fluxo de quem a invocou.
+            log.error("[email] falha ao enviar recuperação de senha para {}: {}", to, e.getMessage());
+        }
+    }
+
+    public void sendAppointmentConfirmationEmail(
+            String toEmail, String patientName, String nutritionistName,
+            LocalDateTime date, String notes) {
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(from)
+                .to(List.of(toEmail))
+                .subject("Consulta confirmada — FittNutri")
+                .html(buildAppointmentConfirmationHtml(patientName, nutritionistName, date, notes))
+                .build();
+        try {
+            resend.emails().send(params);
+            log.info("[email] confirmação de agendamento enviada para {}", toEmail);
+        } catch (Exception e) {
+            // Nunca deixar uma falha de e-mail (domínio não verificado, rate limit, etc.)
+            // reverter a criação do agendamento — ela roda dentro de uma transação.
+            log.error("[email] falha ao enviar confirmação de agendamento: {}", e.getMessage());
+        }
+    }
+
+    public void sendAppointmentReminderEmail(
+            String toEmail, String patientName, String nutritionistName, LocalDateTime date) {
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(from)
+                .to(List.of(toEmail))
+                .subject("Lembrete: sua consulta é amanhã — FittNutri")
+                .html(buildAppointmentReminderHtml(patientName, nutritionistName, date))
+                .build();
+        try {
+            resend.emails().send(params);
+            log.info("[email] lembrete de consulta enviado para {}", toEmail);
+        } catch (Exception e) {
+            log.error("[email] falha ao enviar lembrete de consulta: {}", e.getMessage());
+        }
+    }
+
+    public void sendContactNotificationEmail(String nome, String emailRemetente, String mensagem) {
+        CreateEmailOptions params = CreateEmailOptions.builder()
+                .from(from)
+                .to(List.of(contactDestination))
+                .replyTo(List.of(emailRemetente))
+                .subject("Nova mensagem de contato — " + nome)
+                .html(buildContactHtml(nome, emailRemetente, mensagem))
+                .build();
+        try {
+            resend.emails().send(params);
+            log.info("[email] notificação de contato enviada para {}", contactDestination);
+        } catch (Exception e) {
+            log.error("[email] falha ao enviar notificação de contato: {}", e.getMessage());
+        }
+    }
+
+    private String buildAppointmentConfirmationHtml(
+            String patientName, String nutritionistName, LocalDateTime date, String notes) {
+        String formattedDate = date.format(
+                DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm", Locale.of("pt", "BR")));
+        String notesBlock = (notes != null && !notes.isBlank())
+                ? "<p><strong>Observações:</strong></p>" +
+                  "<p style=\"background:#f9fafb;border-left:4px solid #16a34a;padding:12px 16px;" +
+                  "border-radius:4px;white-space:pre-wrap;\">" + notes + "</p>"
+                : "";
+        return """
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head><meta charset="UTF-8"></head>
+                <body style="font-family:sans-serif;color:#1f2937;padding:32px;max-width:560px;margin:0 auto;">
+                  <h2 style="color:#16a34a;margin-bottom:4px;">FittNutri</h2>
+                  <p style="color:#6b7280;font-size:13px;margin-top:0;">Plataforma Inteligente para Nutricionistas</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
+                  <p>Olá, <strong>%s</strong>!</p>
+                  <p>Sua consulta com <strong>%s</strong> foi confirmada.</p>
+                  <p><strong>Data:</strong> %s</p>
+                  %s
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+                  <p style="color:#9ca3af;font-size:11px;">© FittNutri — Em caso de dúvidas, entre em contato com seu nutricionista.</p>
+                </body>
+                </html>
+                """.formatted(patientName, nutritionistName, formattedDate, notesBlock);
+    }
+
+    private String buildAppointmentReminderHtml(
+            String patientName, String nutritionistName, LocalDateTime date) {
+        String formattedDate = date.format(
+                DateTimeFormatter.ofPattern("EEEE, dd 'de' MMMM 'de' yyyy 'às' HH:mm", Locale.of("pt", "BR")));
+        return """
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head><meta charset="UTF-8"></head>
+                <body style="font-family:sans-serif;color:#1f2937;padding:32px;max-width:560px;margin:0 auto;">
+                  <h2 style="color:#16a34a;margin-bottom:4px;">FittNutri</h2>
+                  <p style="color:#6b7280;font-size:13px;margin-top:0;">Plataforma Inteligente para Nutricionistas</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
+                  <p>Olá, <strong>%s</strong>!</p>
+                  <p>Este é um lembrete de que sua consulta com <strong>%s</strong> está marcada para <strong>amanhã</strong>.</p>
+                  <p><strong>Data:</strong> %s</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+                  <p style="color:#9ca3af;font-size:11px;">© FittNutri — Em caso de dúvidas, entre em contato com seu nutricionista.</p>
+                </body>
+                </html>
+                """.formatted(patientName, nutritionistName, formattedDate);
+    }
+
+    private String buildContactHtml(String nome, String emailRemetente, String mensagem) {
+        return """
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head><meta charset="UTF-8"></head>
+                <body style="font-family:sans-serif;color:#1f2937;padding:32px;max-width:560px;margin:0 auto;">
+                  <h2 style="color:#16a34a;margin-bottom:4px;">FittNutri</h2>
+                  <p style="color:#6b7280;font-size:13px;margin-top:0;">Nova mensagem recebida pelo formulário de contato</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
+                  <p><strong>Nome:</strong> %s</p>
+                  <p><strong>Email:</strong> <a href="mailto:%s" style="color:#16a34a;">%s</a></p>
+                  <p><strong>Mensagem:</strong></p>
+                  <p style="background:#f9fafb;border-left:4px solid #16a34a;padding:12px 16px;border-radius:4px;white-space:pre-wrap;">%s</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+                  <p style="color:#9ca3af;font-size:11px;">© FittNutri — Responda diretamente a este email para contatar o remetente.</p>
+                </body>
+                </html>
+                """.formatted(nome, emailRemetente, emailRemetente, mensagem);
+    }
+
+    private String buildPasswordResetHtml(String resetUrl) {
+        return """
+                <!DOCTYPE html>
+                <html lang="pt-BR">
+                <head><meta charset="UTF-8"></head>
+                <body style="font-family:sans-serif;color:#1f2937;padding:32px;max-width:560px;margin:0 auto;">
+                  <h2 style="color:#16a34a;margin-bottom:4px;">FittNutri</h2>
+                  <p style="color:#6b7280;font-size:13px;margin-top:0;">Plataforma Inteligente para Nutricionistas</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
+                  <p>Recebemos uma solicitação para redefinir a senha da sua conta.</p>
+                  <p>Clique no botão abaixo para criar uma nova senha:</p>
+                  <a href="%s"
+                     style="display:inline-block;background:#16a34a;color:#fff;padding:12px 28px;
+                            border-radius:6px;text-decoration:none;font-weight:bold;margin:16px 0;">
+                    Redefinir senha
+                  </a>
+                  <p style="color:#6b7280;font-size:13px;">O link expira em <strong>1 hora</strong>.</p>
+                  <p style="color:#6b7280;font-size:13px;">Se você não solicitou a redefinição, ignore este email — sua senha permanece a mesma.</p>
+                  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+                  <p style="color:#9ca3af;font-size:11px;">© FittNutri</p>
+                </body>
+                </html>
+                """.formatted(resetUrl);
     }
 }
-
-
-

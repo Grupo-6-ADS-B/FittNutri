@@ -36,7 +36,7 @@ function getClassificacao(type, value) {
   return null;
 }
 
-export default function DataTable({ data }) {
+export default function DataTable({ data, embedded = false }) {
   const capitalizeFirstLetter = (text) => {
     if (!text || typeof text !== 'string') return text;
     return text.charAt(0).toUpperCase() + text.slice(1);
@@ -75,48 +75,77 @@ export default function DataTable({ data }) {
     { label: 'Pulso',                 value: `${data?.pulso} cm`,                         rawValue: null,                  type: null },
   ];
 
+  const headerCellSx = {
+    fontWeight: 700,
+    bgcolor: 'rgba(46, 125, 50, 0.06)',
+    color: '#2e7d32',
+    fontSize: '0.78rem',
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    py: 1.4,
+    borderBottom: '2px solid #2e7d32',
+  };
+
   return (
-    <TableContainer component={Paper} sx={{ p: 0, borderRadius: 2, maxHeight: 440 }}>
+    <TableContainer
+      component={Paper}
+      elevation={0}
+      sx={{
+        p: 0,
+        borderRadius: embedded ? 2 : 2.5,
+        maxHeight: 440,
+        border: embedded ? 'none' : '1px solid rgba(46, 125, 50, 0.08)',
+        boxShadow: 'none',
+        bgcolor: 'transparent',
+      }}
+    >
       <Table
         stickyHeader
         size="small"
         aria-label="dados do paciente"
-        sx={{ '& .MuiTableCell-root': { borderColor: '#e8f5e9' } }}
+        sx={{ '& .MuiTableCell-root': { borderColor: 'rgba(46, 125, 50, 0.06)' } }}
       >
         <TableHead>
           <TableRow>
-            <TableCell sx={{ fontWeight: 'bold', bgcolor: '#2e7d32', color: '#fff', fontSize: '0.82rem', py: 1 }}>
-              Indicador
-            </TableCell>
-            <TableCell align="right" sx={{ fontWeight: 'bold', bgcolor: '#2e7d32', color: '#fff', fontSize: '0.82rem', py: 1 }}>
-              Resultado
-            </TableCell>
-            <TableCell align="center" sx={{ fontWeight: 'bold', bgcolor: '#2e7d32', color: '#fff', fontSize: '0.82rem', py: 1, width: 130 }}>
-              Status
-            </TableCell>
+            <TableCell sx={headerCellSx}>Indicador</TableCell>
+            <TableCell align="right" sx={headerCellSx}>Resultado</TableCell>
+            <TableCell align="center" sx={{ ...headerCellSx, width: 130 }}>Status</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row, index) => {
+          {rows.map((row) => {
             const badge = row.type ? getClassificacao(row.type, row.rawValue) : null;
             const isEmpty = row.value === null || row.value === undefined || row.value === '' || String(row.value).startsWith('null') || String(row.value).startsWith('undefined');
             return (
               <TableRow
                 key={row.label}
                 sx={{
-                  bgcolor: index % 2 === 0 ? '#f0f7f1' : '#ffffff',
+                  bgcolor: '#ffffff',
                   '&:last-child td, &:last-child th': { border: 0 },
-                  '&:hover': { bgcolor: '#dcedc8' },
+                  '&:hover': { bgcolor: 'rgba(46, 125, 50, 0.04)' },
                   transition: 'background-color 0.15s',
                 }}
               >
-                <TableCell component="th" scope="row" sx={{ fontWeight: badge ? 600 : 400, fontSize: '0.82rem', py: 0.8 }}>
+                <TableCell
+                  component="th"
+                  scope="row"
+                  sx={{ fontWeight: 500, fontSize: '0.85rem', py: 1.2, color: 'text.secondary' }}
+                >
                   {row.label}
                 </TableCell>
-                <TableCell align="right" sx={{ fontSize: '0.85rem', fontWeight: badge ? 700 : 400, py: 0.8 }}>
+                <TableCell
+                  align="right"
+                  sx={{
+                    fontSize: '0.9rem',
+                    fontWeight: badge ? 700 : 600,
+                    py: 1.2,
+                    fontVariantNumeric: 'tabular-nums',
+                    color: 'text.primary',
+                  }}
+                >
                   {isEmpty ? '—' : row.value}
                 </TableCell>
-                <TableCell align="center" sx={{ py: 0.8 }}>
+                <TableCell align="center" sx={{ py: 1.2 }}>
                   {badge ? (
                     <Chip
                       label={badge.label}
@@ -127,7 +156,8 @@ export default function DataTable({ data }) {
                         fontWeight: 700,
                         fontSize: '0.7rem',
                         height: 22,
-                        border: `1px solid ${badge.color}33`,
+                        borderRadius: 1.5,
+                        border: 'none',
                       }}
                     />
                   ) : null}

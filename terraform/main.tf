@@ -155,7 +155,10 @@ module "compute" {
   app_aes_key        = var.app_aes_key
   app_rabbitmq_url   = var.app_rabbitmq_url
   app_s3_bucket      = local.resolved_app_s3_bucket
-  app_spring_profile = var.app_spring_profile
+  app_spring_profile   = var.app_spring_profile
+  app_resend_api_key   = var.app_resend_api_key
+  app_email_from       = var.app_email_from
+  app_google_client_id = var.app_google_client_id
 
   tags = local.common_tags
 
@@ -166,18 +169,21 @@ module "compute" {
     git_repo   = var.git_repo
     git_branch = var.git_branch
     # .env — FRONTEND_URL e db_host dinamicos
-    app_frontend_url   = local.resolved_frontend_url
-    app_db_host        = module.database.db_private_ip
-    app_db_port        = 3306
-    app_db_name        = "fittnutri"
-    app_db_username    = "root"
-    app_db_password    = var.app_db_password
-    app_jwt_secret     = var.app_jwt_secret
-    app_jwt_validity   = var.app_jwt_validity
-    app_aes_key        = var.app_aes_key
-    app_rabbitmq_url   = var.app_rabbitmq_url
-    app_s3_bucket      = local.resolved_app_s3_bucket
-    app_spring_profile = var.app_spring_profile
+    app_frontend_url     = local.resolved_frontend_url
+    app_db_host          = module.database.db_private_ip
+    app_db_port          = 3306
+    app_db_name          = "fittnutri"
+    app_db_username      = "root"
+    app_db_password      = var.app_db_password
+    app_jwt_secret       = var.app_jwt_secret
+    app_jwt_validity     = var.app_jwt_validity
+    app_aes_key          = var.app_aes_key
+    app_rabbitmq_url     = var.app_rabbitmq_url
+    app_s3_bucket        = local.resolved_app_s3_bucket
+    app_spring_profile   = var.app_spring_profile
+    app_resend_api_key   = var.app_resend_api_key
+    app_email_from       = var.app_email_from
+    app_google_client_id = var.app_google_client_id
   })
 }
 

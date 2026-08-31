@@ -11,7 +11,10 @@ import {
 } from "@mui/material";
 import { computeImc } from '../../utils/userGestorUtils';
 import calcularTMB from '../../utils/calcularTMB';
-import { useEffect } from 'react';
+import { MOTIVOS_CONSULTA } from '../../utils/motivosConsulta';
+import { useEffect, useState } from 'react';
+
+const OPCOES_FIXAS_MOTIVO = MOTIVOS_CONSULTA.filter((m) => m !== "Outro");
 
 export default function UpdateDataDialog({ 
   open, 
@@ -21,6 +24,15 @@ export default function UpdateDataDialog({
   setUpdateForm,
   selectedUser
 }) {
+  const [motivoSelecionado, setMotivoSelecionado] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    const atual = updateForm.motivoConsulta || "";
+    setMotivoSelecionado(atual && !OPCOES_FIXAS_MOTIVO.includes(atual) ? "Outro" : atual);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   useEffect(() => {
     if (!open) return;
 
@@ -58,13 +70,29 @@ export default function UpdateDataDialog({
           fullWidth 
         />
         <TextField
+          select
           sx={{ mt: 4 }}
           label="Motivo da Consulta"
-          value={updateForm.motivoConsulta || ""}
-          onChange={(e) => setUpdateForm(f => ({ ...f, motivoConsulta: e.target.value }))}
+          value={motivoSelecionado}
+          onChange={(e) => {
+            const val = e.target.value;
+            setMotivoSelecionado(val);
+            setUpdateForm(f => ({ ...f, motivoConsulta: val === "Outro" ? "" : val }));
+          }}
           fullWidth
-          minRows={2}
-        />
+        >
+          {MOTIVOS_CONSULTA.map((motivo) => (
+            <MenuItem key={motivo} value={motivo}>{motivo}</MenuItem>
+          ))}
+        </TextField>
+        {motivoSelecionado === "Outro" && (
+          <TextField
+            label="Especifique o motivo"
+            value={updateForm.motivoConsulta || ""}
+            onChange={(e) => setUpdateForm(f => ({ ...f, motivoConsulta: e.target.value }))}
+            fullWidth
+          />
+        )}
         <TextField 
           sx={{ mt: 0 }} 
           label="IMC" 

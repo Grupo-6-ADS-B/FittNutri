@@ -45,7 +45,7 @@ public class LoginService {
             throw new ConflictException("CPF já cadastrado");
         }
 
-        if (userRepository.existsByCrn(novoUser.getCrn())) {
+        if (novoUser.getCrn() != null && !novoUser.getCrn().equals("GOOGLE") && !novoUser.getCrn().startsWith("GOOGLE-") && userRepository.existsByCrn(novoUser.getCrn())) {
             throw new ConflictException("CRN já cadastrado");
         }
         // Apenas criptografa a senha se ela não estiver vazia (usuários do Google têm senha vazia)
@@ -109,7 +109,7 @@ public class LoginService {
     public String gerarToken(UserModel user) {
         org.springframework.security.core.userdetails.User springUser =
             new org.springframework.security.core.userdetails.User(
-                user.getEmail(), "", java.util.List.of(() -> user.getRole()));
+                user.getEmail(), "", java.util.List.of(() -> "ROLE_" + user.getRole()));
         org.springframework.security.authentication.UsernamePasswordAuthenticationToken authentication =
             new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
                 springUser, null, springUser.getAuthorities());
@@ -123,6 +123,19 @@ public class LoginService {
     public void atualizarSenha(UserModel user, String novaSenha) {
         String senhaCriptografada = passwordEncoder.encode(novaSenha);
         user.setSenha(senhaCriptografada);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void completarPerfil(UserModel user, String cpf, String crn) {
+        if (userRepository.existsByCpf(cpf)) {
+            throw new ConflictException("CPF já cadastrado");
+        }
+        if (userRepository.existsByCrn(crn)) {
+            throw new ConflictException("CRN já cadastrado");
+        }
+        user.setCpf(cpf);
+        user.setCrn(crn);
         userRepository.save(user);
     }
 }

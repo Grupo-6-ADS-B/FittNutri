@@ -1,7 +1,12 @@
 import React from 'react';
 import { Paper, Typography, Box } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 
 function Card({ title, description, icon: IconComponent, image, color = 'primary' }) {
+  const theme = useTheme();
+  const paletteColor = theme.palette[color] || theme.palette.primary;
+  const isDark = theme.palette.mode === 'dark';
+
   return (
     <Paper
       elevation={0}
@@ -14,15 +19,16 @@ function Card({ title, description, icon: IconComponent, image, color = 'primary
         cursor: 'pointer',
         position: 'relative',
         overflow: 'hidden',
-        background: 'linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%)',
+        background: `linear-gradient(135deg, ${theme.palette.background.paper} 0%, ${alpha(theme.palette.background.default, isDark ? 0.85 : 1)} 100%)`,
+        borderColor: theme.palette.divider,
         display: 'flex',
         flexDirection: 'column',
         '&:hover': {
           transform: 'translateY(-8px)',
-          borderColor: `${color}.main`,
+          borderColor: paletteColor.main,
           '& .card-icon': {
             transform: 'scale(1.1) rotate(5deg)',
-            color: `${color}.main`,
+            color: paletteColor.main,
           },
           '& .card-image': {
             transform: 'scale(1.05)',
@@ -38,7 +44,7 @@ function Card({ title, description, icon: IconComponent, image, color = 'primary
           left: 0,
           right: 0,
           height: '4px',
-          background: `linear-gradient(90deg, ${color === 'primary' ? '#2e7d32, #388e3c' : '#1976d2, #42a5f5'})`,
+          background: `linear-gradient(90deg, ${paletteColor.main}, ${paletteColor.light})`,
         }
       }}
     >
@@ -50,7 +56,7 @@ function Card({ title, description, icon: IconComponent, image, color = 'primary
           left: 0,
           right: 0,
           bottom: 0,
-          background: `linear-gradient(135deg, ${color === 'primary' ? 'rgba(46, 125, 50, 0.02)' : 'rgba(25, 118, 210, 0.02)'} 0%, transparent 100%)`,
+          background: `linear-gradient(135deg, ${alpha(paletteColor.main, 0.06)} 0%, transparent 100%)`,
           opacity: 0,
           transition: 'opacity 0.3s ease',
           pointerEvents: 'none',
@@ -91,15 +97,15 @@ function Card({ title, description, icon: IconComponent, image, color = 'primary
             sx={{
               p: 1.5,
               borderRadius: 2,
-              backgroundColor: 'rgba(255, 255, 255, 0.95)',
-              color: `${color}.main`,
+              backgroundColor: alpha(theme.palette.background.paper, 0.92),
+              color: paletteColor.main,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               transition: 'all 0.3s ease',
               fontSize: '1.5rem',
               backdropFilter: 'blur(10px)',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+              boxShadow: theme.shadows[1],
             }}
             >
             {IconComponent && React.createElement(IconComponent, { sx: { fontSize: 'inherit' } })}
