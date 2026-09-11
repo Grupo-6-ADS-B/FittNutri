@@ -53,7 +53,7 @@ public class SecurityConfig {
     // H2 Console liberado apenas para localhost (127.0.0.1)
     // Em produção fica bloqueado automaticamente
     private static final String[] URLS_DEV = {
-        "/h2-console/**"
+            "/h2-console/**"
     };
 
     @Bean
@@ -72,26 +72,26 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // AVISO: frameOptions desabilitado apenas para H2 Console em dev — remover em produção
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.POST, "/users/google-login").permitAll()
-                .requestMatchers(URLS_PUBLICAS).permitAll()
-                .requestMatchers(URLS_DEV)
-                    .access(new WebExpressionAuthorizationManager(
-                        "hasIpAddress('127.0.0.1')"
-                    ))
-                .requestMatchers(HttpMethod.POST, "/users").permitAll()
-                .anyRequest().authenticated()
-            )
-            .exceptionHandling(handling -> handling
-                .authenticationEntryPoint(autenticacaoEntryPoint))
-            .sessionManagement(management -> management
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .addFilterBefore(autenticacaoFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                // AVISO: frameOptions desabilitado apenas para H2 Console em dev — remover em produção
+                .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/users/google-login").permitAll()
+                        .requestMatchers(URLS_PUBLICAS).permitAll()
+                        .requestMatchers(URLS_DEV)
+                        .access(new WebExpressionAuthorizationManager(
+                                "hasIpAddress('127.0.0.1')"
+                        ))
+                        .requestMatchers(HttpMethod.POST, "/users").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .exceptionHandling(handling -> handling
+                        .authenticationEntryPoint(autenticacaoEntryPoint))
+                .sessionManagement(management -> management
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(autenticacaoFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -107,8 +107,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        // Liberar origens do React Native / Expo e desenvolvimento local
+        configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
+                "http://localhost:8081",
+                "http://localhost:19006",
                 "https://fittnutri.duckdns.org",
                 "https://fittnutri.site",
                 "https://www.fittnutri.site"
@@ -123,3 +127,4 @@ public class SecurityConfig {
         return source;
     }
 }
+
