@@ -30,14 +30,19 @@ public class PatientService {
                 .orElseThrow(() -> new RuntimeException("Nutricionista não encontrado"));
     }
 
-    @Transactional
-    public PatientModel create(PatientRequestDTO dto) {
+    @Transactional(readOnly = true)
+    public void validateRegistration(PatientRequestDTO dto) {
         if (repository.existsByEmail(dto.email())) {
             throw new ConflictException("Email já cadastrado");
         }
         if (repository.existsByCpf(dto.cpf())) {
             throw new ConflictException("CPF já cadastrado");
         }
+    }
+
+    @Transactional
+    public PatientModel create(PatientRequestDTO dto) {
+        validateRegistration(dto);
 
         PatientModel p = new PatientModel();
         p.setNome(dto.nome());

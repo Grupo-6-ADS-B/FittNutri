@@ -28,6 +28,13 @@ public class PatientController {
 
     private final PatientAdapter adapter;
 
+    @PostMapping("/validate")
+    @Operation(summary = "Valida o cadastro sem criar o paciente")
+    public ResponseEntity<Void> validateRegistration(@Valid @RequestBody PatientRequestDTO dto) {
+        adapter.validateRegistration(dto);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping
     @Operation(summary = "Cria um paciente")
     @ApiResponses(value = {

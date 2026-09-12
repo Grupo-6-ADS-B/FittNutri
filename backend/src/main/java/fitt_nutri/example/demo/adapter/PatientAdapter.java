@@ -19,6 +19,10 @@ public class PatientAdapter {
 
     private final PatientService service;
 
+    public void validateRegistration(PatientRequestDTO dto) {
+        service.validateRegistration(dto);
+    }
+
     public PatientResponseDTO create(PatientRequestDTO dto) {
         PatientModel p = service.create(dto);
         return mapToDTO(p);
