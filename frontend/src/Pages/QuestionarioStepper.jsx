@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import api from '../utils/api';
+import { toLocalDateString } from '../utils/dateUtils';
 import {
   Box,
   Button,
@@ -16,6 +17,7 @@ import {
   Snackbar,
   Alert
 } from "@mui/material";
+import { alpha, useTheme } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
@@ -53,6 +55,7 @@ export default function QuestionarioStepper() {
   const [saveToastOpen, setSaveToastOpen] = useState(false);
   const hydrationRef = React.useRef(false);
   const debounceRef = React.useRef(null);
+  const theme = useTheme();
   const persistData = React.useCallback((uid, aData, cData, comp) => {
     if (!uid) return;
     try {
@@ -303,14 +306,8 @@ const handleResumoClick = async () => {
       };
 
       try {
-        const now = new Date();
-        now.setDate(now.getDate() + 1); 
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const today = `${year}-${month}-${day}T00:00:00Z`;
         const historyPayload = {
-          dataConsulta: today,
+          dataConsulta: toLocalDateString(),
           antropometria: {
             peso,
             altura: alturaMeters,
@@ -391,7 +388,9 @@ const handleResumoClick = async () => {
           display: "flex",
           flexDirection: "column",
           minHeight: "88vh",
-          background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
+          background: theme.palette.mode === 'dark'
+            ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+            : 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
         }}
       >
         <Box sx={{mt: 8, flex: 1, display: "flex", flexDirection: "column", alignItems: "center", p: 2 }}>
@@ -663,7 +662,6 @@ const handleResumoClick = async () => {
               </Paper>
               {openModal && (
                 <Paper elevation={3} sx={{ width: 320, p: 2, borderRadius: 3, alignSelf: 'flex-start' }}>
-                  <Box component="img" src="/medida.jpg" alt="Ajuda - Circunferências" sx={{ width: '100%', borderRadius: 2, mb: 2 }} />
                   <Typography variant="body1" sx={{ textAlign: 'center' }}>
                     Este questionário coleta dados de circunferências corporais. Preencha os campos para prosseguir.
                   </Typography>

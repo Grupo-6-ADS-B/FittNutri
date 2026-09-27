@@ -6,6 +6,7 @@ import {
   Button, 
   Box 
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import SortIcon from "@mui/icons-material/Sort";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
@@ -19,6 +20,8 @@ export default function SearchHeader({
   onWeekDialogOpen,
   onAddPatient
 }) {
+  const theme = useTheme();
+
   return (
     <Paper
       sx={{
@@ -28,7 +31,8 @@ export default function SearchHeader({
         gap: 2,
         alignItems: "center",
         flexWrap: "wrap",
-        backgroundColor: "rgba(255, 255, 255, 0.95)",
+        backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === 'dark' ? 0.92 : 0.95),
+        border: `1px solid ${theme.palette.divider}`,
         boxShadow: 2,
       }}
     >
@@ -39,7 +43,7 @@ export default function SearchHeader({
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon sx={{ color: '#2e7d32' }} />
+              <SearchIcon sx={{ color: theme.palette.primary.main }} />
             </InputAdornment>
           ),
         }}
@@ -48,7 +52,7 @@ export default function SearchHeader({
           minWidth: 250,
           '& .MuiOutlinedInput-root': {
             borderRadius: 2,
-            backgroundColor: '#f5f5f5',
+            backgroundColor: theme.palette.action.hover,
           }
         }}
         size="small"
@@ -64,7 +68,7 @@ export default function SearchHeader({
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SortIcon sx={{ color: '#2e7d32' }} />
+              <SortIcon sx={{ color: theme.palette.primary.main }} />
             </InputAdornment>
           ),
         }}
@@ -85,10 +89,10 @@ export default function SearchHeader({
         }
         sx={{
           borderRadius: 2,
-          backgroundColor: "#2e7d32",
+          backgroundColor: theme.palette.primary.main,
           textTransform: "none",
           fontWeight: 600,
-          "&:hover": { backgroundColor: "#256026" }
+          "&:hover": { backgroundColor: theme.palette.primary.dark }
         }}
       >
         Consultas
@@ -100,11 +104,11 @@ export default function SearchHeader({
           startIcon={<AddIcon />}
           onClick={onAddPatient}
           sx={{
-            backgroundColor: "#2e7d32",
+            backgroundColor: theme.palette.primary.main,
             borderRadius: 2,
             textTransform: "none",
             fontWeight: 600,
-            "&:hover": { backgroundColor: "#256026" }
+            "&:hover": { backgroundColor: theme.palette.primary.dark }
           }}
         >
           Adicionar Paciente

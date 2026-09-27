@@ -1,16 +1,18 @@
-import { Box, Typography, Avatar, Divider } from '@mui/material';
+import { Box, Typography, Avatar } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import StarIcon from '@mui/icons-material/Star';
 function CardAvaliation({ title, description, name, date, avatar }) {
+  const theme = useTheme();
 
     return (
         <>
-        <Box sx={{display: 'flex',height: 400, width: 370, justifyContent: 'space-between', flexDirection: 'column', alignItems: 'left', m: 2, border: '1px solid rgba(0, 0, 0, 0.06)', borderRadius: 2, boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', backgroundColor: '#ffffff'}}>
+    <Box sx={{display: 'flex',height: 400, width: 370, justifyContent: 'space-between', flexDirection: 'column', alignItems: 'left', m: 2, border: `1px solid ${theme.palette.divider}`, borderRadius: 2, boxShadow: theme.shadows[1], backgroundColor: 'background.paper'}}>
             <Box sx={{display: 'flex', flexDirection: 'row', mt: 4, mb: 2, ml: 2}}>
-            <StarIcon sx={{ color: '#FFD54F', fontSize: 20, filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.95))' }} />
-            <StarIcon sx={{ color: '#FFD54F', fontSize: 20, filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.95))' }} />
-            <StarIcon sx={{ color: '#FFD54F', fontSize: 20, filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.95))' }} />
-            <StarIcon sx={{ color: '#FFD54F', fontSize: 20, filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.95))' }} />
-            <StarIcon sx={{ color: '#FFD54F', fontSize: 20, filter: 'drop-shadow(0 0 1px rgba(0,0,0,0.95))' }} />
+      <StarIcon sx={{ color: theme.palette.warning.main, fontSize: 20, filter: `drop-shadow(0 0 1px ${alpha(theme.palette.common.black, 0.55)})` }} />
+      <StarIcon sx={{ color: theme.palette.warning.main, fontSize: 20, filter: `drop-shadow(0 0 1px ${alpha(theme.palette.common.black, 0.55)})` }} />
+      <StarIcon sx={{ color: theme.palette.warning.main, fontSize: 20, filter: `drop-shadow(0 0 1px ${alpha(theme.palette.common.black, 0.55)})` }} />
+      <StarIcon sx={{ color: theme.palette.warning.main, fontSize: 20, filter: `drop-shadow(0 0 1px ${alpha(theme.palette.common.black, 0.55)})` }} />
+      <StarIcon sx={{ color: theme.palette.warning.main, fontSize: 20, filter: `drop-shadow(0 0 1px ${alpha(theme.palette.common.black, 0.55)})` }} />
             </Box>
         <Box sx={{display: 'flex', flexDirection: 'column', alignItems: 'left', ml: 2, mr: 2}}>
             <Typography variant="h6" color="text.primary" fontWeight={600} mb={1}>{title}</Typography>

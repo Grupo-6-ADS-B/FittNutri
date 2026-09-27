@@ -2,6 +2,8 @@ package fitt_nutri.example.demo.service;
 
 import fitt_nutri.example.demo.dto.EvolucaoPacienteDTO;
 import fitt_nutri.example.demo.dto.request.ConsultaPacienteRequestDTO;
+import fitt_nutri.example.demo.dto.response.PatientHistoryResponseDTO;
+import fitt_nutri.example.demo.exceptions.InvalidDataException;
 import fitt_nutri.example.demo.model.AnthropometricDataModel;
 import fitt_nutri.example.demo.model.DataCircleModel;
 import fitt_nutri.example.demo.model.PatientHistoryModel;
@@ -39,11 +41,40 @@ public class PatientHistoryService {
         }
     }
 
-    public List<PatientHistoryModel> listarPorPaciente(Integer pacienteId) {
+    public List<PatientHistoryResponseDTO> listarPorPaciente(Integer pacienteId) {
         PatientModel patient = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
         verificarPropriedadePaciente(patient);
-        return repository.findByPatientModelIdOrderByDataConsultaAsc(pacienteId);
+        return repository.findByPatientModelIdOrderByDataConsultaAsc(pacienteId).stream()
+                .map(this::toHistoryResponseDTO)
+                .toList();
+    }
+
+    private PatientHistoryResponseDTO toHistoryResponseDTO(PatientHistoryModel h) {
+        return new PatientHistoryResponseDTO(
+                h.getId(),
+                h.getDataConsulta(),
+                h.getMotivoConsulta(),
+                toAnthropometricDTO(h.getAnthropometricDataModel()),
+                toDataCircleDTO(h.getDataCircleModel())
+        );
+    }
+
+    private PatientHistoryResponseDTO.AnthropometricDataResponseDTO toAnthropometricDTO(AnthropometricDataModel a) {
+        if (a == null) return null;
+        return new PatientHistoryResponseDTO.AnthropometricDataResponseDTO(
+                a.getIdDadosAntropometricos(), a.getPeso(), a.getAltura(), a.getIdade(), a.getImc(),
+                a.getPorcentagemGordura(), a.getMassaMuscular(), a.getGorduraVisceral(),
+                a.getTaxaMetabolicaBasal(), a.getIdadeMetabolica()
+        );
+    }
+
+    private PatientHistoryResponseDTO.DataCircleResponseDTO toDataCircleDTO(DataCircleModel c) {
+        if (c == null) return null;
+        return new PatientHistoryResponseDTO.DataCircleResponseDTO(
+                c.getIdDadosCircunferencia(), c.getAbdominal(), c.getCintura(), c.getQuadril(), c.getPulso(),
+                c.getPanturrilha(), c.getBraco(), c.getCoxa(), c.getPesoIdeal()
+        );
     }
 
     public PatientHistoryModel salvar(PatientHistoryModel historico) {
@@ -56,6 +87,13 @@ public class PatientHistoryService {
         PatientModel paciente = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new RuntimeException("Paciente não encontrado"));
         verificarPropriedadePaciente(paciente);
+
+        if (dto.getAntropometria() == null) {
+            throw new InvalidDataException("Dados antropométricos são obrigatórios");
+        }
+        if (dto.getCircunferencia() == null) {
+            throw new InvalidDataException("Dados de circunferência são obrigatórios");
+        }
 
         AnthropometricDataModel antropo = new AnthropometricDataModel();
 

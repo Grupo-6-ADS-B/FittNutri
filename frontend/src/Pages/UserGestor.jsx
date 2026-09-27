@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Snackbar from '@mui/material/Snackbar';
 import api from '../utils/api';
+import { toLocalDateString } from '../utils/dateUtils';
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   CssBaseline,
@@ -10,6 +11,7 @@ import {
   CircularProgress,
   Pagination,
 } from "@mui/material";
+import { useTheme } from '@mui/material/styles';
 import SearchHeader from '../components/UserGestor/SearchHeader';
 import PatientCard from '../components/UserGestor/PatientCard';
 import ConfirmDialog from '../components/UserGestor/ConfirmDialog';
@@ -21,9 +23,11 @@ import {
   defaultUsers,
   computeImc,
   initialCirc,
+  splitDateTime,
 } from '../utils/userGestorUtils';
 
 export default function UserGestor() {
+  const muiTheme = useTheme();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -43,14 +47,11 @@ export default function UserGestor() {
   const [apptNote, setApptNote] = useState("");
   const [weekDialogOpen, setWeekDialogOpen] = useState(false);
   
-  const getTodayString = () => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  };
+  const getTodayString = () => toLocalDateString();
   const getEndDateString = () => {
     const end = new Date();
     end.setDate(end.getDate() + 7);
-    return end.toISOString().split('T')[0];
+    return toLocalDateString(end);
   };
   const isPastAppointmentDate = (dateValue) => {
     if (!dateValue) return false;
@@ -148,14 +149,15 @@ export default function UserGestor() {
 
         const mapped = list.map((a) => {
           const localAppt = localAppointments.find(la => la.id === a.id);
-          
+          const { date, time } = splitDateTime(a.dataAgendada);
+
           return {
             id: a.id,
             userId: a.pacienteId ?? a.usuarioId ?? null,
             userName: a.pacienteNome ?? "",
             nutricionistaName: a.nutricionistaNome ?? "",
-            date: a.dataAgendada ?? "",
-            time: "09:00",
+            date,
+            time: time || "09:00",
             note: a.observacoes ?? "",
             status: localAppt?.status || undefined
           };
@@ -386,16 +388,8 @@ export default function UserGestor() {
       return;
     }
 
-    const dateParts = updateForm.date.split('-');
-    const adjustDate = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
-    adjustDate.setDate(adjustDate.getDate() + 1);
-    const year = adjustDate.getFullYear();
-    const month = String(adjustDate.getMonth() + 1).padStart(2, '0');
-    const day = String(adjustDate.getDate()).padStart(2, '0');
-    const adjustedDate = `${year}-${month}-${day}T00:00:00Z`;
-
     const payload = {
-      dataConsulta: adjustedDate,
+      dataConsulta: updateForm.date,
       motivoConsulta: (updateForm.motivoConsulta || '').trim(),
       antropometria: {
         peso: Number(updateForm.peso),
@@ -634,31 +628,32 @@ export default function UserGestor() {
     }
   
     try {
-      const usuarioIdStr = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario');
-      const usuarioId = usuarioIdStr ? parseInt(usuarioIdStr, 10) : null;
-      const pacienteId = scheduleUser?.id ? parseInt(scheduleUser.id, 10) : 1;
+      const usuarioIdStr = sessionStorage.getItem('idUsuario') || localStorage.getItem('idUsuario') || sessionStorage.getItem('userId') || localStorage.getItem('userId');
+      const usuarioId = usuarioIdStr ? parseInt(usuarioIdStr, 10) : 1;
+      const pacienteId = scheduleUser?.id ? parseInt(scheduleUser.id, 10) : null;
     
-      if (!usuarioId || !pacienteId) {
-        alert('Erro ao identificar paciente ou nutricionista.');
+      if (!pacienteId) {
+        alert('Erro ao identificar o paciente selecionado.');
         return;
       }
 
       const payload = {
         pacienteId,
         usuarioId,
-        dataAgendada: apptDate,
+        dataAgendada: `${apptDate}T${apptTime || '09:00'}:00`,
         observacoes: apptNote || ""
       };
 
       const response = await api.post('/schedulings', payload);
-    
+      const { date: savedDate, time: savedTime } = splitDateTime(response.data.dataAgendada);
+
       const appt = {
         id: response.data.id,
         userId: pacienteId,
         userName: response.data.pacienteNome,
         nutricionistaName: response.data.nutricionistaNome,
-        date: response.data.dataAgendada,
-        time: apptTime,
+        date: savedDate || apptDate,
+        time: savedTime || apptTime,
         note: response.data.observacoes || "",
       };
     
@@ -720,7 +715,9 @@ export default function UserGestor() {
             display: "flex",
             justifyContent: "center",
             p: 3,
-            background: "linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)",
+            background: muiTheme.palette.mode === 'dark'
+              ? "linear-gradient(135deg, #0b1220 0%, #121a2b 100%)"
+              : "linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)",
           }}
         >
           <Box
@@ -733,7 +730,7 @@ export default function UserGestor() {
             }}
           >
             <Box>
-              <Typography variant="h4" sx={{ mt: 5, fontWeight: 700, mb: 3, color: '#1b5e20' }}>
+              <Typography variant="h4" sx={{ mt: 5, fontWeight: 700, mb: 3, color: muiTheme.palette.text.primary }}>
                 Gerenciamento de Pacientes
               </Typography>
 

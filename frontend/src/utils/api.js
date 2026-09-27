@@ -8,10 +8,11 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const isPublicEndpoint = 
+  const isPublicEndpoint =
     (config.url === '/users' && config.method?.toLowerCase() === 'post') ||
-    (config.url === '/users/login' && config.method?.toLowerCase() === 'post');
-  
+    (config.url === '/users/login' && config.method?.toLowerCase() === 'post') ||
+    (config.url === '/users/google-login' && config.method?.toLowerCase() === 'post');
+
   if (!isPublicEndpoint) {
     const token = sessionStorage.getItem('token') || localStorage.getItem('token');
     if (token) config.headers.Authorization = `Bearer ${token}`;

@@ -19,11 +19,12 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 @Component
 @RequiredArgsConstructor
 public class AutenticacaoFilter extends OncePerRequestFilter {
-    // URLs públicas (mesmo array do SecurityConfig)
-    private static final List<String> URLS_PUBLICAS = Arrays.asList(
+    // URLs públicas exatas
+    private static final Set<String> URLS_PUBLICAS_EXATAS = Set.of(
         "/users/google-login",
         "/users/login",
         "/users",
@@ -39,6 +40,16 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
         "/actuator/prometheus"
     );
 
+    // URLs públicas por prefixo
+    private static final List<String> URLS_PUBLICAS_PREFIXO = Arrays.asList(
+        "/swagger-ui",
+        "/v3/api-docs",
+        "/swagger-resources",
+        "/webjars",
+        "/h2-console",
+        "/forms"
+    );
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AutenticacaoFilter.class);
 
     private final AutenticacaoService autenticacaoService;
@@ -51,9 +62,8 @@ public class AutenticacaoFilter extends OncePerRequestFilter {
         String method = request.getMethod();
 
         // Verifica se a rota é pública
-        boolean isPublic = URLS_PUBLICAS.stream().anyMatch(publicUrl ->
-            path.equals(publicUrl) || path.startsWith(publicUrl + "/")
-        );
+        boolean isPublic = URLS_PUBLICAS_EXATAS.contains(path)
+                || URLS_PUBLICAS_PREFIXO.stream().anyMatch(path::startsWith);
 
         // Permite POST em /users (criação de usuário) e /users/google-login
         if ((path.equals("/users") || path.equals("/users/google-login")) && method.equals("POST")) {

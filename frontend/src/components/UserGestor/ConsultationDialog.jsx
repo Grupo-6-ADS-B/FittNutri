@@ -8,6 +8,7 @@ import {
   Paper,
   Button
 } from "@mui/material";
+import { alpha, useTheme } from '@mui/material/styles';
 import { formatDateHuman } from '../../utils/userGestorUtils';
 
 export default function ConsultationDialog({ 
@@ -21,17 +22,18 @@ export default function ConsultationDialog({
   onViewDashboard,
   onFinalize
 }) {
+  const theme = useTheme();
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle sx={{ bgcolor: '#2e7d32', color: 'white', py: 1.8, px: 3 }}>
+      <DialogTitle sx={{ bgcolor: theme.palette.primary.main, color: theme.palette.primary.contrastText, py: 1.8, px: 3 }}>
         {startAppointment && (
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, color: 'white' }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, color: theme.palette.primary.contrastText }}>
                 Consulta em Andamento
               </Typography>
             </Box>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem' }}>
+            <Typography variant="body2" sx={{ color: alpha(theme.palette.primary.contrastText, 0.85), fontSize: '0.9rem' }}>
               {startAppointment.userName} • {formatDateHuman(startAppointment.date, startAppointment.time)}
             </Typography>
           </Box>
@@ -44,39 +46,39 @@ export default function ConsultationDialog({
             sx={{
               p: 2.5,
               borderRadius: 2,
-              backgroundColor: '#f9fdf8',
-              borderLeft: '4px solid #2e7d32',
-              border: '1px solid #e8f5e9'
+              backgroundColor: theme.palette.background.paper,
+              borderLeft: `4px solid ${theme.palette.primary.main}`,
+              border: `1px solid ${theme.palette.divider}`
             }}
           >
-            <Typography variant="subtitle2" sx={{ fontSize: '1.rem', fontWeight: 700, color: '#1b5e20', mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="subtitle2" sx={{ fontSize: '1.rem', fontWeight: 700, color: theme.palette.text.primary, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box sx={{ fontSize: '1.1rem' }}>📋</Box> Passos da Consulta
             </Typography>
             
             {/* Progress Bar */}
             <Box sx={{ mb: 2 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600, color: '#2e7d32', fontSize: '0.85rem' }}>
+                <Typography variant="body2" sx={{ fontWeight: 600, color: theme.palette.primary.main, fontSize: '0.85rem' }}>
                   Progresso
                 </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 700, color: '#2e7d32', fontSize: '0.9rem' }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: theme.palette.primary.main, fontSize: '0.9rem' }}>
                   {Object.values(completedSteps).filter(Boolean).length} de 3
                 </Typography>
               </Box>
-              <Box sx={{ width: '100%', height: '8px', backgroundColor: '#e0e0e0', borderRadius: '4px', overflow: 'hidden' }}>
+              <Box sx={{ width: '100%', height: '8px', backgroundColor: theme.palette.divider, borderRadius: '4px', overflow: 'hidden' }}>
                 <Box
                   sx={{
                     height: '100%',
                     width: `${(Object.values(completedSteps).filter(Boolean).length / 3) * 100}%`,
-                    backgroundColor: Object.values(completedSteps).filter(Boolean).length === 3 ? '#4caf50' : '#4caf50',
+                    backgroundColor: theme.palette.success.main,
                     transition: 'all 0.4s ease',
                     borderRadius: '4px',
-                    boxShadow: Object.values(completedSteps).filter(Boolean).length === 3 ? '0 0 12px rgba(76, 175, 80, 0.6)' : 'none'
+                    boxShadow: Object.values(completedSteps).filter(Boolean).length === 3 ? `0 0 12px ${alpha(theme.palette.success.main, 0.4)}` : 'none'
                   }}
                 />
               </Box>
               {Object.values(completedSteps).filter(Boolean).length === 3 && (
-                <Typography variant="caption" sx={{ mt: 1, display: 'block', color: '#4caf50', fontWeight: 700, fontSize: '0.8rem', animation: 'pulse 2s ease-in-out infinite', '@keyframes pulse': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.7 } } }}>
+                <Typography variant="caption" sx={{ mt: 1, display: 'block', color: theme.palette.success.main, fontWeight: 700, fontSize: '0.8rem', animation: 'pulse 2s ease-in-out infinite', '@keyframes pulse': { '0%, 100%': { opacity: 1 }, '50%': { opacity: 0.7 } } }}>
                   ✅ Consulta pronta para finalizar
                 </Typography>
               )}
@@ -99,10 +101,10 @@ export default function ConsultationDialog({
                     borderRadius: '8px',
                     cursor: 'pointer',
                     transition: 'all 0.2s',
-                    backgroundColor: completedSteps[step.key] ? '#e8f5e9' : 'transparent',
-                    border: completedSteps[step.key] ? '1px solid #4caf50' : '1px solid transparent',
+                    backgroundColor: completedSteps[step.key] ? alpha(theme.palette.success.main, theme.palette.mode === 'dark' ? 0.14 : 0.08) : 'transparent',
+                    border: completedSteps[step.key] ? `1px solid ${theme.palette.success.main}` : '1px solid transparent',
                     '&:hover': {
-                      backgroundColor: '#f1f1f1'
+                      backgroundColor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.10 : 0.05)
                     }
                   }}
                 >
@@ -113,7 +115,7 @@ export default function ConsultationDialog({
                     variant="body2"
                     sx={{
                       fontWeight: completedSteps[step.key] ? 600 : 500,
-                      color: completedSteps[step.key] ? '#2e7d32' : '#333',
+                      color: completedSteps[step.key] ? theme.palette.success.main : theme.palette.text.primary,
                       textDecoration: completedSteps[step.key] ? 'line-through' : 'none',
                       fontSize: '0.95rem'
                     }}
@@ -135,13 +137,13 @@ export default function ConsultationDialog({
                 fontSize: '1rem',
                 fontWeight: 600,
                 textTransform: 'none',
-                backgroundColor: '#2e7d32',
-                color: 'white',
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 transition: 'all 0.2s',
                 border: 'none',
                 '&:hover': { 
-                  backgroundColor: '#256026',
+                  backgroundColor: theme.palette.primary.dark,
                   transform: 'translateY(-2px)',
                   boxShadow: 2
                 }
@@ -159,12 +161,12 @@ export default function ConsultationDialog({
                 fontSize: '0.95rem',
                 fontWeight: 600,
                 textTransform: 'none',
-                backgroundColor: '#2e7d32',
-                color: 'white',
+                backgroundColor: theme.palette.primary.main,
+                color: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 transition: 'all 0.2s',
                 '&:hover': { 
-                  backgroundColor: '#256026',
+                  backgroundColor: theme.palette.primary.dark,
                   transform: 'translateY(-1px)',
                   boxShadow: 2
                 }

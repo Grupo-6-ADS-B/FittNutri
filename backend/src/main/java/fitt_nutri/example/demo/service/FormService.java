@@ -23,6 +23,7 @@ public class FormService {
         }
         FormModel model = new FormModel();
         model.setNome(dto.nome());
+        model.setEmail(dto.email());
         model.setMensagem(dto.mensagem());
         return formRepository.save(model);
     }
@@ -52,6 +53,7 @@ public class FormService {
         FormModel model = new FormModel();
         model.setId(id);
         model.setNome(dto.nome());
+        model.setEmail(dto.email());
         model.setMensagem(dto.mensagem());
         return formRepository.save(model);
     }

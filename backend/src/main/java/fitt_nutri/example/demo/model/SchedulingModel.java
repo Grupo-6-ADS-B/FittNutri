@@ -8,7 +8,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLRestriction;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -34,7 +33,7 @@ public class SchedulingModel extends AuditableEntity {
 
     @NotNull(message = "A data agendada não pode estar vazia")
     @Column(nullable = false)
-    private LocalDate dataAgendada;
+    private LocalDateTime dataAgendada;
 
     private String observacoes;
 

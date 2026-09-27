@@ -43,3 +43,20 @@ terraform-atividade/*.tfstate
 terraform-atividade/*.tfstate.*
 terraform-atividade/terraform.tfvars
 terraform-atividade/.terraform.tfstate.lock.info
+
+# Diagramas e documentos locais (não subir ao GitHub)
+fittnutri-arquitetura.drawio
+docs/pitch-arquitetura.html
+docs/pitch-arquitetura.md
+docs/pitch-conteudos-adicionais.html
+docs/pitch-conteudos-adicionais.md
+docs/post-linkedin-fittnutri.md
+
+# Logs JVM
+hs_err_pid*.log
+
+# AntiGravity CLI
+.antigravitycli/
+
+# Claude settings locais
+.claude/settings.local.json

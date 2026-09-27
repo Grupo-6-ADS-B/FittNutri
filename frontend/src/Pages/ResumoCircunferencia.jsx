@@ -1,10 +1,11 @@
 import React, { useMemo, useEffect } from "react";
 import api from '../utils/api';
+import { toLocalDateString } from '../utils/dateUtils';
 import { useNavigate, useLocation } from "react-router-dom";
 import {
     Box, Typography, Paper, Card, CardMedia, CardContent, Button, Grid
 } from "@mui/material";
-import { useTheme, styled } from "@mui/material/styles";
+import { alpha, useTheme, styled } from "@mui/material/styles";
 import ScaleIcon from '@mui/icons-material/Scale';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment';
@@ -31,7 +32,9 @@ const KpiAnimatedCard = styled(Card)(({ theme }) => ({
     justifyContent: 'center',
     padding: theme.spacing(1.2),
     border: 'none',
-    background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
+    background: theme.palette.mode === 'dark'
+        ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+        : 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)',
 }));
 
 const KpiCarouselCard = ({ title, value, unit, description, icon: Icon, imageId, valueColor }) => {
@@ -59,6 +62,9 @@ export default function ResumoCircunferencia() {
     const theme = useTheme();
     const primary = theme.palette.primary.main;
     const success = theme.palette.success.main;
+    const pageBackground = theme.palette.mode === 'dark'
+        ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+        : 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)';
     const navigate = useNavigate();
     const location = useLocation();
     const storedPatientId = sessionStorage.getItem('pacienteId') || localStorage.getItem('pacienteId');
@@ -121,20 +127,12 @@ export default function ResumoCircunferencia() {
             console.log('Buscando dados para usuário:', selectedUser.id);
             try {
                 const today = new Date();
-                today.setDate(today.getDate() + 1);
-                
+
                 const manyYearsAgo = new Date(today);
-                manyYearsAgo.setFullYear(today.getFullYear() - 10); 
-                
-                const fromYear = manyYearsAgo.getFullYear();
-                const fromMonth = String(manyYearsAgo.getMonth() + 1).padStart(2, '0');
-                const fromDay = String(manyYearsAgo.getDate()).padStart(2, '0');
-                const startDate = `${fromYear}-${fromMonth}-${fromDay}`;
-                
-                const toYear = today.getFullYear();
-                const toMonth = String(today.getMonth() + 1).padStart(2, '0');
-                const toDay = String(today.getDate()).padStart(2, '0');
-                const endDate = `${toYear}-${toMonth}-${toDay}`;
+                manyYearsAgo.setFullYear(today.getFullYear() - 10);
+
+                const startDate = toLocalDateString(manyYearsAgo);
+                const endDate = toLocalDateString(today);
                 
                 console.log('Buscando com datas:', startDate, 'até', endDate);
                 
@@ -402,8 +400,8 @@ function KpiLayout() {
 
 if (!selectedUser && !loadingUsers) {
     return (
-        <Box sx={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)' }}>
-            <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
+        <Box sx={{ minHeight: '90vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: pageBackground }}>
+            <Paper elevation={4} sx={{ p: 4, bgcolor: 'background.paper', color: 'text.primary' }}>
                 <Typography variant="h6" color="text.secondary" sx={{ textAlign: 'center' }}>
                     Nenhum usuário selecionado ou encontrado.<br />
                     Volte e preencha o questionário novamente.
@@ -417,9 +415,9 @@ if (!selectedUser && !loadingUsers) {
 }
 
     return (
-        <Box sx={{ minHeight: "90vh", background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)', width: '100%' }}>
+        <Box sx={{ minHeight: "90vh", background: pageBackground, width: '100%' }}>
             <Box sx={{ p: { xs: 2, md: 4 }, overflowY: 'auto' }}>
-                <Paper elevation={4} sx={{ p: 4, bgcolor: 'white' }}>
+                <Paper elevation={4} sx={{ p: 4, bgcolor: 'background.paper', color: 'text.primary' }}>
                     {loadingUsers && !selectedUser ? (
                         <Typography variant="h6" color="primary" sx={{ textAlign: 'center', mt: 6 }}>
                             Carregando usuários...
@@ -451,7 +449,7 @@ if (!selectedUser && !loadingUsers) {
                                 <KpiLayout />
                             </Grid>
                             <Grid item xs={12} md={5}>
-                                <Paper elevation={0} sx={{ p: 3, height: '100%', borderLeft: theme => `3px solid ${theme.palette.primary.dark}`, bgcolor: '#f5f5f5' }}>
+                                <Paper elevation={0} sx={{ p: 3, height: '100%', borderLeft: theme => `3px solid ${theme.palette.primary.dark}`, bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.12 : 0.06) }}>
                                     <Typography variant="subtitle1" fontWeight="bold" color="primary">
                                         Bem-vindo à sua experiência FIttNutri
                                     </Typography>
@@ -470,7 +468,7 @@ if (!selectedUser && !loadingUsers) {
                             gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }
                         }}>
                             {servicos.map((serv, idx) => (
-                                <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: 140, minWidth: 200, p: 1, boxShadow: 2, background: 'linear-gradient(135deg, #f8fff9 0%, #e8f5e9 100%)' }}>
+                                <Card key={idx} sx={{ display: 'flex', flexDirection: 'column', height: 140, minWidth: 200, p: 1, boxShadow: 2, background: pageBackground }}>
                                     <Box sx={{ display: 'flex', gap: 1.2, flexGrow: 1, minHeight: 70 }}>
                                         <CardMedia component="img" image={serv.imagem} alt={serv.titulo} sx={{ width: 200, height: 180, borderRadius: 1.2, objectFit: 'cover', flexShrink: 0, ml: -1, mt: -3, mr: -4 }} />
                                         <Box

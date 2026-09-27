@@ -2,7 +2,7 @@ package fitt_nutri.example.demo.controller;
 
 import fitt_nutri.example.demo.dto.EvolucaoPacienteDTO;
 import fitt_nutri.example.demo.dto.request.ConsultaPacienteRequestDTO;
-import fitt_nutri.example.demo.model.PatientHistoryModel;
+import fitt_nutri.example.demo.dto.response.PatientHistoryResponseDTO;
 import fitt_nutri.example.demo.service.BioimpedancePdfService;
 import fitt_nutri.example.demo.service.PatientHistoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,7 +31,7 @@ public class PatientHistoryController {
     @ApiResponse(responseCode = "200", description = "Histórico de consultas retornado com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
     @GetMapping("/{id}")
-    public ResponseEntity<List<PatientHistoryModel>> buscarPorPaciente(@PathVariable Integer id) {
+    public ResponseEntity<List<PatientHistoryResponseDTO>> buscarPorPaciente(@PathVariable Integer id) {
         return ResponseEntity.ok(service.listarPorPaciente(id));
     }
 

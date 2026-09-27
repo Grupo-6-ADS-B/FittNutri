@@ -3,6 +3,7 @@ package fitt_nutri.example.demo.controller;
 import fitt_nutri.example.demo.adapter.FormAdapter;
 import fitt_nutri.example.demo.dto.request.FormRequestDTO;
 import fitt_nutri.example.demo.dto.response.FormResponseDTO;
+import fitt_nutri.example.demo.service.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,6 +21,7 @@ import java.util.List;
 public class FormController {
 
     private final FormAdapter formAdapter;
+    private final EmailService emailService;
 
     @Operation(summary = "Cria um formulário")
     @ApiResponse(responseCode = "201", description = "Formulário criado com sucesso")
@@ -27,6 +29,7 @@ public class FormController {
     @PostMapping
     public ResponseEntity<FormResponseDTO> createForm(@Valid @RequestBody FormRequestDTO dto) {
         FormResponseDTO created = formAdapter.create(dto);
+        emailService.sendContactNotificationEmail(dto.nome(), dto.email(), dto.mensagem());
         return ResponseEntity.status(201).body(created);
     }
 

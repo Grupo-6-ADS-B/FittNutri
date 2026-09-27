@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PatientRepository extends JpaRepository<PatientModel, Integer> {
     boolean existsByEmail(@Email @NotBlank(message = "Email não pode estar vazio") String email);
@@ -17,6 +18,8 @@ public interface PatientRepository extends JpaRepository<PatientModel, Integer> 
     boolean existsByCpf(@CPF @NotBlank(message = "CPF não pode estar vazio") String cpf);
 
     boolean existsByNome(@NotBlank(message = "Nome não pode estar vazio") String nome);
+
+    Optional<Integer> findIdById(Integer id); // minimal, framework maps to PatientModel
 
     List<PatientModel> findByNutricionista(UserModel nutricionista);
 

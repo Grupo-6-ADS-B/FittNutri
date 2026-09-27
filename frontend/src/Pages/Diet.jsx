@@ -1,20 +1,28 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip, Snackbar, Alert, CircularProgress
+  Box, Paper, Typography, TextField, Button, Stack, Avatar, IconButton, Tooltip, Snackbar, Alert, CircularProgress, Chip,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import { useNavigate, useLocation } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import MealModal from '../components/MealModal';
+import DietModelsModal from '../components/DietModelsModal';
+import AiDietSuggestionModal from '../components/AiDietSuggestionModal';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import api from '../utils/api';
+import { toLocalDateString } from '../utils/dateUtils';
 
 export default function Diet() {
+  const theme = useTheme();
 
     const navigate = useNavigate();
   const location = useLocation();
@@ -40,7 +48,7 @@ export default function Diet() {
   const patientId = selectedUser?.id || parsedPatientId || null;
   const appointment = location.state?.appointment || null;
   const agendamentoId = appointment?.id || appointment?.appointmentId || null;
-  const dataAgendamento = appointment?.date || appointment?.dataAgendada || new Date().toISOString().split("T")[0];
+  const dataAgendamento = appointment?.date || appointment?.dataAgendada || toLocalDateString();
 console.log('Diet page - selectedUser:', selectedUser);
   const initials = userName
     ? userName.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase()
@@ -101,10 +109,19 @@ const handleSendToS3 = async () => {
   }
 };
   const [openMeal, setOpenMeal] = useState(false);
+  const [openModelsModal, setOpenModelsModal] = useState(false);
+  const [openAiModal, setOpenAiModal] = useState(false);
+  const [patientMotivoConsulta, setPatientMotivoConsulta] = useState('');
+  const [openConfirmClear, setOpenConfirmClear] = useState(false);
+  const [clearingDiet, setClearingDiet] = useState(false);
   const [meals, setMeals] = useState([]);
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
   const [sendingToS3, setSendingToS3] = useState(false);
+
+  const openSnack = (message, severity = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   const handleOpenMeal = () => { setSelectedMeal(null); setOpenMeal(true); };
   const handleCloseMeal = () => setOpenMeal(false);
@@ -114,7 +131,7 @@ const handleSendToS3 = async () => {
     console.log('alimentos:', meal.alimentos);
 
     if (!patientId) {
-      alert('Erro: ID do paciente não encontrado. Volte e selecione o paciente novamente.');
+      openSnack('Não foi possível identificar o paciente. Selecione o paciente novamente.', 'error');
       return;
     }
 
@@ -124,9 +141,10 @@ const handleSendToS3 = async () => {
         horario: meal.horario,
         observacao: meal.observacao,
         alimentos: meal.alimentos.map(a => ({
-          alimento: a.nome || a.alimento, 
+          alimento: a.nome || a.alimento,
           quantidade: parseFloat(a.quantidade),
-          unidade: a.unidade
+          unidade: a.unidade,
+          foodItemId: a.foodItemId ?? null
         }))
       };
 
@@ -136,12 +154,12 @@ const handleSendToS3 = async () => {
         
         console.log('Fazendo PATCH para /meals/' + meal.id);
         await api.put(`/meals/${meal.id}`, payload);
-        alert('Refeição atualizada com sucesso!');
+        openSnack(`Refeição "${meal.descricao || 'sem título'}" atualizada com sucesso no plano de ${userName}.`, 'success');
       } else {
         
         console.log('Fazendo POST para /meals/meal-by-type/' + patientId);
         await api.post(`/meals/meal-by-type/${patientId}`, payload);
-        alert('Refeição adicionada com sucesso!');
+        openSnack(`Refeição "${meal.descricao || 'sem título'}" adicionada ao plano de ${userName}.`, 'success');
       }
 
       
@@ -151,7 +169,7 @@ const handleSendToS3 = async () => {
       setOpenMeal(false);
     } catch (error) {
       console.error('Erro ao salvar refeição:', error);
-      alert('Erro ao salvar refeição.');
+      openSnack('Não foi possível salvar a refeição agora. Verifique os dados e tente novamente.', 'error');
     }
   };
 
@@ -169,33 +187,34 @@ const handleSendToS3 = async () => {
     try {
       await api.delete(`/meals/${id}`);
       setMeals(prev => prev.filter(m => m.id !== id));
-      alert('Refeição deletada com sucesso!');
+      openSnack('Refeição deletada com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao deletar refeição:', error);
-      alert('Erro ao deletar refeição.');
+      openSnack('Erro ao deletar refeição.', 'error');
     }
   };
 
-  const handleClearDiet = async () => {
+  const handleClearDiet = () => {
     if (meals.length === 0) {
-      alert('Não há refeições para limpar.');
+      openSnack('Não há refeições para limpar.', 'info');
       return;
     }
+    setOpenConfirmClear(true);
+  };
 
-    const confirmacao = window.confirm(
-      `Tem certeza que deseja limpar TODAS as ${meals.length} refeições desta dieta?\n\nEsta ação não pode ser desfeita!`
-    );
-
-    if (!confirmacao) return;
-
+  const confirmClearDiet = async () => {
+    setClearingDiet(true);
     try {
       await Promise.all(meals.map(meal => api.delete(`/meals/${meal.id}`)));
       setMeals([]);
-      alert('Todas as refeições foram removidas com sucesso!');
+      setOpenConfirmClear(false);
+      openSnack('Todas as refeições foram removidas com sucesso!', 'success');
     } catch (error) {
       console.error('Erro ao limpar dieta:', error);
-      alert('Erro ao limpar algumas refeições. Verifique o console.');
+      openSnack('Erro ao limpar algumas refeições. Verifique o console.', 'error');
       loadMeals();
+    } finally {
+      setClearingDiet(false);
     }
   };
 
@@ -207,7 +226,7 @@ const handleSendToS3 = async () => {
       const refeicoes = response.data?.refeicoes ?? response.data;
       const mealsList = (refeicoes || []).map(r => ({
         id: r.id || r.mealId,
-        descricao: r.descricao,
+        descricao: (r.descricao || '').replace(/^📋\s*Dieta\s*Modelo:[^-]+-\s*/i, '').replace(/^📋\s*Dieta\s*Modelo\s*-\s*/i, '').trim(),
         horario: r.horario,
         observacao: r.observacao,
         alimentos: (r.alimentos || []).map(a => ({
@@ -229,15 +248,25 @@ const handleSendToS3 = async () => {
     if (patientId) loadMeals();
   }, [patientId]);
 
+  useEffect(() => {
+    if (!patientId) return;
+    api.get(`/patients/${patientId}`)
+      .then(response => setPatientMotivoConsulta(response.data?.motivoConsulta || ''))
+      .catch(err => console.error('Erro ao carregar motivo da consulta do paciente:', err));
+  }, [patientId]);
+
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, background: '#f5f8fa', minHeight: '100vh' }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, background: theme.palette.background.default, minHeight: '100vh', color: theme.palette.text.primary }}>
       <Paper 
         elevation={2} 
         sx={{ 
           p: 3, 
           mb: 4, 
           borderRadius: 2,
+          bgcolor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          border: `1px solid ${theme.palette.divider}`,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -290,14 +319,23 @@ const handleSendToS3 = async () => {
           >
             Limpar Dieta
           </Button>
-          <Button 
-            variant="contained" 
-            color="success" 
-            startIcon={<AddCircleOutlineIcon />} 
+          <Button
+            variant="contained"
+            color="success"
+            startIcon={<AddCircleOutlineIcon />}
             onClick={handleOpenMeal}
             sx={{ fontWeight: 600 }}
           >
             Adicionar Refeição
+          </Button>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<AutoAwesomeIcon />}
+            onClick={() => setOpenAiModal(true)}
+            sx={{ fontWeight: 600 }}
+          >
+            Sugerir com IA
           </Button>
         </Stack>
       </Paper>
@@ -312,6 +350,9 @@ const handleSendToS3 = async () => {
                 sx={{ 
                   p: 3, 
                   borderRadius: 2,
+                  bgcolor: theme.palette.background.paper,
+                  color: theme.palette.text.primary,
+                  border: `1px solid ${theme.palette.divider}`,
                   transition: 'all 0.2s ease',
                   '&:hover': {
                     boxShadow: 6,
@@ -320,12 +361,21 @@ const handleSendToS3 = async () => {
                 }}
               >
                 <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-                  <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: 700, display: 'inline-block' }}>
                       {m.descricao || 'Refeição'}
                     </Typography>
+                    {(m.descricao?.includes('Dieta Modelo') || m.descricao?.includes('📋')) && (
+                      <Chip
+                        label="Modelo de Dieta"
+                        size="small"
+                        color="success"
+                        variant="outlined"
+                        sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+                      />
+                    )}
                     {m.horario && (
-                      <Typography variant="body2" component="span" sx={{ color: 'text.secondary', ml: 2, fontWeight: 500 }}>
+                      <Typography variant="body2" component="span" sx={{ color: 'text.secondary', ml: 1, fontWeight: 500 }}>
                         {m.horario}
                       </Typography>
                     )}
@@ -360,7 +410,9 @@ const handleSendToS3 = async () => {
                     InputProps={{ readOnly: true }}
                     sx={{ 
                       '& .MuiOutlinedInput-root': { 
-                        backgroundColor: '#f9fafb'
+                        backgroundColor: theme.palette.mode === 'dark' ? alpha(theme.palette.background.default, 0.7) : theme.palette.background.default,
+                        color: theme.palette.text.primary,
+                        '& textarea': { color: theme.palette.text.primary }
                       }
                     }}
                   />
@@ -385,10 +437,12 @@ const handleSendToS3 = async () => {
               justifyContent: 'center',
               borderRadius: 2,
               border: '2px dashed',
-              borderColor: 'divider'
+              borderColor: theme.palette.divider,
+              bgcolor: theme.palette.background.paper,
+              color: theme.palette.text.primary,
             }}
           >
-            <Avatar sx={{ bgcolor: '#e8f5e9', width: 96, height: 96, mb: 3 }}>
+            <Avatar sx={{ bgcolor: alpha(theme.palette.primary.main, theme.palette.mode === 'dark' ? 0.22 : 0.12), width: 96, height: 96, mb: 3 }}>
               <AddCircleOutlineIcon color="success" sx={{ fontSize: 48 }} />
             </Avatar>
             <Typography variant="h6" sx={{ mb: 1, fontWeight: 600 }}>
@@ -400,14 +454,14 @@ const handleSendToS3 = async () => {
           </Paper>
         )}
 
-        <Paper sx={{ p: 3, '@media print': { display: 'none' }, borderRadius: 2 }} elevation={1}>
+        <Paper sx={{ p: 3, '@media print': { display: 'none' }, borderRadius: 2, bgcolor: theme.palette.background.paper, color: theme.palette.text.primary, border: `1px solid ${theme.palette.divider}` }} elevation={1}>
           <Typography variant="h6" gutterBottom sx={{ fontWeight: 600 }}>
             Quer agilizar a elaboração da dieta?
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Experimente visualizar e carregar um plano alimentar já salvo.
           </Typography>
-          <Button variant="contained" color="primary">
+          <Button variant="contained" color="primary" onClick={() => setOpenModelsModal(true)}>
             Ver modelos
           </Button>
         </Paper>
@@ -431,6 +485,69 @@ const handleSendToS3 = async () => {
         onSave={handleSaveMeal} 
         initial={selectedMeal} 
       />
+
+      <DietModelsModal
+        open={openModelsModal}
+        onClose={() => setOpenModelsModal(false)}
+        patientId={patientId}
+        onDietSaved={() => {
+          loadMeals();
+          openSnack('Dieta modelo aplicada com sucesso ao plano do paciente!', 'success');
+        }}
+      />
+
+      <AiDietSuggestionModal
+        open={openAiModal}
+        onClose={() => setOpenAiModal(false)}
+        patientId={patientId}
+        motivoConsulta={patientMotivoConsulta}
+        onDietSaved={() => {
+          loadMeals();
+          openSnack('Sugestão da IA aplicada com sucesso ao plano do paciente!', 'success');
+        }}
+      />
+
+      {/* Modal Estilizado de Confirmação para Limpar Dieta */}
+      <Dialog
+        open={openConfirmClear}
+        onClose={() => !clearingDiet && setOpenConfirmClear(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 1
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1.5, color: 'error.main' }}>
+          <DeleteSweepIcon color="error" />
+          Limpar toda a dieta?
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 1.5 }}>
+            Tem certeza de que deseja remover todas as <strong>{meals.length}</strong> refeições deste plano alimentar?
+          </Typography>
+          <Alert severity="warning" sx={{ borderRadius: 2 }}>
+            Esta ação não poderá ser desfeita!
+          </Alert>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setOpenConfirmClear(false)} color="inherit" disabled={clearingDiet}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={confirmClearDiet}
+            variant="contained"
+            color="error"
+            disabled={clearingDiet}
+            startIcon={clearingDiet ? <CircularProgress size={18} color="inherit" /> : <DeleteSweepIcon />}
+            sx={{ fontWeight: 600, borderRadius: 2 }}
+          >
+            {clearingDiet ? 'Limpando...' : 'Sim, limpar tudo'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

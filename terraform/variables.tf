@@ -247,3 +247,22 @@ variable "grafana_admin_password" {
   type        = string
   sensitive   = true
 }
+
+variable "app_resend_api_key" {
+  description = "RESEND_API_KEY — chave da API Resend para envio de emails transacionais"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "app_email_from" {
+  description = "EMAIL_FROM — remetente padrão dos emails (ex: FittNutri <no-reply@fittnutri.site>)"
+  type        = string
+  default     = "FittNutri <no-reply@fittnutri.site>"
+}
+
+variable "app_google_client_id" {
+  description = "GOOGLE_CLIENT_ID — client ID do OAuth Google"
+  type        = string
+  default     = "654251176082-2bbn9dp6vhee4o2efkmc8t73q8ga8t7g.apps.googleusercontent.com"
+}

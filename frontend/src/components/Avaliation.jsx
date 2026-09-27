@@ -1,4 +1,5 @@
 import { Box, Container, Typography } from '@mui/material';
+import { alpha, useTheme } from '@mui/material/styles';
 import { Section } from './Section';
 import { CardAvaliation } from './CardAvaliation';
 
@@ -33,10 +34,13 @@ const avaliacoes = [
 ];
 
 function Avaliation() {
+  const theme = useTheme();
 
   return (
     <Section
-      background="linear-gradient(135deg, #C0F4BB 0%, #ffffffeb 100%)"
+      background={theme.palette.mode === 'dark'
+        ? 'linear-gradient(135deg, #0b1220 0%, #121a2b 100%)'
+        : 'linear-gradient(135deg, #C0F4BB 0%, #ffffffeb 100%)'}
       py={{ xs: 8, md: 12 }}
       id="reviews"
     >
@@ -47,7 +51,7 @@ function Avaliation() {
             sx={{
               mb: 3,
               fontWeight: 700,
-              color: '#1a202c',
+              color: theme.palette.text.primary,
               fontSize: { xs: '2rem', md: '2.5rem' },
             }}
           >
@@ -56,7 +60,7 @@ function Avaliation() {
               component="span"
               variant="h3"
               sx={{
-                color: 'primary.main',
+                color: theme.palette.primary.main,
                 fontSize: { xs: '2rem', md: '2.5rem' },
               }}
             >

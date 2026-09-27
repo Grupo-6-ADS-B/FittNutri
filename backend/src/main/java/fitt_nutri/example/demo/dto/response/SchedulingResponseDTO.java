@@ -1,11 +1,11 @@
 package fitt_nutri.example.demo.dto.response;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record SchedulingResponseDTO(
         Integer id,
         String pacienteNome,
         String nutricionistaNome,
-        LocalDate dataAgendada,
+        LocalDateTime dataAgendada,
         String observacoes
 ) {}

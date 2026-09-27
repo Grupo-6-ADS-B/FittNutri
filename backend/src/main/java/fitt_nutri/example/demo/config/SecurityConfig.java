@@ -37,6 +37,8 @@ public class SecurityConfig {
     private static final String[] URLS_PUBLICAS = {
             "/users/login",
             "/users/refresh-token",
+            "/users/recover-password",
+            "/users/reset-password",
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/v3/api-docs/**",
