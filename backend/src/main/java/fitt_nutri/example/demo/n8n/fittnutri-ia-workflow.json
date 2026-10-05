@@ -1,0 +1,82 @@
+{
+  "name": "FittNutri - IA Generativa",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fittnutri/ia/analise",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-fittnutri",
+      "name": "Webhook - FittNutri",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "fittnutri-ia-analise"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8080/api/ia/analise-nutricional",
+        "sendBody": true,
+        "contentType": "json",
+        "jsonBody": "={{ $json.body }}",
+        "options": {}
+      },
+      "id": "http-ia-fittnutri",
+      "name": "FittNutri API - IA",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        260,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {}
+      },
+      "id": "respond-fittnutri",
+      "name": "Retornar análise",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        520,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Webhook - FittNutri": {
+      "main": [
+        [
+          {
+            "node": "FittNutri API - IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "FittNutri API - IA": {
+      "main": [
+        [
+          {
+            "node": "Retornar análise",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "versionId": "fittnutri-ia-v1"
+}
