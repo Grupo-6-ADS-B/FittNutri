@@ -12,6 +12,7 @@ import fitt_nutri.example.demo.repository.PatientRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,6 +48,7 @@ public class MealGatewayImpl implements MealGateway {
     }
 
     @Override
+    @Transactional
     public Meal update(Integer mealId, Meal meal) {
 
         MealModel existing = repository.findById(mealId)
@@ -61,7 +63,9 @@ public class MealGatewayImpl implements MealGateway {
             List<MealItemModel> itens = meal.getAlimentos().stream()
                     .map(item -> buildMealItem(item, existing))
                     .collect(Collectors.toList());
-            existing.setAlimentos(itens);
+            // orphanRemoval acompanha a instância da coleção criada pelo Hibernate.
+            // Substituí-la faz o flush falhar; preserve-a e altere apenas seu conteúdo.
+            existing.getAlimentos().addAll(itens);
         }
 
         MealModel saved = repository.save(existing);

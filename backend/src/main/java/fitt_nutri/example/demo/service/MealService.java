@@ -151,7 +151,7 @@ public class MealService {
             List<MealItemModel> itens = dto.getAlimentos().stream()
                     .map(itemDto -> buildMealItem(itemDto, existingMeal))
                     .collect(Collectors.toList());
-            existingMeal.setAlimentos(itens);
+            existingMeal.getAlimentos().addAll(itens);
         }
 
         return toMealResponseDTO(repository.save(existingMeal));

@@ -109,6 +109,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:5173",
+                "http://localhost:8081",
                 "https://fittnutri.duckdns.org",
                 "https://fittnutri.site",
                 "https://www.fittnutri.site"
