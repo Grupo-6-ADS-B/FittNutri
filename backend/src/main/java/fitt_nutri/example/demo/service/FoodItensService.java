@@ -81,6 +81,13 @@ public class FoodItensService {
         resultado.setNiacina(safe(item.getNiacina()) * quantidadeEmGramas);
         resultado.setVitaminaC(safe(item.getVitaminaC()) * quantidadeEmGramas);
 
+        // Medidas caseiras são o peso de 1 medida: não dependem da quantidade
+        resultado.setGramasUnidade(item.getGramasUnidade());
+        resultado.setGramasColherSopa(item.getGramasColherSopa());
+        resultado.setGramasColherCha(item.getGramasColherCha());
+        resultado.setGramasXicara(item.getGramasXicara());
+        resultado.setGramasMl(item.getGramasMl());
+
         return resultado;
     }
 
@@ -108,7 +115,7 @@ public class FoodItensService {
         );
     }
 
-    /** Busca por parte do nome — retorna TACO + alimentos custom do nutricionista logado. */
+    /** Busca por parte do nome — retorna TACO + IBGE + alimentos custom do nutricionista logado. */
     public List<FoodItensResponseDTO> findFoodsByNamePart(String nomeParte) {
         UserModel nutricionista = getNutricionistaLogado();
         List<FoodItensModel> itens = foodItensRepository
@@ -278,7 +285,9 @@ public class FoodItensService {
                 m.getFerro(), m.getSodio(), m.getPotassio(),
                 m.getCobre(), m.getZinco(), m.getRetinol(),
                 m.getTiamina(), m.getRiboflavina(), m.getPiridoxina(),
-                m.getNiacina(), m.getVitaminaC()
+                m.getNiacina(), m.getVitaminaC(),
+                m.getGramasUnidade(), m.getGramasColherSopa(), m.getGramasColherCha(),
+                m.getGramasXicara(), m.getGramasMl()
         );
     }
 

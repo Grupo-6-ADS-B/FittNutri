@@ -15,7 +15,7 @@ public interface FoodItensRepository extends JpaRepository<FoodItensModel, Integ
 
     List<FoodItensModel> findByNomeContainingIgnoreCase(String nomeParte);
 
-    @Query("SELECT f FROM FoodItensModel f WHERE (f.fonte = 'TACO' OR f.nutricionista.id = :nutricionistaId) AND LOWER(f.nome) LIKE LOWER(CONCAT('%', :nomeParte, '%'))")
+    @Query("SELECT f FROM FoodItensModel f WHERE (f.fonte IN ('TACO', 'IBGE') OR f.nutricionista.id = :nutricionistaId) AND LOWER(f.nome) LIKE LOWER(CONCAT('%', :nomeParte, '%'))")
     List<FoodItensModel> searchByNameForNutricionista(@Param("nomeParte") String nomeParte, @Param("nutricionistaId") Integer nutricionistaId);
 
     List<FoodItensModel> findByNutricionistaIdAndFonte(Integer nutricionistaId, String fonte);
