@@ -81,6 +81,7 @@ public class RecipeService {
             double qtd = ing.getQuantidadeG();
 
             if (ing.getAlimento() != null) {
+                // Alimentos TACO/IBGE ficam no banco POR 1 g (o data.sql divide por 100)
                 FoodItensModel a = ing.getAlimento();
                 kcal  += safe(a.getEnergiaKcal()) * qtd;
                 ptn   += safe(a.getProteina())    * qtd;
@@ -92,23 +93,23 @@ public class RecipeService {
             } else if (ing.getAlimentoCustom() != null) {
                 CustomFoodModel cf = ing.getAlimentoCustom();
 
+                // por_100g: valores do rótulo para 100 g  -> fator = gramas / 100
+                // total:    valores da porção (porcaoG)   -> fator = gramas / porcaoG
+                double fator;
                 if (cf.getTipoMacro() == TipoMacro.por_100g) {
-                    kcal  += safe(cf.getEnergiaKcal()) * qtd;
-                    ptn   += safe(cf.getProteina())    * qtd;
-                    cho   += safe(cf.getCarboidrato())  * qtd;
-                    fat   += safe(cf.getLipideos())     * qtd;
-                    fib   += safe(cf.getFibra())        * qtd;
-                    sodio += safe(cf.getSodio())        * qtd;
-
+                    fator = qtd / 100.0;
                 } else if (cf.getTipoMacro() == TipoMacro.total && cf.getPorcaoG() != null && cf.getPorcaoG() > 0) {
-                    double fator = qtd / cf.getPorcaoG();
-                    kcal  += safe(cf.getEnergiaKcal()) * fator;
-                    ptn   += safe(cf.getProteina())    * fator;
-                    cho   += safe(cf.getCarboidrato())  * fator;
-                    fat   += safe(cf.getLipideos())     * fator;
-                    fib   += safe(cf.getFibra())        * fator;
-                    sodio += safe(cf.getSodio())        * fator;
+                    fator = qtd / cf.getPorcaoG();
+                } else {
+                    continue;
                 }
+
+                kcal  += safe(cf.getEnergiaKcal()) * fator;
+                ptn   += safe(cf.getProteina())    * fator;
+                cho   += safe(cf.getCarboidrato())  * fator;
+                fat   += safe(cf.getLipideos())     * fator;
+                fib   += safe(cf.getFibra())        * fator;
+                sodio += safe(cf.getSodio())        * fator;
             }
         }
 

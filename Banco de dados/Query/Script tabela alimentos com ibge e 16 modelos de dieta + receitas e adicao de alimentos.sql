@@ -4587,12 +4587,12 @@ CREATE TABLE receita_ingredientes (
 -- Lógica de cálculo por origem do ingrediente:
 --
 -- [alimentos - IBGE/TACO]
---   Valores já estão em por 100g (após UPDATE /100 do script original)
+--   Valores estão por 1 g (após UPDATE /100 do script original)
 --   kcal = energiaKcal * quantidade_g
 --
 -- [receita_alimentos - custom, tipo_macro = 'por_100g']
---   Mesmo padrão do IBGE/TACO
---   kcal = energiaKcal * quantidade_g
+--   Usuário informou os valores do rótulo para 100 g
+--   kcal = energiaKcal * quantidade_g / 100
 --
 -- [receita_alimentos - custom, tipo_macro = 'total']
 --   Usuário informou o valor total para porcao_g gramas
@@ -4613,7 +4613,7 @@ SELECT
             WHEN i.alimento_id IS NOT NULL
                 THEN a.energiaKcal * i.quantidade_g
             WHEN ra.tipo_macro = 'por_100g'
-                THEN ra.energiaKcal * i.quantidade_g
+                THEN ra.energiaKcal * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'
                 THEN ra.energiaKcal * (i.quantidade_g / ra.porcao_g)
         END
@@ -4625,7 +4625,7 @@ SELECT
             WHEN i.alimento_id IS NOT NULL
                 THEN a.proteina * i.quantidade_g
             WHEN ra.tipo_macro = 'por_100g'
-                THEN ra.proteina * i.quantidade_g
+                THEN ra.proteina * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'
                 THEN ra.proteina * (i.quantidade_g / ra.porcao_g)
         END
@@ -4637,7 +4637,7 @@ SELECT
             WHEN i.alimento_id IS NOT NULL
                 THEN a.carboidrato * i.quantidade_g
             WHEN ra.tipo_macro = 'por_100g'
-                THEN ra.carboidrato * i.quantidade_g
+                THEN ra.carboidrato * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'
                 THEN ra.carboidrato * (i.quantidade_g / ra.porcao_g)
         END
@@ -4649,7 +4649,7 @@ SELECT
             WHEN i.alimento_id IS NOT NULL
                 THEN a.lipideos * i.quantidade_g
             WHEN ra.tipo_macro = 'por_100g'
-                THEN ra.lipideos * i.quantidade_g
+                THEN ra.lipideos * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'
                 THEN ra.lipideos * (i.quantidade_g / ra.porcao_g)
         END
@@ -4661,7 +4661,7 @@ SELECT
             WHEN i.alimento_id IS NOT NULL
                 THEN a.fibra * i.quantidade_g
             WHEN ra.tipo_macro = 'por_100g'
-                THEN ra.fibra * i.quantidade_g
+                THEN ra.fibra * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'
                 THEN ra.fibra * (i.quantidade_g / ra.porcao_g)
         END
@@ -4673,7 +4673,7 @@ SELECT
             WHEN i.alimento_id IS NOT NULL
                 THEN a.sodio * i.quantidade_g
             WHEN ra.tipo_macro = 'por_100g'
-                THEN ra.sodio * i.quantidade_g
+                THEN ra.sodio * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'
                 THEN ra.sodio * (i.quantidade_g / ra.porcao_g)
         END
@@ -4684,7 +4684,7 @@ SELECT
     ROUND(SUM(
         CASE
             WHEN i.alimento_id IS NOT NULL  THEN a.energiaKcal * i.quantidade_g
-            WHEN ra.tipo_macro = 'por_100g' THEN ra.energiaKcal * i.quantidade_g
+            WHEN ra.tipo_macro = 'por_100g' THEN ra.energiaKcal * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'    THEN ra.energiaKcal * (i.quantidade_g / ra.porcao_g)
         END
     ) * (r.porcao_g / r.rendimento_g), 2)                              AS kcal_por_porcao,
@@ -4692,7 +4692,7 @@ SELECT
     ROUND(SUM(
         CASE
             WHEN i.alimento_id IS NOT NULL  THEN a.proteina * i.quantidade_g
-            WHEN ra.tipo_macro = 'por_100g' THEN ra.proteina * i.quantidade_g
+            WHEN ra.tipo_macro = 'por_100g' THEN ra.proteina * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'    THEN ra.proteina * (i.quantidade_g / ra.porcao_g)
         END
     ) * (r.porcao_g / r.rendimento_g), 2)                              AS proteina_por_porcao_g,
@@ -4700,7 +4700,7 @@ SELECT
     ROUND(SUM(
         CASE
             WHEN i.alimento_id IS NOT NULL  THEN a.carboidrato * i.quantidade_g
-            WHEN ra.tipo_macro = 'por_100g' THEN ra.carboidrato * i.quantidade_g
+            WHEN ra.tipo_macro = 'por_100g' THEN ra.carboidrato * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'    THEN ra.carboidrato * (i.quantidade_g / ra.porcao_g)
         END
     ) * (r.porcao_g / r.rendimento_g), 2)                              AS carboidrato_por_porcao_g,
@@ -4708,7 +4708,7 @@ SELECT
     ROUND(SUM(
         CASE
             WHEN i.alimento_id IS NOT NULL  THEN a.lipideos * i.quantidade_g
-            WHEN ra.tipo_macro = 'por_100g' THEN ra.lipideos * i.quantidade_g
+            WHEN ra.tipo_macro = 'por_100g' THEN ra.lipideos * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'    THEN ra.lipideos * (i.quantidade_g / ra.porcao_g)
         END
     ) * (r.porcao_g / r.rendimento_g), 2)                              AS gordura_por_porcao_g,
@@ -4716,7 +4716,7 @@ SELECT
     ROUND(SUM(
         CASE
             WHEN i.alimento_id IS NOT NULL  THEN a.fibra * i.quantidade_g
-            WHEN ra.tipo_macro = 'por_100g' THEN ra.fibra * i.quantidade_g
+            WHEN ra.tipo_macro = 'por_100g' THEN ra.fibra * i.quantidade_g / 100
             WHEN ra.tipo_macro = 'total'    THEN ra.fibra * (i.quantidade_g / ra.porcao_g)
         END
     ) * (r.porcao_g / r.rendimento_g), 2)                              AS fibra_por_porcao_g,
@@ -4737,7 +4737,7 @@ GROUP BY r.id, r.nome, r.porcao_g, r.rendimento_g;
 -- Exemplo 1: ingrediente custom com macros por 100g
 -- Usuário sabe que goma de tapioca tem X kcal a cada 100g
 INSERT INTO receita_alimentos (nome, tipo_macro, energiaKcal, proteina, lipideos, carboidrato, fibra, sodio)
-VALUES ('Goma de tapioca', 'por_100g', 3.50, 0.002, 0.001, 0.860, 0.001, 0.001);
+VALUES ('Goma de tapioca', 'por_100g', 350.00, 0.20, 0.10, 86.00, 0.10, 0.10);
 
 -- Exemplo 2: ingrediente custom com macros totais
 -- Usuário leu no rótulo: "por porção de 30g: 110 kcal, 3g proteína..."
