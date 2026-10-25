@@ -78,7 +78,7 @@ class RecipeServiceTest {
     @DisplayName("Alimento TACO/IBGE: valores no banco são por 1 g -> valor x gramas")
     void calcularMacros_alimentoTaco_usaValorPorGrama() {
         FoodItensModel arroz = new FoodItensModel();
-        arroz.setEnergiaKcal(1.2353);  // 123,53 kcal/100 g já dividido por 100 (data.sql)
+        arroz.setEnergiaKcal(1.2353);  // 123,53 kcal/100 g já dividido por 100 (padrão do banco)
         arroz.setProteina(0.0259);
 
         MacrosReceita macros = calcular(receita(null, null), ingrediente(arroz, null, 60));

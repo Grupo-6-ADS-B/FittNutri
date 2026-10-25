@@ -1,11 +1,13 @@
 """
-ETL da tabela de alimentos do FittNutri.
+ETL de carga de dados do FittNutri (alimentos e dietas-modelo).
 
 Lê as tabelas TACO (TACO.xlsx) e IBGE/POF 2008-2009 (IBGE.xls), limpa os
 valores, padroniza as colunas com os nomes da tabela "alimentos" do banco,
 junta as duas fontes, acrescenta os gramas das medidas caseiras usadas no
 front (Tabela de Medidas Referidas do IBGE, tabelamedidas_bd.xls) e calcula
-os nutrientes por 1 g.
+os nutrientes por 1 g. Grava no MySQL TODOS os alimentos (TACO e IBGE) e as
+dietas-modelo (dietas_modelo.csv): este script substitui o antigo data.sql do backend.
+O backend só cria as tabelas; quem carrega os dados é este ETL.
 
 Medidas caseiras (gramas de 1 colher, 1 xícara, 1 unidade...) - de onde vem cada valor
 (a origem fica registrada na coluna "medidas_fonte" da tabela "alimentos"):
@@ -20,12 +22,16 @@ Medidas caseiras (gramas de 1 colher, 1 xícara, 1 unidade...) - de onde vem cad
 Quando uma linha mistura origens, "medidas_fonte" guarda a MENOS confiável (ESTIMADO é a pior).
 O detalhe de cada medida fica no relatório relatorio_medidas.csv.
 
-Mesma lógica do notebook tratamento.ipynb (atenção: o notebook ainda NÃO tem as medidas
-mapeadas/estimadas nem a coluna medidas_fonte; este arquivo é a versão mais atual).
+O notebook tratamento.ipynb chama o mesmo código (função processar), então os dois não divergem.
+
+Ordem para um ambiente novo:
+    1) subir o backend uma vez (o Hibernate cria as tabelas, vazias)
+    2) rodar este ETL (python tratamento.py --mysql) ou o script .sql gerado
+Rodar de novo é seguro: não duplica alimentos nem dietas.
 
 Uso (a partir da pasta dados/ETL):
     python tratamento.py           -> trata os dados, salva o CSV, o relatório e o script SQL
-    python tratamento.py --mysql   -> faz o mesmo e aplica o script no MySQL local
+    python tratamento.py --mysql   -> faz o mesmo e carrega tudo no MySQL
 
 Conexão com o MySQL (variáveis de ambiente, com os mesmos padrões do backend):
     DB_HOST (localhost), DB_PORT (3306), DB_NAME (fittnutri), DB_USER (root)
@@ -51,9 +57,11 @@ CAMINHO_MEDIDAS = PASTA / "tabelamedidas_bd.xls"
 CAMINHO_MAPA = PASTA / "mapa_taco_ibge.csv"
 # Valores aproximados de tabela externa para o que o IBGE não tem (com a referência de cada linha)
 CAMINHO_COMPLEMENTAR = PASTA / "medidas_complementares.csv"
+# Dietas-modelo do sistema (antes ficavam no data.sql do backend)
+CAMINHO_DIETAS = PASTA / "dietas_modelo.csv"
 CAMINHO_SAIDA = PASTA / "alimentos_tratados.csv"
 CAMINHO_RELATORIO = PASTA / "relatorio_medidas.csv"
-CAMINHO_SQL = PASTA.parent / "Query" / "Script medidas caseiras e alimentos IBGE.sql"
+CAMINHO_SQL = PASTA.parent / "Query" / "carga_completa.sql"
 
 CABECALHO_TACO = [
     "numero_alimento",
@@ -87,7 +95,7 @@ CABECALHO_TACO = [
     "vitamina_c (mg)",
 ]
 
-# Mesmos nomes da tabela "alimentos" do backend (FoodItensModel / data.sql)
+# Mesmos nomes da tabela "alimentos" do backend (FoodItensModel)
 COLUNAS_ALIMENTOS = [
     "nome", "umidade", "energia_kcal", "proteina", "lipideos", "colesterol",
     "carboidrato", "fibra", "cinzas", "calcio", "magnesio", "manganes",
@@ -634,7 +642,9 @@ def validar_dados(df):
     erros, alertas = [], []
 
     for fonte, parte in df.groupby("fonte"):
-        repetidos = parte.loc[parte["nome"].duplicated(keep=False), "nome"].unique()
+        # O MySQL compara nomes sem acento e sem maiúscula, então a repetição vale nessa regra também
+        chaves = parte["nome"].map(sem_acento)
+        repetidos = parte.loc[chaves.duplicated(keep=False), "nome"].unique()
         if len(repetidos):
             erros.append(f"{fonte}: nomes repetidos ({len(repetidos)}), ex.: {list(repetidos[:3])}")
 
@@ -667,6 +677,8 @@ def adicionar_valores_por_grama(df):
     df = df.copy()
     for coluna in COLUNAS_NUTRIENTES:
         df[f"{coluna}_1g"] = df[coluna] / 100
+    # A umidade é um percentual; no banco ela fica como fração (70% -> 0.70), igual ao padrão antigo
+    df["umidade_1g"] = df["umidade"] / 100
     return df
 
 
@@ -720,15 +732,16 @@ def renderizar_sql(sql, parametros):
 
 def montar_comandos_sql(df_alimentos):
     """
-    Monta os comandos para o MySQL. Atenção ao padrão do banco: o data.sql do
-    backend insere a TACO por 100 g e depois DIVIDE tudo por 100, ou seja, a
-    tabela "alimentos" guarda os nutrientes POR 1 g. Por isso o IBGE entra com
-    as colunas *_1g. As medidas caseiras ficam em gramas (não são divididas).
+    Monta os comandos que gravam TODOS os alimentos (TACO e IBGE) no MySQL.
+
+    Atenção ao padrão do banco: a tabela "alimentos" guarda os nutrientes POR 1 g (e a umidade
+    como fração, 0.70 em vez de 70%). Por isso entram as colunas *_1g. As medidas caseiras ficam
+    em gramas (não são divididas).
 
     Retorna (colunas_novas, comandos):
       - colunas_novas: ALTER TABLE de cada coluna nova (medidas + medidas_fonte)
-      - comandos: lista de (sql, parametros) -> UPDATE das medidas da TACO, INSERT dos
-        alimentos do IBGE e UPDATE das medidas do IBGE (para rodar de novo e atualizar)
+      - comandos: lista de (sql, parametros): primeiro um INSERT de cada alimento que ainda não
+        existe, depois um UPDATE de cada alimento (assim rodar de novo atualiza sem duplicar).
     Os valores vão sempre como parâmetros (%s), nunca colados no texto do comando.
     """
     colunas_novas = {
@@ -737,68 +750,144 @@ def montar_comandos_sql(df_alimentos):
     }
     colunas_novas["medidas_fonte"] = "ALTER TABLE alimentos ADD COLUMN medidas_fonte VARCHAR(20) NULL"
 
-    colunas_medidas_banco = COLUNAS_MEDIDAS + ["medidas_fonte"]
-    atribuicoes = ", ".join(f"{c} = %s" for c in colunas_medidas_banco)
+    # coluna do banco -> coluna do DataFrame
+    colunas_banco = {"umidade": "umidade_1g"}
+    colunas_banco.update({c: f"{c}_1g" for c in COLUNAS_NUTRIENTES})
+    colunas_banco["vitaminaC"] = colunas_banco.pop("vitaminac")  # nome da coluna no banco
+    for c in COLUNAS_MEDIDAS + ["medidas_fonte"]:
+        colunas_banco[c] = c
 
-    def parametros_medidas(linha):
-        return [valor_parametro(linha[c]) for c in colunas_medidas_banco]
-
-    comandos = []
-
-    # TACO: os alimentos já existem no banco (data.sql) -> atualiza só as medidas. Todos os
-    # alimentos entram (os sem medida ficam nulos), assim rodar de novo corrige valores antigos.
-    sql_taco = f"UPDATE alimentos SET {atribuicoes} WHERE fonte = 'TACO' AND nome = %s"
-    for _, linha in df_alimentos[df_alimentos["fonte"] == "TACO"].iterrows():
-        comandos.append((sql_taco, parametros_medidas(linha) + [linha["nome"]]))
-
-    # IBGE: novos alimentos, valores por 1 g (padrão do banco) + medidas.
-    # A umidade não vai porque o IBGE não tem. O "WHERE NOT EXISTS" evita
-    # duplicar o alimento se o script rodar mais de uma vez.
-    colunas_banco = {c: f"{c}_1g" for c in COLUNAS_NUTRIENTES}
-    colunas_banco["vitaminaC"] = colunas_banco.pop("vitaminac")  # nome usado no data.sql
-    colunas_insert = ["fonte", "nome"] + list(colunas_banco) + colunas_medidas_banco
+    atribuicoes = ", ".join(f"{c} = %s" for c in colunas_banco)
+    colunas_insert = ["fonte", "nome"] + list(colunas_banco)
     marcadores = ", ".join(["%s"] * len(colunas_insert))
-    sql_ibge_insert = (
+    # O nome é comparado com TRIM(): a carga antiga (data.sql) deixou espaço sobrando em alguns nomes.
+    # O MySQL ignora acento e maiúscula nessa comparação; validar_dados() garante que isso não confunde
+    # dois alimentos diferentes.
+    sql_insert = (
         f"INSERT INTO alimentos ({', '.join(colunas_insert)}) "
         f"SELECT {marcadores} FROM DUAL "
-        f"WHERE NOT EXISTS (SELECT 1 FROM alimentos WHERE fonte = 'IBGE' AND nome = %s)"
+        f"WHERE NOT EXISTS (SELECT 1 FROM alimentos WHERE fonte = %s AND TRIM(nome) = %s)"
     )
-    sql_ibge_update = f"UPDATE alimentos SET {atribuicoes} WHERE fonte = 'IBGE' AND nome = %s"
+    sql_update = f"UPDATE alimentos SET {atribuicoes} WHERE fonte = %s AND TRIM(nome) = %s"
 
     # O backend busca alimento pelo nome exato (findByNome), então o nome não
     # pode se repetir: quando o IBGE tem o mesmo nome da TACO, ganha " (IBGE)"
     nomes_taco = set(df_alimentos.loc[df_alimentos["fonte"] == "TACO", "nome"])
 
-    ibge = df_alimentos[df_alimentos["fonte"] == "IBGE"]
-    nomes_ibge_finais = []
-    for _, linha in ibge.iterrows():
-        nome = linha["nome"] + " (IBGE)" if linha["nome"] in nomes_taco else linha["nome"]
-        nomes_ibge_finais.append(nome)
-        parametros = ["IBGE", nome]
-        parametros += [valor_parametro(linha[coluna_df]) for coluna_df in colunas_banco.values()]
-        parametros += parametros_medidas(linha)
-        comandos.append((sql_ibge_insert, parametros + [nome]))
-    assert len(set(nomes_ibge_finais)) == len(nomes_ibge_finais), "Nomes do IBGE repetidos depois do sufixo"
+    registros = []
+    for _, linha in df_alimentos.iterrows():
+        nome = linha["nome"]
+        if linha["fonte"] == "IBGE" and nome in nomes_taco:
+            nome = nome + " (IBGE)"
+        valores = [valor_parametro(linha[coluna_df]) for coluna_df in colunas_banco.values()]
+        registros.append((linha["fonte"], nome, valores))
 
-    for (_, linha), nome in zip(ibge.iterrows(), nomes_ibge_finais):
-        comandos.append((sql_ibge_update, parametros_medidas(linha) + [nome]))
+    for fonte in ("TACO", "IBGE"):
+        nomes = [sem_acento(nome) for f, nome, _ in registros if f == fonte]
+        assert len(set(nomes)) == len(nomes), f"Nomes de {fonte} repetidos (ignorando acento e maiúscula)"
 
+    comandos = [(sql_insert, [fonte, nome] + valores + [fonte, nome]) for fonte, nome, valores in registros]
+    comandos += [(sql_update, valores + [fonte, nome]) for fonte, nome, valores in registros]
     return colunas_novas, comandos
 
 
-def salvar_sql(colunas_novas, comandos, caminho):
-    """Grava o script .sql para rodar no MySQL Workbench (os ALTER TABLE só valem na primeira vez)."""
+# --- dietas-modelo ------------------------------------------------------------------------
+
+COLUNAS_DIETAS = [
+    "dieta", "dieta_observacao", "horario", "refeicao", "refeicao_observacao",
+    "descricao", "quantidade", "unidade", "observacao", "alimento_taco",
+]
+
+
+def carregar_dietas(caminho):
+    """Lê as dietas-modelo (uma linha por item de refeição). Texto vazio = sem valor."""
+    df = pd.read_csv(caminho, encoding="utf-8", dtype=str, keep_default_na=False)
+    faltando = set(COLUNAS_DIETAS) - set(df.columns)
+    assert not faltando, f"Colunas não encontradas em {caminho.name}: {faltando}"
+    return df[COLUNAS_DIETAS]
+
+
+def validar_dietas(df, nomes_taco):
+    """Confere o arquivo de dietas-modelo. Devolve a lista de erros (vazia se estiver tudo certo)."""
+    erros = []
+    for coluna in ("dieta", "horario", "refeicao", "descricao", "quantidade"):
+        if (df[coluna].str.strip() == "").any():
+            erros.append(f"dietas_modelo.csv: coluna '{coluna}' tem linha vazia")
+    if not df["horario"].str.fullmatch(r"\d{2}:\d{2}(:\d{2})?").all():
+        erros.append("dietas_modelo.csv: horário fora do formato HH:MM")
+    if pd.to_numeric(df["quantidade"], errors="coerce").isna().any():
+        erros.append("dietas_modelo.csv: quantidade que não é número")
+    ligados = df.loc[df["alimento_taco"] != "", "alimento_taco"]
+    inexistentes = sorted(set(ligados) - set(nomes_taco))
+    if inexistentes:
+        erros.append(f"dietas_modelo.csv: alimento_taco que não existe na TACO: {inexistentes[:3]}")
+    return erros
+
+
+def _texto_ou_nulo(texto):
+    return texto if texto != "" else None
+
+
+def montar_comandos_dietas(df_dietas):
+    """
+    Monta os comandos das dietas-modelo, para rodar NA ORDEM (usam variáveis do MySQL).
+    Uma dieta que já existe (mesmo nome) é pulada inteira: rodar de novo não duplica nada e não
+    desfaz o que as nutricionistas editaram. O alimento de cada item é procurado pelo nome exato
+    na TACO.
+    """
+    comandos = []
+    for dieta, parte in df_dietas.groupby("dieta", sort=False):
+        observacao = _texto_ou_nulo(parte["dieta_observacao"].iloc[0])
+        comandos += [
+            ("SET @dieta_id = (SELECT id FROM dietas WHERE nome = %s ORDER BY id LIMIT 1)", [dieta]),
+            ("SET @nova = IF(@dieta_id IS NULL, 1, 0)", []),
+            ("INSERT INTO dietas (nome, observacao, criado_em) SELECT %s, %s, NOW() FROM DUAL WHERE @nova = 1",
+             [dieta, observacao]),
+            ("SET @dieta_id = IF(@nova = 1, LAST_INSERT_ID(), @dieta_id)", []),
+        ]
+        for (horario, refeicao), itens in parte.groupby(["horario", "refeicao"], sort=False):
+            hora = horario if len(horario) == 8 else horario + ":00"
+            comandos += [
+                ("INSERT INTO dieta_refeicoes (dieta_id, horario, nome, observacao) "
+                 "SELECT @dieta_id, %s, %s, %s FROM DUAL WHERE @nova = 1",
+                 [hora, refeicao, _texto_ou_nulo(itens["refeicao_observacao"].iloc[0])]),
+                ("SET @refeicao_id = LAST_INSERT_ID()", []),
+            ]
+            for _, item in itens.iterrows():
+                comandos.append((
+                    "INSERT INTO dieta_refeicao_itens (refeicao_id, alimento_id, descricao, quantidade, unidade, observacao) "
+                    "SELECT @refeicao_id, "
+                    "(SELECT a.id FROM alimentos a WHERE a.fonte = 'TACO' AND TRIM(a.nome) = %s ORDER BY a.id LIMIT 1), "
+                    "%s, %s, %s, %s FROM DUAL WHERE @nova = 1",
+                    [_texto_ou_nulo(item["alimento_taco"]), item["descricao"], float(item["quantidade"]),
+                     _texto_ou_nulo(item["unidade"]), _texto_ou_nulo(item["observacao"])],
+                ))
+    return comandos
+
+
+def salvar_sql(colunas_novas, comandos, comandos_dietas, caminho):
+    """Grava o script .sql para rodar no MySQL Workbench ou no servidor (os ALTER TABLE só valem na primeira vez)."""
     caminho.parent.mkdir(parents=True, exist_ok=True)
     with open(caminho, "w", encoding="utf-8") as arquivo:
         arquivo.write("-- Gerado por dados/ETL/tratamento.py - não editar à mão\n")
-        arquivo.write("-- Medidas caseiras (Tabela de Medidas Referidas, IBGE/POF 2008-2009)\n")
-        arquivo.write("-- e alimentos do IBGE (valores por 1 g, mesmo padrão do data.sql)\n")
-        arquivo.write("-- medidas_fonte: IBGE | IBGE_REF_TACO | MAPEADO | ESTIMADO (valor aproximado)\n\n")
+        arquivo.write("-- Carga completa de alimentos (TACO e IBGE, valores por 1 g, mesmo padrão do banco),\n")
+        arquivo.write("-- medidas caseiras (IBGE/POF 2008-2009 e tabela da UFG) e dietas-modelo.\n")
+        arquivo.write("-- medidas_fonte: IBGE | IBGE_REF_TACO | MAPEADO | REFERENCIA_EXTERNA | ESTIMADO (valores aproximados)\n")
+        arquivo.write("-- Rode DEPOIS de subir o backend uma vez (ele cria as tabelas). Pode rodar de novo sem duplicar.\n\n")
         arquivo.write("USE fittnutri;\n\n")
         arquivo.write("-- 1) Colunas novas: gramas de 1 unidade de cada medida do front + origem das medidas\n")
-        arquivo.writelines(f"{comando};\n" for comando in colunas_novas.values())
-        arquivo.write("\n-- 2) Medidas da TACO, 3) alimentos do IBGE e 4) medidas do IBGE\n")
+        arquivo.write("--    (cada uma só é criada se ainda não existir)\n")
+        for coluna, comando in colunas_novas.items():
+            arquivo.write(
+                f"SET @sql = (SELECT IF(COUNT(*) = 0, '{comando}', 'DO 0') "
+                "FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() "
+                f"AND TABLE_NAME = 'alimentos' AND COLUMN_NAME = '{coluna}');\n"
+                "PREPARE passo FROM @sql; EXECUTE passo; DEALLOCATE PREPARE passo;\n"
+            )
+        arquivo.write("\n-- 2) Alimentos: INSERT dos que faltam e UPDATE de todos\n")
         arquivo.writelines(f"{renderizar_sql(sql, parametros)};\n" for sql, parametros in comandos)
+        arquivo.write("\n-- 3) Dietas-modelo (as que já existem, pelo nome, são puladas)\n")
+        arquivo.writelines(f"{renderizar_sql(sql, parametros)};\n" for sql, parametros in comandos_dietas)
 
 
 def salvar_relatorio(df, caminho):
@@ -809,7 +898,7 @@ def salvar_relatorio(df, caminho):
     )
 
 
-def aplicar_no_mysql(colunas_novas, comandos):
+def aplicar_no_mysql(colunas_novas, comandos, comandos_dietas):
     """Executa os comandos no MySQL local, numa transação (ou tudo, ou nada)."""
     import mysql.connector
 
@@ -823,16 +912,24 @@ def aplicar_no_mysql(colunas_novas, comandos):
     )
     cursor = conexao.cursor()
 
+    # As tabelas são criadas pelo backend (Hibernate): precisam existir antes da carga
+    cursor.execute(
+        "SELECT TABLE_NAME FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() "
+        "AND TABLE_NAME IN ('alimentos', 'dietas', 'dieta_refeicoes', 'dieta_refeicao_itens')"
+    )
+    tabelas = {nome.lower() for (nome,) in cursor.fetchall()}
+    faltando = {"alimentos", "dietas", "dieta_refeicoes", "dieta_refeicao_itens"} - tabelas
+    if faltando:
+        raise RuntimeError(f"Tabelas não encontradas: {sorted(faltando)}. Suba o backend uma vez para criá-las.")
+
     # ALTER TABLE só para as colunas que ainda não existem (permite rodar de novo)
     cursor.execute(
         "SELECT COLUMN_NAME FROM information_schema.COLUMNS "
         "WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'alimentos'"
     )
     existentes = {nome.lower() for (nome,) in cursor.fetchall()}
-    if not existentes:
-        raise RuntimeError("Tabela 'alimentos' não encontrada. Suba o backend uma vez para criá-la.")
 
-    # O data.sql usa "vitaminaC", mas o Hibernate pode ter criado "vitamina_c"
+    # O Hibernate pode ter criado "vitamina_c" em vez de "vitaminaC"
     if "vitaminac" not in existentes and "vitamina_c" in existentes:
         comandos = [(sql.replace("vitaminaC", "vitamina_c"), parametros) for sql, parametros in comandos]
     for coluna, comando in colunas_novas.items():
@@ -840,7 +937,7 @@ def aplicar_no_mysql(colunas_novas, comandos):
             cursor.execute(comando)  # ALTER TABLE faz commit sozinho no MySQL
             print("Coluna criada:", coluna)
 
-    # Agrupa os comandos iguais (mesmo texto SQL) para executar cada grupo de uma vez
+    # Alimentos: agrupa os comandos iguais (mesmo texto SQL) para executar cada grupo de uma vez
     grupos = {}
     for sql, parametros in comandos:
         grupos.setdefault(sql, []).append(parametros)
@@ -848,6 +945,9 @@ def aplicar_no_mysql(colunas_novas, comandos):
     try:
         for sql, lista in grupos.items():
             cursor.executemany(sql, lista)
+        # Dietas-modelo: um comando por vez e na ordem (usam variáveis da sessão)
+        for sql, parametros in comandos_dietas:
+            cursor.execute(sql, parametros)
         conexao.commit()
     except Exception:
         conexao.rollback()
@@ -859,6 +959,12 @@ def aplicar_no_mysql(colunas_novas, comandos):
     )
     for fonte, total, com_medida in cursor.fetchall():
         print(f"MySQL: {fonte}: {total} alimentos, {int(com_medida or 0)} com alguma medida")
+    cursor.execute(
+        "SELECT (SELECT COUNT(*) FROM dietas), (SELECT COUNT(*) FROM dieta_refeicoes), "
+        "(SELECT COUNT(*) FROM dieta_refeicao_itens)"
+    )
+    dietas, refeicoes, itens = cursor.fetchone()
+    print(f"MySQL: {dietas} dietas, {refeicoes} refeições, {itens} itens de dieta")
     cursor.close()
     conexao.close()
 
@@ -887,6 +993,8 @@ def processar():
 
     df, corrigidos = corrigir_negativos_pequenos(df)
     erros, alertas = validar_dados(df)
+    dietas = carregar_dietas(CAMINHO_DIETAS)
+    erros += validar_dietas(dietas, set(df.loc[df["fonte"] == "TACO", "nome"]))
     if erros:
         raise DadosInvalidos("Dados com erro, nada foi gravado:\n  - " + "\n  - ".join(erros))
     df, descartadas = descartar_medidas_implausiveis(df)
@@ -902,6 +1010,7 @@ def processar():
         "medidas": df_medidas,
         "mapa": mapa,
         "complementares": complementares,
+        "dietas": dietas,
         "corrigidos": corrigidos,
         "alertas": alertas,
         "descartadas": descartadas,
@@ -914,7 +1023,7 @@ def processar():
 
 def main():
     parser = argparse.ArgumentParser(description="ETL da tabela de alimentos do FittNutri")
-    parser.add_argument("--mysql", action="store_true", help="aplica o script SQL no MySQL local")
+    parser.add_argument("--mysql", action="store_true", help="aplica a carga no MySQL local")
     args = parser.parse_args()
 
     try:
@@ -922,17 +1031,22 @@ def main():
     except DadosInvalidos as erro:
         raise SystemExit(str(erro))
     df_alimentos = r["alimentos"]
+    dietas = r["dietas"]
 
     print("Medidas caseiras:", len(r["medidas"]), "alimentos/preparações do IBGE")
     print("IBGE:", r["qtd_ibge"], "alimentos")
     print("TACO:", r["qtd_taco"], "alimentos em", r["grupos_taco"], "grupos;", len(r["mapa"]), "ligações no mapa TACO -> IBGE")
     print(len(r["complementares"]), "alimentos com valores aproximados de tabela externa (medidas_complementares.csv)")
+    print(
+        dietas["dieta"].nunique(), "dietas-modelo,",
+        dietas.groupby(["dieta", "horario", "refeicao"]).ngroups, "refeições,",
+        len(dietas), "itens (", int((dietas["alimento_taco"] == "").sum()), "sem alimento ligado )",
+    )
 
     if r["corrigidos"]:
         print(f"\nNutrientes levemente negativos (resíduo de arredondamento) corrigidos para 0 ({len(r['corrigidos'])}):")
         for fonte, nome, coluna, valor in r["corrigidos"]:
             print(f"  - [{fonte}] {nome}: {coluna} = {valor:.3f} -> 0")
-        print("  (a carga do ETL não altera os nutrientes da TACO; no banco eles seguem como estão no data.sql)")
 
     if r["alertas"]:
         print("\nAlertas de qualidade (não impedem a carga):")
@@ -959,7 +1073,7 @@ def main():
     print(df_alimentos.groupby("fonte")["medidas_fonte"].value_counts(dropna=False).unstack(0).fillna(0).astype(int), "\n")
     print("REFERENCIA_EXTERNA e ESTIMADO = valores APROXIMADOS (tabela externa / cálculo do ETL), não são medidas reais.\n")
 
-    # Exemplo com gramas dos modelos de dieta do grupo (backend/src/main/resources/data.sql):
+    # Exemplo com gramas dos modelos de dieta do grupo (dietas_modelo.csv):
     #   "3 colheres de sopa cheias" de arroz integral cozido = 60 g
     #   "2 colheres de sopa" de cenoura ralada crua          = 24 g
     print("Exemplo de porções em gramas:")
@@ -984,11 +1098,12 @@ def main():
     print("Relatório de medidas salvo:", CAMINHO_RELATORIO)
 
     colunas_novas, comandos = montar_comandos_sql(df_alimentos)
-    salvar_sql(colunas_novas, comandos, CAMINHO_SQL)
+    comandos_dietas = montar_comandos_dietas(dietas)
+    salvar_sql(colunas_novas, comandos, comandos_dietas, CAMINHO_SQL)
     print("Script SQL salvo:", CAMINHO_SQL)
 
     if args.mysql:
-        aplicar_no_mysql(colunas_novas, comandos)
+        aplicar_no_mysql(colunas_novas, comandos, comandos_dietas)
 
 
 if __name__ == "__main__":

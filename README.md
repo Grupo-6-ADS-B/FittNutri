@@ -28,7 +28,7 @@ O sistema permite gerenciamento completo de pacientes, consultas, dietas, relat�
 - Autenticação com JWT + Login Social com Google (OAuth 2.0)
 - Cadastro completo de pacientes
 - Agendamento de consultas
-- Planejamento de dietas com base na Tabela TACO (5.373 alimentos)
+- Planejamento de dietas com base nas tabelas TACO e IBGE (2.568 alimentos, com medidas caseiras)
 - Alimentos customizados por nutricionista
 - Dashboard com KPIs, gráfico de evolução de peso e classificações clínicas
 - Geração de relatórios PDF (bioimpedância)
@@ -43,7 +43,8 @@ O sistema permite gerenciamento completo de pacientes, consultas, dietas, relat�
 FittNutri/
  ├── backend/          Spring Boot 3 + Java 21 (REST API)
  ├── frontend/         React + Vite + Tailwind CSS
- ├── mysql/init/       Script SQL com dados da Tabela TACO
+ ├── mysql/init/       Scripts de inicializacao do banco (vazia)
+ ├── dados/            ETL que carrega alimentos e dietas-modelo (dados/ETL)
  ├── nginx/            Reverse proxy + SSL (produção)
  ├── docker-compose.dev.yml    Ambiente de desenvolvimento
  ├── docker-compose.yml        Ambiente de produção
@@ -144,7 +145,19 @@ Abra o **Docker Desktop**, clique em **Containers** no menu lateral esquerdo e v
 
 ---
 
-### Passo 5 — Acesse a aplicacao
+### Passo 5 — Carregue os alimentos e as dietas-modelo (so na primeira vez)
+
+O backend cria as tabelas, mas **nao carrega os dados sozinho**. Com os containers rodando, abra **outro** terminal Git Bash, na pasta `FittNutri`, e execute:
+
+```bash
+./manage.sh carga
+```
+
+Isso carrega os alimentos (TACO e IBGE) e as dietas-modelo no banco. Leva alguns segundos e pode ser repetido sem duplicar nada. Se o banco for apagado (`down -v`), repita este passo depois que o backend subir.
+
+---
+
+### Passo 6 — Acesse a aplicacao
 
 Abra o navegador e acesse:
 
@@ -181,7 +194,7 @@ Para subir novamente depois (sem precisar rebuildar tudo):
 | Compose file | `docker-compose.dev.yml` | `docker-compose.yml` |
 | Containers | 3 (mysql, backend, frontend) | 6 (+ nginx, prometheus, grafana) |
 | CRUD completo | Sim | Sim |
-| Tabela TACO | Sim (5.373 alimentos) | Sim |
+| Alimentos (TACO e IBGE) | Sim, apos `./manage.sh carga` | Sim, via ETL |
 | Alimentos customizados | Sim | Sim |
 | Swagger UI | Sim | Desabilitado |
 | Hot reload frontend | Sim | Nao (build estatico) |
@@ -224,6 +237,8 @@ docker compose -f docker-compose.dev.yml build --no-cache
 # Reset total — apaga o banco e recria tudo do zero
 docker compose -f docker-compose.dev.yml down -v
 ./manage.sh dev
+# depois que o backend subir, em outro terminal, carregue os alimentos de novo:
+./manage.sh carga
 ```
 
 ---
@@ -261,12 +276,12 @@ docker compose -f docker-compose.dev.yml build --no-cache frontend
 ./manage.sh dev
 ```
 
-### Os alimentos TACO nao aparecem na dieta
+### Os alimentos nao aparecem na dieta
 Verifique se o banco carregou corretamente:
 ```bash
-docker exec mysql-dev mysql -uroot -proot fittnutri -e "SELECT COUNT(*) FROM alimentos WHERE fonte='TACO'"
+docker exec mysql-dev mysql -uroot -proot fittnutri -e "SELECT fonte, COUNT(*) FROM alimentos GROUP BY fonte"
 ```
-O resultado esperado e `5373`. Se for `0`, pare tudo com `down -v` e suba novamente para recriar o banco.
+O resultado esperado e `TACO 597` e `IBGE 1971`. Se estiver vazio, rode `./manage.sh carga` (com o backend ja no ar).
 
 ### `./manage.sh dev` retorna "Permission denied"
 ```bash
@@ -297,7 +312,7 @@ chmod +x manage.sh
 
 ### Banco de Dados
 - MySQL 8.0
-- Tabela TACO (5.373 alimentos brasileiros)
+- Tabelas TACO e IBGE (2.568 alimentos brasileiros)
 
 ### Infraestrutura
 - Docker + Docker Compose

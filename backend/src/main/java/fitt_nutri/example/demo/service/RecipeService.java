@@ -81,7 +81,7 @@ public class RecipeService {
             double qtd = ing.getQuantidadeG();
 
             if (ing.getAlimento() != null) {
-                // Alimentos TACO/IBGE ficam no banco POR 1 g (o data.sql divide por 100)
+                // Alimentos TACO/IBGE ficam no banco POR 1 g (o ETL em dados/ETL grava por 1 g)
                 FoodItensModel a = ing.getAlimento();
                 kcal  += safe(a.getEnergiaKcal()) * qtd;
                 ptn   += safe(a.getProteina())    * qtd;

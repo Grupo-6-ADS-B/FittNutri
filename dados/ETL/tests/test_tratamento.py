@@ -8,6 +8,7 @@ Como rodar (a partir da pasta dados/ETL):
 Os testes da primeira parte usam dados inventados (rápidos). Os da última parte ("integração")
 leem os arquivos reais (TACO, IBGE, medidas) e levam alguns segundos.
 """
+import re
 import sys
 from pathlib import Path
 
@@ -204,7 +205,7 @@ def test_renderizar_sql():
 
 def test_montar_comandos_sql():
     df = tabela(
-        linha(fonte="TACO", nome="Arroz", energia_kcal=100, medidas_fonte=t.FONTE_IBGE, gramas_colher_sopa=20),
+        linha(fonte="TACO", nome="Arroz", umidade=70, energia_kcal=100, medidas_fonte=t.FONTE_IBGE, gramas_colher_sopa=20),
         linha(fonte="IBGE", nome="Arroz", energia_kcal=100, medidas_fonte=None),     # mesmo nome da TACO
         linha(fonte="IBGE", nome="Feijao", energia_kcal=80, medidas_fonte=None),
     )
@@ -214,8 +215,64 @@ def test_montar_comandos_sql():
     for sql, parametros in comandos:
         assert sql.count("%s") == len(parametros)                 # nenhum valor vai colado no texto do SQL
     inserts = [p for sql, p in comandos if sql.startswith("INSERT")]
-    assert [p[1] for p in inserts] == ["Arroz (IBGE)", "Feijao"]   # nome repetido ganha o sufixo
-    assert sum(1 for sql, _ in comandos if "fonte = 'TACO'" in sql) == 1
+    updates = [p for sql, p in comandos if sql.startswith("UPDATE")]
+    assert [(p[0], p[1]) for p in inserts] == [("TACO", "Arroz"), ("IBGE", "Arroz (IBGE)"), ("IBGE", "Feijao")]
+    assert len(updates) == 3                                       # TACO também é gravada por inteiro
+    assert inserts[0][2] == pytest.approx(0.70)                    # umidade 70% vira fração, como no banco
+    assert inserts[0][3] == pytest.approx(1.0)                     # 100 kcal/100 g -> 1 kcal por 1 g
+
+
+def test_nome_repetido_ignorando_acento_e_barrado():
+    df = tabela(linha(nome="Pêra, crua", energia_kcal=50, medidas_fonte=None),
+                linha(nome="Pera, crua ", energia_kcal=50, medidas_fonte=None))
+    erros, _ = t.validar_dados(df)
+    assert any("repetidos" in e for e in erros)                    # o MySQL trataria os dois como o mesmo nome
+    with pytest.raises(AssertionError):
+        t.montar_comandos_sql(t.adicionar_valores_por_grama(df))
+
+
+# --- dietas-modelo ------------------------------------------------------------------------
+
+def _dietas(*linhas):
+    base = {c: "" for c in t.COLUNAS_DIETAS}
+    return pd.DataFrame([{**base, **l} for l in linhas])
+
+
+def test_validar_dietas():
+    ok = _dietas({"dieta": "D1", "horario": "08:30", "refeicao": "Cafe", "descricao": "Pao", "quantidade": "2",
+                  "alimento_taco": "Pão, trigo, francês"})
+    assert t.validar_dietas(ok, {"Pão, trigo, francês"}) == []
+    assert any("não existe" in e for e in t.validar_dietas(ok, {"Outro"}))
+    ruim = _dietas({"dieta": "D1", "horario": "8h", "refeicao": "Cafe", "descricao": "Pao", "quantidade": "dois"})
+    erros = " ".join(t.validar_dietas(ruim, set()))
+    assert "horário" in erros and "quantidade" in erros
+
+
+def test_montar_comandos_dietas():
+    df = _dietas(
+        {"dieta": "D1", "dieta_observacao": "obs", "horario": "08:30", "refeicao": "Cafe", "descricao": "Pao",
+         "quantidade": "2", "unidade": "unidades", "alimento_taco": "Pão, trigo, francês"},
+        {"dieta": "D1", "dieta_observacao": "obs", "horario": "08:30", "refeicao": "Cafe", "descricao": "Cafe",
+         "quantidade": "1", "unidade": "copo"},
+        {"dieta": "D1", "dieta_observacao": "obs", "horario": "12:00", "refeicao": "Almoco", "descricao": "Arroz",
+         "quantidade": "3", "unidade": "colheres"},
+        {"dieta": "D2", "horario": "08:00", "refeicao": "Cafe", "descricao": "Leite", "quantidade": "1"},
+    )
+    comandos = t.montar_comandos_dietas(df)
+    textos = [sql for sql, _ in comandos]
+    for sql, parametros in comandos:
+        assert sql.count("%s") == len(parametros)
+    assert sum(s.startswith("INSERT INTO dietas ") for s in textos) == 2              # 2 dietas
+    assert sum(s.startswith("INSERT INTO dieta_refeicoes") for s in textos) == 3     # 3 refeições
+    assert sum(s.startswith("INSERT INTO dieta_refeicao_itens") for s in textos) == 4  # 4 itens
+    # tudo só vale se a dieta é nova (assim rodar de novo não duplica nem desfaz edições)
+    assert all("@nova = 1" in s for s in textos if s.startswith("INSERT"))
+    primeira_refeicao = next(p for s, p in comandos if s.startswith("INSERT INTO dieta_refeicoes"))
+    assert primeira_refeicao[0] == "08:30:00"                                         # horário completo
+    primeiro_item = next(p for s, p in comandos if s.startswith("INSERT INTO dieta_refeicao_itens"))
+    assert primeiro_item[0] == "Pão, trigo, francês" and primeiro_item[2] == 2.0
+    sem_alimento = [p for s, p in comandos if s.startswith("INSERT INTO dieta_refeicao_itens")][1]
+    assert sem_alimento[0] is None                                                    # item sem alimento ligado
 
 
 # --- integração: arquivos reais -----------------------------------------------------------
@@ -272,4 +329,45 @@ def test_integracao_comandos_sql_consistentes(resultado):
     _, comandos = t.montar_comandos_sql(resultado["alimentos"])
     for sql, parametros in comandos:
         assert sql.count("%s") == len(parametros)
-    assert len(comandos) == 597 + 1971 + 1971   # UPDATE TACO + INSERT IBGE + UPDATE IBGE
+    assert len(comandos) == 2 * (597 + 1971)   # um INSERT e um UPDATE para cada alimento (TACO e IBGE)
+
+
+# Ligações que não repetem o nome, mas são aproximações aceitas (o alimento exato não existe na TACO)
+APROXIMACOES_ACEITAS = {
+    ("Peito de frango, sem pele, assado", "Frango, inteiro, sem pele, assado"),
+    ("Peito pequeno de frango, sem pele, assado", "Frango, inteiro, sem pele, assado"),
+    ("Peito pequeno de frango assado", "Frango, inteiro, sem pele, assado"),
+    ("Ovos mexidos (com tomate e cebola)", "Ovo, de galinha, inteiro, cozido/10minutos"),
+    ("Mix: chuchu e cenoura cozidos", "Chuchu, cozido"),
+    ("Filé de peito de frango grelhado", "Frango, peito, sem pele, grelhado"),   # certo, só muda a ordem das palavras
+}
+
+
+def test_integracao_dietas_ligacoes_fazem_sentido(resultado):
+    """O antigo data.sql ligava por 'contém o texto' e errava (ex.: 'Pera' -> 'farofa temperada')."""
+    d = resultado["dietas"]
+    erradas = []
+    for descricao, alimento in sorted(set(zip(d["descricao"], d["alimento_taco"]))):
+        if alimento == "" or (descricao, alimento) in APROXIMACOES_ACEITAS:
+            continue
+        # a 1ª palavra da descrição ("Pera") precisa ser uma das 2 primeiras palavras do alimento
+        # ("Pêra, Williams, crua"); assim "temperada" não conta como "pera"
+        primeira = re.findall(r"[a-z0-9]+", t.sem_acento(descricao))[0].rstrip("s")
+        inicio_alimento = [p.rstrip("s") for p in re.findall(r"[a-z0-9]+", t.sem_acento(alimento))[:2]]
+        if primeira not in inicio_alimento:
+            erradas.append((descricao, alimento))
+    assert erradas == []
+
+
+def test_integracao_dietas_modelo(resultado):
+    d = resultado["dietas"]
+    assert d["dieta"].nunique() == 8
+    assert d.groupby(["dieta", "horario", "refeicao"]).ngroups == 39
+    assert len(d) == 175
+    nomes_taco = set(resultado["alimentos"].query("fonte == 'TACO'")["nome"])
+    ligados = d[d["alimento_taco"] != ""]["alimento_taco"]
+    assert set(ligados) <= nomes_taco                    # todo alimento citado existe na TACO
+    assert (d["alimento_taco"] == "").sum() == 42        # os mesmos itens que já ficavam sem alimento
+    comandos = t.montar_comandos_dietas(d)
+    for sql, parametros in comandos:
+        assert sql.count("%s") == len(parametros)

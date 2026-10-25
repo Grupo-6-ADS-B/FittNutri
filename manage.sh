@@ -7,6 +7,18 @@ case $ACTION in
     echo "Subindo ambiente de desenvolvimento..."
     docker compose -f docker-compose.dev.yml --env-file .env.dev up --build
     ;;
+  carga)
+    # Carrega alimentos (TACO e IBGE) e dietas-modelo no MySQL do container.
+    # Rode DEPOIS que o backend subiu (ele cria as tabelas). Pode repetir sem duplicar nada.
+    # Uso: ./manage.sh carga            (ambiente dev, container mysql-dev)
+    #      ./manage.sh carga mysql      (producao local, container mysql)
+    CONTAINER=${2:-mysql-dev}
+    echo "Carregando alimentos e dietas-modelo em $CONTAINER..."
+    # O arquivo entra pela entrada padrao (-i), assim nao ha caminho de arquivo para o Git Bash converter
+    docker exec -i "$CONTAINER" sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" --default-character-set=utf8mb4 "$MYSQL_DATABASE"' < dados/Query/carga_completa.sql || exit 1
+    docker exec "$CONTAINER" sh -c 'mysql -uroot -p"$MYSQL_ROOT_PASSWORD" "$MYSQL_DATABASE" -e "SELECT fonte, COUNT(*) AS total FROM alimentos GROUP BY fonte; SELECT COUNT(*) AS dietas FROM dietas;"'
+    echo "Carga concluida!"
+    ;;
   start)
     echo "Subindo containers..."
     docker-compose --env-file .env up -d
@@ -57,9 +69,10 @@ case $ACTION in
     docker network ls
     ;;
   *)
-    echo "Uso: ./manage.sh {dev|start|stop|restart|build|rebuild|logs [service]|status}"
+    echo "Uso: ./manage.sh {dev|carga|start|stop|restart|build|rebuild|logs [service]|status}"
     echo ""
     echo "  dev       Sobe o ambiente de desenvolvimento local (One-Command-Run)"
+    echo "  carga     Carrega alimentos e dietas-modelo no banco (rode depois que o backend subiu)"
     echo "  start     Sobe containers usando docker-compose.yml (produção)"
     echo "  stop      Para todos os containers"
     echo "  restart   Reinicia os containers"
