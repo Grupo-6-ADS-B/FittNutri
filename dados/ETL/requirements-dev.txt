@@ -1,0 +1,4 @@
+# Para rodar os testes e o notebook. Instalar com:  pip install -r requirements-dev.txt
+-r requirements.txt
+pytest>=8.0
+jupyter>=1.0       # abrir o tratamento.ipynb

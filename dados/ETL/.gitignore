@@ -1,0 +1,5 @@
+# Arquivos gerados pelo tratamento.py (rodar o script recria)
+alimentos_tratados.csv
+relatorio_medidas.csv
+__pycache__/
+.pytest_cache/

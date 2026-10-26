@@ -106,7 +106,7 @@ public class MealGatewayImpl implements MealGateway {
     }
 
     private void capturarSnapshots(MealItemModel item, FoodItensModel food, Double quantidade) {
-        if (quantidade == null || quantidade <= 0) return;
+        if (quantidade == null || quantidade <= 0 || food.getEnergiaKcal() == null) return;
         item.setSnapshotKcal(round(safe(food.getEnergiaKcal()) * quantidade));
         item.setSnapshotProteina(round(safe(food.getProteina()) * quantidade));
         item.setSnapshotCarboidrato(round(safe(food.getCarboidrato()) * quantidade));
