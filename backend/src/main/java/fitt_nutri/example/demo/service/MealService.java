@@ -1,7 +1,5 @@
 package fitt_nutri.example.demo.service;
 
-import com.lowagie.text.*;
-import com.lowagie.text.pdf.draw.LineSeparator;
 import org.springframework.transaction.annotation.Transactional;
 import fitt_nutri.example.demo.dto.MacrosDTO;
 import fitt_nutri.example.demo.dto.request.FullDietRequestDTO;
@@ -15,6 +13,7 @@ import fitt_nutri.example.demo.model.MealItemModel;
 import fitt_nutri.example.demo.model.MealModel;
 import fitt_nutri.example.demo.model.PatientHistoryModel;
 import fitt_nutri.example.demo.model.PatientModel;
+import fitt_nutri.example.demo.model.UserModel;
 import fitt_nutri.example.demo.repository.FoodItensRepository;
 import fitt_nutri.example.demo.repository.MealRepository;
 import fitt_nutri.example.demo.repository.PatientHistoryRepository;
@@ -25,15 +24,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.awt.Color;
-import java.io.ByteArrayOutputStream;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import com.lowagie.text.pdf.PdfPTable;
-import com.lowagie.text.pdf.PdfWriter;
-import com.lowagie.text.pdf.PdfPCell;
 
 @Slf4j
 @Service
@@ -45,6 +39,7 @@ public class MealService {
     private final PatientHistoryRepository patientHistoryRepository;
     private final FoodItensService foodItensService;
     private final FoodItensRepository foodItensRepository;
+    private final DietPdfService dietPdfService;
 
     // -------------------------------------------------------------------------
     // Verificações de propriedade (multi-tenant)
@@ -195,47 +190,67 @@ public class MealService {
     }
 
     /**
-     * Retorna macros de um item de refeição.
-     * Prioridade 1: snapshot gravado no banco (preciso e imutável).
-     * Prioridade 2: fallback por busca de nome (itens antigos sem snapshot).
+     * Retorna macros de um item de refeição (zeros quando não há valor).
+     * Para saber se o valor existe de verdade, use {@link #macrosDoItem(MealItemModel)}.
      */
     public MacrosDTO getMacrosFromMealItem(MealItemModel item) {
+        return macrosDoItem(item).orElse(new MacrosDTO(0.0, 0.0, 0.0, 0.0, 0.0));
+    }
+
+    /**
+     * Macros de um item de refeição, ou vazio se não for possível calcular.
+     * Prioridade 1: snapshot gravado no banco (preciso e imutável).
+     * Prioridade 2: busca pelo nome do alimento (itens antigos ou sem foodItemId), preferindo o
+     * nome idêntico ao nome que só "contém" o texto.
+     * "Vazio" significa "sem valor": o PDF mostra "—" em vez de um zero que enganaria.
+     */
+    public Optional<MacrosDTO> macrosDoItem(MealItemModel item) {
         if (item.getQuantidade() == null || item.getQuantidade() <= 0) {
-            return new MacrosDTO(0.0, 0.0, 0.0, 0.0, 0.0);
+            return Optional.empty();
         }
 
         if (item.getSnapshotKcal() != null) {
-            return new MacrosDTO(
+            return Optional.of(new MacrosDTO(
                     round(safe(item.getSnapshotProteina())),
                     round(safe(item.getSnapshotCarboidrato())),
                     round(safe(item.getSnapshotLipideos())),
                     round(safe(item.getSnapshotFibra())),
                     round(safe(item.getSnapshotKcal()))
-            );
+            ));
         }
 
-        // Fallback para itens criados antes dos snapshots
-        List<FoodItensModel> matches = foodItensRepository
-                .findByNomeContainingIgnoreCase(item.getAlimento());
+        // Fallback para itens criados antes dos snapshots ou sem foodItemId
+        String nome = item.getAlimento() == null ? "" : item.getAlimento().trim();
+        if (nome.isEmpty()) {
+            return Optional.empty();
+        }
+        List<FoodItensModel> matches = foodItensRepository.findByNomeContainingIgnoreCase(nome);
         if (matches.isEmpty()) {
             log.warn("Alimento não encontrado na base: '{}'", item.getAlimento());
-            return new MacrosDTO(0.0, 0.0, 0.0, 0.0, 0.0);
+            return Optional.empty();
         }
-        FoodItensModel food = matches.get(0);
+        FoodItensModel food = matches.stream()
+                .filter(f -> f.getNome() != null && f.getNome().trim().equalsIgnoreCase(nome))
+                .findFirst()
+                .orElse(matches.get(0));
+        if (food.getEnergiaKcal() == null) {
+            return Optional.empty(); // a tabela de origem não tem valor para este alimento
+        }
         Double q = item.getQuantidade();
-        return new MacrosDTO(
+        return Optional.of(new MacrosDTO(
                 round(safe(food.getProteina()) * q),
                 round(safe(food.getCarboidrato()) * q),
                 round(safe(food.getLipideos()) * q),
                 round(safe(food.getFibra()) * q),
                 round(safe(food.getEnergiaKcal()) * q)
-        );
+        ));
     }
 
     // -------------------------------------------------------------------------
     // Geração de PDF
     // -------------------------------------------------------------------------
 
+    /** Monta os dados do paciente e entrega ao {@link DietPdfService}, que desenha o PDF. */
     @Transactional
     public byte[] generateDietPdf(Integer patientId) throws Exception {
         PatientModel patient = patientRepository.findById(patientId)
@@ -244,35 +259,12 @@ public class MealService {
 
         List<MealModel> meals = repository.findByPatientId(patientId);
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        Document doc = new Document(PageSize.A4, 36, 36, 36, 36);
-        PdfWriter.getInstance(doc, out);
-        doc.open();
-
-        Font titleFont        = new Font(Font.HELVETICA, 18, Font.BOLD, new Color(0, 0, 0));
-        Font sectionTitleFont = new Font(Font.HELVETICA, 13, Font.BOLD, new Color(0, 0, 0));
-        Font textFont         = new Font(Font.HELVETICA, 11);
-        Font observationFont  = new Font(Font.HELVETICA, 10, Font.ITALIC, new Color(90, 90, 90));
-
-        Paragraph title = new Paragraph("PLANO ALIMENTAR", titleFont);
-        title.setAlignment(Element.ALIGN_CENTER);
-        title.setSpacingAfter(18f);
-        doc.add(title);
-
-        Paragraph name = new Paragraph("Paciente: " + patient.getNome(), textFont);
-        name.setSpacingAfter(8f);
-        doc.add(name);
-
         PatientHistoryModel latestHistory =
                 patientHistoryRepository.findTopByPatientModelIdOrderByDataConsultaDesc(patientId);
 
-        String dataConsulta = "-";
-        if (latestHistory != null && latestHistory.getDataConsulta() != null) {
-            dataConsulta = latestHistory.getDataConsulta()
-                    .format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        }
+        LocalDate dataConsulta = latestHistory != null ? latestHistory.getDataConsulta() : null;
 
-        String motivoConsulta = "-";
+        String motivoConsulta = null;
         if (latestHistory != null
                 && latestHistory.getMotivoConsulta() != null
                 && !latestHistory.getMotivoConsulta().isBlank()) {
@@ -281,88 +273,16 @@ public class MealService {
             motivoConsulta = patient.getMotivoConsulta();
         }
 
-        Paragraph consultationDate = new Paragraph("Data da consulta: " + dataConsulta, textFont);
-        consultationDate.setSpacingAfter(4f);
-        doc.add(consultationDate);
-
-        Paragraph consultationReason = new Paragraph("Motivo da consulta: " + motivoConsulta, textFont);
-        consultationReason.setSpacingAfter(20f);
-        doc.add(consultationReason);
-
-        for (MealModel meal : meals) {
-            LineSeparator separator = new LineSeparator();
-            separator.setLineColor(new Color(210, 210, 210));
-            doc.add(separator);
-
-            Paragraph topSpacing = new Paragraph("");
-            topSpacing.setSpacingBefore(12f);
-            doc.add(topSpacing);
-
-            PdfPTable mealTable = new PdfPTable(new float[]{4f, 1.4f, 1.2f});
-            mealTable.setWidthPercentage(100);
-
-            String cabecalho = (meal.getHorario() != null ? meal.getHorario() + " - " : "")
-                    + meal.getDescricao();
-            PdfPCell header = new PdfPCell(new Phrase(cabecalho, sectionTitleFont));
-            header.setBorder(PdfPCell.NO_BORDER);
-            header.setBackgroundColor(new Color(220, 245, 220));
-            header.setPadding(8f);
-            header.setColspan(3);
-            mealTable.setSpacingBefore(6f);
-            header.setPaddingBottom(10f);
-            mealTable.addCell(header);
-
-            addHeaderCell(mealTable, "Alimento");
-            addHeaderCell(mealTable, "Qtd.");
-            addHeaderCell(mealTable, "Unid.");
-
-            for (MealItemModel item : meal.getAlimentos()) {
-                addValueCell(mealTable, item.getAlimento());
-                addCenteredValueCell(mealTable,
-                        item.getQuantidade() != null ? item.getQuantidade().toString() : "");
-                addCenteredValueCell(mealTable, item.getUnidade());
-            }
-
-            Paragraph extraSpace = new Paragraph(" ");
-            extraSpace.setSpacingAfter(14f);
-            doc.add(extraSpace);
-            doc.add(mealTable);
-
-            MacrosDTO macros = getTotalMacrosFromMeal(meal);
-
-            Paragraph macroSpacing = new Paragraph("");
-            macroSpacing.setSpacingBefore(8f);
-            doc.add(macroSpacing);
-
-            PdfPTable macrosTable = new PdfPTable(new float[]{2.2f, 1f, 1f, 1f, 1f, 1f});
-            macrosTable.setWidthPercentage(100);
-            macrosTable.setSpacingAfter(10f);
-
-            addHeaderCell(macrosTable, "Macros");
-            addHeaderCell(macrosTable, "Kcal");
-            addHeaderCell(macrosTable, "Prot.");
-            addHeaderCell(macrosTable, "Carb.");
-            addHeaderCell(macrosTable, "Gord.");
-            addHeaderCell(macrosTable, "Fibra");
-
-            addValueCell(macrosTable, "");
-            addCenteredValueCell(macrosTable, format(macros.kcal()));
-            addCenteredValueCell(macrosTable, format(macros.proteina()));
-            addCenteredValueCell(macrosTable, format(macros.carboidrato()));
-            addCenteredValueCell(macrosTable, format(macros.lipideos()));
-            addCenteredValueCell(macrosTable, format(macros.fibra()));
-            doc.add(macrosTable);
-
-            if (meal.getObservacao() != null && !meal.getObservacao().isBlank()) {
-                Paragraph obs = new Paragraph("Observação: " + meal.getObservacao(), observationFont);
-                obs.setIndentationLeft(8f);
-                obs.setSpacingAfter(20f);
-                doc.add(obs);
-            }
-        }
-
-        doc.close();
-        return out.toByteArray();
+        UserModel nutricionista = patient.getNutricionista();
+        return dietPdfService.gerar(new DietPdfService.Dados(
+                patient.getNome(),
+                nutricionista != null ? nutricionista.getNome() : null,
+                nutricionista != null ? nutricionista.getCrn() : null,
+                dataConsulta,
+                motivoConsulta,
+                LocalDate.now(),
+                meals,
+                this::macrosDoItem));
     }
 
     // -------------------------------------------------------------------------
@@ -399,7 +319,7 @@ public class MealService {
 
     /** Calcula e persiste os macros escalados pela quantidade como snapshot. */
     private void capturarSnapshots(MealItemModel item, FoodItensModel food, Double quantidade) {
-        if (quantidade == null || quantidade <= 0) return;
+        if (quantidade == null || quantidade <= 0 || food.getEnergiaKcal() == null) return;
         item.setSnapshotKcal(round(safe(food.getEnergiaKcal()) * quantidade));
         item.setSnapshotProteina(round(safe(food.getProteina()) * quantidade));
         item.setSnapshotCarboidrato(round(safe(food.getCarboidrato()) * quantidade));
@@ -442,35 +362,5 @@ public class MealService {
 
     private double safe(Double value) {
         return value != null ? value : 0.0;
-    }
-
-    private String format(Double d) {
-        return String.format("%.1f", d != null ? d : 0.0);
-    }
-
-    private void addHeaderCell(PdfPTable t, String txt) {
-        PdfPCell c = new PdfPCell(
-                new Phrase(txt, new Font(Font.HELVETICA, 10, Font.BOLD, new Color(0, 0, 0))));
-        c.setHorizontalAlignment(Element.ALIGN_CENTER);
-        c.setBackgroundColor(new Color(232, 255, 232));
-        c.setPadding(6f);
-        t.addCell(c);
-    }
-
-    private void addValueCell(PdfPTable t, String txt) {
-        PdfPCell c = new PdfPCell(
-                new Phrase(txt != null ? txt : "", new Font(Font.HELVETICA, 10)));
-        c.setBorder(PdfPCell.NO_BORDER);
-        c.setPadding(4f);
-        t.addCell(c);
-    }
-
-    private void addCenteredValueCell(PdfPTable t, String txt) {
-        PdfPCell c = new PdfPCell(
-                new Phrase(txt != null ? txt : "", new Font(Font.HELVETICA, 10)));
-        c.setHorizontalAlignment(Element.ALIGN_CENTER);
-        c.setBorder(PdfPCell.NO_BORDER);
-        c.setPadding(4f);
-        t.addCell(c);
     }
 }

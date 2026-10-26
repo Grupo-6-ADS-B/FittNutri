@@ -92,4 +92,21 @@ public class FoodItensModel extends AuditableEntity {
 
     @Column(name = "vitaminaC")
     private Double vitaminaC;
+
+    // Medidas caseiras do front: gramas de 1 unidade da medida (null = alimento não usa a medida).
+    // Fonte: Tabela de Medidas Referidas do IBGE (POF 2008-2009), carregada por dados/ETL/tratamento.py
+    @Column(name = "gramas_unidade")
+    private Double gramasUnidade;
+
+    @Column(name = "gramas_colher_sopa")
+    private Double gramasColherSopa;
+
+    @Column(name = "gramas_colher_cha")
+    private Double gramasColherCha;
+
+    @Column(name = "gramas_xicara")
+    private Double gramasXicara;
+
+    @Column(name = "gramas_ml")
+    private Double gramasMl;
 }

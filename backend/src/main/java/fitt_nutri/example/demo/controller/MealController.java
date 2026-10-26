@@ -147,8 +147,8 @@ public class MealController {
             @PathVariable Integer patientId,
             @RequestBody(required = false) AiDietSuggestionRequestDTO request) {
 
-        String observacoes = request != null ? request.getObservacoes() : null;
-        FullDietRequestDTO draft = suggestDietUseCase.execute(patientId, observacoes);
+        FullDietRequestDTO draft = suggestDietUseCase.execute(patientId, request);
+
         return ResponseEntity.ok(draft);
     }
 

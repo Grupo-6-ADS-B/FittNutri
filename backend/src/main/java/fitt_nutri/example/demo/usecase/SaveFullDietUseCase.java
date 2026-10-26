@@ -39,6 +39,7 @@ public class SaveFullDietUseCase {
             item.setAlimento(i.getAlimento());
             item.setQuantidade(i.getQuantidade());
             item.setUnidade(i.getUnidade());
+            item.setFoodItemId(i.getFoodItemId());   // sem isso o item perdia o alimento e ficava sem valores
             return item;
         }).toList();
 
