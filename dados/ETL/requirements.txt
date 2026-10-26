@@ -1,0 +1,6 @@
+# Bibliotecas do ETL (tratamento.py). Instalar com:  pip install -r requirements.txt
+pandas>=2.1        # usa DataFrame.map (pandas 2.1 ou mais novo)
+numpy>=1.26
+openpyxl>=3.1      # lê TACO.xlsx
+xlrd>=2.0.1        # lê IBGE.xls e tabelamedidas_bd.xls
+mysql-connector-python>=8.0   # só para carregar no MySQL (python tratamento.py --mysql)

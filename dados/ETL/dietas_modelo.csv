@@ -1,0 +1,176 @@
+dieta,dieta_observacao,horario,refeicao,refeicao_observacao,descricao,quantidade,unidade,observacao,alimento_taco
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,08:30:00,Café da manhã,,"Ovo, galinha, inteiro, cozido, mexido",2.00,unidades,Unidades grandes (122 g),"Ovo, de galinha, inteiro, cozido/10minutos"
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,08:30:00,Café da manhã,,"Pera, crua",1.00,unidade,Unidade média (178 g),"Pêra, Williams, crua"
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,08:30:00,Café da manhã,,"Café, infusão 10%",1.00,copo,Copo pequeno (50 g),"Café, infusão 10%"
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,13:30:00,Almoço,,Arroz integral cozido,70.00,g,,"Arroz, integral, cozido"
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,13:30:00,Almoço,,Lentilha cozida,70.00,g,,"Lentilha, cozida"
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,13:30:00,Almoço,,Legumes Assados Leves e Saudáveis,90.00,g,Receita da Nutri Jane,
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,13:30:00,Almoço,,Peito de frango cozido desfiado,100.00,g,Receita da Nutri Jane,"Frango, peito, sem pele, cozido"
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,16:00:00,Lanche da tarde,,Receita de Pão Proteico da Nutri Jane Gonzalez,2.00,unidades,100 g,
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,16:00:00,Lanche da tarde,,Queijo ricota light,40.00,g,,
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,16:00:00,Lanche da tarde,,Laranja pêra crua,1.00,unidade,Unidade pequena (90 g),"Laranja, pêra, crua"
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,16:00:00,Lanche da tarde,,"Chá de erva-doce, infusão 5%",70.00,g,,
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,20:00:00,Jantar,,Arroz integral cozido,60.00,g,,"Arroz, integral, cozido"
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,20:00:00,Jantar,,Legumes Assados Leves e Saudáveis,90.00,g,Receita da Nutri Jane,
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,20:00:00,Jantar,,Salada de quinoa,50.00,g,,
+Dieta para paciente feminina que toma monjaro,Modelo baseado no plano alimentar de Angélica Almeida da Purificação Alves.,20:00:00,Jantar,,Tilápia assada,100.00,g,Receita da Nutri Jane,
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,07:00:00,Café da manhã,,Receita da Nutri Jane Suco verde para Diabetes,1.00,porção,300 g,
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,07:00:00,Café da manhã,,Receita de Pão Proteico da Nutri Jane Gonzalez,2.00,unidades,100 g,
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,07:00:00,Café da manhã,,"Café, infusão 10%",1.00,copo,Copo pequeno cheio (165 g),"Café, infusão 10%"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,07:00:00,Café da manhã,,Melão cru,1.00,fatia,Fatia grande (115 g),"Melão, cru"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,13:00:00,Almoço,,Rúcula crua,1.00,prato,Prato de sobremesa (60 g),"Rúcula, crua"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,13:00:00,Almoço,,Cenoura ralada crua,2.00,colheres de sopa,24 g,"Cenoura, crua"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,13:00:00,Almoço,,Salada de quinoa,100.00,g,,
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,13:00:00,Almoço,,Arroz integral cozido,3.00,colheres de sopa cheias,60 g,"Arroz, integral, cozido"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,13:00:00,Almoço,,Feijão carioca cozido,70.00,g,,"Feijão, carioca, cozido"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,13:00:00,Almoço,,"Peito de frango, sem pele, assado",1.00,peito,Peito pequeno (140 g),"Frango, inteiro, sem pele, assado"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,13:00:00,Almoço,,Laranja pêra crua,1.00,unidade,Unidade pequena (90 g),"Laranja, pêra, crua"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,16:00:00,Lanche da tarde,,Maçã Fuji com casca crua,1.00,unidade,Unidade pequena (80 g),"Maçã, Fuji, com casca, crua"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,16:00:00,Lanche da tarde,,Torta de Frango Nutri Jane,100.00,g,,
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,16:00:00,Lanche da tarde,,"Chá de erva-doce, infusão 5%",1.00,xícara,200 g,
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,19:00:00,Jantar,,Salada de quinoa,100.00,g,,
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,19:00:00,Jantar,,Alface americana crua,1.00,prato,"Prato raso cheio, picada (80 g)","Alface, americana, crua"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,19:00:00,Jantar,,Cenoura ralada crua,2.00,colheres de sopa cheias,24 g,"Cenoura, crua"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,19:00:00,Jantar,,Legumes Assados Leves e Saudáveis,1.00,porção,190 g - Receita da Nutri Jane,
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,19:00:00,Jantar,,Sardinha assada,3.00,unidades grandes,120 g,"Sardinha, assada"
+"Dieta para pré-diabetes, paciente masculino",Modelo baseado no plano alimentar de José Milton dos Santos.,19:00:00,Jantar,,Goiaba vermelha com casca crua,1.00,unidade,Unidade pequena (170 g),"Goiaba, vermelha, com casca, crua"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,06:00:00,Café da manhã,,Pão Proteico,2.00,unidades,100 g,
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,06:00:00,Café da manhã,,Leite de vaca desnatado,150.00,g,,"Leite, de vaca, desnatado, UHT"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,06:00:00,Café da manhã,,"Café, infusão 10%",150.00,g,,"Café, infusão 10%"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,06:00:00,Café da manhã,,Queijo ricota light,50.00,g,,
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,06:00:00,Café da manhã,,"Pera, crua",1.00,unidade,Unidade média (110 g),"Pêra, Williams, crua"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,13:00:00,Almoço,,Alface americana crua,1.00,prato,"Prato raso cheio, picada (80 g)","Alface, americana, crua"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,13:00:00,Almoço,,Tomate com semente cru,4.00,fatias,Fatias médias (60 g),"Tomate, com semente, cru"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,13:00:00,Almoço,,Cenoura ralada crua,2.00,colheres de sopa cheias,24 g,"Cenoura, crua"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,13:00:00,Almoço,,Chuchu cozido,2.00,colheres de arroz,90 g,"Chuchu, cozido"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,13:00:00,Almoço,,Abóbora cabotiá cozida,2.00,colheres de sopa cheias,72 g,"Abóbora, cabotian, cozida"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,13:00:00,Almoço,,Arroz integral cozido,3.00,colheres de sopa cheias,60 g,"Arroz, integral, cozido"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,13:00:00,Almoço,,Feijão carioca cozido,70.00,g,,"Feijão, carioca, cozido"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,13:00:00,Almoço,,Sardinha assada,4.00,unidades grandes,160 g,"Sardinha, assada"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,13:00:00,Almoço,,Abacaxi cru,1.00,fatia,Fatia média (75 g),"Abacaxi, cru"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,16:00:00,Lanche da tarde,,Gelatina Proteica,1.00,porção,180 g,
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,16:00:00,Lanche da tarde,,Melão cru,1.00,fatia,Fatia grande (115 g),"Melão, cru"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,20:00:00,Jantar,,Salada de quinoa,100.00,g,,
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,20:00:00,Jantar,,Arroz integral cozido,60.00,g,3 colheres de sopa cheias,"Arroz, integral, cozido"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,20:00:00,Jantar,,Chuchu cozido,80.00,g,4 colheres de sopa cheias,"Chuchu, cozido"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,20:00:00,Jantar,,"Peito pequeno de frango, sem pele, assado",140.00,g,,"Frango, inteiro, sem pele, assado"
+Dieta para obesidade,Modelo baseado no plano alimentar de Samuel Rocha Chaves.,20:00:00,Jantar,,Laranja lima crua,1.00,unidade,Unidade pequena (90 g),"Laranja, lima, crua"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,05:40:00,Café da manhã,,Suco verde,1.00,porção,280 g,
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,05:40:00,Café da manhã,,Morango cru,8.00,unidades,Unidades pequenas (56 g),"Morango, cru"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,05:40:00,Café da manhã,,Pão Proteico,2.00,unidades,100 g,
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,12:00:00,Almoço,,Abóbora cabotiá cozida,1.00,escumadeira média cheia,100 g,"Abóbora, cabotian, cozida"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,12:00:00,Almoço,,Alface americana crua,1.00,prato raso cheio,Picada (80 g),"Alface, americana, crua"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,12:00:00,Almoço,,Tomate com semente cru,4.00,fatias médias,60 g,"Tomate, com semente, cru"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,12:00:00,Almoço,,Agrião cru,5.00,ramos médios,25 g,"Agrião, cru"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,12:00:00,Almoço,,Azeite de oliva extra virgem,1.00,colher de café,1 g,"Azeite, de oliva, extra virgem"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,12:00:00,Almoço,,Arroz integral cozido,1.00,colher de arroz cheia,63 g,"Arroz, integral, cozido"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,12:00:00,Almoço,,Lentilha cozida,4.00,colheres de sopa,72 g,"Lentilha, cozida"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,12:00:00,Almoço,,Sardinha assada,4.00,unidades grandes,160 g,"Sardinha, assada"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,12:00:00,Almoço,,Abacaxi cru,1.00,fatia,Fatia média (75 g),"Abacaxi, cru"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,15:00:00,Lanche da tarde,,Chá de Hibisco e Cavalinha,1.00,xícara,238 g,
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,15:00:00,Lanche da tarde,,Maçã Fuji com casca crua,1.00,unidade,Unidade pequena (80 g),"Maçã, Fuji, com casca, crua"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,15:00:00,Lanche da tarde,,Torta de Frango Nutri Jane,100.00,g,,
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,20:00:00,Jantar,,Cenoura cozida picada,2.00,colheres de arroz,80 g,"Cenoura, cozida"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,20:00:00,Jantar,,Chuchu cozido picado,3.00,colheres de arroz,135 g,"Chuchu, cozido"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,20:00:00,Jantar,,Salada de quinoa,100.00,g,,
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,20:00:00,Jantar,,Peito pequeno de frango assado,140.00,g,,"Frango, inteiro, sem pele, assado"
+Dieta para lipedema,Modelo baseado no plano alimentar de Vaneide Marques da Rocha Chaves.,20:00:00,Jantar,,Goiaba vermelha com casca crua,1.00,unidade,Unidade pequena (170 g),"Goiaba, vermelha, com casca, crua"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,08:00:00,Café da manhã,,Suco verde,1.00,porção,"Ingredientes: Couve, Pepino, Água, Glutamina em pó. Tomar em jejum.",
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,08:00:00,Café da manhã,,Omelete,1.00,porção,"2 Ovos inteiros, 40g Cenoura ralada, 1 Tomate picado sem semente, temperos",
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,08:00:00,Café da manhã,,Iogurte natural desnatado Nestlé,160.00,g,,"Iogurte, natural, desnatado"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,08:00:00,Café da manhã,,Aveia em flocos,30.00,g,,"Aveia, flocos, crua"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,08:00:00,Café da manhã,,Mamão picado,200.00,g,,"Mamão, Formosa, cru"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,08:00:00,Café da manhã,,Café sem açúcar,150.00,ml,Com adoçante sucralose Zero Cal,"Café, infusão 10%"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,11:30:00,Almoço,,Arroz integral cozido,100.00,g,,"Arroz, integral, cozido"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,11:30:00,Almoço,,Feijão cozido com caldo,80.00,g,,"Feijão, carioca, cozido"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,11:30:00,Almoço,,Filé de peito de frango grelhado,100.00,g,,"Frango, peito, sem pele, grelhado"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,11:30:00,Almoço,,Abobrinha e brócolis cozidos no vapor,180.00,g,,"Abobrinha, italiana, cozida"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,11:30:00,Almoço,,Alface americana,1.00,prato raso,Salada à vontade,"Alface, americana, crua"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,11:30:00,Almoço,,Tomate,1.00,unidade média,Temperar salada com 1/2 colher de sopa de azeite e sal à gosto,"Tomate, com semente, cru"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,14:30:00,Lanche da tarde,,Whey 3w Vitafor,31.00,g,Bater tudo no liquidificador com 250ml de água,
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,14:30:00,Lanche da tarde,,Banana prata picada,100.00,g,,"Banana, prata, crua"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,14:30:00,Lanche da tarde,,Aveia em flocos,40.00,g,,"Aveia, flocos, crua"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,18:30:00,Jantar,,Arroz integral cozido,120.00,g,,"Arroz, integral, cozido"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,18:30:00,Jantar,,Filé de peito de frango grelhado,100.00,g,,"Frango, peito, sem pele, grelhado"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,18:30:00,Jantar,,Abobrinha e brócolis cozidos no vapor,200.00,g,,"Abobrinha, italiana, cozida"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,18:30:00,Jantar,,Alface americana,1.00,prato raso,Salada à vontade,"Alface, americana, crua"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,18:30:00,Jantar,,Tomate,1.00,unidade média,Temperar salada com 1/2 colher de sopa de azeite e sal à gosto,"Tomate, com semente, cru"
+Dieta para gordura no fígado,Modelo baseado no plano alimentar de Tamara Alcantra Bittencourt.,21:30:00,Ceia,,"Chá calmante sem açúcar (Camomila, Melissa, Erva-doce, Erva-Cidreira)",250.00,ml,,
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,09:00:00,Café da manhã,,Crepioca de banana,155.00,g,"Receita com ovo, banana, aveia em flocos e tapioca",
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,09:00:00,Café da manhã,,Iogurte natural desnatado Nestlé,160.00,g,,"Iogurte, natural, desnatado"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,09:00:00,Café da manhã,,Morango cru,6.00,unidades pequenas,42 g,"Morango, cru"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,12:00:00,Lanche da manhã,,Ameixa preta fresca crua,1.00,unidade grande,52 g,
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,12:00:00,Lanche da manhã,,Castanha-do-Brasil crua,4.00,unidades,16 g,"Castanha-do-Brasil, crua"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,14:00:00,Almoço,,Frango grelhado,60.00,g,,"Frango, peito, sem pele, grelhado"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,14:00:00,Almoço,,Feijão carioca cozido,80.00,g,,"Feijão, carioca, cozido"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,14:00:00,Almoço,,Arroz integral cozido,80.00,g,,"Arroz, integral, cozido"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,14:00:00,Almoço,,Laranja média,1.00,unidade média,180 g (ou 125g de goiaba / 160g de mexerica),"Laranja, pêra, crua"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,14:00:00,Almoço,,Beterraba cozida,80.00,g,,"Beterraba, cozida"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,14:00:00,Almoço,,Couve manteiga refogada,70.00,g,,"Couve, manteiga, refogada"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,14:00:00,Almoço,,Alface roxa crua picada,1.00,prato raso cheio,80 g,"Alface, roxa, crua"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,14:00:00,Almoço,,Tomate com semente cru,1.00,unidade média,100 g,"Tomate, com semente, cru"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,17:00:00,Lanche da tarde,,Torta de Frango Nutri Jane,130.00,g,Receita da Nutri Jane,
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,17:00:00,Lanche da tarde,,"Chá de camomila, infusão",1.00,xícara de chá,237 g,
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,19:30:00,Jantar,,Filé de merluza assado,70.00,g,,"Merluza, filé, assado"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,19:30:00,Jantar,,Arroz integral cozido,80.00,g,,"Arroz, integral, cozido"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,19:30:00,Jantar,,Beterraba cozida,90.00,g,,"Beterraba, cozida"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,19:30:00,Jantar,,Couve manteiga refogada,100.00,g,,"Couve, manteiga, refogada"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,19:30:00,Jantar,,Abacaxi,1.00,fatia média,75 g (ou 53g de goiaba / 68g de mexerica),"Abacaxi, cru"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,19:30:00,Jantar,,Alface roxa crua picada,1.00,prato raso cheio,80 g,"Alface, roxa, crua"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,19:30:00,Jantar,,Tomate,1.00,unidade média,100 g,"Tomate, com semente, cru"
+Dieta para reeducação alimentar e anemia ferropriva,Modelo baseado no plano alimentar de Jessica Lucy de Albuquerque.,22:30:00,Ceia,,Kiwi cru,2.00,unidades médias,152 g,"Kiwi, cru"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,07:30:00,Café da manhã,,Pão integral,2.00,fatias,50 g,
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,07:30:00,Café da manhã,,Ovo mexido,2.00,unidades,92 g,"Ovo, de galinha, inteiro, cozido/10minutos"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,07:30:00,Café da manhã,,Manga picada,70.00,g,,"Manga, Palmer, crua"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,07:30:00,Café da manhã,,Aveia,15.00,g,,"Aveia, flocos, crua"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,07:30:00,Café da manhã,,Café sem açúcar,1.00,xícara,200 ml,"Café, infusão 10%"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,10:30:00,Colação,,Iogurte integral Nestlé,170.00,g,,
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,10:30:00,Colação,,Castanha do Pará,4.00,unidades,,"Castanha-do-Brasil, crua"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,10:30:00,Colação,,Banana prata picada,1.00,unidade média,65 g,"Banana, prata, crua"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,10:30:00,Colação,,Aveia,15.00,g,,"Aveia, flocos, crua"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,12:00:00,Almoço,,Arroz integral cozido,4.00,colheres de sopa,80 g,"Arroz, integral, cozido"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,12:00:00,Almoço,,Feijão com caldo,1.00,concha média,80 g,"Feijão, carioca, cozido"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,12:00:00,Almoço,,Filé de peito de frango grelhado,60.00,g,,"Frango, peito, sem pele, grelhado"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,12:00:00,Almoço,,Batata-doce cozida,100.00,g,,"Batata, doce, cozida"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,12:00:00,Almoço,,Brócolis cozido,3.00,colheres de sopa,30 g,"Brócolis, cozido"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,12:00:00,Almoço,,Laranja pequena,1.00,unidade,90 g,"Laranja, pêra, crua"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,12:00:00,Almoço,,Alface,0.50,prato raso,,"Alface, americana, crua"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,12:00:00,Almoço,,Tomate,1.00,unidade,50 g,"Tomate, com semente, cru"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,12:00:00,Almoço,,Cenoura ralada,2.00,colheres de sopa,,"Cenoura, crua"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,12:00:00,Almoço,,Azeite de oliva extra virgem,1.00,colher de sopa,8 g,
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,16:00:00,Lanche da tarde,,Hipercalórico Max Titanium (Morango),100.00,g,Bater no liquidificador com 200ml de água,
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,20:00:00,Jantar,,Filé de peito de frango grelhado,60.00,g,,"Frango, peito, sem pele, grelhado"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,20:00:00,Jantar,,Batata-doce cozida,140.00,g,,"Batata, doce, cozida"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,20:00:00,Jantar,,Brócolis cozido,3.00,colheres de sopa,30 g,"Brócolis, cozido"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,20:00:00,Jantar,,Alface,0.50,prato raso,,"Alface, americana, crua"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,20:00:00,Jantar,,Tomate,1.00,unidade,50 g,"Tomate, com semente, cru"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,20:00:00,Jantar,,Cenoura ralada,2.00,colheres de sopa,,"Cenoura, crua"
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,20:00:00,Jantar,,Azeite de oliva extra virgem,1.00,colher de sopa,8 g,
+"Plano Alimentar femenino, ectomorfo - hipertrofia",Modelo baseado no plano alimentar de Lara Fabia dos Santos Silva.,22:30:00,Ceia,,Hipercalórico Max Titanium (Morango),80.00,g,Bater no liquidificador com 150ml de água,
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,08:00:00,Café da manhã,,Ovos mexidos (com tomate e cebola),2.00,unidades,,"Ovo, de galinha, inteiro, cozido/10minutos"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,08:00:00,Café da manhã,,Aveia flocos grossos,1.00,colher de sopa,,"Aveia, flocos, crua"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,08:00:00,Café da manhã,,Melancia,1.00,fatia média,150 g,"Melancia, crua"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,08:00:00,Café da manhã,,Café sem açúcar,200.00,ml,Com adoçante sucralose,"Café, infusão 10%"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,11:00:00,Colação,,Iogurte light,170.00,g,,
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,11:00:00,Colação,,Maçã picada,1.00,unidade,130 g,"Maçã, Fuji, com casca, crua"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,11:00:00,Colação,,Castanha do Pará,4.00,unidades,,"Castanha-do-Brasil, crua"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,13:00:00,Almoço,,Arroz integral cozido,5.00,colheres de sopa,100 g,"Arroz, integral, cozido"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,13:00:00,Almoço,,Feijão com caldo,1.00,concha média,80 g,"Feijão, carioca, cozido"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,13:00:00,Almoço,,Peito de frango grelhado,120.00,g,,"Frango, peito, sem pele, grelhado"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,13:00:00,Almoço,,Acelga refogada com pouco óleo,1.00,colher grande de servir cheia,,"Acelga, crua"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,13:00:00,Almoço,,Alface,1.00,prato,Salada à vontade,"Alface, americana, crua"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,13:00:00,Almoço,,Tomate médio,1.00,unidade,,"Tomate, com semente, cru"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,13:00:00,Almoço,,Pepino,0.33,unidade,,"Pepino, cru"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,13:00:00,Almoço,,"Chá escuro (preto, mate ou verde) sem açúcar",200.00,ml,,
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,16:00:00,Lanche da tarde,,Crepioca de banana,1.00,unidade,,
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,16:00:00,Lanche da tarde,,Café sem açúcar,200.00,ml,Com adoçante sucralose,"Café, infusão 10%"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,19:00:00,Jantar,,Arroz integral,5.00,colheres de sopa,100 g,"Arroz, integral, cozido"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,19:00:00,Jantar,,Filé de Merluza assado (com pouco óleo),120.00,g,,"Merluza, filé, assado"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,19:00:00,Jantar,,Mix: chuchu e cenoura cozidos,70.00,g,,"Chuchu, cozido"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,19:00:00,Jantar,,Alface,1.00,prato,Salada à vontade,"Alface, americana, crua"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,19:00:00,Jantar,,Tomate médio,1.00,unidade,,"Tomate, com semente, cru"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,19:00:00,Jantar,,Pepino,0.33,unidade,,"Pepino, cru"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,19:00:00,Jantar,,"Chá escuro (preto, mate ou verde) sem açúcar",200.00,ml,,
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,22:00:00,Ceia,,Shake: Whey 3w Vitafor,1.00,dose,"31g. Bater no liquidificador com 200ml de água, leite vegetal sem açúcar ou leite desnatado",
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,22:00:00,Ceia,,Banana prata,1.00,unidade,60 g,"Banana, prata, crua"
+Plano Alimentar feminino - ferritina alta,Modelo baseado no plano alimentar de Eunice Oliveira dos Santos.,22:00:00,Ceia,,Aveia,1.00,colher de sopa,15 g,"Aveia, flocos, crua"

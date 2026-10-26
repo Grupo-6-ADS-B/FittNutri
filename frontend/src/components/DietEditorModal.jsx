@@ -43,7 +43,8 @@ export default function DietEditorModal({ open, onClose, dietModel, patientId, o
           observacao: ref.observacao || '',
           itens: (ref.itens || ref.alimentos || []).map(item => ({
             id: item.id,
-            alimentoId: item.alimentoId || null,
+            alimentoId: item.alimentoId || item.foodItemId || null,
+            nomeLigado: item.descricao || item.nomeAlimento || item.alimento || item.nome || '',
             nomeAlimento: item.descricao || item.nomeAlimento || item.alimento || item.nome || '',
             quantidade: item.quantidade !== undefined && item.quantidade !== null ? item.quantidade : 100,
             unidade: item.unidade || 'g',
@@ -190,6 +191,8 @@ export default function DietEditorModal({ open, onClose, dietModel, patientId, o
             observacao: ref.observacao || '',
             alimentos: ref.itens.map(item => ({
               alimento: item.nomeAlimento || item.descricao || 'Alimento sem nome',
+              // só envia o código do alimento se o nome não foi trocado (senão o PDF mostraria valores de outro alimento)
+              foodItemId: item.alimentoId && item.nomeAlimento === item.nomeLigado ? item.alimentoId : null,
               quantidade: parseFloat(item.quantidade) || 0,
               unidade: item.unidade || 'g'
             }))
@@ -377,6 +380,10 @@ export default function DietEditorModal({ open, onClose, dietModel, patientId, o
                       onChange={(e, value) => {
                         const selectedName = typeof value === 'string' ? value : value?.nome || '';
                         handleFoodItemChange(mealIndex, itemIndex, 'nomeAlimento', selectedName);
+                        if (value && typeof value === 'object' && value.id) {
+                          handleFoodItemChange(mealIndex, itemIndex, 'alimentoId', value.id);
+                          handleFoodItemChange(mealIndex, itemIndex, 'nomeLigado', selectedName);
+                        }
                       }}
                       loading={loadingAlimentos}
                       renderInput={(params) => (

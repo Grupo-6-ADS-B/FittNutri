@@ -14,7 +14,7 @@
 4. [Configurar DNS no Namecheap](#4-configurar-dns-no-namecheap)
 5. [Aguardar validação do certificado ACM](#5-aguardar-validação-do-certificado-acm)
 6. [Verificar saúde da aplicação](#6-verificar-saúde-da-aplicação)
-7. [Carregar dados iniciais (alimentos TACO)](#7-carregar-dados-iniciais-alimentos-taco)
+7. [Carregar dados iniciais (alimentos e dietas-modelo)](#7-carregar-dados-iniciais-alimentos-e-dietas-modelo)
 8. [Criar usuário de teste](#8-criar-usuário-de-teste)
 9. [Validar endpoint de busca de alimentos](#9-validar-endpoint-de-busca-de-alimentos)
 10. [Redeploy após mudança de código](#10-redeploy-após-mudança-de-código)
@@ -237,12 +237,14 @@ nginx      Up    0.0.0.0:8080->8080/tcp
 
 ---
 
-## 7. Carregar dados iniciais (alimentos TACO)
+## 7. Carregar dados iniciais (alimentos e dietas-modelo)
 
-> **Por que fazer isso manualmente?**
-> `spring.sql.init.mode=never` está configurado no perfil `prod` para evitar que
-> o `data.sql` execute a cada restart (o UPDATE que divide valores por 100 seria
-> aplicado repetidamente, corrompendo os dados).
+> **Como funciona agora:** o backend **não carrega mais dados ao subir** (o antigo `data.sql` foi
+> removido, porque repetia os alimentos a cada reinício). Quem carrega os alimentos (TACO e IBGE)
+> e as dietas-modelo é o ETL (`dados/ETL`), que gera o script `dados/Query/carga_completa.sql`.
+> A carga pode ser repetida sem duplicar nada.
+
+**Pré-requisito:** o backend já subiu pelo menos uma vez (assim o Hibernate criou as tabelas).
 
 Na **primeira vez** (ou após recriar o banco), execute:
 
@@ -260,15 +262,11 @@ aws ssm send-command \
 SCRIPT='
 DB_PASS=$(grep "SPRING_DATASOURCE_PASSWORD" /home/ubuntu/FittNutri/.env | cut -d= -f2 | tr -d "\r\n")
 DB_IP=$(grep "SPRING_DATASOURCE_URL" /home/ubuntu/FittNutri/.env | grep -oP "(?<=//)[0-9.]+")
+cd /home/ubuntu/FittNutri && git pull --ff-only
+mysql -h "$DB_IP" -uroot -p"$DB_PASS" --default-character-set=utf8mb4 fittnutri < /home/ubuntu/FittNutri/dados/Query/carga_completa.sql
 mysql -h "$DB_IP" -uroot -p"$DB_PASS" fittnutri -e "
-  SET FOREIGN_KEY_CHECKS=0;
-  TRUNCATE TABLE alimentos;
-  SET FOREIGN_KEY_CHECKS=1;
-"
-mysql -h "$DB_IP" -uroot -p"$DB_PASS" fittnutri < /home/ubuntu/FittNutri/backend/src/main/resources/data.sql
-mysql -h "$DB_IP" -uroot -p"$DB_PASS" fittnutri -e "
-  UPDATE alimentos SET fonte = '"'"'TACO'"'"' WHERE fonte IS NULL OR fonte = '"'"''"'"';
-  SELECT COUNT(*) as total, fonte FROM alimentos GROUP BY fonte;
+  SELECT fonte, COUNT(*) AS total FROM alimentos GROUP BY fonte;
+  SELECT COUNT(*) AS dietas FROM dietas;
 "
 echo "Carga concluida"
 '
@@ -279,13 +277,16 @@ aws ssm send-command \
   --parameters "commands=[\"echo '${ENCODED}' | base64 -d | bash\"]"
 ```
 
-**Resultado esperado:** `597 | TACO` (597 alimentos da tabela TACO com `fonte = 'TACO'`).
+**Resultado esperado:** `TACO 597`, `IBGE 1971` e `8` dietas (se o banco foi criado do zero).
 
-> **Por que `fonte` fica vazio sem o UPDATE?**
-> O `data.sql` não inclui a coluna `fonte` no INSERT. MySQL em modo não-estrito
-> insere string vazia `''` em vez de NULL quando a coluna é NOT NULL sem DEFAULT.
-> A query `searchByNameForNutricionista` filtra por `fonte = 'TACO'`, então sem
-> o UPDATE a busca não retorna nada.
+> **Banco que já rodou o `data.sql` antigo:** como ele reinseria os alimentos a cada reinício,
+> pode haver alimentos repetidos. Para conferir:
+> ```sql
+> SELECT fonte, TRIM(nome) AS nome, COUNT(*) AS vezes FROM alimentos
+> GROUP BY fonte, TRIM(nome) HAVING COUNT(*) > 1;
+> ```
+> Se aparecer alguma linha, **não apague no escuro**: dietas e refeições guardam o id do alimento.
+> A carga nova atualiza todas as cópias e não cria novas.
 
 ---
 
@@ -415,21 +416,12 @@ docker compose -f docker-compose.prod.yml --env-file .env up -d --force-recreate
 **Solução:** O `user-data.sh.tpl` detecta automaticamente. Se ainda falhar, verifique
 se o volume EBS foi anexado na AWS Console.
 
-### data.sql dividindo valores repetidamente
-**Sintoma:** `energiaKcal = 1.23E-78` na busca de alimentos.
-**Causa:** `spring.sql.init.mode=always` fazia o `data.sql` rodar a cada restart,
-e o UPDATE que divide por 100 acumulava.
-**Solução:** `application-prod.properties` tem `spring.sql.init.mode=never`.
-Para corrigir dados corrompidos, siga o passo 7 (TRUNCATE + recarga manual).
-
-### fonte dos alimentos vazia — busca retorna 404
-**Sintoma:** `GET /food-itens/search-part?nomeParte=arroz` retorna 404 mesmo com dados no banco.
-**Causa:** MySQL inseriu `fonte = ''` (não NULL) porque o INSERT do `data.sql`
-não especifica a coluna `fonte`.
-**Solução:** Execute manualmente:
-```sql
-UPDATE alimentos SET fonte = 'TACO' WHERE fonte IS NULL OR fonte = '';
-```
+### Alimentos repetidos, `fonte` vazia ou valores divididos várias vezes
+**Sintomas:** `energiaKcal = 1.23E-78`, busca de alimentos retornando 404 ou o mesmo alimento duas vezes.
+**Causa:** eram problemas do antigo `data.sql`, que rodava a cada reinício do backend (inseria de novo,
+dividia por 100 de novo e deixava `fonte` vazia). Ele foi removido: a carga agora é do ETL e é repetível.
+**Solução:** rode a carga do passo 7 (ela atualiza os alimentos existentes). Se houver alimentos repetidos
+de uma carga antiga, use a consulta do passo 7 para localizá-los.
 
 ### Hash bcrypt corrompido por interpolação de shell
 **Sintoma:** Login retorna `Bad credentials` mesmo com hash no banco.
