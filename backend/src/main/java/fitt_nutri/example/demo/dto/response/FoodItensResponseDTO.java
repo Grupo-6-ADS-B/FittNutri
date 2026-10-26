@@ -26,5 +26,10 @@ public record FoodItensResponseDTO(
         Double riboflavina,
         Double piridoxina,
         Double niacina,
-        Double vitaminaC
+        Double vitaminaC,
+        Double gramasUnidade,
+        Double gramasColherSopa,
+        Double gramasColherCha,
+        Double gramasXicara,
+        Double gramasMl
 ) {}
